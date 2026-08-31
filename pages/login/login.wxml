@@ -1,0 +1,24 @@
+<view class="login-page">
+  <view class="login-brand">
+    <view class="brand-mark">知</view>
+    <text class="brand-name">知鹿私课</text>
+  </view>
+
+  <view class="login-content">
+    <text class="login-title">开始你的专属学习</text>
+    <text class="login-copy">授权手机号后，即可同步课程和学习计划。</text>
+  </view>
+
+  <view class="login-footer" wx:if="{{!checkingSession}}">
+    <button
+      class="phone-button"
+      open-type="getPhoneNumber"
+      bindgetphonenumber="handlePhoneAuthorization"
+      loading="{{authorizing}}"
+      disabled="{{authorizing}}"
+    >授权手机号登录</button>
+    <text class="login-notice">登录即表示你同意使用手机号完成账户验证。</text>
+  </view>
+
+  <view class="checking-copy" wx:else>正在确认登录状态</view>
+</view>

@@ -90,28 +90,48 @@ function getStoredToken() {
   return wx.getStorageSync(TOKEN_KEY) || ''
 }
 
-async function exchangeWeChatCode() {
+async function signInWithPhoneCode(phoneCode) {
+  if (!phoneCode && !config.MOCK_MODE) {
+    throw new Error('未获取到微信手机号授权，请重试。')
+  }
+
+  if (config.MOCK_MODE) {
+    wx.setStorageSync(TOKEN_KEY, 'mock-phone-authorized')
+    return demoUser
+  }
+
   if (!config.AUTH_EXCHANGE_URL) {
-    throw new Error('微信登录尚未配置，请先在 Zion 绑定小程序并设置 code 换取 JWT 的服务地址。')
+    throw new Error('微信登录服务尚未配置。')
   }
 
   const loginResult = await wx.login()
+  if (!loginResult.code) {
+    throw new Error('微信登录凭证获取失败，请重试。')
+  }
+
   const result = await request({
     url: config.AUTH_EXCHANGE_URL,
-    data: { code: loginResult.code }
+    data: {
+      loginCode: loginResult.code,
+      phoneCode
+    }
   })
 
-  if (!result.token) {
+  const auth = result.data || result
+  if (!auth.token) {
     throw new Error('微信登录未返回 Zion Runtime JWT。')
   }
 
-  wx.setStorageSync(TOKEN_KEY, result.token)
-  return result.token
+  wx.setStorageSync(TOKEN_KEY, auth.token)
+  return auth.user || loadCurrentUser()
 }
 
 async function getRuntimeToken() {
   const storedToken = getStoredToken()
-  return storedToken || exchangeWeChatCode()
+  if (!storedToken) {
+    throw new Error('请先授权手机号登录。')
+  }
+  return storedToken
 }
 
 async function graphql(query, variables) {
@@ -144,6 +164,21 @@ async function loadCurrentUser() {
     return demoUser
   }
   return invokeActionFlow(config.ACTION_FLOWS.INITIALIZE_CURRENT_USER)
+}
+
+async function restoreAuthenticatedUser() {
+  if (!getStoredToken()) return null
+
+  try {
+    return await loadCurrentUser()
+  } catch (error) {
+    wx.removeStorageSync(TOKEN_KEY)
+    return null
+  }
+}
+
+function signOut() {
+  wx.removeStorageSync(TOKEN_KEY)
 }
 
 async function loadSubsidiaries() {
@@ -180,6 +215,9 @@ async function loadStudyLearners() {
 }
 
 module.exports = {
+  signInWithPhoneCode,
+  restoreAuthenticatedUser,
+  signOut,
   loadCurrentUser,
   loadSubsidiaries,
   loadCourseHome,
