@@ -1,0 +1,164 @@
+.page-shell {
+  min-height: 100vh;
+  padding: 42rpx 40rpx 88rpx;
+  box-sizing: border-box;
+}
+
+.page-title {
+  display: block;
+  color: #20231F;
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.page-copy {
+  display: block;
+  margin-top: 12rpx;
+  color: #72746C;
+  font-size: 27rpx;
+}
+
+.learner-switcher {
+  width: calc(100vw - 80rpx);
+  margin-top: 46rpx;
+  white-space: nowrap;
+}
+
+.learner-switcher-inner {
+  display: inline-flex;
+  gap: 16rpx;
+  padding-right: 30rpx;
+}
+
+.learner-chip {
+  display: inline-block;
+  min-width: 134rpx;
+  margin: 0;
+  padding: 0 24rpx;
+  border: 2rpx solid #DDE0D7;
+  border-radius: 8rpx;
+  background: #FCFCF8;
+  color: #5C625A;
+  font-size: 27rpx;
+  line-height: 66rpx;
+}
+
+.learner-chip-active {
+  border-color: #147D73;
+  background: #147D73;
+  color: #FFFFFF;
+}
+
+.learner-summary {
+  display: flex;
+  align-items: center;
+  margin-top: 42rpx;
+}
+
+.learner-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 78rpx;
+  height: 78rpx;
+  background: #F1C978;
+  border-radius: 8rpx;
+  color: #4A3510;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.learner-name,
+.learner-relation {
+  display: block;
+  margin-left: 20rpx;
+}
+
+.learner-name {
+  color: #20231F;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.learner-relation {
+  margin-top: 8rpx;
+  color: #72746C;
+  font-size: 25rpx;
+}
+
+.plan-list {
+  margin-top: 40rpx;
+}
+
+.plan-card,
+.empty-state {
+  margin-top: 20rpx;
+  padding: 34rpx 30rpx;
+  border: 2rpx solid #E2E4DA;
+  border-radius: 8rpx;
+  background: #FCFCF8;
+}
+
+.plan-title {
+  display: block;
+  color: #20231F;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.plan-name {
+  display: block;
+  margin-top: 10rpx;
+  color: #72746C;
+  font-size: 25rpx;
+}
+
+.schedule-item {
+  display: flex;
+  padding-top: 26rpx;
+}
+
+.schedule-line {
+  width: 4rpx;
+  min-height: 66rpx;
+  margin-right: 20rpx;
+  background: #B8D7CF;
+}
+
+.schedule-title,
+.schedule-meta {
+  display: block;
+}
+
+.schedule-title {
+  color: #3E443D;
+  font-size: 28rpx;
+}
+
+.schedule-meta {
+  margin-top: 9rpx;
+  color: #72746C;
+  font-size: 24rpx;
+}
+
+.empty-title {
+  display: block;
+  color: #20231F;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.empty-copy {
+  display: block;
+  margin-top: 14rpx;
+  color: #72746C;
+  font-size: 26rpx;
+  line-height: 1.65;
+}
+
+.loading-copy {
+  margin-top: 180rpx;
+  color: #72746C;
+  font-size: 28rpx;
+  text-align: center;
+}

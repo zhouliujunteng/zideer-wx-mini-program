@@ -10,10 +10,18 @@ module.exports = {
   ACTION_FLOWS: {
     INITIALIZE_CURRENT_USER: {
       id: '5a450fd8-c485-40c0-8e23-b00788ecf104',
-      versionId: 3
+      versionId: 4
     },
     LIST_SUBSIDIARIES: {
       id: '7729de8a-be63-4e47-ab36-96e9607e3b47',
+      versionId: 1
+    },
+    COURSE_HOME: {
+      id: '25a52db3-c8a2-4afd-b298-7e5c9b1dbaed',
+      versionId: 1
+    },
+    STUDY_LEARNERS: {
+      id: '9d714235-4bcf-47f1-9b9d-a99fd542bc12',
       versionId: 1
     }
   }

@@ -21,6 +21,14 @@
         "text": "课程"
       },
       {
+        "pagePath": "pages/study-plan/study-plan",
+        "text": "学习计划"
+      },
+      {
+        "pagePath": "pages/tools/tools",
+        "text": "私课工具"
+      },
+      {
         "pagePath": "pages/profile/profile",
         "text": "我的"
       }

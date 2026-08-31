@@ -1,0 +1,17 @@
+<view class="page-shell">
+  <view class="page-header">
+    <text class="page-title">私课工具</text>
+    <text class="page-copy">让每一节课后的学习继续发生</text>
+  </view>
+
+  <view class="tool-list">
+    <button class="tool-item" wx:for="{{tools}}" wx:key="id" bindtap="showUnavailable">
+      <view class="tool-mark tool-mark-{{item.tone}}">知</view>
+      <view class="tool-content">
+        <text class="tool-name">{{item.name}}</text>
+        <text class="tool-detail">{{item.detail}}</text>
+      </view>
+      <text class="tool-arrow">›</text>
+    </button>
+  </view>
+</view>

@@ -1,0 +1,43 @@
+<view class="page-shell" wx:if="{{!loading && selectedLearner}}">
+  <view class="page-header">
+    <text class="page-title">学习计划</text>
+    <text class="page-copy">按学习对象查看课程安排</text>
+  </view>
+
+  <scroll-view class="learner-switcher" scroll-x="true" show-scrollbar="false">
+    <view class="learner-switcher-inner">
+      <button class="learner-chip {{selectedIndex === index ? 'learner-chip-active' : ''}}" wx:for="{{learners}}" wx:key="id" data-index="{{index}}" bindtap="switchLearner">
+        {{item.displayName}}
+      </button>
+    </view>
+  </scroll-view>
+
+  <view class="learner-summary">
+    <view class="learner-avatar">{{selectedLearner.initial}}</view>
+    <view>
+      <text class="learner-name">{{selectedLearner.displayName}}</text>
+      <text class="learner-relation">{{selectedLearner.relationName}}</text>
+    </view>
+  </view>
+
+  <view class="plan-list" wx:if="{{selectedLearner.plans.length}}">
+    <view class="plan-card" wx:for="{{selectedLearner.plans}}" wx:key="id">
+      <text class="plan-title">{{item.title}}</text>
+      <text class="plan-name" wx:if="{{item.planName}}">{{item.planName}}</text>
+      <view class="schedule-item" wx:for="{{item.schedules}}" wx:for-item="schedule" wx:key="id">
+        <view class="schedule-line"></view>
+        <view class="schedule-main">
+          <text class="schedule-title">{{schedule.title}}</text>
+          <text class="schedule-meta">{{schedule.duration_minutes}} 分钟 · {{schedule.status === 'scheduled' ? '待学习' : '已完成'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:else>
+    <text class="empty-title">暂时没有学习计划</text>
+    <text class="empty-copy">课程开通后，学习安排会显示在这里。</text>
+  </view>
+</view>
+
+<view class="loading-copy" wx:else>正在读取学习计划</view>

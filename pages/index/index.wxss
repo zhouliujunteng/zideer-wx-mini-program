@@ -55,12 +55,84 @@
   line-height: 1.65;
 }
 
-.course-empty {
+.plan-list,
+.course-list {
   margin-top: 106rpx;
+}
+
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 22rpx;
+}
+
+.section-title {
+  color: #20231F;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.section-note {
+  color: #72746C;
+  font-size: 25rpx;
+}
+
+.plan-card,
+.course-card,
+.course-empty {
   padding: 48rpx 40rpx;
   border: 2rpx solid #E2E4DA;
   border-radius: 8rpx;
   background: #FCFCF8;
+}
+
+.course-card {
+  display: flex;
+  padding: 30rpx;
+  margin-top: 18rpx;
+}
+
+.plan-title,
+.course-title {
+  display: block;
+  color: #20231F;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.schedule-row {
+  display: flex;
+  align-items: center;
+  min-height: 66rpx;
+  border-top: 2rpx solid #ECEDE6;
+  margin-top: 22rpx;
+}
+
+.schedule-dot {
+  width: 12rpx;
+  height: 12rpx;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+  background: #147D73;
+  border-radius: 6rpx;
+}
+
+.schedule-title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: #3E443D;
+  font-size: 27rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-duration {
+  flex-shrink: 0;
+  margin-left: 14rpx;
+  color: #72746C;
+  font-size: 24rpx;
 }
 
 .course-mark {
@@ -73,6 +145,26 @@
   color: #4A3510;
   font-size: 38rpx;
   font-weight: 700;
+}
+
+.course-content {
+  min-width: 0;
+  margin-left: 22rpx;
+}
+
+.course-title {
+  font-size: 30rpx;
+}
+
+.course-copy {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 12rpx;
+  color: #72746C;
+  font-size: 26rpx;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .empty-title {

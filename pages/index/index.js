@@ -1,9 +1,12 @@
-const { loadCurrentUser } = require('../../services/identity')
+const { loadCurrentUser, loadCourseHome } = require('../../services/identity')
 
 Page({
   data: {
     loading: true,
-    nickname: '学员'
+    nickname: '学员',
+    hasActivePlan: false,
+    plans: [],
+    courses: []
   },
 
   async onShow() {
@@ -13,10 +16,13 @@ Page({
   async loadPage() {
     this.setData({ loading: true })
     try {
-      const user = await loadCurrentUser()
+      const [user, home] = await Promise.all([loadCurrentUser(), loadCourseHome()])
       getApp().globalData.user = user
       this.setData({
-        nickname: user.profile.nickname || user.profile.real_name || '学员'
+        nickname: user.profile.nickname || user.profile.real_name || '学员',
+        hasActivePlan: home.hasActivePlan,
+        plans: home.plans || [],
+        courses: home.courses || []
       })
     } catch (error) {
       wx.showToast({ title: error.message, icon: 'none', duration: 3000 })

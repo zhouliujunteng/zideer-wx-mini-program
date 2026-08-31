@@ -1,0 +1,96 @@
+.page-shell {
+  min-height: 100vh;
+  padding: 42rpx 40rpx 88rpx;
+  box-sizing: border-box;
+}
+
+.page-title {
+  display: block;
+  color: #20231F;
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.page-copy {
+  display: block;
+  margin-top: 12rpx;
+  color: #72746C;
+  font-size: 27rpx;
+}
+
+.tool-list {
+  margin-top: 54rpx;
+}
+
+.tool-item {
+  display: flex;
+  width: 100%;
+  min-height: 136rpx;
+  align-items: center;
+  margin-top: 18rpx;
+  padding: 24rpx;
+  border: 2rpx solid #E2E4DA;
+  border-radius: 8rpx;
+  background: #FCFCF8;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.tool-mark {
+  display: flex;
+  width: 76rpx;
+  height: 76rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  font-size: 29rpx;
+  font-weight: 700;
+}
+
+.tool-mark-green {
+  background: #D9E6D8;
+  color: #147D73;
+}
+
+.tool-mark-yellow {
+  background: #F1C978;
+  color: #4A3510;
+}
+
+.tool-mark-coral {
+  background: #F2D7CC;
+  color: #A34E32;
+}
+
+.tool-content {
+  min-width: 0;
+  flex: 1;
+  margin-left: 22rpx;
+}
+
+.tool-name,
+.tool-detail {
+  display: block;
+}
+
+.tool-name {
+  color: #20231F;
+  font-size: 31rpx;
+  font-weight: 700;
+}
+
+.tool-detail {
+  overflow: hidden;
+  margin-top: 10rpx;
+  color: #72746C;
+  font-size: 24rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-arrow {
+  margin-left: 18rpx;
+  color: #147D73;
+  font-size: 38rpx;
+  line-height: 1;
+}

@@ -31,12 +31,13 @@ Page({
       ])
       const profile = user.profile || {}
       const profileDisplayName = profile.nickname || profile.real_name || '知鹿学员'
+      const roles = profile.roles || []
       getApp().globalData.user = user
       this.setData({
         profile,
         profileDisplayName,
         profileInitial: profileDisplayName.slice(0, 1),
-        profileStatusLabel: profile.status === 'active' ? '账号正常' : '资料待完善',
+        profileStatusLabel: roles.some((role) => role.role_code === 'PARTNER') ? '伙伴' : '用户',
         subsidiaries: subsidiaries.map((item) => {
           const account = item.subsidiary_user || {}
           const displayName = account.nickname || account.real_name || '附属账号'
