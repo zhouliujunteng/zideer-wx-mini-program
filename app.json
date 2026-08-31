@@ -1,6 +1,8 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/study-plan/study-plan",
+    "pages/tools/tools",
     "pages/profile/profile"
   ],
   "window": {
