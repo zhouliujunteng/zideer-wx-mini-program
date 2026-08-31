@@ -1,0 +1,30 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "backgroundColor": "#F7F7F2",
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#F7F7F2",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "知鹿私课"
+  },
+  "tabBar": {
+    "color": "#72746C",
+    "selectedColor": "#147D73",
+    "backgroundColor": "#FCFCF8",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "课程"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

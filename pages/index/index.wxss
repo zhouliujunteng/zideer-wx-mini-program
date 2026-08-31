@@ -1,0 +1,99 @@
+.page-shell {
+  min-height: 100vh;
+  padding: 44rpx 40rpx 80rpx;
+  box-sizing: border-box;
+}
+
+.topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  color: #1E332D;
+  font-size: 38rpx;
+  font-weight: 700;
+}
+
+.profile-trigger {
+  width: 64rpx;
+  height: 64rpx;
+  min-width: 64rpx;
+  padding: 0;
+  line-height: 64rpx;
+  background: #D9E6D8;
+  border-radius: 32rpx;
+  color: #147D73;
+  font-size: 26rpx;
+}
+
+.welcome {
+  margin-top: 112rpx;
+}
+
+.eyebrow {
+  display: block;
+  color: #147D73;
+  font-size: 26rpx;
+}
+
+.welcome-title {
+  display: block;
+  margin-top: 20rpx;
+  color: #20231F;
+  font-size: 56rpx;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.welcome-copy {
+  display: block;
+  margin-top: 22rpx;
+  color: #6B7068;
+  font-size: 30rpx;
+  line-height: 1.65;
+}
+
+.course-empty {
+  margin-top: 106rpx;
+  padding: 48rpx 40rpx;
+  border: 2rpx solid #E2E4DA;
+  border-radius: 8rpx;
+  background: #FCFCF8;
+}
+
+.course-mark {
+  width: 84rpx;
+  height: 84rpx;
+  line-height: 84rpx;
+  text-align: center;
+  background: #F1C978;
+  border-radius: 8rpx;
+  color: #4A3510;
+  font-size: 38rpx;
+  font-weight: 700;
+}
+
+.empty-title {
+  display: block;
+  margin-top: 32rpx;
+  color: #20231F;
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.empty-copy {
+  display: block;
+  margin-top: 16rpx;
+  color: #72746C;
+  font-size: 28rpx;
+  line-height: 1.7;
+}
+
+.loading-copy {
+  margin-top: 180rpx;
+  color: #72746C;
+  font-size: 28rpx;
+  text-align: center;
+}

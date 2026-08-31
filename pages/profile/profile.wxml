@@ -1,0 +1,34 @@
+<view class="page-shell" wx:if="{{!loading && profile}}">
+  <view class="profile-header">
+    <view class="avatar">{{profileInitial}}</view>
+    <view class="profile-main">
+      <text class="profile-name">{{profileDisplayName}}</text>
+      <text class="profile-status">{{profileStatusLabel}}</text>
+    </view>
+    <button class="refresh-button" bindtap="loadPage" loading="{{refreshing}}" aria-label="刷新资料">刷新</button>
+  </view>
+
+  <view class="profile-section">
+    <view class="section-title-row">
+      <text class="section-title">附属账号</text>
+      <text class="section-count">{{subsidiaries.length}} 个</text>
+    </view>
+
+    <view class="subsidiary-list" wx:if="{{subsidiaries.length}}">
+      <view class="subsidiary-item" wx:for="{{subsidiaries}}" wx:key="id">
+        <view class="subsidiary-avatar">{{item.initial}}</view>
+        <view class="subsidiary-main">
+          <text class="subsidiary-name">{{item.displayName}}</text>
+          <text class="subsidiary-meta">{{item.relationName}} · {{item.statusLabel}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:else>
+      <text class="empty-title">暂未绑定附属账号</text>
+      <text class="empty-copy">绑定功能将在账号邀请流程完成后开放。</text>
+    </view>
+  </view>
+</view>
+
+<view class="loading-copy" wx:else>正在读取账户资料</view>

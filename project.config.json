@@ -1,0 +1,16 @@
+{
+  "description": "知鹿私课本地开发配置",
+  "packOptions": {
+    "ignore": []
+  },
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "minified": true,
+    "postcss": true,
+    "urlCheck": false
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.6.7",
+  "appid": "touristappid"
+}
