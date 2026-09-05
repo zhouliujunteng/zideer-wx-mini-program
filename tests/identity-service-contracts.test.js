@@ -7,6 +7,7 @@ const calls = []
 const responses = new Map()
 let storageToken = 'test-runtime-token'
 const navigationCalls = []
+let wechatLoginCount = 0
 
 function actionResult(flow, value) {
   responses.set(flow.id, value)
@@ -17,6 +18,7 @@ function reset() {
   responses.clear()
   storageToken = 'test-runtime-token'
   navigationCalls.length = 0
+  wechatLoginCount = 0
 }
 
 function flowId(query) {
@@ -29,13 +31,23 @@ global.wx = {
   removeStorageSync(key) { if (key === 'zion_runtime_token') storageToken = '' },
   setStorageSync(key, value) { if (key === 'zion_runtime_token') storageToken = value },
   reLaunch(options) { navigationCalls.push(options) },
+  login(options) {
+    wechatLoginCount += 1
+    options.success({ code: `wechat-code-${wechatLoginCount}` })
+  },
   request(options) {
     if (options.url === `${config.COURSE_PORTAL_ORIGIN}/api/course-launch/issue`) {
       calls.push({ url: options.url, data: options.data, header: options.header })
       options.success({ statusCode: 200, data: { launchUrl: `${config.COURSE_PORTAL_ORIGIN}/launch?token=test-launch-token` } })
       return
     }
-    const id = flowId(options.data && options.data.query)
+    const query = options.data && options.data.query
+    if (String(query).includes('loginWithWechatMiniApp')) {
+      calls.push({ id: 'wechat-login', variables: options.data && options.data.variables, query })
+      options.success({ statusCode: 200, data: { data: { loginWithWechatMiniApp: { jwt: { token: 'refreshed-runtime-token' } } } } })
+      return
+    }
+    const id = flowId(query)
     calls.push({ id, variables: options.data && options.data.variables, query: options.data && options.data.query })
     const configuredResult = responses.get(id)
     const result = Array.isArray(configuredResult) ? configuredResult.shift() : configuredResult
@@ -67,6 +79,26 @@ test('only a rejected runtime JWT returns users to login once', async () => {
     (error) => error && error.code === 'AUTH_REQUIRED'
   )
   assert.equal(navigationCalls.length, 1)
+})
+
+test('a rejected runtime JWT renews through WeChat once and retries the original flow', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_IDENTITY_VERIFICATION, [
+    new Error('JWT expired'),
+    { status: 'ready', verification: null, roles: ['student'] }
+  ])
+
+  const result = await identity.loadCurrentIdentityVerification()
+
+  assert.deepEqual(result, { verification: null, roles: ['student'] })
+  assert.equal(wechatLoginCount, 1)
+  assert.equal(storageToken, 'refreshed-runtime-token')
+  assert.equal(navigationCalls.length, 0)
+  assert.deepEqual(calls.map((item) => item.id), [
+    config.ACTION_FLOWS.GET_CURRENT_IDENTITY_VERIFICATION.id,
+    'wechat-login',
+    config.ACTION_FLOWS.GET_CURRENT_IDENTITY_VERIFICATION.id
+  ])
 })
 
 test('a business flow unauthenticated status does not erase an otherwise valid runtime token', async () => {
@@ -779,6 +811,32 @@ test('published promotion materials preserve the current session for an inactive
   actionResult(config.ACTION_FLOWS.GET_CURRENT_PUBLISHED_PROMOTION_ASSETS, { status: 'promoter_inactive', assets: [] })
 
   assert.deepEqual(await identity.loadPublishedPromotionAssets(), { status: 'promoter_inactive', assets: [] })
+  assert.equal(storageToken, 'test-runtime-token')
+  assert.equal(navigationCalls.length, 0)
+})
+
+test('daily coin check-in only invokes the current-user server flow and normalizes its result', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.CLAIM_CURRENT_DAILY_COIN_CHECKIN, {
+    status: 'checked_in', checkin_date: '2026-09-06', reward_coins: 3, available_coins: 18
+  })
+
+  assert.deepEqual(await identity.claimCurrentDailyCoinCheckin(), {
+    status: 'checked_in', checkinDate: '2026-09-06', rewardCoins: 3, availableCoins: 18
+  })
+  assert.deepEqual(lastCall(config.ACTION_FLOWS.CLAIM_CURRENT_DAILY_COIN_CHECKIN).variables, { args: {} })
+
+  reset()
+  actionResult(config.ACTION_FLOWS.CLAIM_CURRENT_DAILY_COIN_CHECKIN, {
+    status: 'already_checked_in', checkin_date: '2026-09-06', reward_coins: 3, available_coins: 18
+  })
+  assert.equal((await identity.claimCurrentDailyCoinCheckin()).status, 'already_checked_in')
+})
+
+test('daily coin check-in does not clear a valid session when its rule is not published', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.CLAIM_CURRENT_DAILY_COIN_CHECKIN, { status: 'rule_unavailable' })
+  await assert.rejects(identity.claimCurrentDailyCoinCheckin(), /暂未发布/)
   assert.equal(storageToken, 'test-runtime-token')
   assert.equal(navigationCalls.length, 0)
 })

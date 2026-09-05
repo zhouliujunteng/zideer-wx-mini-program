@@ -94,6 +94,12 @@ async function anonymousGraphql(query, variables) {
 }
 
 async function signInWithWechat() {
+  const token = await renewWechatRuntimeToken()
+  authRedirectInProgress = false
+  return loadCurrentUser()
+}
+
+async function renewWechatRuntimeToken() {
   const code = await getWechatLoginCode()
   const data = await anonymousGraphql(
     `mutation LoginWithWechatMiniApp($code: String!) {
@@ -114,8 +120,7 @@ async function signInWithWechat() {
   }
 
   wx.setStorageSync(TOKEN_KEY, token)
-  authRedirectInProgress = false
-  return loadCurrentUser()
+  return token
 }
 
 async function getRuntimeToken() {
@@ -126,7 +131,7 @@ async function getRuntimeToken() {
   return storedToken
 }
 
-async function graphql(query, variables) {
+async function graphql(query, variables, { retriedAfterTokenRefresh = false } = {}) {
   const token = await getRuntimeToken()
   const result = await request({
     url: config.GRAPHQL_URL,
@@ -136,7 +141,21 @@ async function graphql(query, variables) {
 
   if (result.errors && result.errors.length) {
     const message = result.errors[0].message || 'Zion 请求失败。'
-    if (isRuntimeTokenRejection(message)) throw requireAuthentication()
+    if (isRuntimeTokenRejection(message)) {
+      // Zion can reject a just-issued token while the mini-program binding is
+      // propagating. Renew it through wx.login and retry this exact request
+      // once before treating the session as genuinely expired.
+      if (!retriedAfterTokenRefresh) {
+        try {
+          await renewWechatRuntimeToken()
+          return graphql(query, variables, { retriedAfterTokenRefresh: true })
+        } catch (refreshError) {
+          // The original rejection remains the user-facing authentication
+          // result; the refresh failure may contain platform-only details.
+        }
+      }
+      throw requireAuthentication()
+    }
     throw new Error(message)
   }
 
@@ -1542,6 +1561,26 @@ async function loadPublishedPromotionAssets() {
   }
 }
 
+async function claimCurrentDailyCoinCheckin() {
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.CLAIM_CURRENT_DAILY_COIN_CHECKIN
+  )) || {}
+  const messages = {
+    unauthenticated: '请先登录后签到。',
+    not_initialized: '请先完善学习档案后签到。',
+    rule_unavailable: '今日签到奖励暂未发布。'
+  }
+  if (!['checked_in', 'already_checked_in'].includes(payload.status)) {
+    throw new Error(messages[payload.status] || '签到暂时无法完成，请稍后重试。')
+  }
+  return {
+    status: payload.status,
+    checkinDate: String(payload.checkin_date || ''),
+    rewardCoins: wholeNumber(payload.reward_coins),
+    availableCoins: wholeNumber(payload.available_coins)
+  }
+}
+
 async function createCurrentPromoterInvitation({ targetPath, sceneType = 'share', idempotencyKey } = {}) {
   const targetPathValue = validInternalPath(targetPath)
   const scene = String(sceneType || '').trim()
@@ -2187,6 +2226,7 @@ module.exports = {
   giftCurrentPromoterClientDeepAssessment,
   generateCurrentPromoterPosterBackground,
   loadPublishedPromotionAssets,
+  claimCurrentDailyCoinCheckin,
   createCurrentPromoterInvitation,
   recordCurrentPromotionTouchAndAttribute,
   saveCurrentLearningProfile,

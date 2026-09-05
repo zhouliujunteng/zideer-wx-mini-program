@@ -157,5 +157,8 @@ module.exports = {
     GET_CURRENT_PUBLISHED_PROMOTION_ASSETS: {
       id: "ec11ac62-f933-4700-b6a4-0d00c0ef3294",
     },
+    CLAIM_CURRENT_DAILY_COIN_CHECKIN: {
+      id: "3c70dfba-adfb-41d7-a36b-08dad3c4fbe9",
+    },
   },
 };

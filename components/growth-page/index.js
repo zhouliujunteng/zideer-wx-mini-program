@@ -1,4 +1,4 @@
-const { loadCurrentGrowthCenter, redeemCurrentStudentCode, giftCurrentPromoterClientDeepAssessment, createCurrentPromoterInvitation, generateCurrentPromoterPosterBackground, loadPublishedPromotionAssets } = require('../../services/identity')
+const { loadCurrentGrowthCenter, redeemCurrentStudentCode, giftCurrentPromoterClientDeepAssessment, createCurrentPromoterInvitation, generateCurrentPromoterPosterBackground, loadPublishedPromotionAssets, claimCurrentDailyCoinCheckin } = require('../../services/identity')
 
 const titles = {
   application: '推广伙伴与结算资格', dashboard: '推广伙伴工作台', clients: '直属用户',
@@ -51,7 +51,9 @@ Component({
     materialLoading: false,
     materialFailed: false,
     materialStatus: '',
-    materialAssets: []
+    materialAssets: [],
+    checkingIn: false,
+    checkinResult: null
   },
   lifetimes: { attached() { this.loadPage() } },
   methods: {
@@ -204,6 +206,20 @@ Component({
           wx.showToast({ title: '扫码未完成，请检查相机权限后重试。', icon: 'none' })
         }
       })
+    },
+    async claimDailyCheckin() {
+      if (this.data.checkingIn) return
+      this.setData({ checkingIn: true, checkinResult: null })
+      try {
+        const result = await claimCurrentDailyCoinCheckin()
+        this.setData({ checkinResult: result })
+        wx.showToast({ title: result.status === 'checked_in' ? `签到成功 +${result.rewardCoins}` : '今天已签到', icon: 'success' })
+        await this.loadPage()
+      } catch (error) {
+        wx.showToast({ title: error.message || '签到失败，请稍后重试。', icon: 'none' })
+      } finally {
+        this.setData({ checkingIn: false })
+      }
     },
     async submitRedemption() {
       if (this.data.redeeming) return
