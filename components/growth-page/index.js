@@ -1,4 +1,4 @@
-const { loadCurrentGrowthCenter, redeemCurrentStudentCode, giftCurrentPromoterClientDeepAssessment, createCurrentPromoterInvitation, generateCurrentPromoterPosterBackground } = require('../../services/identity')
+const { loadCurrentGrowthCenter, redeemCurrentStudentCode, giftCurrentPromoterClientDeepAssessment, createCurrentPromoterInvitation, generateCurrentPromoterPosterBackground, loadPublishedPromotionAssets } = require('../../services/identity')
 
 const titles = {
   application: '推广伙伴与结算资格', dashboard: '推广伙伴工作台', clients: '直属用户',
@@ -47,7 +47,11 @@ Component({
     posterTheme: '',
     generatingPoster: false,
     posterStatus: '',
-    posterResult: null
+    posterResult: null,
+    materialLoading: false,
+    materialFailed: false,
+    materialStatus: '',
+    materialAssets: []
   },
   lifetimes: { attached() { this.loadPage() } },
   methods: {
@@ -55,6 +59,11 @@ Component({
       this.setData({ loading: true, failed: false, title: titles[this.data.mode] || '成长中心' })
       try {
         const growth = await loadCurrentGrowthCenter()
+        let materials = null
+        if (this.data.mode === 'material-library') {
+          this.setData({ materialLoading: true, materialFailed: false })
+          materials = await loadPublishedPromotionAssets()
+        }
         const center = {
           ...growth,
           invitations: (growth.invitations || []).map((item) => ({ ...item, timeLabel: formatTime(item.created_at) })),
@@ -69,14 +78,17 @@ Component({
         this.setData({
           center,
           selectedClient,
+          materialStatus: materials && materials.status || '',
+          materialAssets: materials && materials.assets || [],
           isPartnerPage: ['application', 'dashboard', 'clients', 'client-detail', 'share-tools', 'ai-poster', 'material-library', 'deep-assessment-gift'].includes(this.data.mode),
           isCoinPage: ['coins', 'coin-tasks', 'coin-withdrawal', 'redemption'].includes(this.data.mode)
         })
       } catch (error) {
         this.setData({ failed: true })
+        if (this.data.mode === 'material-library') this.setData({ materialFailed: true })
         wx.showToast({ title: error.message || '数据加载失败', icon: 'none' })
       } finally {
-        this.setData({ loading: false })
+        this.setData({ loading: false, materialLoading: false })
       }
     },
     navigate(event) {
@@ -122,6 +134,20 @@ Component({
       } finally {
         this.setData({ generatingPoster: false })
       }
+    },
+    previewMaterialImage(event) {
+      const url = String(event.currentTarget.dataset.url || '')
+      if (!url) return
+      const urls = (this.data.materialAssets || []).map((item) => item.coverImage && item.coverImage.url).filter(Boolean)
+      wx.previewImage({ current: url, urls: urls.length ? urls : [url] })
+    },
+    copyMaterialText(event) {
+      const text = String(event.currentTarget.dataset.text || '')
+      if (!text) {
+        wx.showToast({ title: '该素材暂未提供文案。', icon: 'none' })
+        return
+      }
+      wx.setClipboardData({ data: text, success: () => wx.showToast({ title: '文案已复制', icon: 'success' }) })
     },
     selectGiftClient(event) {
       this.setData({ giftingAttributionId: String(event.currentTarget.dataset.id || ''), giftResult: null })

@@ -1512,6 +1512,36 @@ async function generateCurrentPromoterPosterBackground(theme, onStatus) {
   throw new Error('海报生成时间较长，请稍后重新进入查看。')
 }
 
+async function loadPublishedPromotionAssets() {
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.GET_CURRENT_PUBLISHED_PROMOTION_ASSETS
+  )) || {}
+
+  if (payload.status === 'unauthenticated') throw new Error('请先登录后查看宣传素材。')
+  if (payload.status === 'promoter_inactive') return { status: 'promoter_inactive', assets: [] }
+  if (payload.status !== 'ready') throw new Error('宣传素材暂时无法读取，请稍后重试。')
+
+  return {
+    status: 'ready',
+    assets: (payload.assets || []).filter((item) => item && item.id && item.title).map((item) => ({
+      id: String(item.id),
+      assetNo: String(item.asset_no || ''),
+      assetType: String(item.asset_type || ''),
+      versionNo: String(item.version_no || ''),
+      title: String(item.title),
+      campaignKey: String(item.campaign_key || ''),
+      copyText: String(item.copy_text || ''),
+      publishedAt: item.published_at || '',
+      coverImage: item.cover_image && item.cover_image.url ? {
+        id: String(item.cover_image.id || ''), url: String(item.cover_image.url)
+      } : null,
+      assetFile: item.asset_file && item.asset_file.url ? {
+        id: String(item.asset_file.id || ''), url: String(item.asset_file.url)
+      } : null
+    }))
+  }
+}
+
 async function createCurrentPromoterInvitation({ targetPath, sceneType = 'share', idempotencyKey } = {}) {
   const targetPathValue = validInternalPath(targetPath)
   const scene = String(sceneType || '').trim()
@@ -2156,6 +2186,7 @@ module.exports = {
   loadCurrentGrowthCenter,
   giftCurrentPromoterClientDeepAssessment,
   generateCurrentPromoterPosterBackground,
+  loadPublishedPromotionAssets,
   createCurrentPromoterInvitation,
   recordCurrentPromotionTouchAndAttribute,
   saveCurrentLearningProfile,

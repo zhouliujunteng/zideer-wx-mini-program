@@ -739,3 +739,46 @@ test('promotion poster generation rejects inactive promoters before starting an 
   })
   await assert.rejects(identity.generateCurrentPromoterPosterBackground('初中数学学习规划'), /有效推广伙伴/)
 })
+
+test('published promotion materials only use the current-user server flow and normalize safe fields', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_PUBLISHED_PROMOTION_ASSETS, {
+    status: 'ready',
+    assets: [{
+      id: 71,
+      asset_no: 'MAT-001',
+      asset_type: 'image',
+      version_no: 'v1',
+      title: '数学学习规划海报',
+      campaign_key: 'math-plan',
+      copy_text: '为孩子制定清晰的学习计划。',
+      published_at: '2026-09-05T00:00:00Z',
+      cover_image: { id: 81, url: 'https://assets.example/material.png' },
+      asset_file: { id: 82, url: 'https://assets.example/material.pdf' },
+      scope_rule: { audience: 'all_promoters' }
+    }]
+  })
+
+  const result = await identity.loadPublishedPromotionAssets()
+
+  assert.deepEqual(lastCall(config.ACTION_FLOWS.GET_CURRENT_PUBLISHED_PROMOTION_ASSETS).variables, { args: {} })
+  assert.deepEqual(result, {
+    status: 'ready',
+    assets: [{
+      id: '71', assetNo: 'MAT-001', assetType: 'image', versionNo: 'v1',
+      title: '数学学习规划海报', campaignKey: 'math-plan', copyText: '为孩子制定清晰的学习计划。',
+      publishedAt: '2026-09-05T00:00:00Z',
+      coverImage: { id: '81', url: 'https://assets.example/material.png' },
+      assetFile: { id: '82', url: 'https://assets.example/material.pdf' }
+    }]
+  })
+})
+
+test('published promotion materials preserve the current session for an inactive partner', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_PUBLISHED_PROMOTION_ASSETS, { status: 'promoter_inactive', assets: [] })
+
+  assert.deepEqual(await identity.loadPublishedPromotionAssets(), { status: 'promoter_inactive', assets: [] })
+  assert.equal(storageToken, 'test-runtime-token')
+  assert.equal(navigationCalls.length, 0)
+})

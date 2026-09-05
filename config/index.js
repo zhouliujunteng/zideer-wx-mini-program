@@ -154,5 +154,8 @@ module.exports = {
     RECORD_CURRENT_PROMOTION_TOUCH_AND_ATTRIBUTE: {
       id: "c3f73bc4-8e61-4bec-a3a5-ab5c7421109c",
     },
+    GET_CURRENT_PUBLISHED_PROMOTION_ASSETS: {
+      id: "ec11ac62-f933-4700-b6a4-0d00c0ef3294",
+    },
   },
 };
