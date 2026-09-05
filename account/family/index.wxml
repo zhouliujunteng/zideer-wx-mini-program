@@ -1,0 +1,10 @@
+<view class="family-page">
+  <view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">家庭关系暂时无法加载</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:else>
+    <view class="family-head"><text class="family-eyebrow">账户</text><text class="family-title">家庭关系</text></view>
+    <view class="family-actions surface"><button class="family-action pressable" bindtap="openBindingCode"><text class="family-action__label">我是学生</text><text class="family-action__title">生成绑定码</text></button><view class="family-actions__line"></view><button class="family-action pressable" bindtap="openBindStudent"><text class="family-action__label">我是家长</text><text class="family-action__title">绑定学生</text></button></view>
+    <view class="family-section"><view class="family-section__head"><text class="family-section__title">我绑定的学生</text><button class="family-section__action pressable" wx:if="{{students.length}}" bindtap="openGuardianDashboard">查看看板</button></view><button class="family-card surface pressable" wx:for="{{students}}" wx:key="id" bindtap="openGuardianDashboard"><view class="family-avatar">{{item.initial}}</view><view class="family-copy"><text class="family-name">{{item.name}}</text><text class="family-meta">{{item.relationLabel}} · {{item.gradeLabel}}</text></view><text class="family-status">有效 ›</text></button><view class="family-empty surface" wx:if="{{!students.length}}"><text>当前还没有绑定学生</text></view></view>
+    <view class="family-section"><text class="family-section__title">我的监护关系</text><view class="family-card surface" wx:for="{{guardians}}" wx:key="id"><view class="family-avatar">家</view><view class="family-copy"><text class="family-name">{{item.relationLabel}}</text><text class="family-meta">关系已生效</text></view><text class="family-status">有效</text></view><view class="family-empty surface" wx:if="{{!guardians.length}}"><text>暂未绑定监护人</text></view></view>
+  </block>
+</view>

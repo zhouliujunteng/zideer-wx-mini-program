@@ -1,0 +1,15 @@
+<view class="feed-page">
+  <view class="feed-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">学习动态暂时无法加载</text><text class="state-panel__copy">网络恢复后可以重新读取服务端学习摘要。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:else>
+    <view class="feed-head"><text class="feed-eyebrow">家庭学习</text><text class="feed-title">孩子学习动态</text></view>
+    <view class="feed-empty surface" wx:if="{{!current}}"><text class="feed-empty__title">暂未绑定有效学生</text><text class="feed-empty__copy">绑定生效后，可以在这里查看孩子的学习状态与服务端汇总时长。</text></view>
+    <block wx:else>
+      <button class="feed-student surface pressable" bindtap="chooseChild"><view class="feed-avatar">{{current.initial}}</view><view class="feed-student__copy"><text class="feed-student__label">当前学生</text><text class="feed-student__name">{{current.name}} · {{current.gradeLabel}}</text></view><text class="feed-student__action">{{children.length > 1 ? '切换' : '已绑定'}} ›</text></button>
+      <view class="feed-state surface"><text class="feed-state__label">当前状态</text><text class="feed-state__value">{{current.stateLabel}}</text><text class="feed-state__meta">{{current.stateUpdated}} · 当前进度 {{current.progressText}}</text></view>
+      <view class="feed-section"><text class="feed-section__title">有效学习时长</text><view class="feed-metrics"><view class="feed-metric surface"><text>今日</text><text>{{current.todayDuration}}</text></view><view class="feed-metric surface"><text>本周</text><text>{{current.weekDuration}}</text></view><view class="feed-metric surface"><text>累计</text><text>{{current.totalDuration}}</text></view></view></view>
+      <view class="feed-empty surface" wx:if="{{!current.hasLearningData}}"><text class="feed-empty__title">还没有学习记录</text><text class="feed-empty__copy">课程开始、学习中、待验收和老师核验等粗粒度事件进入服务端后，会显示在这里。</text></view>
+      <button class="feed-report surface pressable" bindtap="openReports"><view><text class="feed-report__title">知识点学习报告</text><text class="feed-report__copy">查看学习摘要、AI 候选评价和老师核验结果</text></view><text class="feed-report__arrow">›</text></button>
+    </block>
+  </block>
+</view>

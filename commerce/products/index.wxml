@@ -1,0 +1,18 @@
+<view class="commerce-page">
+  <view class="commerce-head">
+    <text class="commerce-eyebrow">课程积分</text>
+    <view class="commerce-title-row"><text class="commerce-title">商城</text><button class="commerce-link pressable" bindtap="openAccount">我的积分</button></view>
+    <text class="commerce-copy">商品价格、积分和服务规则以后台已发布版本为准。</text>
+  </view>
+  <view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">商城暂时没有加载出来</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <view class="state-panel" wx:elif="{{!eligible}}"><view class="state-panel__mark">!</view><text class="state-panel__title">暂未获得购买资格</text><text class="state-panel__copy">需要先建立有效推广归因，服务端才会允许创建订单。</text><button class="state-panel__action pressable" bindtap="openEligibility">查看购买资格</button></view>
+  <view class="state-panel" wx:elif="{{!products.length}}"><view class="state-panel__mark">＋</view><text class="state-panel__title">暂无可购买商品</text><text class="state-panel__copy">管理员发布课程积分商品后，会在这里显示对应版本的价格和权益。</text></view>
+  <view class="product-list" wx:else>
+    <button class="product-card surface pressable" wx:for="{{products}}" wx:key="id" bindtap="openProduct" data-id="{{item.id}}">
+      <view class="product-card__top"><text class="product-card__name">{{item.name}}</text><text class="product-card__amount">¥{{item.amount}}</text></view>
+      <text class="product-card__copy">{{item.description}}</text>
+      <view class="product-card__facts"><text>{{item.credits}} 课程积分</text><text wx:if="{{item.estimatedCourseCount}}">约 {{item.estimatedCourseCount}} 节课程</text></view>
+    </button>
+  </view>
+</view>

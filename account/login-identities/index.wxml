@@ -1,0 +1,14 @@
+<view class="identity-page">
+  <view class="identity-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">登录身份暂时无法加载</text><text class="state-panel__copy">网络恢复后可以重新读取账号状态。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:else>
+    <view class="identity-head"><text class="identity-eyebrow">账户</text><text class="identity-title">身份与登录</text></view>
+    <view class="identity-empty surface" wx:if="{{!account}}"><text class="identity-empty__title">账号信息尚未初始化</text><text class="identity-empty__copy">请重新登录后再查看业务账号与登录身份。</text></view>
+    <block wx:else>
+      <view class="principal-card surface"><text class="principal-card__label">业务用户号</text><text class="principal-card__no">{{account.principalNo}}</text><text class="principal-card__meta">来源：{{account.createdSource}}</text></view>
+      <view class="identity-section"><text class="identity-section__title">实名认证</text><view class="verification-card surface"><text class="verification-card__status">{{account.verification.label}}</text><text class="verification-card__copy">{{account.verification.detail}}</text></view></view>
+      <view class="identity-section"><text class="identity-section__title">已绑定登录方式</text><view class="identity-list surface" wx:if="{{account.identities.length}}"><view class="identity-row" wx:for="{{account.identities}}" wx:key="id"><view class="identity-row__copy"><text class="identity-row__title">{{item.channelLabel}}</text><text class="identity-row__meta">{{item.verificationLabel}} · {{item.loginLabel}}</text></view><text class="identity-row__status {{item.disabled_at ? 'identity-row__status--disabled' : ''}}">{{item.statusLabel}}</text></view></view><view class="identity-empty surface" wx:else><text class="identity-empty__copy">暂未读取到已绑定登录方式。</text></view></view>
+      <view class="identity-section"><text class="identity-section__title">业务身份</text><view class="role-list surface" wx:if="{{account.roles.length}}"><view class="role-row" wx:for="{{account.roles}}" wx:key="id"><text>{{item.label}}</text><text>已生效</text></view></view><view class="identity-empty surface" wx:else><text class="identity-empty__copy">当前没有额外业务身份。</text></view></view>
+    </block>
+  </block>
+</view>

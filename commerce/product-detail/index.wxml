@@ -1,0 +1,11 @@
+<view class="detail-page">
+  <view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">商品暂时没有加载出来</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:elif="{{product}}">
+    <view class="detail-head"><text class="detail-eyebrow">课程积分商品</text><text class="detail-title">{{product.name}}</text><text class="detail-description">{{product.description}}</text></view>
+    <view class="price-panel surface"><text>本次购买</text><text class="price-panel__amount">¥{{product.amount}}</text><text class="price-panel__credits">发放 {{product.credits}} 课程积分</text></view>
+    <view class="detail-section surface"><view class="detail-row"><text>预计课程数</text><text>{{estimatedCourseText}}</text></view><view class="detail-row"><text>有效期</text><text>{{validityText}}</text></view><view class="detail-row"><text>教师服务</text><text>{{serviceText}}</text></view><view class="detail-row"><text>退款规则</text><text>{{refundText}}</text></view></view>
+    <text class="detail-notice">课程数量仅为购买前估算。课程积分按实际课程内容生成消耗结算。</text>
+    <button class="detail-action pressable" bindtap="goConfirm">确认商品</button>
+  </block>
+</view>

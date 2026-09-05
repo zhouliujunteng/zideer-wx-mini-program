@@ -1,0 +1,33 @@
+<view class="screen assessment-context">
+  <view class="assessment-context__inner">
+    <block wx:if="{{loading}}">
+      <view class="skeleton assessment-context__skeleton-title"></view>
+      <view class="skeleton assessment-context__skeleton-card"></view>
+    </block>
+    <block wx:else>
+      <view class="assessment-context__heading">
+        <text class="assessment-context__eyebrow">基础测评</text>
+        <text class="assessment-context__title">确认本次测评信息</text>
+        <text class="assessment-context__copy">信息会随本次测评保存，用于后续诊断与学习规划。</text>
+      </view>
+
+      <view class="assessment-context__list surface">
+        <view class="assessment-context__row"><text class="assessment-context__label">学生</text><text class="assessment-context__value">{{profile.nickname || profile.realName || '当前学生'}}</text></view>
+        <view class="assessment-context__row"><text class="assessment-context__label">学科</text><text class="assessment-context__value">{{subjectName}}</text></view>
+        <view class="assessment-context__row"><text class="assessment-context__label">年级</text><text class="assessment-context__value">{{gradeLabel}}</text></view>
+        <view class="assessment-context__row"><text class="assessment-context__label">地区</text><text class="assessment-context__value">{{profile.regionDetail || '未填写'}}</text></view>
+        <view class="assessment-context__row"><text class="assessment-context__label">教材</text><text class="assessment-context__value">{{profile.textbookVersion || '未填写'}}</text></view>
+      </view>
+
+      <view class="assessment-context__section">
+        <text class="section-title">目标考试</text>
+        <picker class="assessment-context__picker surface" range="{{targetExamOptions}}" value="{{targetExamIndex}}" bindchange="chooseTargetExam">
+          <text>{{targetExam}}</text><text class="assessment-context__chevron">›</text>
+        </picker>
+      </view>
+      <text class="assessment-context__hint">档案中的地区、年级或教材需要调整时，请先返回“我的”修改学习档案。</text>
+
+      <button class="assessment-context__action pressable" loading="{{submitting}}" disabled="{{submitting}}" bindtap="continueToBasic">开始基础问卷</button>
+    </block>
+  </view>
+</view>

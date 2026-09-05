@@ -1,0 +1,12 @@
+<view class="remediation-page">
+  <view class="remediation-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">补学方案暂时无法加载</text><text class="state-panel__copy">请确认网络与登录状态后重试。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <view class="state-panel" wx:elif="{{!task}}"><view class="state-panel__mark">!</view><text class="state-panel__title">老师尚未提交补学方案</text><text class="state-panel__copy">补学方案提交后会自动显示在这里。</text><button class="state-panel__action pressable" bindtap="goBack">返回</button></view>
+  <block wx:else>
+    <view class="remediation-head"><text class="remediation-head__eyebrow">补学与课程细化</text><text class="remediation-head__title">{{task.topicName}}</text><text class="remediation-head__meta">{{task.subjectCode}} · {{task.statusLabel}}</text></view>
+    <view class="remediation-status surface"><text class="remediation-status__label">补学方式</text><text class="remediation-status__value">{{task.strategyLabel}}</text><text class="remediation-status__copy">{{task.creditText}}</text></view>
+    <view class="remediation-section"><text class="remediation-section__title">需要重新梳理的内容</text><view class="remediation-panel surface"><text>{{task.weakPointText}}</text></view></view>
+    <view class="remediation-section"><text class="remediation-section__title">课程安排</text><view class="remediation-panel surface"><text>原课程可免费回顾；新的补学内容会在老师方案确认后按照服务端报价生成。</text></view></view>
+    <view class="remediation-actions"><button class="secondary-action pressable" wx:if="{{task.canReview}}" bindtap="reviewCourse">回顾原课程</button><button class="secondary-action pressable" wx:else disabled="true">原课程不可用</button><button class="primary-action pressable" wx:if="{{task.canContinue}}" bindtap="continueTask">查看补学进度</button><button class="primary-action primary-action--disabled" wx:else disabled="true">等待老师确认</button></view>
+  </block>
+</view>

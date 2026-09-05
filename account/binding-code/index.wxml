@@ -1,0 +1,9 @@
+<view class="binding-code-page">
+  <view class="code-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">绑定码暂时无法生成</text><button class="state-panel__action pressable" bindtap="refreshCode">重新生成</button></view>
+  <block wx:else>
+    <view class="binding-code-head"><text class="binding-code-eyebrow">家庭关系</text><text class="binding-code-title">学生绑定码</text></view>
+    <view class="code-card surface"><text class="code-card__label">本次动态码</text><text class="code-card__value">{{code}}</text><view class="code-card__footer"><text class="code-card__timer {{expired ? 'code-card__timer--expired' : ''}}">{{expired ? '已失效' : countdown}}</text><text class="code-card__hint">单次使用</text></view></view>
+    <button class="code-refresh pressable" bindtap="refreshCode" loading="{{refreshing}}">{{expired ? '重新生成' : '刷新动态码'}}</button>
+  </block>
+</view>

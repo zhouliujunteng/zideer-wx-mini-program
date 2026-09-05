@@ -1,0 +1,25 @@
+.deep-entitlement { min-height: 100vh; padding: 0 28rpx calc(env(safe-area-inset-bottom) + 44rpx); }
+.deep-entitlement__inner { padding-top: 56rpx; }
+.deep-entitlement__hero { padding: 0 8rpx; }
+.deep-entitlement__eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }
+.deep-entitlement__title { display: block; margin-top: 12rpx; font-size: 42rpx; font-weight: 700; line-height: 1.25; }
+.deep-entitlement__copy { display: block; margin-top: 14rpx; color: var(--muted); font-size: 24rpx; line-height: 1.55; }
+.entitlement-empty { margin-top: 46rpx; padding: 30rpx 26rpx; }
+.entitlement-empty__title { display: block; font-size: 27rpx; font-weight: 700; }
+.entitlement-empty__copy { display: block; margin-top: 12rpx; color: var(--muted); font-size: 22rpx; line-height: 1.6; }
+.grant-card { margin-top: 34rpx; padding: 28rpx 26rpx; }
+.grant-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16rpx; }
+.grant-card__source, .grant-card__no { display: block; }
+.grant-card__source { font-size: 27rpx; font-weight: 700; }
+.grant-card__no, .grant-card__meta { margin-top: 9rpx; color: var(--muted); font-size: 21rpx; }
+.grant-card__status { flex: none; border-radius: 999rpx; padding: 6rpx 14rpx; background: #edf1f4; color: #53606d; font-size: 20rpx; }
+.grant-card__status--available { background: #e4f3e6; color: #27723b; }
+.grant-card__status--consumed { background: #fff2cc; color: #8b5b00; }
+.grant-card__status--expired, .grant-card__status--revoked { background: #f1f1f1; color: #777; }
+.grant-card__subjects, .grant-card__action-wrap { margin-top: 25rpx; }
+.grant-card__hint { display: block; margin-bottom: 14rpx; color: var(--muted); font-size: 21rpx; }
+.grant-card__subject { display: inline-flex; min-width: 142rpx; min-height: 64rpx; align-items: center; justify-content: center; margin: 0 12rpx 12rpx 0; padding: 0 18rpx; border: 1rpx solid var(--line); border-radius: 8rpx; background: #fff; font-size: 24rpx; }
+.grant-card__action { width: 100%; min-height: 76rpx; background: var(--accent-deep); color: #fff; font-size: 25rpx; font-weight: 700; }
+.grant-card__notice { display: block; margin-top: 24rpx; color: var(--muted); font-size: 22rpx; }
+.deep-entitlement__skeleton-title { width: 48%; height: 54rpx; margin-left: 8rpx; }
+.deep-entitlement__skeleton-card { height: 310rpx; margin-top: 50rpx; border-radius: 18rpx; }

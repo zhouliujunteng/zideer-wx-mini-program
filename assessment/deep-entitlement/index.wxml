@@ -1,0 +1,47 @@
+<view class="screen deep-entitlement">
+  <view class="deep-entitlement__inner">
+    <block wx:if="{{loading}}">
+      <view class="skeleton deep-entitlement__skeleton-title"></view>
+      <view class="skeleton deep-entitlement__skeleton-card"></view>
+    </block>
+
+    <view class="state-panel" wx:elif="{{failed}}">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">深测资格没有加载出来</text>
+      <text class="state-panel__copy">网络恢复后可重新读取当前学生的资格状态。</text>
+      <button class="state-panel__action pressable" bindtap="loadPage">重新加载</button>
+    </view>
+
+    <block wx:else>
+      <view class="deep-entitlement__hero">
+        <text class="deep-entitlement__eyebrow">深度测评</text>
+        <text class="deep-entitlement__title">选择一个学科开始</text>
+        <text class="deep-entitlement__copy">开始后资格将锁定为所选学科，不能更换。</text>
+      </view>
+
+      <view class="entitlement-empty surface" wx:if="{{!grants.length}}">
+        <text class="entitlement-empty__title">暂未获得深测资格</text>
+        <text class="entitlement-empty__copy">推广赠送或会员权益到账后，会在这里显示可选年级、学科和有效期。</text>
+      </view>
+
+      <view class="grant-card surface" wx:for="{{grants}}" wx:key="id">
+        <view class="grant-card__head">
+          <view><text class="grant-card__source">{{item.sourceLabel}}</text><text class="grant-card__no">资格编号 {{item.grantNo}}</text></view>
+          <text class="grant-card__status grant-card__status--{{item.status}}">{{item.statusLabel}}</text>
+        </view>
+        <text class="grant-card__meta">有效期至 {{item.expiresLabel}}</text>
+        <text class="grant-card__meta" wx:if="{{item.selectedSubjectName}}">已锁定 {{item.selectedSubjectName}}</text>
+
+        <view wx:if="{{item.canResume}}" class="grant-card__action-wrap">
+          <button class="grant-card__action pressable" data-grant-id="{{item.id}}" data-subject-key="{{item.attempt.subjectKey}}" bindtap="resumeAttempt">继续 {{item.attempt.subjectName}} 深测</button>
+        </view>
+        <view wx:elif="{{item.canStart}}" class="grant-card__subjects">
+          <text class="grant-card__hint">可选学科</text>
+          <button class="grant-card__subject pressable" wx:for="{{item.subjects}}" wx:for-item="subject" wx:key="key" data-grant-id="{{item.id}}" data-subject-key="{{subject.key}}" bindtap="startSubject">{{subject.name}}</button>
+        </view>
+        <text wx:elif="{{item.status === 'available' && !item.gradeAllowed}}" class="grant-card__notice">该资格不适用于当前年级。</text>
+        <text wx:else class="grant-card__notice">本资格当前不可再启动新的深测。</text>
+      </view>
+    </block>
+  </view>
+</view>

@@ -1,0 +1,1 @@
+.acceptance-host { min-height: 100vh; padding: 64rpx 32rpx; box-sizing: border-box; background: #f6f7f9; }

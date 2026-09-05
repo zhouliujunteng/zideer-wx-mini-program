@@ -1,0 +1,16 @@
+<view class="schedule-page">
+  <view class="schedule-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">真人陪跑日程暂时无法加载</text><text class="state-panel__copy">请确认网络和登录状态后重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:else>
+    <view class="schedule-head"><text class="schedule-eyebrow">真人服务</text><text class="schedule-title">陪跑日程</text><text class="schedule-copy">仅展示当前学生已授权参与的场次。</text></view>
+    <view class="schedule-list surface" wx:if="{{sessions.length}}">
+      <button class="session-row pressable" wx:for="{{sessions}}" wx:key="id" data-participant-id="{{item.id}}" bindtap="openSession">
+        <view class="session-time"><text class="session-time__main">{{item.timeLabel}}</text><text class="session-time__duration">{{item.durationLabel}}</text></view>
+        <view class="session-copy"><text class="session-copy__title">{{item.modeLabel}}</text><text class="session-copy__meta">{{item.teacherLabel}} · {{item.statusLabel}}</text></view>
+        <text class="session-arrow">›</text>
+      </button>
+    </view>
+    <view class="schedule-empty surface" wx:else><text class="schedule-empty__title">暂时没有已安排的真人陪跑场次</text><text class="schedule-empty__copy">排课或平台调整完成后，场次会显示在这里。</text><button class="schedule-empty__action pressable" bindtap="openDailyTask">查看每日学习任务</button></view>
+    <view class="assignment-list" wx:if="{{assignments.length}}"><text class="assignment-title">当前教师服务</text><view class="assignment-row surface" wx:for="{{assignments}}" wx:key="id"><text>{{item.teacher && item.teacher.displayName ? item.teacher.displayName : '教师待确认'}}</text><text>{{item.assignmentType || '学习服务'}}</text></view></view>
+  </block>
+</view>

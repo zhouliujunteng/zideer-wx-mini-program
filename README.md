@@ -4,9 +4,10 @@
 
 ## 当前状态
 
-- 已完成课程、学习计划、私课工具、我的四个导航页，以及当前用户、附属账号、课程首页和学习计划的 Zion 调用封装。
-- 默认 `MOCK_MODE: true`，便于未绑定微信授权时本地完成界面开发。
-- 切换真实后端前，在 `config/index.js` 中将 `MOCK_MODE` 改为 `false`，并填写 `AUTH_EXCHANGE_URL`。
+- 当前注册 65 个 P2D 页面路由，覆盖学习档案、测评、诊断、计划、课程积分、家庭、验收、推广和金币入口。
+- 用户可见数据不使用 Mock 回退；已接入页面通过 Zion Actionflow 或受控 HTTPS 服务读取当前登录身份的数据。
+- 小程序服务层已有合同测试，当前可验证范围、Zion 受控运行验证和外部前置条件以 `../docs/P2D-09-功能与验证覆盖矩阵.md` 为准。
+- 微信支付、真机微信登录、真实录音上传、外部 AI 任务、课程回传、推广 Token 的 Zion 运行时调用及商家转账均不能仅凭本地或模拟器通过而视为上线。
 
 ## 真实登录前置条件
 
@@ -14,4 +15,7 @@
 2. 完成 code 换 Zion Runtime JWT 的服务端配置。
 3. 将本地 `project.config.json` 的 `appid` 改为实际小程序 AppID。
 
-终端用户代码中不能放 Zion Admin Token 或微信 AppSecret。
+## 开发与发布边界
+
+- `project.config.json` 中的 `urlCheck: false` 仅用于本地开发者工具调试。上传、体验版、审核和正式版本必须在微信公众平台配置并启用所有实际请求域名后再验证。
+- 不得将 Zion Admin Token、OpenMAIC 共享密钥、微信 AppSecret 或支付商户私钥写入小程序源码或项目公开配置。

@@ -1,0 +1,14 @@
+<view class="acceptance-page">
+  <view class="acceptance-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">验收结果暂时无法加载</text><text class="state-panel__copy">请确认网络和登录状态后重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <view class="state-panel" wx:elif="{{!result}}"><view class="state-panel__mark">!</view><text class="state-panel__title">未找到这次验收</text><text class="state-panel__copy">该记录可能尚未生成，或当前身份已失去查看权限。</text><button class="state-panel__action pressable" bindtap="openReport">返回学习报告</button></view>
+  <block wx:else>
+    <view class="acceptance-head"><text class="acceptance-eyebrow">费曼验收</text><text class="acceptance-title">验收结果摘要</text><text class="acceptance-meta">{{result.studentName}} · 有效学习 {{result.learningDuration}}</text></view>
+    <view class="acceptance-status surface"><text class="acceptance-status__label">当前进度</text><text class="acceptance-status__value {{result.isVerified ? 'acceptance-status__value--pass' : ''}}">{{result.statusLabel}}</text><text class="acceptance-status__copy" wx:if="{{!result.isVerified}}">AI 的候选评价不会直接形成“已掌握”结论，仍需老师最终核验。</text></view>
+    <view class="acceptance-section"><text class="acceptance-section__title">AI 候选评价</text><view class="acceptance-panel surface"><text>{{result.acceptanceSummary}}</text><text class="acceptance-panel__label">必备概念覆盖</text><text>{{result.coverageSummary}}</text></view></view>
+    <view class="acceptance-section"><text class="acceptance-section__title">复述原声</text><view class="audio-summary surface"><text class="audio-summary__title">已保存 {{result.audioCount}} 段复述</text><text class="audio-summary__copy">其中 {{result.audioReadyCount}} 段已可通过当前授权播放。原声不提供公开下载。</text><button class="audio-summary__action pressable" bindtap="openReport">查看原声</button></view></view>
+    <view class="acceptance-section"><text class="acceptance-section__title">老师最终核验</text><view class="acceptance-panel surface"><text class="review-label">{{result.reviewLabel}}</text><text>{{result.reviewSummary}}</text></view></view>
+    <view class="acceptance-section" wx:if="{{result.isVerified}}"><text class="acceptance-section__title">核验后的学习结果</text><view class="acceptance-panel surface"><text>{{result.afterMasterySummary}}</text><text class="acceptance-panel__label">前后掌握对比</text><text>{{result.comparisonSummary}}</text></view></view>
+    <view class="acceptance-actions"><button class="secondary-action pressable" bindtap="openReport">查看完整报告</button><button class="primary-action pressable" bindtap="openNextStep">{{result.isRemediation ? '等待补学方案' : '查看下一学习任务'}}</button></view>
+  </block>
+</view>

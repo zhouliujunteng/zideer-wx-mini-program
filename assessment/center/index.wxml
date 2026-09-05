@@ -1,0 +1,64 @@
+<view class="screen assessment-center">
+  <view class="assessment-center__inner">
+    <block wx:if="{{loading}}">
+      <view class="skeleton assessment-center__skeleton-title"></view>
+      <view class="skeleton assessment-center__skeleton-list"></view>
+    </block>
+
+    <view class="state-panel" wx:elif="{{loadFailed}}">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">测评中心暂时没有加载出来</text>
+      <text class="state-panel__copy">网络恢复后，可以重新读取当前学生的测评状态。</text>
+      <button class="state-panel__action pressable" bindtap="loadPage">重新加载</button>
+    </view>
+
+    <block wx:else>
+      <view class="assessment-center__hero">
+        <text class="assessment-center__eyebrow">基础测评</text>
+        <text class="assessment-center__title">从当前年级开始</text>
+        <text class="assessment-center__copy">{{profile.nickname || profile.realName || '当前学生'}} · {{profile.stage}} {{profile.grade}} 年级</text>
+      </view>
+
+      <view class="assessment-center__section">
+        <view class="section-head"><text class="section-title">可开始的学科</text></view>
+        <view class="assessment-subjects" wx:if="{{subjects.length}}">
+          <button class="assessment-subject surface pressable" wx:for="{{subjects}}" wx:key="key" data-subject-key="{{item.key}}" bindtap="startSubject">
+            <view class="assessment-subject__copy">
+              <text class="assessment-subject__name">{{item.name}}</text>
+              <text class="assessment-subject__meta">{{item.questionCount}} 题 · {{item.title}}</text>
+            </view>
+            <text class="assessment-subject__arrow">›</text>
+          </button>
+        </view>
+        <view class="assessment-empty surface" wx:else>
+          <text class="assessment-empty__title">当前年级暂无已发布测评</text>
+          <text class="assessment-empty__copy">后台发布对应年级与学科的基础测评后，会自动显示在这里。</text>
+        </view>
+      </view>
+
+      <view class="assessment-center__section">
+        <view class="section-head"><text class="section-title">深度测评</text><button class="section-link pressable" bindtap="openDeepEntitlement">查看资格</button></view>
+        <button class="assessment-deep surface pressable" bindtap="openDeepEntitlement">
+          <view class="assessment-deep__copy">
+            <text class="assessment-deep__title">{{deepGrants.length ? '查看并使用深测资格' : '暂无可用深测资格'}}</text>
+            <text class="assessment-deep__meta">{{deepGrants.length ? '开始后锁定一个学科，仅可核销一次' : '获得资格后会在这里显示可选范围和有效期'}}</text>
+          </view>
+          <text class="assessment-deep__arrow">›</text>
+        </button>
+      </view>
+
+      <view class="assessment-center__section" wx:if="{{attempts.length}}">
+        <view class="section-head"><text class="section-title">测评记录</text><button class="section-link pressable" bindtap="openHistory">全部记录</button></view>
+        <view class="assessment-history surface">
+          <button class="assessment-history__row pressable" wx:for="{{attempts}}" wx:key="id" data-subject-key="{{item.subjectKey}}" bindtap="resumeAttempt">
+            <view class="assessment-history__copy">
+              <text class="assessment-history__title">{{item.subjectName}} · {{item.templateTitle}}</text>
+              <text class="assessment-history__meta">{{item.statusLabel}}</text>
+            </view>
+            <text class="assessment-history__arrow">›</text>
+          </button>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

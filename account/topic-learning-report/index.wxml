@@ -1,0 +1,21 @@
+<view class="report-page">
+  <view class="report-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">学习报告暂时无法加载</text><text class="state-panel__copy">请确认网络和登录状态后重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:else>
+    <view class="report-head"><text class="report-eyebrow">学习档案</text><text class="report-title">知识点学习报告</text></view>
+    <view class="report-empty surface" wx:if="{{!current}}"><text class="report-empty__title">暂无可查看的学习报告</text><text class="report-empty__copy">你只能查看本人或当前有效绑定学生的报告。</text></view>
+    <block wx:else>
+      <button class="student-switcher surface pressable" bindtap="chooseStudent"><view class="student-avatar">{{current.initial}}</view><view class="student-copy"><text class="student-label">当前学生</text><text class="student-name">{{current.name}} · {{current.gradeLabel}}</text></view><text class="student-action">{{students.length > 1 ? '切换' : '当前档案'}} ›</text></button>
+      <view class="report-empty surface" wx:if="{{!reports.length}}"><text class="report-empty__title">该学生还没有学习报告</text><text class="report-empty__copy">课程验收形成报告后，经过授权的摘要会显示在这里。</text></view>
+      <block wx:else>
+        <scroll-view class="report-tabs" scroll-x="true" enable-flex="true"><button class="report-tab pressable {{selected.id === item.id ? 'report-tab--active' : ''}}" wx:for="{{reports}}" wx:key="id" data-id="{{item.id}}" bindtap="selectReport"><text>{{item.reportNo}}</text><text>{{item.statusLabel}}</text></button></scroll-view>
+        <button class="report-card surface pressable" bindtap="openAcceptanceResult"><view class="report-card__top"><view><text class="report-card__label">本次学习</text><text class="report-card__no">{{selected.reportNo}}</text></view><text class="status-pill {{selected.isVerified ? 'status-pill--pass' : ''}}">{{selected.statusLabel}}</text></view><view class="report-meta"><text>生成于 {{selected.generatedAt}}</text><text>有效学习 {{selected.learningDuration}}</text><text>验收摘要 ›</text></view></button>
+        <view class="report-section"><text class="report-section__title">学习过程</text><view class="report-panel surface"><text>{{selected.learningSummary}}</text></view></view>
+        <view class="report-section"><text class="report-section__title">AI 验收摘要</text><view class="report-panel surface"><text class="report-panel__label">候选评价</text><text>{{selected.acceptanceSummary}}</text><text class="report-panel__label report-panel__label--gap">必备概念覆盖</text><text>{{selected.coverageSummary}}</text></view></view>
+        <view class="report-section"><text class="report-section__title">老师最终核验</text><view class="report-panel surface"><text class="review-status">{{selected.reviewLabel}}</text><text>{{selected.reviewSummary}}</text></view></view>
+        <view class="report-section" wx:if="{{selected.isVerified}}"><text class="report-section__title">核验后的学习结果</text><view class="report-panel surface"><text>{{selected.afterMasterySummary}}</text><text class="report-panel__label report-panel__label--gap">前后对比</text><text>{{selected.comparisonSummary}}</text></view></view>
+        <view class="report-section"><text class="report-section__title">孩子本次复述原声</text><view class="audio-list surface"><view class="audio-row" wx:for="{{selected.audioAssets}}" wx:key="id"><view class="audio-row__index">{{item.segment_no}}</view><view class="audio-row__copy"><text class="audio-row__title">第 {{item.segment_no}} 段复述 · {{item.durationLabel}}</text><text class="audio-row__meta">{{item.statusLabel}}</text></view><button class="audio-row__action pressable" wx:if="{{item.canPlay}}" data-id="{{item.id}}" bindtap="playAudio">{{playingAssetId === item.id ? '停止' : '播放'}}</button><text class="audio-row__disabled" wx:else>不可用</text></view><view class="audio-empty" wx:if="{{!selected.audioAssets.length}}"><text>本次暂无可用的复述音频。</text></view></view></view>
+      </block>
+    </block>
+  </block>
+</view>

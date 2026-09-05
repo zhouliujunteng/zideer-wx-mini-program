@@ -1,4 +1,5 @@
-const { restoreAuthenticatedUser, signInWithPhoneCode } = require('../../services/identity')
+const { restoreAuthenticatedUser, signInWithWechat } = require('../../services/identity')
+const { postAuthenticationUrl } = require('../../utils/referral-context')
 
 Page({
   data: {
@@ -15,30 +16,28 @@ Page({
     const user = await restoreAuthenticatedUser()
     if (user) {
       getApp().globalData.user = user
-      wx.reLaunch({ url: '/pages/index/index' })
+      this.navigateAfterAuthentication(user)
       return
     }
     this.setData({ checkingSession: false })
   },
 
-  async handlePhoneAuthorization(event) {
+  async handleWechatLogin() {
     if (this.data.authorizing) return
-
-    const detail = event.detail || {}
-    if (detail.errMsg !== 'getPhoneNumber:ok') {
-      wx.showToast({ title: '需要授权手机号后才能继续', icon: 'none' })
-      return
-    }
 
     this.setData({ authorizing: true })
     try {
-      const user = await signInWithPhoneCode(detail.code)
+      const user = await signInWithWechat()
       getApp().globalData.user = user
-      wx.reLaunch({ url: '/pages/index/index' })
+      this.navigateAfterAuthentication(user)
     } catch (error) {
       wx.showToast({ title: error.message || '登录失败，请重试', icon: 'none', duration: 3000 })
     } finally {
       this.setData({ authorizing: false })
     }
+  },
+
+  navigateAfterAuthentication(user) {
+    wx.reLaunch({ url: postAuthenticationUrl(user) })
   }
 })

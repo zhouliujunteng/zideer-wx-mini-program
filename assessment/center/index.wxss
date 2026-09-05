@@ -1,0 +1,28 @@
+.assessment-center { min-height: 100vh; padding: 0 28rpx calc(env(safe-area-inset-bottom) + 44rpx); }
+.assessment-center__inner { padding-top: 56rpx; }
+.assessment-center__hero { padding: 0 8rpx; }
+.assessment-center__eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }
+.assessment-center__title { display: block; margin-top: 12rpx; font-size: 42rpx; font-weight: 700; line-height: 1.25; }
+.assessment-center__copy { display: block; margin-top: 14rpx; color: var(--muted); font-size: 24rpx; }
+.assessment-center__section { margin-top: 44rpx; }
+.assessment-subject { display: flex; width: 100%; min-height: 126rpx; align-items: center; margin-top: 16rpx; padding: 0 24rpx; text-align: left; }
+.assessment-subject__copy, .assessment-history__copy { min-width: 0; flex: 1; }
+.assessment-subject__name, .assessment-subject__meta, .assessment-history__title, .assessment-history__meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.assessment-subject__name { font-size: 28rpx; font-weight: 700; }
+.assessment-subject__meta, .assessment-history__meta { margin-top: 8rpx; color: var(--muted); font-size: 21rpx; }
+.assessment-subject__arrow, .assessment-history__arrow { margin-left: 18rpx; color: var(--muted); font-size: 36rpx; }
+.assessment-empty { padding: 30rpx 26rpx; }
+.assessment-empty__title { display: block; font-size: 26rpx; font-weight: 700; }
+.assessment-empty__copy { display: block; margin-top: 12rpx; color: var(--muted); font-size: 22rpx; line-height: 1.55; }
+.assessment-deep { display: flex; width: 100%; min-height: 132rpx; align-items: center; padding: 0 24rpx; text-align: left; }
+.assessment-deep__copy { min-width: 0; flex: 1; }
+.assessment-deep__title, .assessment-deep__meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.assessment-deep__title { font-size: 27rpx; font-weight: 700; }
+.assessment-deep__meta { margin-top: 9rpx; color: var(--muted); font-size: 21rpx; }
+.assessment-deep__arrow { margin-left: 18rpx; color: var(--muted); font-size: 36rpx; }
+.assessment-history { overflow: hidden; padding: 0 24rpx; }
+.assessment-history__row { display: flex; width: 100%; min-height: 106rpx; align-items: center; border-bottom: 1rpx solid var(--line); text-align: left; }
+.assessment-history__row:last-child { border-bottom: 0; }
+.assessment-history__title { font-size: 25rpx; font-weight: 600; }
+.assessment-center__skeleton-title { width: 42%; height: 54rpx; margin-left: 8rpx; }
+.assessment-center__skeleton-list { height: 420rpx; margin-top: 50rpx; border-radius: 24rpx; }

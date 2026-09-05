@@ -1,0 +1,13 @@
+.acceptance-entry { min-height: 100vh; box-sizing: border-box; padding: 88rpx 40rpx 56rpx; background: #f6f7f9; color: #17191c; }
+.entry-copy { display: flex; flex-direction: column; }
+.entry-eyebrow { color: #79808a; font-size: 26rpx; }
+.entry-title { margin-top: 20rpx; font-size: 48rpx; font-weight: 700; line-height: 1.2; }
+.entry-detail { margin-top: 28rpx; color: #5f6670; font-size: 29rpx; line-height: 1.7; }
+.entry-checks { margin: 72rpx 0; border-top: 1rpx solid #e3e6ea; }
+.entry-check { display: flex; align-items: center; gap: 20rpx; padding: 28rpx 0; border-bottom: 1rpx solid #e3e6ea; color: #353a40; font-size: 28rpx; }
+.entry-check__mark { display: grid; width: 40rpx; height: 40rpx; place-items: center; border-radius: 50%; background: #e5b744; color: #17191c; font-size: 22rpx; }
+.entry-action { width: 100%; background: #17191c; color: #fff; font-size: 31rpx; }
+.recording-panel { margin-top: 56rpx; padding-top: 40rpx; border-top: 1rpx solid #e3e6ea; }
+.recording-panel__title { display: block; font-size: 34rpx; font-weight: 700; }
+.recording-panel__copy { display: block; margin: 18rpx 0 36rpx; color: #5f6670; font-size: 27rpx; line-height: 1.65; }
+.stop-action { width: 100%; background: #b44235; color: #fff; font-size: 31rpx; }

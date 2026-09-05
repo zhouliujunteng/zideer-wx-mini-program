@@ -1,0 +1,8 @@
+<view class="acceptance-host" wx:if="{{failed}}">
+  <view class="state-panel">
+    <text class="state-panel__title">验收暂时无法进入</text>
+    <text class="state-panel__copy">启动信息已失效，请返回后重新开始。</text>
+    <button class="state-panel__action pressable" bindtap="goBack">返回</button>
+  </view>
+</view>
+<web-view wx:else src="{{launchUrl}}"></web-view>

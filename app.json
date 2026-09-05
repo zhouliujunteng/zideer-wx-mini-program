@@ -1,38 +1,136 @@
 {
   "pages": [
     "pages/login/login",
-    "pages/index/index",
-    "pages/study-plan/study-plan",
-    "pages/tools/tools",
-    "pages/profile/profile"
+    "pages/profile-setup/index",
+    "pages/product-intro/index",
+    "pages/referral-entry/index",
+    "pages/messages/index",
+    "pages/home/index",
+    "pages/learning/index",
+      "pages/knowledge-map/index",
+    "pages/me/index"
+  ],
+  "subpackages": [
+    {
+      "root": "account",
+      "pages": [
+        "family/index",
+        "binding-code/index",
+        "bind-student/index",
+        "identity/index",
+        "guardian-dashboard/index",
+        "login-identities/index",
+        "child-learning-feed/index",
+        "topic-learning-report/index"
+      ]
+    },
+    {
+      "root": "assessment",
+      "pages": [
+        "center/index",
+        "history/index",
+        "context/index",
+        "basic/index",
+        "recent-score/index",
+        "exam-upload/index",
+        "ocr-review/index",
+        "deep-entitlement/index",
+        "deep/index",
+        "analysis/index"
+      ]
+    },
+    {
+      "root": "diagnosis",
+      "pages": [
+        "report/index",
+        "subject/index",
+        "score-forecast/index",
+        "topic/index",
+        "pre-plan/index",
+        "plans/index",
+        "plan-detail/index",
+        "plan-generation/index"
+      ]
+    },
+    {
+      "root": "commerce",
+      "pages": [
+        "agent-gate/index",
+        "assignment-request/index",
+        "products/index",
+        "product-detail/index",
+        "order-confirm/index",
+        "payment-result/index",
+        "orders/index",
+        "order-detail/index",
+        "entitlements/index"
+      ]
+    },
+    {
+      "root": "learning",
+      "pages": [
+        "daily-task/index",
+        "acceptance-result/index",
+        "acceptance-entry/index",
+        "acceptance-host/index",
+        "remediation/index",
+        "course/index",
+        "generation-status/index",
+        "schedule/index",
+        "live-session/index"
+      ]
+    },
+    {
+      "root": "agent",
+      "pages": [
+        "application/index",
+        "dashboard/index",
+        "clients/index",
+        "client-detail/index",
+        "share-tools/index",
+        "ai-poster/index",
+        "material-library/index",
+        "deep-assessment-gift/index"
+      ]
+    },
+    {
+      "root": "growth",
+      "pages": [
+        "coins/index",
+        "coin-tasks/index",
+        "coin-withdrawal/index",
+        "redemption/index"
+      ]
+    }
   ],
   "window": {
-    "backgroundColor": "#F7F7F2",
+    "backgroundColor": "#F6F7F9",
     "backgroundTextStyle": "dark",
-    "navigationBarBackgroundColor": "#F7F7F2",
+    "navigationBarBackgroundColor": "#F6F7F9",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "知鹿私课"
   },
   "tabBar": {
-    "color": "#72746C",
-    "selectedColor": "#147D73",
-    "backgroundColor": "#FCFCF8",
+    "custom": true,
+    "color": "#9A9FA6",
+    "selectedColor": "#17191C",
+    "backgroundColor": "#FEFEFC",
     "borderStyle": "white",
     "list": [
       {
-        "pagePath": "pages/index/index",
-        "text": "课程"
+        "pagePath": "pages/home/index",
+        "text": "首页"
       },
       {
-        "pagePath": "pages/study-plan/study-plan",
-        "text": "学习计划"
+        "pagePath": "pages/learning/index",
+        "text": "学习"
       },
       {
-        "pagePath": "pages/tools/tools",
-        "text": "私课工具"
+        "pagePath": "pages/knowledge-map/index",
+        "text": "知识图谱"
       },
       {
-        "pagePath": "pages/profile/profile",
+        "pagePath": "pages/me/index",
         "text": "我的"
       }
     ]

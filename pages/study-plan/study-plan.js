@@ -1,18 +1,23 @@
-const { loadStudyLearners } = require('../../services/identity')
+const { loadLearningDashboard } = require('../../services/identity')
 
-function formatLearner(learner) {
-  const displayName = learner.nickname || learner.real_name || '学习用户'
+function formatLearner(student, learning) {
+  const displayName = student.name || '学习用户'
   return {
-    id: learner.id,
+    id: student.id,
     displayName,
     initial: displayName.slice(0, 1),
-    relationName: learner.relation_name || '本人',
-    plans: (learner.plans || []).map((plan) => ({
-      id: plan.id,
-      title: plan.course && plan.course.title ? plan.course.title : plan.plan_name || '学习计划',
-      planName: plan.plan_name || '',
-      schedules: plan.schedules || []
-    }))
+    relationName: student.relation || '本人',
+    plans: learning.summary ? [{
+      id: learning.summary.planId || 'current-plan',
+      title: learning.summary.planName || '学习计划',
+      planName: learning.summary.planName || '',
+      schedules: (learning.tasks || []).map((task) => ({
+        id: task.id,
+        title: task.title || '学习任务',
+        duration_minutes: Number(task.duration || 0),
+        status: task.status || 'waiting'
+      }))
+    }] : []
   }
 }
 
@@ -36,7 +41,8 @@ Page({
   async loadPage() {
     this.setData({ loading: true })
     try {
-      const learners = (await loadStudyLearners()).map(formatLearner)
+      const learning = await loadLearningDashboard()
+      const learners = (learning.students || []).map((student) => formatLearner(student, learning))
       const selectedIndex = Math.min(this.data.selectedIndex, Math.max(learners.length - 1, 0))
       this.setData({
         learners,

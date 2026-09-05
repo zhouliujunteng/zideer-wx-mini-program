@@ -1,0 +1,126 @@
+<view class="screen map-page" style="padding-top: {{navigation.statusBarHeight || 20}}px;">
+  <view class="app-nav map-nav" style="height: {{navigation.navigationBarHeight || 44}}px;">
+    <view class="app-nav__main">
+      <text class="app-nav__title">知识图谱</text>
+      <text class="app-nav__caption">{{grade}}</text>
+    </view>
+    <button class="icon-button map-search-button pressable" bindtap="searchTopics" aria-label="搜索知识点">
+      <image src="/assets/icons/search.svg" mode="aspectFit" />
+    </button>
+  </view>
+
+  <block wx:if="{{loading}}">
+    <view class="map-loading">
+      <view class="skeleton skeleton-subjects"></view>
+      <view class="skeleton skeleton-map"></view>
+    </view>
+  </block>
+
+  <view class="state-panel" wx:elif="{{loadFailed}}">
+    <view class="state-panel__mark">!</view>
+    <text class="state-panel__title">知识图谱暂时没有加载出来</text>
+    <text class="state-panel__copy">网络恢复后，可以继续查看当前学科的掌握情况。</text>
+    <button class="state-panel__action pressable" bindtap="loadPage">重新加载</button>
+  </view>
+
+  <block wx:else>
+    <scroll-view class="subject-tabs" scroll-x enable-flex show-scrollbar="{{false}}">
+      <button
+        class="subject-tab {{activeSubjectKey === item.key ? 'subject-tab--active' : ''}} pressable"
+        wx:for="{{subjects}}"
+        wx:key="key"
+        data-subject-key="{{item.key}}"
+        bindtap="chooseSubject"
+      >{{item.name}}</button>
+    </scroll-view>
+
+    <view class="map-summary">
+      <text class="map-summary__title">{{activeSubject}}知识网络</text>
+      <view class="map-summary__stats">
+        <text>已掌握 {{stats.mastered}}</text>
+        <text>学习中 {{stats.learning}}</text>
+        <text>需加强 {{stats.weak}}</text>
+        <text>待测 {{stats.unknown}}</text>
+      </view>
+    </view>
+
+    <view class="map-canvas surface">
+      <movable-area class="graph-area">
+        <movable-view
+          class="graph"
+          direction="all"
+          scale
+          scale-min="0.7"
+          scale-max="1.8"
+          scale-value="{{scaleValue}}"
+          out-of-bounds
+        >
+          <view class="graph-edge" wx:for="{{edges}}" wx:key="id" style="{{item.style}}"></view>
+          <button
+            class="graph-node graph-node--{{item.status}} {{selectedNodeId === item.id ? 'graph-node--selected' : ''}} pressable"
+            wx:for="{{nodes}}"
+            wx:key="id"
+            style="left: {{item.x}}rpx; top: {{item.y}}rpx; width: {{item.size}}rpx; min-height: {{item.minHeight}}rpx;"
+            data-id="{{item.id}}"
+            bindtap="selectNode"
+          >
+            <text class="graph-node__label">{{item.shortLabel}}</text>
+            <text class="graph-node__state">{{item.statusLabel}}</text>
+          </button>
+        </movable-view>
+      </movable-area>
+
+      <view class="zoom-controls">
+        <button class="zoom-button pressable" bindtap="zoomOut" aria-label="缩小知识图谱">−</button>
+        <text class="zoom-value">{{scaleValue}}×</text>
+        <button class="zoom-button pressable" bindtap="zoomIn" aria-label="放大知识图谱">＋</button>
+      </view>
+      <text class="drag-tip">拖动画布查看完整知识网络</text>
+    </view>
+  </block>
+
+  <view class="map-search" wx:if="{{searchOpen}}">
+    <view class="map-search__bar surface">
+      <input
+        class="map-search__input"
+        value="{{searchQuery}}"
+        placeholder="搜索当前学科知识点"
+        focus
+        confirm-type="search"
+        bindinput="onSearchInput"
+      />
+      <button class="map-search__clear pressable" wx:if="{{searchQuery}}" bindtap="clearSearch" aria-label="清空搜索">×</button>
+      <button class="map-search__cancel pressable" bindtap="closeSearch">取消</button>
+    </view>
+    <view class="map-search__results surface" wx:if="{{searchQuery}}">
+      <view class="map-search__empty" wx:if="{{!searchResults.length}}">没有找到匹配的知识点</view>
+      <block wx:else>
+        <button class="map-search__result pressable" wx:for="{{searchResults}}" wx:key="id" data-id="{{item.id}}" bindtap="selectSearchResult">
+          <view class="map-search__result-copy">
+            <text class="map-search__result-title">{{item.label}}</text>
+            <text class="map-search__result-meta">{{item.searchMeta}}</text>
+          </view>
+          <text class="map-search__result-state">{{item.statusLabel}}</text>
+        </button>
+      </block>
+    </view>
+  </view>
+
+  <view class="sheet-backdrop" wx:if="{{sheetOpen}}" bindtap="closeSheet"></view>
+  <view class="topic-sheet" wx:if="{{sheetOpen && selectedNode}}">
+    <view class="topic-sheet__handle"></view>
+    <view class="topic-sheet__head">
+      <view class="topic-sheet__copy">
+        <text class="topic-sheet__title">{{selectedNode.label}}</text>
+        <text class="topic-sheet__status topic-sheet__status--{{selectedNode.status}}">{{selectedNode.statusLabel}}</text>
+      </view>
+      <button class="sheet-close pressable" bindtap="closeSheet" aria-label="关闭知识点详情">×</button>
+    </view>
+    <view class="topic-details">
+      <view class="topic-detail"><text class="topic-detail__label">掌握依据</text><text class="topic-detail__value">{{selectedNode.evidence}}</text></view>
+      <view class="topic-detail"><text class="topic-detail__label">前置知识</text><text class="topic-detail__value">{{selectedNode.prerequisites}}</text></view>
+      <view class="topic-detail"><text class="topic-detail__label">预计提升</text><text class="topic-detail__value">{{selectedNode.contribution}}</text></view>
+    </view>
+    <button class="sheet-primary pressable" bindtap="openTopicDetail">查看知识点详情</button>
+  </view>
+</view>

@@ -1,0 +1,41 @@
+<view class="screen plan-generation">
+  <view class="plan-generation__inner">
+    <view class="plan-generation__head">
+      <text class="plan-generation__eyebrow">学习规划</text>
+      <text class="plan-generation__title">设定本次目标</text>
+      <text class="plan-generation__copy">规划会基于已完成的诊断和当前学段已发布知识点生成，完成后再写入学习计划。</text>
+    </view>
+
+    <view class="plan-form surface" wx:if="{{!submitting}}">
+      <view class="plan-form__field">
+        <text class="plan-form__label">学习目标</text>
+        <textarea class="plan-form__textarea" value="{{goal}}" maxlength="300" placeholder="例如：在期中前补齐数学函数基础并稳定完成每天练习" bindinput="onGoalInput" auto-height />
+      </view>
+      <view class="plan-form__field plan-form__row">
+        <view><text class="plan-form__label">每日可用时间</text><text class="plan-form__hint">10 至 600 分钟</text></view>
+        <input class="plan-form__number" type="number" value="{{dailyMinutes}}" bindinput="onDailyMinutesInput" />
+        <text class="plan-form__unit">分钟</text>
+      </view>
+      <view class="plan-form__field plan-form__row">
+        <view><text class="plan-form__label">目标日期</text><text class="plan-form__hint">用于安排任务密度</text></view>
+        <picker mode="date" start="{{minDate}}" value="{{targetDate}}" bindchange="onTargetDateChange"><view class="plan-form__date pressable">{{targetDate}}</view></picker>
+      </view>
+    </view>
+
+    <view class="plan-subjects" wx:if="{{!submitting}}">
+      <text class="section-title">优先学科</text>
+      <text class="plan-subjects__hint">不选择时，将从当前年级全部可用学科中生成。</text>
+      <view class="plan-subjects__chips">
+        <button class="plan-subjects__chip pressable {{selectedSubjects.indexOf(item.key) >= 0 ? 'plan-subjects__chip--selected' : ''}}" wx:for="{{subjects}}" wx:key="key" data-key="{{item.key}}" bindtap="toggleSubject">{{item.name}}</button>
+      </view>
+    </view>
+
+    <view class="plan-generation__working surface" wx:else>
+      <view class="plan-generation__spinner"></view>
+      <text class="plan-generation__working-title">{{progressText}}</text>
+      <text class="plan-generation__working-copy">正在校验知识点范围、前置关系和任务顺序。</text>
+    </view>
+
+    <button class="plan-generation__submit pressable" wx:if="{{!submitting}}" bindtap="submit">生成学习计划</button>
+  </view>
+</view>

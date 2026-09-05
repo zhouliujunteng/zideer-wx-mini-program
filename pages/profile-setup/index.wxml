@@ -1,0 +1,69 @@
+<view class="profile-setup screen">
+  <view class="profile-setup__inner" wx:if="{{!loading && !loadFailed}}">
+    <view class="profile-setup__heading">
+      <text class="profile-setup__eyebrow">学习档案</text>
+      <text class="profile-setup__title">先认识一下你</text>
+      <text class="profile-setup__copy">这会用于匹配年级、教材和后续学习内容。</text>
+    </view>
+
+    <view class="profile-form surface">
+      <view class="profile-field">
+        <text class="profile-field__label">昵称或姓名</text>
+        <input class="profile-field__input" value="{{form.nickname}}" maxlength="24" placeholder="例如：小鹿同学" data-key="nickname" bindinput="updateTextField" />
+      </view>
+
+      <picker mode="selector" range="{{gradeOptions}}" value="{{form.gradeIndex}}" bindchange="chooseGrade">
+        <view class="profile-field profile-picker pressable">
+          <text class="profile-field__label">年级</text>
+          <view class="profile-picker__value">
+            <text>{{form.gradeLabel}}</text><text class="profile-picker__arrow">›</text>
+          </view>
+        </view>
+      </picker>
+
+      <view class="profile-stage"><text>{{form.schoolStage}}</text><text>将按此学段匹配学习内容</text></view>
+
+      <picker mode="selector" range="{{semesterOptions}}" value="{{form.semesterIndex}}" bindchange="chooseSemester">
+        <view class="profile-field profile-picker pressable">
+          <text class="profile-field__label">学期</text>
+          <view class="profile-picker__value">
+            <text>{{form.semester}}</text><text class="profile-picker__arrow">›</text>
+          </view>
+        </view>
+      </picker>
+
+      <view class="profile-field">
+        <text class="profile-field__label">所在地区</text>
+        <input class="profile-field__input" value="{{form.regionDetail}}" maxlength="40" placeholder="例如：广东省深圳市南山区" data-key="regionDetail" bindinput="updateTextField" />
+      </view>
+
+      <view class="profile-field">
+        <text class="profile-field__label">学校名称</text>
+        <input class="profile-field__input" value="{{form.schoolName}}" maxlength="50" placeholder="例如：南山实验学校" data-key="schoolName" bindinput="updateTextField" />
+      </view>
+
+      <picker mode="selector" range="{{textbookOptions}}" value="{{form.textbookIndex}}" bindchange="chooseTextbook">
+        <view class="profile-field profile-picker profile-field--last pressable">
+          <text class="profile-field__label">教材版本</text>
+          <view class="profile-picker__value">
+            <text>{{form.textbookVersion}}</text><text class="profile-picker__arrow">›</text>
+          </view>
+        </view>
+      </picker>
+    </view>
+
+    <button class="profile-submit" bindtap="saveProfile" loading="{{saving}}" disabled="{{saving}}">保存并开始学习</button>
+  </view>
+
+  <view class="state-panel" wx:elif="{{!loading && loadFailed}}">
+    <view class="state-panel__mark">!</view>
+    <text class="state-panel__title">学习档案暂时没有加载出来</text>
+    <text class="state-panel__copy">请检查网络后重新读取，避免覆盖已有学习档案。</text>
+    <button class="state-panel__action pressable" bindtap="loadProfile">重新读取</button>
+  </view>
+
+  <view class="profile-setup__loading" wx:else>
+    <view class="skeleton profile-setup__skeleton-title"></view>
+    <view class="skeleton profile-setup__skeleton-form"></view>
+  </view>
+</view>

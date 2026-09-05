@@ -1,0 +1,20 @@
+.assessment-basic { min-height: 100vh; padding: 0 28rpx calc(env(safe-area-inset-bottom) + 44rpx); }
+.assessment-basic__inner { padding-top: 48rpx; }
+.assessment-basic__heading { padding: 0 8rpx; }
+.assessment-basic__eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }
+.assessment-basic__title { display: block; margin-top: 12rpx; font-size: 38rpx; font-weight: 700; line-height: 1.3; }
+.assessment-basic__copy { display: block; margin-top: 12rpx; color: var(--muted); font-size: 22rpx; line-height: 1.5; }
+.assessment-question { margin-top: 28rpx; padding: 26rpx; }
+.assessment-question__head { display: flex; align-items: center; justify-content: space-between; }
+.assessment-question__order { display: flex; width: 40rpx; height: 40rpx; align-items: center; justify-content: center; border-radius: 20rpx; background: var(--accent-soft); color: var(--accent-deep); font-size: 21rpx; font-weight: 700; }
+.assessment-question__required { color: var(--accent-deep); font-size: 20rpx; }
+.assessment-question__prompt { display: block; margin-top: 18rpx; font-size: 27rpx; font-weight: 600; line-height: 1.5; }
+.assessment-options { margin-top: 22rpx; }
+.assessment-option { width: 100%; min-height: 78rpx; margin-top: 12rpx; padding: 16rpx 18rpx; border: 1rpx solid var(--line-strong); border-radius: 12rpx; background: var(--surface); color: var(--ink); font-size: 24rpx; line-height: 1.4; text-align: left; }
+.assessment-option--active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-deep); font-weight: 700; }
+.assessment-answer-input { display: block; width: 100%; min-height: 168rpx; margin-top: 22rpx; padding: 18rpx; border: 1rpx solid var(--line-strong); border-radius: 12rpx; background: var(--surface); color: var(--ink); font-size: 24rpx; line-height: 1.5; }
+.assessment-basic__footer { padding: 38rpx 0 8rpx; }
+.assessment-submit { display: flex; width: 100%; min-height: 92rpx; align-items: center; justify-content: center; border-radius: 20rpx; background: var(--accent); color: var(--surface); font-size: 28rpx; font-weight: 700; }
+.assessment-submit[disabled] { opacity: 0.58; }
+.assessment-basic__skeleton-title { width: 46%; height: 54rpx; margin-left: 8rpx; }
+.assessment-basic__skeleton-card { height: 330rpx; margin-top: 48rpx; border-radius: 24rpx; }

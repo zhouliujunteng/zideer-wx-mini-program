@@ -1,0 +1,128 @@
+<view class="screen">
+  <view class="screen-scroll home" style="padding-top: {{navigation.statusBarHeight || 20}}px;">
+    <view class="app-nav" style="height: {{navigation.navigationBarHeight || 44}}px;">
+      <view class="app-nav__main"><text class="app-nav__brand">知鹿私课</text></view>
+      <button class="icon-button notification-button" bindtap="showUpcoming" aria-label="打开消息中心">
+        <image src="/assets/icons/bell.svg" mode="aspectFit" />
+        <view class="notification-dot" wx:if="{{message && message.unread}}"></view>
+      </button>
+    </view>
+
+    <block wx:if="{{loading}}">
+      <view class="loading-stack">
+        <view class="skeleton skeleton-heading"></view>
+        <view class="skeleton skeleton-primary"></view>
+        <view class="skeleton skeleton-list"></view>
+      </view>
+    </block>
+
+    <view class="state-panel" wx:elif="{{loadFailed}}">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">首页暂时没有加载出来</text>
+      <text class="state-panel__copy">网络恢复后可以重新读取当前学生的学习状态。</text>
+      <button class="state-panel__action pressable" bindtap="loadPage">重新加载</button>
+    </view>
+
+    <block wx:elif="{{today && currentStudent}}">
+      <view class="home-intro">
+        <view class="home-intro__copy">
+          <text class="home-intro__date">{{dateLabel}}</text>
+          <text class="home-intro__title">今天继续学一点</text>
+        </view>
+        <button class="student-switch pressable" bindtap="chooseStudent" aria-label="切换当前学生">
+          <view class="student-switch__avatar">{{currentStudent.initial}}</view>
+          <text class="student-switch__name">{{currentStudent.name}}</text>
+          <text class="student-switch__chevron">⌄</text>
+        </button>
+      </view>
+
+      <view class="today-card surface">
+        <view class="today-card__top">
+          <text class="today-card__label">今日学习</text>
+          <text class="today-card__count">{{today.completed}} / {{today.total}}</text>
+        </view>
+        <text class="today-card__title">{{today.currentTask}}</text>
+        <text class="today-card__meta">{{today.currentTaskMeta}}</text>
+        <view class="progress-bar" aria-label="今日任务进度 {{today.progress}}%">
+          <view class="progress-bar__fill" style="width: {{today.progress}}%;"></view>
+        </view>
+        <button class="primary-button pressable" bindtap="continueLearning">继续学习</button>
+      </view>
+
+      <view class="home-section" wx:if="{{assessment}}">
+        <view class="section-head"><text class="section-title">学习概览</text></view>
+        <view class="simple-list surface">
+          <button class="simple-row pressable" bindtap="openKnowledgeMap">
+            <view class="simple-row__icon simple-row__icon--blue"><image src="/assets/icons/network.svg" mode="aspectFit" /></view>
+            <view class="simple-row__copy">
+              <text class="simple-row__title">{{assessment.subject}}掌握 {{assessment.masteryLabel}}</text>
+              <text class="simple-row__meta">{{assessment.weakCount}} 个知识点需要加强</text>
+            </view>
+            <text class="simple-row__arrow">›</text>
+          </button>
+          <button class="simple-row pressable" bindtap="openCreditAccount">
+            <view class="simple-row__icon simple-row__icon--orange"><text>分</text></view>
+            <view class="simple-row__copy">
+              <text class="simple-row__title">期末预测 {{assessment.forecast}}</text>
+              <text class="simple-row__meta">{{assessment.confidence}} · {{assessment.measuredAt}}</text>
+            </view>
+            <text class="simple-row__arrow">›</text>
+          </button>
+          <button class="simple-row pressable" bindtap="showUpcoming">
+            <view class="simple-row__icon simple-row__icon--green"><image src="/assets/icons/message.svg" mode="aspectFit" /></view>
+            <view class="simple-row__copy">
+              <text class="simple-row__title">{{message.title}}</text>
+              <text class="simple-row__meta">{{message.detail}}</text>
+            </view>
+            <text class="simple-row__arrow">›</text>
+          </button>
+        </view>
+      </view>
+
+      <view class="home-section" wx:else>
+        <view class="section-head"><text class="section-title">学习概览</text></view>
+        <view class="simple-list surface"><button class="simple-row pressable" bindtap="startAssessment"><view class="simple-row__icon simple-row__icon--blue"><image src="/assets/icons/network.svg" mode="aspectFit" /></view><view class="simple-row__copy"><text class="simple-row__title">尚未完成测评</text><text class="simple-row__meta">完成基础测评后会展示诊断和预测。</text></view><text class="simple-row__arrow">›</text></button></view>
+      </view>
+
+      <view class="home-section" wx:if="{{plan}}">
+        <view class="section-head">
+          <text class="section-title">学习计划</text>
+          <button class="section-link" bindtap="showUpcoming">查看全部</button>
+        </view>
+        <button class="plan-row surface pressable" bindtap="showUpcoming">
+          <view class="plan-row__copy">
+            <text class="plan-row__title">{{plan.name}}</text>
+            <text class="plan-row__meta">{{plan.phase}}</text>
+            <text class="plan-row__next">下一步：{{plan.nextMilestone}}</text>
+          </view>
+          <view class="plan-row__progress">{{plan.progress}}%</view>
+        </button>
+      </view>
+
+      <view class="home-section">
+        <view class="section-head"><text class="section-title">学习账户</text></view>
+        <view class="simple-list surface">
+          <button class="simple-row pressable" bindtap="openCreditAccount">
+            <view class="simple-row__icon simple-row__icon--blue"><image src="/assets/icons/wallet.svg" mode="aspectFit" /></view>
+            <view class="simple-row__copy"><text class="simple-row__title">课程积分</text><text class="simple-row__meta">冻结 {{balances.frozenPoints}} 积分</text></view>
+            <text class="simple-row__value">{{balances.coursePoints}}</text><text class="simple-row__arrow">›</text>
+          </button>
+          <button class="simple-row pressable" bindtap="openCoinCenter">
+            <view class="simple-row__icon simple-row__icon--yellow"><image src="/assets/icons/coins.svg" mode="aspectFit" /></view>
+            <view class="simple-row__copy"><text class="simple-row__title">金币</text><text class="simple-row__meta">{{balances.coinHint}}</text></view>
+            <text class="simple-row__value">{{balances.coins}}</text><text class="simple-row__arrow">›</text>
+          </button>
+        </view>
+      </view>
+    </block>
+
+    <view class="state-panel" wx:else>
+      <view class="state-panel__mark">＋</view>
+      <text class="state-panel__title">还没有学习安排</text>
+      <text class="state-panel__copy">完成基础测评后，这里会显示今天的课程和学习计划。</text>
+      <button class="state-panel__action pressable" bindtap="startAssessment">开始测评</button>
+      <button class="state-panel__secondary pressable" bindtap="openKnowledgeMap">先查看知识图谱</button>
+      <button class="state-panel__secondary pressable" bindtap="openProductIntro">了解学习路径</button>
+    </view>
+  </view>
+</view>

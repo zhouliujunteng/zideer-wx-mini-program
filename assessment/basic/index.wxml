@@ -1,0 +1,33 @@
+<view class="screen assessment-basic">
+  <view class="assessment-basic__inner">
+    <block wx:if="{{loading}}">
+      <view class="skeleton assessment-basic__skeleton-title"></view>
+      <view class="skeleton assessment-basic__skeleton-card"></view>
+    </block>
+
+    <block wx:else>
+      <view class="assessment-basic__heading">
+        <text class="assessment-basic__eyebrow">{{template.subjectName}}</text>
+        <text class="assessment-basic__title">{{template.title}}</text>
+        <text class="assessment-basic__copy">答案会自动暂存，提交后不可再修改。</text>
+      </view>
+
+      <view class="assessment-question surface" wx:for="{{questions}}" wx:key="id">
+        <view class="assessment-question__head">
+          <text class="assessment-question__order">{{index + 1}}</text>
+          <text class="assessment-question__required" wx:if="{{item.required}}">必答</text>
+        </view>
+        <text class="assessment-question__prompt">{{item.prompt}}</text>
+
+        <view class="assessment-options" wx:if="{{item.optionValues.length}}">
+          <button class="assessment-option {{item.answerText === option.value ? 'assessment-option--active' : ''}} pressable" wx:for="{{item.optionValues}}" wx:for-item="option" wx:key="value" data-id="{{item.id}}" data-value="{{option.value}}" bindtap="chooseAnswer">{{option.label}}</button>
+        </view>
+        <textarea class="assessment-answer-input" wx:else value="{{item.answerText}}" maxlength="600" placeholder="请输入你的回答" data-id="{{item.id}}" bindinput="inputAnswer" bindblur="blurAnswer" />
+      </view>
+
+      <view class="assessment-basic__footer">
+        <button class="assessment-submit pressable" bindtap="submitAssessment" loading="{{submitting}}" disabled="{{submitting}}">提交测评</button>
+      </view>
+    </block>
+  </view>
+</view>

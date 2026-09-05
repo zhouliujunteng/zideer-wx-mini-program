@@ -1,0 +1,14 @@
+<view class="screen pre-plan"><view class="pre-plan__inner">
+  <view class="skeleton pre-plan__skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">规划建议没有加载出来</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:else>
+    <view class="pre-plan__head"><text class="pre-plan__eyebrow">购买前规划</text><text class="pre-plan__title">先看需要解决的问题</text><text class="pre-plan__copy">这里仅呈现诊断结论，不会创建执行计划或冻结课程积分。</text></view>
+    <view class="pre-plan__empty surface" wx:if="{{!hasReport}}"><text class="pre-plan__empty-title">还没有可用于规划的诊断</text><text class="pre-plan__empty-copy">完成基础测评或深度测评并等待分析后，才能生成针对性的学习建议。</text><button class="pre-plan__action pressable" bindtap="startAssessment">去测评中心</button></view>
+    <block wx:else>
+      <view class="pre-plan__empty surface" wx:if="{{!topics.length}}"><text class="pre-plan__empty-title">诊断中尚未标出优先薄弱项</text><text class="pre-plan__empty-copy">可以在规划页调整目标与学科范围，服务端会结合当前图谱继续校验。</text></view>
+      <view class="pre-plan__list surface" wx:else><view class="pre-plan__item" wx:for="{{topics}}" wx:key="index"><view><text class="pre-plan__topic">{{item.name}}</text><text class="pre-plan__reason" wx:if="{{item.reason}}">{{item.reason}}</text></view><text class="pre-plan__quote">计价待发布</text></view></view>
+      <text class="pre-plan__notice">课程数与积分范围依赖后端已发布的计价规则和课程范围报价，当前未配置时不会显示固定数值。</text>
+      <button class="pre-plan__action pre-plan__action--primary pressable" bindtap="createPlan">调整目标并生成计划</button>
+    </block>
+  </block>
+</view></view>

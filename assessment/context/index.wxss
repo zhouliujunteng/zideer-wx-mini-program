@@ -1,0 +1,19 @@
+.assessment-context { min-height: 100vh; padding: 0 28rpx calc(env(safe-area-inset-bottom) + 44rpx); }
+.assessment-context__inner { padding-top: 48rpx; }
+.assessment-context__heading { padding: 0 8rpx; }
+.assessment-context__eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }
+.assessment-context__title { display: block; margin-top: 12rpx; font-size: 38rpx; font-weight: 700; line-height: 1.3; }
+.assessment-context__copy { display: block; margin-top: 12rpx; color: var(--muted); font-size: 22rpx; line-height: 1.55; }
+.assessment-context__list { overflow: hidden; margin-top: 38rpx; padding: 0 24rpx; }
+.assessment-context__row { display: flex; min-height: 94rpx; align-items: center; justify-content: space-between; border-bottom: 1rpx solid var(--line); gap: 24rpx; }
+.assessment-context__row:last-child { border-bottom: 0; }
+.assessment-context__label { flex: none; color: var(--muted); font-size: 24rpx; }
+.assessment-context__value { min-width: 0; overflow: hidden; color: var(--ink); font-size: 25rpx; font-weight: 600; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+.assessment-context__section { margin-top: 42rpx; }
+.assessment-context__picker { display: flex; min-height: 96rpx; align-items: center; justify-content: space-between; margin-top: 18rpx; padding: 0 24rpx; font-size: 26rpx; font-weight: 600; }
+.assessment-context__chevron { color: var(--muted); font-size: 36rpx; }
+.assessment-context__hint { display: block; margin: 20rpx 8rpx 0; color: var(--muted); font-size: 21rpx; line-height: 1.55; }
+.assessment-context__action { display: flex; width: 100%; min-height: 92rpx; align-items: center; justify-content: center; margin-top: 46rpx; border-radius: 20rpx; background: var(--accent); color: var(--surface); font-size: 28rpx; font-weight: 700; }
+.assessment-context__action[disabled] { opacity: 0.58; }
+.assessment-context__skeleton-title { width: 46%; height: 54rpx; margin-left: 8rpx; }
+.assessment-context__skeleton-card { height: 440rpx; margin-top: 48rpx; border-radius: 24rpx; }

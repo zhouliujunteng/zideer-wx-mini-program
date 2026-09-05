@@ -1,16 +1,35 @@
 {
   "description": "知鹿私课本地开发配置",
   "packOptions": {
-    "ignore": []
+    "ignore": [],
+    "include": []
   },
   "setting": {
     "es6": true,
     "enhance": true,
     "minified": true,
     "postcss": true,
-    "urlCheck": false
+    "urlCheck": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
   "compileType": "miniprogram",
   "libVersion": "3.6.7",
-  "appid": "touristappid"
+  "appid": "wxd8ebfbf19b9a5895",
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
 }

@@ -1,0 +1,21 @@
+<view class="identity-status-page">
+  <view class="identity-status-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">实名认证状态暂时无法加载</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:else>
+    <view class="identity-status-head"><text class="identity-status-eyebrow">账户</text><text class="identity-status-title">身份与实名认证</text></view>
+    <view class="identity-status-card surface"><text class="identity-status-card__label">实名认证</text><text class="identity-status-card__status identity-status-card__status--{{identity.statusClass}}">{{identity.statusLabel}}</text><text class="identity-status-card__detail">{{identity.detail}}</text><text class="identity-status-card__expiry" wx:if="{{identity.expiry}}">{{identity.expiry}}</text></view>
+    <view class="identity-submit-section" wx:if="{{identity.statusClass !== 'verified'}}">
+      <text class="identity-status-section__title">家长实名认证</text>
+      <view class="identity-submit-form surface">
+        <text class="identity-submit-form__label">姓名</text>
+        <input class="identity-submit-form__input" value="{{legalName}}" maxlength="50" placeholder="请输入身份证上的姓名" placeholder-class="identity-submit-form__placeholder" bindinput="onNameInput" />
+        <text class="identity-submit-form__label identity-submit-form__label--next">身份证号</text>
+        <input class="identity-submit-form__input" value="{{idCardNumber}}" maxlength="18" placeholder="请输入18位身份证号" placeholder-class="identity-submit-form__placeholder" bindinput="onIdCardInput" />
+      </view>
+      <view class="identity-submit-result surface" wx:if="{{submissionResult}}"><text>{{submissionResult.maskedIdCard}}</text><text wx:if="{{submissionResult.province || submissionResult.city}}">{{submissionResult.province}}{{submissionResult.city}}</text></view>
+      <button class="identity-submit-button pressable" bindtap="submitVerification" loading="{{submitting}}" disabled="{{submitting}}">提交核验</button>
+    </view>
+    <view class="identity-status-section"><text class="identity-status-section__title">业务身份</text><view class="identity-role-list surface" wx:if="{{identity.roles.length}}"><view class="identity-role-row" wx:for="{{identity.roles}}" wx:key="id"><text>{{item.label}}</text><text>{{item.grantedAt ? item.grantedAt : '已生效'}}</text></view></view><view class="identity-status-empty surface" wx:else><text>暂未读取到额外业务身份</text></view></view>
+    <button class="identity-login-entry surface pressable" bindtap="openLoginIdentities"><view><text class="identity-login-entry__label">登录方式</text><text class="identity-login-entry__title">微信、手机号与设备</text></view><text>›</text></button>
+  </block>
+</view>

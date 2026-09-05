@@ -1,0 +1,9 @@
+<view class="screen assessment-ocr"><view class="assessment-ocr__inner">
+  <view class="skeleton assessment-ocr__skeleton" wx:if="{{loading}}"></view>
+  <block wx:else>
+    <view class="assessment-ocr__heading"><text class="assessment-ocr__eyebrow">试卷识别</text><text class="assessment-ocr__title">确认识别结果</text><text class="assessment-ocr__copy">{{record.examName}} · {{record.examDate}}</text></view>
+    <view class="surface assessment-ocr__notice" wx:if="{{!hasOcr}}"><text class="assessment-ocr__notice-title">等待 OCR 服务处理</text><text class="assessment-ocr__notice-copy">试卷原图已保存，但项目目前还没有接入可用的 OCR 服务，因此不会生成不真实的题目、作答或得分结果。</text></view>
+    <block wx:else><view class="surface assessment-ocr__notice" wx:if="{{needsCarefulReview}}"><text class="assessment-ocr__notice-title">这份结果需要重点核对</text><text class="assessment-ocr__notice-copy">识别置信度偏低，请仔细检查题号、作答内容和得分字段。</text></view><view class="assessment-ocr__section"><text class="section-title">结构化识别结果</text><textarea class="assessment-ocr__editor surface" value="{{reviewText}}" maxlength="-1" auto-height bindinput="updateReview"/></view><button class="assessment-ocr__save pressable" loading="{{saving}}" disabled="{{saving}}" bindtap="saveReview">确认并保存校对</button></block>
+    <button class="assessment-ocr__secondary pressable" bindtap="returnToUpload">返回试卷上传</button><button class="assessment-ocr__skip pressable" wx:if="{{!hasOcr}}" bindtap="continueToAnalysis">暂不校对，进入分析</button>
+  </block>
+</view></view>

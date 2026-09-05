@@ -1,0 +1,8 @@
+<view class="screen assessment-history-page"><view class="assessment-history-page__inner">
+  <view class="skeleton assessment-history-page__skeleton" wx:if="{{loading}}"></view>
+  <block wx:else>
+    <view class="assessment-history-page__heading"><text class="assessment-history-page__eyebrow">我的测评</text><text class="assessment-history-page__title">测评记录</text></view>
+    <view class="state-panel" wx:if="{{!attempts.length}}"><view class="state-panel__mark">·</view><text class="state-panel__title">还没有测评记录</text><text class="state-panel__copy">完成一次基础测评后，记录和分析进度会出现在这里。</text></view>
+    <view class="assessment-history-page__list surface" wx:else><button class="assessment-history-page__item pressable" wx:for="{{attempts}}" wx:key="id" data-id="{{item.id}}" bindtap="openAttempt"><view class="assessment-history-page__copy"><text class="assessment-history-page__title-text">{{item.subjectName}} · {{item.templateTitle || '基础测评'}}</text><text class="assessment-history-page__meta">{{item.statusLabel}} · {{item.dateLabel}}</text></view><text class="assessment-history-page__action">{{item.actionLabel}} ›</text></button></view>
+  </block>
+</view></view>

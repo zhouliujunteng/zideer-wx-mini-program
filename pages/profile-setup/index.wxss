@@ -1,0 +1,29 @@
+.profile-setup { min-height: 100vh; padding: 0 28rpx calc(env(safe-area-inset-bottom) + 44rpx); }
+.profile-setup__inner { padding-top: 72rpx; }
+.profile-setup__heading { padding: 0 8rpx; }
+.profile-setup__eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }
+.profile-setup__title { display: block; margin-top: 12rpx; font-size: 42rpx; font-weight: 700; line-height: 1.28; }
+.profile-setup__copy { display: block; margin-top: 14rpx; color: var(--muted); font-size: 24rpx; line-height: 1.55; }
+
+.profile-form { overflow: hidden; margin-top: 42rpx; padding: 0 24rpx; }
+.profile-field { display: flex; min-height: 108rpx; align-items: center; border-bottom: 1rpx solid var(--line); }
+.profile-field--last { border-bottom: 0; }
+.profile-field__label { width: 154rpx; flex: none; color: var(--ink-soft); font-size: 25rpx; }
+.profile-field__input { min-width: 0; flex: 1; color: var(--ink); font-size: 25rpx; text-align: right; }
+.profile-picker { justify-content: space-between; }
+.profile-picker__value { display: flex; min-width: 0; align-items: center; justify-content: flex-end; flex: 1; color: var(--ink); font-size: 25rpx; }
+.profile-picker__arrow { margin-left: 14rpx; color: var(--muted); font-size: 34rpx; font-weight: 300; }
+.profile-stage { display: flex; align-items: center; justify-content: space-between; min-height: 68rpx; padding: 0 4rpx; border-bottom: 1rpx solid var(--line); color: var(--blue); font-size: 22rpx; }
+.profile-stage text:last-child { color: var(--muted); font-size: 20rpx; }
+
+.profile-submit { display: flex; width: 100%; min-height: 92rpx; align-items: center; justify-content: center; margin-top: 38rpx; border-radius: 20rpx; background: var(--accent); color: var(--surface); font-size: 28rpx; font-weight: 700; }
+.profile-submit[disabled] { opacity: 0.58; }
+.profile-setup__loading { padding-top: 166rpx; }
+.profile-setup__skeleton-title { width: 46%; height: 52rpx; margin-left: 8rpx; }
+.profile-setup__skeleton-form { height: 650rpx; margin-top: 48rpx; border-radius: 24rpx; }
+
+@media (max-width: 340px) {
+  .profile-field__label { width: 140rpx; font-size: 23rpx; }
+  .profile-field__input, .profile-picker__value { font-size: 23rpx; }
+  .profile-stage text:last-child { font-size: 18rpx; }
+}

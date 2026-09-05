@@ -1,0 +1,5 @@
+<view class="confirm-page">
+  <view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">订单暂时无法确认</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:elif="{{product}}"><view class="confirm-head"><text class="confirm-eyebrow">确认订单</text><text class="confirm-title">{{product.name}}</text></view><view class="confirm-card surface"><view class="confirm-row"><text>受益学生</text><text>{{beneficiary.name}}</text></view><view class="confirm-row"><text>课程积分</text><text>{{product.credits}}</text></view><view class="confirm-row"><text>应付金额</text><text class="confirm-price">¥{{product.amount}}</text></view></view><text class="confirm-notice">提交后由服务端再次校验商品状态、购买资格和订单金额。支付完成前不会发放积分。</text><button class="confirm-button pressable" loading="{{submitting}}" disabled="{{submitting}}" bindtap="createOrder">{{submitting ? '正在创建订单' : '创建订单'}}</button></block>
+</view>

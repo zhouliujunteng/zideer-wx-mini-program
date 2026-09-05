@@ -1,0 +1,21 @@
+<view class="tabbar-wrap">
+  <view class="tabbar">
+    <button
+      class="tabbar__item {{selected === index ? 'tabbar__item--active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="path"
+      data-index="{{index}}"
+      bindtap="handleTap"
+      aria-label="{{item.text}}"
+    >
+      <view class="tabbar__icon-shell">
+        <image
+          class="tabbar__icon"
+          src="/assets/icons/{{item.icon}}{{selected === index ? '-active' : ''}}.svg"
+          mode="aspectFit"
+        />
+      </view>
+      <text class="tabbar__label">{{item.text}}</text>
+    </button>
+  </view>
+</view>

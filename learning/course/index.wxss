@@ -1,0 +1,13 @@
+.course-launch {
+  min-height: 100vh;
+  padding: 64rpx 32rpx;
+  box-sizing: border-box;
+  background: var(--page-bg, #f6f7f9);
+}
+
+.state-panel__secondary {
+  margin-top: 20rpx;
+  color: var(--text, #17191c);
+  background: transparent;
+  font-size: 28rpx;
+}

@@ -1,0 +1,95 @@
+<view class="screen">
+  <view class="screen-scroll learning" style="padding-top: {{navigation.statusBarHeight || 20}}px;">
+    <view class="app-nav" style="height: {{navigation.navigationBarHeight || 44}}px;">
+      <view class="app-nav__main"><text class="app-nav__title">学习</text></view>
+    </view>
+
+    <block wx:if="{{loading}}">
+      <view class="loading-stack">
+        <view class="skeleton skeleton-heading"></view>
+        <view class="skeleton skeleton-course"></view>
+        <view class="skeleton skeleton-tasks"></view>
+      </view>
+    </block>
+
+    <view class="state-panel" wx:elif="{{loadFailed}}">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">学习安排暂时不可用</text>
+      <text class="state-panel__copy">已完成的进度不会丢失，可以稍后重新加载。</text>
+      <button class="state-panel__action pressable" bindtap="loadPage">重新加载</button>
+    </view>
+
+    <block wx:elif="{{summary && currentStudent}}">
+      <view class="learning-intro">
+        <view class="learning-intro__copy">
+          <text class="learning-intro__date">{{dateLabel}}</text>
+          <text class="learning-intro__status">已完成 {{summary.completed}} / {{summary.total}}</text>
+        </view>
+        <button class="learner-switch pressable" bindtap="chooseStudent">
+          <text>{{currentStudent.name}}</text><text class="learner-switch__chevron">⌄</text>
+        </button>
+      </view>
+
+      <view class="course-card surface" wx:if="{{currentTask}}">
+        <view class="course-card__status"><view class="status-dot"></view><text>{{currentTask.status}}</text></view>
+        <text class="course-card__title">{{currentTask.title}}</text>
+        <text class="course-card__meta">{{currentTask.subject}} · {{currentTask.topic}}<text wx:if="{{currentTask.duration}}"> · {{currentTask.duration}} 分钟</text></text>
+        <view class="course-progress" wx:if="{{currentTask.progress}}">
+          <view class="course-progress__track"><view class="course-progress__fill" style="width: {{currentTask.progress}}%;"></view></view>
+          <text>{{currentTask.progress}}%</text>
+        </view>
+        <button class="start-button pressable" bindtap="startCurrentTask" disabled="{{!canStart}}">{{canStart ? (currentTask.acceptanceCourseInstanceId ? '开始验收' : '继续学习') : '家长仅查看'}}</button>
+      </view>
+
+      <view class="learning-stats">
+        <view class="learning-stat"><text class="learning-stat__value">{{summary.focusMinutes}}</text><text class="learning-stat__label">今日分钟</text></view>
+        <view class="learning-stat"><text class="learning-stat__value">{{summary.streak}}</text><text class="learning-stat__label">连续天数</text></view>
+        <view class="learning-stat"><text class="learning-stat__value">{{summary.total - summary.completed}}</text><text class="learning-stat__label">剩余任务</text></view>
+      </view>
+
+      <view class="learning-section">
+        <view class="section-head"><text class="section-title">今天的任务</text><button class="section-link" bindtap="showUpcoming">完整计划</button></view>
+        <view class="task-list surface">
+          <button class="task-row task-row--{{item.status}} pressable" wx:for="{{tasks}}" wx:key="id" data-status="{{item.status}}" bindtap="handleTaskTap">
+            <view class="task-row__state"><text wx:if="{{item.status === 'done'}}">✓</text><view wx:else class="task-row__dot"></view></view>
+            <view class="task-row__copy">
+              <view class="task-row__top"><text class="task-row__title">{{item.title}}</text><text class="task-row__time">{{item.time}}</text></view>
+              <text class="task-row__meta">{{item.meta}}</text>
+            </view>
+            <text class="task-row__arrow">›</text>
+          </button>
+        </view>
+      </view>
+
+      <view class="learning-section">
+        <view class="section-head"><text class="section-title">课程与服务</text></view>
+        <view class="support-list surface">
+          <button class="support-row pressable" bindtap="openSchedule">
+            <view class="support-row__icon support-row__icon--yellow"><text>日</text></view>
+            <view class="support-row__copy"><text class="support-row__title">真人陪跑日程</text><text class="support-row__meta">查看已安排场次和服务状态</text></view>
+            <text class="support-row__arrow">›</text>
+          </button>
+          <button class="support-row pressable" wx:if="{{generation}}" bindtap="openGenerationStatus">
+            <view class="support-row__icon support-row__icon--blue"><image src="/assets/icons/book.svg" mode="aspectFit" /></view>
+            <view class="support-row__copy"><text class="support-row__title">{{generation.label}}</text><text class="support-row__meta">{{generation.pointsRange}}</text></view>
+            <text class="support-row__arrow">›</text>
+          </button>
+          <button class="support-row pressable" wx:if="{{acceptance}}" bindtap="showUpcoming">
+            <view class="support-row__icon support-row__icon--green"><text>✓</text></view>
+            <view class="support-row__copy"><text class="support-row__title">最近验收：{{acceptance.title}}</text><text class="support-row__meta">{{acceptance.status}}</text></view>
+            <text class="support-row__arrow">›</text>
+          </button>
+        </view>
+      </view>
+
+      <view class="guardian-note" wx:if="{{!canStart}}">当前为家长查看视角，课程只能由学生本人开始。</view>
+    </block>
+
+    <view class="state-panel" wx:else>
+      <view class="state-panel__mark">✓</view>
+      <text class="state-panel__title">今天还没有学习安排</text>
+      <text class="state-panel__copy">计划生成后，课程和真人日程会出现在这里。</text>
+      <button class="state-panel__action pressable" bindtap="openKnowledgeMap">查看知识图谱</button>
+    </view>
+  </view>
+</view>
