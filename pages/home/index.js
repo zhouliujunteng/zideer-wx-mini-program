@@ -85,6 +85,23 @@ Page({
     switchTab(2)
   },
 
+  openScoreForecast() {
+    wx.navigateTo({ url: '/diagnosis/score-forecast/index' })
+  },
+
+  openLearningPlans() {
+    wx.navigateTo({ url: '/diagnosis/plans/index' })
+  },
+
+  openCurrentPlan() {
+    const planId = this.data.plan && this.data.plan.id
+    if (!planId) {
+      this.openLearningPlans()
+      return
+    }
+    wx.navigateTo({ url: `/diagnosis/plan-detail/index?planId=${encodeURIComponent(planId)}` })
+  },
+
   openCreditAccount() {
     wx.navigateTo({ url: '/commerce/entitlements/index' })
   },

@@ -60,7 +60,7 @@
             </view>
             <text class="simple-row__arrow">›</text>
           </button>
-          <button class="simple-row pressable" bindtap="openCreditAccount">
+          <button class="simple-row pressable" bindtap="openScoreForecast">
             <view class="simple-row__icon simple-row__icon--orange"><text>分</text></view>
             <view class="simple-row__copy">
               <text class="simple-row__title">期末预测 {{assessment.forecast}}</text>
@@ -87,9 +87,9 @@
       <view class="home-section" wx:if="{{plan}}">
         <view class="section-head">
           <text class="section-title">学习计划</text>
-          <button class="section-link" bindtap="showUpcoming">查看全部</button>
+          <button class="section-link" bindtap="openLearningPlans">查看全部</button>
         </view>
-        <button class="plan-row surface pressable" bindtap="showUpcoming">
+        <button class="plan-row surface pressable" bindtap="openCurrentPlan">
           <view class="plan-row__copy">
             <text class="plan-row__title">{{plan.name}}</text>
             <text class="plan-row__meta">{{plan.phase}}</text>
