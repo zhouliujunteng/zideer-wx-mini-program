@@ -183,22 +183,21 @@ function coursePortalOrigin() {
   return value
 }
 
+function publicCoursePageUrl() {
+  const path = String(config.PUBLIC_COURSE_PAGE_PATH || '')
+  if (!/^\/[A-Za-z0-9/_-]*$/.test(path)) {
+    throw new Error('临时课程页面尚未配置。')
+  }
+  return `${coursePortalOrigin()}${path}`
+}
+
 async function createCourseLaunchUrl(courseInstanceId) {
   const normalizedCourseInstanceId = Number(courseInstanceId)
   if (!Number.isSafeInteger(normalizedCourseInstanceId) || normalizedCourseInstanceId <= 0) {
     throw new Error('课程信息不完整，请刷新后重试。')
   }
 
-  const token = await getRuntimeToken()
-  const data = await request({
-    url: `${coursePortalOrigin()}/api/course-launch/issue`,
-    data: { courseInstanceId: normalizedCourseInstanceId, targetScene: 'learn' },
-    header: { Authorization: `Bearer ${token}` }
-  })
-  if (!data || !/^https:\/\//i.test(String(data.launchUrl || ''))) {
-    throw new Error('课程启动地址无效，请稍后重试。')
-  }
-  return String(data.launchUrl)
+  return publicCoursePageUrl()
 }
 
 async function createAcceptanceLaunchUrl(courseInstanceId, acceptanceId) {
@@ -208,20 +207,7 @@ async function createAcceptanceLaunchUrl(courseInstanceId, acceptanceId) {
     throw new Error('验收信息不完整，请返回后重试。')
   }
 
-  const token = await getRuntimeToken()
-  const data = await request({
-    url: `${coursePortalOrigin()}/api/course-launch/issue`,
-    data: {
-      courseInstanceId: normalizedCourseInstanceId,
-      acceptanceId: normalizedAcceptanceId,
-      targetScene: 'acceptance'
-    },
-    header: { Authorization: `Bearer ${token}` }
-  })
-  if (!data || !/^https:\/\//i.test(String(data.launchUrl || ''))) {
-    throw new Error('验收启动地址无效，请稍后重试。')
-  }
-  return String(data.launchUrl)
+  return publicCoursePageUrl()
 }
 
 async function createCurrentFeynmanAcceptance(courseInstanceId) {

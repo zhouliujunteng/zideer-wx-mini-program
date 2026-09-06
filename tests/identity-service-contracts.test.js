@@ -260,24 +260,16 @@ test('course generation quotes and confirms use distinct idempotency keys', asyn
   })
 })
 
-test('course and acceptance launch requests use the configured HTTPS portal and caller token', async () => {
+test('temporary course and acceptance launch open the configured public HTTPS page without a bridge request', async () => {
   reset()
 
   const courseUrl = await identity.createCourseLaunchUrl(51)
-  assert.equal(courseUrl, `${config.COURSE_PORTAL_ORIGIN}/launch?token=test-launch-token`)
-  assert.deepEqual(calls.at(-1), {
-    url: 'https://ceshi.aissyq.cn/api/course-launch/issue',
-    data: { courseInstanceId: 51, targetScene: 'learn' },
-    header: { Authorization: 'Bearer test-runtime-token' }
-  })
+  assert.equal(courseUrl, `${config.COURSE_PORTAL_ORIGIN}${config.PUBLIC_COURSE_PAGE_PATH}`)
+  assert.equal(calls.length, 0)
 
   const acceptanceUrl = await identity.createAcceptanceLaunchUrl(51, 61)
-  assert.equal(acceptanceUrl, `${config.COURSE_PORTAL_ORIGIN}/launch?token=test-launch-token`)
-  assert.deepEqual(calls.at(-1), {
-    url: 'https://ceshi.aissyq.cn/api/course-launch/issue',
-    data: { courseInstanceId: 51, acceptanceId: 61, targetScene: 'acceptance' },
-    header: { Authorization: 'Bearer test-runtime-token' }
-  })
+  assert.equal(acceptanceUrl, `${config.COURSE_PORTAL_ORIGIN}${config.PUBLIC_COURSE_PAGE_PATH}`)
+  assert.equal(calls.length, 0)
 })
 
 test('purchase, family binding, redemption, notifications and audio authorization validate their contracts', async () => {
