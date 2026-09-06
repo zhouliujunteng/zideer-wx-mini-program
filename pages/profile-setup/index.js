@@ -44,7 +44,8 @@ Page({
     }
   },
 
-  async onLoad() {
+  async onLoad(options = {}) {
+    this.isEditing = String(options.edit || '') === '1'
     await this.loadProfile()
   },
 
@@ -53,7 +54,7 @@ Page({
     this.setData({ loading: true, loadFailed: false })
     try {
       const user = await loadCurrentUser()
-      if (user.profileCompleted) {
+      if (user.profileCompleted && !this.isEditing) {
         getApp().globalData.user = user
         wx.reLaunch({ url: postProfileUrl() })
         return
@@ -150,7 +151,13 @@ Page({
       const user = await saveCurrentLearningProfile(this.data.form)
       getApp().globalData.user = user
       wx.showToast({ title: '学习档案已保存', icon: 'success' })
-      setTimeout(() => wx.reLaunch({ url: postProfileUrl() }), 450)
+      setTimeout(() => {
+        if (this.isEditing) {
+          wx.reLaunch({ url: '/pages/me/index' })
+          return
+        }
+        wx.reLaunch({ url: postProfileUrl() })
+      }, 450)
     } catch (error) {
       wx.showToast({ title: error.message || '保存失败，请重试', icon: 'none', duration: 2600 })
     } finally {

@@ -45,13 +45,14 @@ function isRuntimeTokenRejection(message) {
   return /\bjwt\b|\bbearer\s+token\s+(?:is\s+)?(?:expired|invalid|rejected)\b|\btoken\s+(?:is\s+)?(?:expired|invalid|rejected)\b|\bauthentication\s+token\s+(?:is\s+)?(?:expired|invalid|failed)\b/i.test(value)
 }
 
-function request({ url, method = 'POST', data, header = {} }) {
+function request({ url, method = 'POST', data, header = {}, timeout }) {
   return new Promise((resolve, reject) => {
     wx.request({
       url,
       method,
       data,
       header,
+      timeout,
       success: (response) => {
         if (response.statusCode >= 200 && response.statusCode < 300) {
           resolve(response.data)
@@ -59,7 +60,13 @@ function request({ url, method = 'POST', data, header = {} }) {
         }
         reject(new Error(`Request failed: ${response.statusCode}`))
       },
-      fail: reject
+      fail: (error) => {
+        if (/timeout/i.test(String(error && error.errMsg || ''))) {
+          reject(new Error('实名认证服务暂时不可用，请稍后重试。'))
+          return
+        }
+        reject(error)
+      }
     })
   })
 }
@@ -131,12 +138,13 @@ async function getRuntimeToken() {
   return storedToken
 }
 
-async function graphql(query, variables, { retriedAfterTokenRefresh = false } = {}) {
+async function graphql(query, variables, { retriedAfterTokenRefresh = false, timeout } = {}) {
   const token = await getRuntimeToken()
   const result = await request({
     url: config.GRAPHQL_URL,
     data: { query, variables },
-    header: { Authorization: `Bearer ${token}` }
+    header: { Authorization: `Bearer ${token}` },
+    timeout
   })
 
   if (result.errors && result.errors.length) {
@@ -148,7 +156,7 @@ async function graphql(query, variables, { retriedAfterTokenRefresh = false } = 
       if (!retriedAfterTokenRefresh) {
         try {
           await renewWechatRuntimeToken()
-          return graphql(query, variables, { retriedAfterTokenRefresh: true })
+          return graphql(query, variables, { retriedAfterTokenRefresh: true, timeout })
         } catch (refreshError) {
           // The original rejection remains the user-facing authentication
           // result; the refresh failure may contain platform-only details.
@@ -162,7 +170,7 @@ async function graphql(query, variables, { retriedAfterTokenRefresh = false } = 
   return result.data
 }
 
-async function invokeActionFlow(flow, args = {}) {
+async function invokeActionFlow(flow, args = {}, { timeout } = {}) {
   const operation = Number.isInteger(flow.versionId)
     ? `fz_invoke_action_flow(actionFlowId: "${flow.id}", versionId: ${flow.versionId}, args: $args)`
     : `fz_invoke_action_flow_default_by_latest_version(actionFlowId: "${flow.id}", args: $args)`
@@ -170,7 +178,8 @@ async function invokeActionFlow(flow, args = {}) {
     `mutation InvokeActionFlow($args: Json!) {
       result: ${operation}
     }`,
-    { args }
+    { args },
+    { timeout }
   )
   return parseActionFlowResult(data.result)
 }
@@ -1873,7 +1882,8 @@ async function submitCurrentGuardianIdentityVerification(form = {}) {
 
   const payload = parseActionFlowResult(await invokeActionFlow(
     config.ACTION_FLOWS.SUBMIT_CURRENT_GUARDIAN_IDENTITY_VERIFICATION,
-    { name, idCardNumber }
+    { name, idCardNumber },
+    { timeout: 15000 }
   )) || {}
 
   if (!payload.success) throw new Error(payload.message || '实名认证未通过，请核对信息后重试。')

@@ -20,6 +20,7 @@ Page({
     ],
     serviceItems: [
       { id: 'partner', icon: 'users', label: '推广伙伴', meta: '分享工具与奖励记录' },
+      { id: 'learningProfile', icon: 'book', label: '学习档案', meta: '年级、教材与所在地区' },
       { id: 'identity', icon: 'shield', label: '身份与登录', meta: '实名、微信和手机号身份' },
       { id: 'redeem', icon: 'gift', label: '兑换码', meta: '兑换课程积分、金币或体验权益' },
       { id: 'service', icon: 'headphones', label: '企微服务', meta: '联系课程顾问和真人服务' }
@@ -80,6 +81,7 @@ Page({
       orders: '订单列表',
       messages: '消息中心',
       identity: '身份与登录管理',
+      learningProfile: '学习档案',
       redeem: '兑换码',
       service: '企微服务',
       points: '课程积分',
@@ -122,6 +124,10 @@ Page({
     }
     if (id === 'identity') {
       wx.navigateTo({ url: '/account/identity/index' })
+      return
+    }
+    if (id === 'learningProfile') {
+      wx.navigateTo({ url: '/pages/profile-setup/index?edit=1' })
       return
     }
     if (id === 'service') {

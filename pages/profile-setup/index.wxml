@@ -2,7 +2,7 @@
   <view class="profile-setup__inner" wx:if="{{!loading && !loadFailed}}">
     <view class="profile-setup__heading">
       <text class="profile-setup__eyebrow">学习档案</text>
-      <text class="profile-setup__title">先认识一下你</text>
+      <text class="profile-setup__title">完善你的学习信息</text>
       <text class="profile-setup__copy">这会用于匹配年级、教材和后续学习内容。</text>
     </view>
 
@@ -52,7 +52,7 @@
       </picker>
     </view>
 
-    <button class="profile-submit" bindtap="saveProfile" loading="{{saving}}" disabled="{{saving}}">保存并开始学习</button>
+    <button class="profile-submit" bindtap="saveProfile" loading="{{saving}}" disabled="{{saving}}">保存学习档案</button>
   </view>
 
   <view class="state-panel" wx:elif="{{!loading && loadFailed}}">

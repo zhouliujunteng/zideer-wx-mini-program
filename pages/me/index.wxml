@@ -23,7 +23,7 @@
     <block wx:elif="{{profile && currentStudent}}">
       <view class="profile-head">
         <view class="profile-avatar">{{profile.initial}}</view>
-        <button class="profile-name pressable" data-id="identity" bindtap="handleEntry">
+        <button class="profile-name pressable" data-id="learningProfile" bindtap="handleEntry">
           <text>{{profile.displayName}}</text><text class="profile-name__arrow">›</text>
         </button>
         <text class="profile-meta">{{profile.gradeLabel}} · {{profile.roleLabel}}</text>
