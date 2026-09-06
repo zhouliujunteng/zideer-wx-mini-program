@@ -54,3 +54,12 @@ test('knowledge map does not navigate when no node is selected', () => {
 
   assert.deepEqual(navigations, [])
 })
+
+test('knowledge map starts the assessment flow for the active subject', () => {
+  const { definition, instance, navigations } = loadPage()
+  instance.setData({ activeSubjectKey: 'Mathematics' })
+
+  definition.openSubjectAssessment.call(instance)
+
+  assert.deepEqual(navigations, [{ url: '/assessment/context/index?subjectKey=Mathematics' }])
+})

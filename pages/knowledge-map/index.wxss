@@ -53,10 +53,28 @@
   flex: none;
 }
 
+.map-summary__heading {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+
 .map-summary__title {
   flex: none;
   color: var(--ink);
   font-size: 27rpx;
+  font-weight: 700;
+}
+
+.map-summary__assessment {
+  min-height: 54rpx;
+  margin-left: 14rpx;
+  padding: 0 16rpx;
+  border: 1rpx solid var(--line-strong);
+  border-radius: 10rpx;
+  background: var(--surface);
+  color: var(--accent-deep);
+  font-size: 21rpx;
   font-weight: 700;
 }
 

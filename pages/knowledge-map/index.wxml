@@ -35,7 +35,7 @@
     </scroll-view>
 
     <view class="map-summary">
-      <text class="map-summary__title">{{activeSubject}}知识网络</text>
+      <view class="map-summary__heading"><text class="map-summary__title">{{activeSubject}}知识网络</text><button class="map-summary__assessment pressable" bindtap="openSubjectAssessment">开始测评</button></view>
       <view class="map-summary__stats">
         <text>已掌握 {{stats.mastered}}</text>
         <text>学习中 {{stats.learning}}</text>

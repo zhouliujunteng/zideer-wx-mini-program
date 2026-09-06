@@ -59,6 +59,15 @@ Page({
     this.loadPage()
   },
 
+  openSubjectAssessment() {
+    const subjectKey = String(this.data.activeSubjectKey || '')
+    if (!subjectKey) {
+      wx.showToast({ title: '请先选择一个学科', icon: 'none' })
+      return
+    }
+    wx.navigateTo({ url: `/assessment/context/index?subjectKey=${encodeURIComponent(subjectKey)}` })
+  },
+
   selectNode(event) {
     const id = event.currentTarget.dataset.id
     const selectedNode = this.data.nodes.find((item) => item.id === id)
