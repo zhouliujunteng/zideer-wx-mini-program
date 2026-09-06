@@ -2,7 +2,7 @@
   <view class="state-panel">
     <view class="state-panel__mark">...</view>
     <text class="state-panel__title">正在进入课程</text>
-    <text class="state-panel__copy">正在确认本次课程的学习权限。</text>
+    <text class="state-panel__copy">正在加载临时课程页面。</text>
   </view>
 </view>
 
@@ -10,7 +10,7 @@
   <view class="state-panel">
     <view class="state-panel__mark">!</view>
     <text class="state-panel__title">课程暂时无法进入</text>
-    <text class="state-panel__copy">课程可能仍在准备，或当前账号没有访问权限。</text>
+    <text class="state-panel__copy">请检查网络后重新加载。</text>
     <button class="state-panel__action pressable" bindtap="retry">重新加载</button>
     <button class="state-panel__secondary pressable" bindtap="goBack">返回学习页</button>
   </view>
