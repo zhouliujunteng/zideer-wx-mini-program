@@ -44,6 +44,7 @@ Component({
     giftResult: null,
     creatingInvitation: false,
     invitationResult: null,
+    deepGiftInvitationResult: null,
     posterTheme: '',
     generatingPoster: false,
     posterStatus: '',
@@ -114,6 +115,23 @@ Component({
         await this.loadPage()
       } catch (error) {
         wx.showToast({ title: error.message || '邀请创建失败，请稍后重试。', icon: 'none' })
+      } finally {
+        this.setData({ creatingInvitation: false })
+      }
+    },
+    async createDeepGiftInvitation() {
+      if (this.data.creatingInvitation) return
+      this.setData({ creatingInvitation: true, deepGiftInvitationResult: null })
+      try {
+        const result = await createCurrentPromoterInvitation({
+          targetPath: '/pages/referral-entry/index',
+          sceneType: 'deep_gift'
+        })
+        this.setData({ deepGiftInvitationResult: result })
+        wx.setClipboardData({ data: result.sharePath, success: () => wx.showToast({ title: '领取路径已复制', icon: 'success' }) })
+        await this.loadPage()
+      } catch (error) {
+        wx.showToast({ title: error.message || '领取链接创建失败，请稍后重试。', icon: 'none' })
       } finally {
         this.setData({ creatingInvitation: false })
       }

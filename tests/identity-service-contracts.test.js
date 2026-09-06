@@ -525,6 +525,21 @@ test('promotion invitations and attribution only send a token, safe path, scene 
     invitation_token: token, source_type: 'share', idempotency_key: 'touch-key'
   })
 
+  actionResult(config.ACTION_FLOWS.RECORD_CURRENT_PROMOTION_TOUCH_AND_ATTRIBUTE, {
+    status: 'deep_gift_granted',
+    deep_gift: true,
+    reused: false,
+    grant: { id: 903, grantNo: 'DGR-link', status: 'available' },
+    touch: { id: 904, result: 'deep_assessment_claimed' }
+  })
+  const deepGift = await identity.recordCurrentPromotionTouchAndAttribute({ invitationToken: token, sourceType: 'share', idempotencyKey: 'deep-touch-key' })
+  assert.equal(deepGift.isDeepGift, true)
+  assert.equal(deepGift.grant.id, 903)
+  assert.equal(deepGift.attribution, null)
+  assert.deepEqual(lastCall(config.ACTION_FLOWS.RECORD_CURRENT_PROMOTION_TOUCH_AND_ATTRIBUTE).variables.args, {
+    invitation_token: token, source_type: 'share', idempotency_key: 'deep-touch-key'
+  })
+
   reset()
   await assert.rejects(identity.createCurrentPromoterInvitation({ targetPath: 'https://attacker.example' }), /落地页无效/)
   await assert.rejects(identity.recordCurrentPromotionTouchAndAttribute({ invitationToken: 'invalid' }), /邀请链接无效/)
@@ -535,6 +550,13 @@ test('promotion invitations and attribution only send a token, safe path, scene 
   await assert.rejects(
     identity.recordCurrentPromotionTouchAndAttribute({ invitationToken: token, sourceType: 'share', idempotencyKey: 'expired-key' }),
     (error) => error.terminalReferral === true && /已过期/.test(error.message)
+  )
+
+  reset()
+  actionResult(config.ACTION_FLOWS.RECORD_CURRENT_PROMOTION_TOUCH_AND_ATTRIBUTE, { status: 'deep_gift_consumed' })
+  await assert.rejects(
+    identity.recordCurrentPromotionTouchAndAttribute({ invitationToken: token, sourceType: 'share', idempotencyKey: 'consumed-key' }),
+    (error) => error.terminalReferral === true && /已被领取/.test(error.message)
   )
 })
 

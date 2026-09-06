@@ -2,7 +2,7 @@ const { loadCurrentUser, recordCurrentPromotionTouchAndAttribute } = require('..
 const { captureReferralContext, clearPendingReferral, readPendingReferral } = require('../../utils/referral-context')
 
 Page({
-  data: { tokenProvided: false, processing: false, completed: false, message: '' },
+  data: { tokenProvided: false, processing: false, completed: false, isDeepGift: false, message: '' },
   async onLoad(options = {}) {
     const referral = captureReferralContext(options)
     this.setData({ tokenProvided: Boolean(referral || readPendingReferral()) })
@@ -25,7 +25,13 @@ Page({
       }
       const result = await recordCurrentPromotionTouchAndAttribute({ invitationToken: referral.token, sourceType: 'share' })
       clearPendingReferral()
-      this.setData({ completed: true, message: result.reused ? '邀请信息已确认。' : '邀请已领取，归因已记录。' })
+      this.setData({
+        completed: true,
+        isDeepGift: Boolean(result.isDeepGift),
+        message: result.isDeepGift
+          ? (result.reused ? '深测资格已确认，可在测评中心选择学科开始。' : '深测资格已领取，可在测评中心选择学科开始。')
+          : (result.reused ? '邀请信息已确认。' : '邀请已领取，归因已记录。')
+      })
     } catch (error) {
       if (error && error.terminalReferral) clearPendingReferral()
       this.setData({ message: error.message || '邀请处理失败，请稍后重试。' })

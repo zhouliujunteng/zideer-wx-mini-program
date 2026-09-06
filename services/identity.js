@@ -1729,14 +1729,29 @@ async function recordCurrentPromotionTouchAndAttribute({ invitationToken, source
     invitation_expired: '邀请链接已过期，请联系推广伙伴重新分享。',
     self_invitation: '不能领取自己的推广邀请。',
     profile_incomplete: '请先完善学习档案后再领取邀请。',
-    already_attributed: '你已绑定其他推广伙伴，归因不会变更。'
+    already_attributed: '你已绑定其他推广伙伴，归因不会变更。',
+    recipient_unavailable: '当前账号暂时无法领取深测资格。',
+    recipient_not_ordinary: '推广伙伴账号不能领取推广赠送的深测资格。',
+    already_received: '你已获得过推广深测资格。',
+    deep_gift_consumed: '这份深测资格已被领取。'
   }
-  if (['invitation_invalid', 'invitation_expired', 'self_invitation'].includes(payload.status)) {
+  if (['invitation_invalid', 'invitation_expired', 'self_invitation', 'recipient_not_ordinary', 'already_received', 'deep_gift_consumed'].includes(payload.status)) {
     const error = new Error(messages[payload.status])
     error.terminalReferral = true
     throw error
   }
   if (payload.status === 'profile_incomplete') throw new Error(messages[payload.status])
+  if (payload.status === 'recipient_unavailable') throw new Error(messages[payload.status])
+  if (payload.status === 'deep_gift_granted') {
+    if (!payload.grant || !payload.grant.id) throw new Error('深测资格领取失败，请稍后重试。')
+    return {
+      isDeepGift: true,
+      reused: Boolean(payload.reused),
+      grant: payload.grant,
+      touch: payload.touch || null,
+      attribution: null
+    }
+  }
   if (payload.status === 'already_attributed') {
     return { reused: true, attribution: payload.attribution || null, touch: payload.touch || null }
   }
