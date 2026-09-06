@@ -994,6 +994,36 @@ async function loadCurrentLiveSchedule() {
   }
 }
 
+function isSafeServiceContactUrl(value) {
+  const url = String(value || '').trim()
+  return url.length > 0 && url.length <= 2048 && /^https:\/\/[^\s]+$/i.test(url)
+}
+
+async function loadCurrentServiceContacts() {
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.GET_CURRENT_SERVICE_CONTACTS
+  )) || {}
+
+  if (payload.status === 'unauthenticated') throw new Error('请先登录后查看真人服务。')
+  if (payload.status === 'profile_incomplete') {
+    return { status: 'profile_incomplete', contacts: [] }
+  }
+  if (!['ready', 'no_active_contacts'].includes(payload.status)) {
+    throw new Error('真人服务暂时无法读取，请稍后重试。')
+  }
+
+  const contacts = (Array.isArray(payload.contacts) ? payload.contacts : [])
+    .filter((item) => item && item.id && item.contactType === 'enterprise_wechat_link' && isSafeServiceContactUrl(item.targetRef))
+    .map((item) => ({
+      id: String(item.id),
+      contactType: item.contactType,
+      title: String(item.title || '真人服务').trim().slice(0, 80) || '真人服务',
+      targetRef: String(item.targetRef).trim()
+    }))
+
+  return { status: contacts.length ? 'ready' : payload.status, contacts }
+}
+
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -2194,6 +2224,7 @@ module.exports = {
   confirmCurrentCourseGeneration,
   loadCurrentRemediationTasks,
   loadCurrentLiveSchedule,
+  loadCurrentServiceContacts,
   createCourseLaunchUrl,
   createAcceptanceLaunchUrl,
   createCurrentFeynmanAcceptance,

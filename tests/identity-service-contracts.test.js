@@ -195,6 +195,36 @@ test('first-user initialization and profile save use authoritative action flows'
   })
 })
 
+test('service contacts only accept backend-issued HTTPS enterprise WeChat entries', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_SERVICE_CONTACTS, {
+    status: 'ready',
+    contacts: [
+      { id: 1, contactType: 'enterprise_wechat_link', title: '课程顾问', targetRef: 'https://service.example.com/contact' },
+      { id: 2, contactType: 'enterprise_wechat_link', title: '不安全链接', targetRef: 'http://service.example.com/contact' },
+      { id: 3, contactType: 'meeting_link', title: '错误类型', targetRef: 'https://service.example.com/contact' },
+      { id: 4, contactType: 'enterprise_wechat_link', title: '无效链接', targetRef: 'javascript:alert(1)' }
+    ]
+  })
+
+  const result = await identity.loadCurrentServiceContacts()
+  assert.deepEqual(result, {
+    status: 'ready',
+    contacts: [{ id: '1', contactType: 'enterprise_wechat_link', title: '课程顾问', targetRef: 'https://service.example.com/contact' }]
+  })
+  assert.deepEqual(lastCall(config.ACTION_FLOWS.GET_CURRENT_SERVICE_CONTACTS).variables.args, {})
+})
+
+test('service contact profile and empty states are non-navigating fallbacks', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_SERVICE_CONTACTS, { status: 'profile_incomplete', contacts: [] })
+  assert.deepEqual(await identity.loadCurrentServiceContacts(), { status: 'profile_incomplete', contacts: [] })
+
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_SERVICE_CONTACTS, { status: 'no_active_contacts', contacts: [] })
+  assert.deepEqual(await identity.loadCurrentServiceContacts(), { status: 'no_active_contacts', contacts: [] })
+  assert.equal(navigationCalls.length, 0)
+})
+
 test('assessment answers and submission preserve their server-owned identifiers', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.START_OR_RESUME_BASIC_ASSESSMENT, { status: 'ready', attemptId: 31 })

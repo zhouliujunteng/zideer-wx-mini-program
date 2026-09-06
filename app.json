@@ -18,6 +18,7 @@
         "binding-code/index",
         "bind-student/index",
         "identity/index",
+        "service-contact/index",
         "guardian-dashboard/index",
         "login-identities/index",
         "child-learning-feed/index",

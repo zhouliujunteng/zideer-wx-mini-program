@@ -1,0 +1,25 @@
+<block wx:if="{{selectedUrl}}">
+  <view class="web-shell">
+    <button class="web-shell__back" bindtap="closeWebView">返回服务列表</button>
+    <web-view src="{{selectedUrl}}"></web-view>
+  </view>
+</block>
+
+<view class="screen" wx:else>
+  <view class="screen-scroll service-contact">
+    <view class="page-head"><text class="page-head__title">真人服务</text><text class="page-head__copy">课程顾问和真人陪跑服务</text></view>
+
+    <view class="state-panel" wx:if="{{loading}}"><text class="state-panel__title">正在读取服务入口</text></view>
+    <view class="state-panel" wx:elif="{{failed}}"><text class="state-panel__title">服务入口暂时无法读取</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+    <view class="state-panel" wx:elif="{{profileIncomplete}}"><text class="state-panel__title">请先完善学习档案</text><text class="state-panel__copy">完成建档后才能匹配适用的真人服务。</text></view>
+    <view class="state-panel" wx:elif="{{!contacts.length}}"><text class="state-panel__title">当前没有可用服务入口</text><text class="state-panel__copy">服务开通或配置生效后，会显示在这里。</text></view>
+
+    <view class="service-list" wx:else>
+      <button class="service-row surface pressable" wx:for="{{contacts}}" wx:key="id" data-id="{{item.id}}" bindtap="openContact">
+        <view class="service-row__icon"><image src="/assets/icons/headphones.svg" mode="aspectFit" /></view>
+        <view class="service-row__copy"><text class="service-row__title">{{item.title}}</text><text class="service-row__meta">企业微信服务</text></view>
+        <text class="service-row__arrow">›</text>
+      </button>
+    </view>
+  </view>
+</view>

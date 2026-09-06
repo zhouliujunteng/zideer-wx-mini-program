@@ -67,6 +67,9 @@ module.exports = {
     GET_CURRENT_LIVE_SCHEDULE: {
       id: "61446a3a-9c6c-223b-d29f-1057a9d09f78",
     },
+    GET_CURRENT_SERVICE_CONTACTS: {
+      id: "6ff52f1d-697a-4325-803d-0bb85750ab25",
+    },
     CREATE_CURRENT_FEYNMAN_ACCEPTANCE: {
       id: "eb73db81-30f5-47db-8055-ced3d721dc88",
     },

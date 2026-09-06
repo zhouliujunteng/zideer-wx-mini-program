@@ -124,6 +124,10 @@ Page({
       wx.navigateTo({ url: '/account/identity/index' })
       return
     }
+    if (id === 'service') {
+      wx.navigateTo({ url: '/account/service-contact/index' })
+      return
+    }
     if (id === 'child') {
       wx.navigateTo({ url: '/account/child-learning-feed/index' })
       return
