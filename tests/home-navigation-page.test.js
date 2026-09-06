@@ -44,3 +44,17 @@ test('home plan card falls back to the plan list when no current plan is availab
 
   assert.deepEqual(navigations, [{ url: '/diagnosis/plans/index' }])
 })
+
+test('home restores the latest assessment at its current workflow step', () => {
+  const { definition, instance, navigations } = loadPage()
+
+  instance.setData({ assessment: { id: '51', status: 'analyzing', subjectKey: 'Mathematics' } })
+  definition.openAssessmentProgress.call(instance)
+  instance.setData({ assessment: { id: '52', status: 'draft', subjectKey: 'Chinese' } })
+  definition.openAssessmentProgress.call(instance)
+
+  assert.deepEqual(navigations, [
+    { url: '/assessment/analysis/index?attemptId=51' },
+    { url: '/assessment/basic/index?subjectKey=Chinese&resume=1' }
+  ])
+})

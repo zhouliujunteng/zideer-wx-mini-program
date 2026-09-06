@@ -52,6 +52,14 @@
       <view class="home-section" wx:if="{{assessment}}">
         <view class="section-head"><text class="section-title">学习概览</text></view>
         <view class="simple-list surface">
+          <button class="simple-row pressable" bindtap="openAssessmentProgress">
+            <view class="simple-row__icon simple-row__icon--orange"><text>测</text></view>
+            <view class="simple-row__copy">
+              <text class="simple-row__title">{{assessment.subject}}基础测评 · {{assessment.statusLabel}}</text>
+              <text class="simple-row__meta">{{assessment.status === 'completed' ? '查看诊断报告' : assessment.status === 'draft' ? '继续完成作答' : '查看分析进度'}}</text>
+            </view>
+            <text class="simple-row__arrow">›</text>
+          </button>
           <button class="simple-row pressable" bindtap="openKnowledgeMap">
             <view class="simple-row__icon simple-row__icon--blue"><image src="/assets/icons/network.svg" mode="aspectFit" /></view>
             <view class="simple-row__copy">

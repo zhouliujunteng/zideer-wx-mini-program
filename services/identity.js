@@ -595,6 +595,7 @@ async function loadHomeDashboard() {
   const completedCount = planItems.filter((item) => ['completed', 'done', 'passed'].includes(String(item.status || '').toLowerCase())).length
   const currentItem = planItems.find((item) => !['completed', 'done', 'passed'].includes(String(item.status || '').toLowerCase())) || null
   const assessmentData = assessmentResult.status === 'fulfilled' ? assessmentResult.value : null
+  const latestAttempt = assessmentData && assessmentData.attempts && assessmentData.attempts[0] || null
   const reportData = reportsResult.status === 'fulfilled' ? reportsResult.value : null
   const latestPrediction = reportData && reportData.predictions && reportData.predictions[0] || null
   const creditData = creditResult.status === 'fulfilled' ? creditResult.value : null
@@ -610,15 +611,19 @@ async function loadHomeDashboard() {
       currentTaskMeta: currentItem && currentItem.estimatedMinutes ? `约 ${currentItem.estimatedMinutes} 分钟` : '等待学习任务生成',
       progress: planItems.length ? Math.round(completedCount / planItems.length * 100) : 0
     } : null,
-    assessment: assessmentData && assessmentData.attempts && assessmentData.attempts[0] ? {
-      subject: assessmentData.attempts[0].subjectName,
+    assessment: latestAttempt ? {
+      id: latestAttempt.id,
+      status: latestAttempt.status,
+      statusLabel: latestAttempt.statusLabel,
+      subjectKey: latestAttempt.subjectKey,
+      subject: latestAttempt.subjectName,
       // Score predictions are not knowledge-mastery measurements. Keep the
       // dashboard honest until the mastery endpoint provides a percentage.
       masteryLabel: '暂无有效诊断',
       weakCount: latestPrediction && latestPrediction.weakTopics && latestPrediction.weakTopics.length || 0,
       forecast: latestPrediction && latestPrediction.scoreRange || '数据不足',
       confidence: latestPrediction && latestPrediction.confidencePercent !== null ? `${latestPrediction.confidencePercent}% 置信度` : '数据不足',
-      measuredAt: assessmentData.attempts[0].updated_at || assessmentData.attempts[0].created_at || ''
+      measuredAt: latestAttempt.updated_at || latestAttempt.created_at || ''
     } : null,
     plan: activePlan ? {
       id: activePlan.id,
