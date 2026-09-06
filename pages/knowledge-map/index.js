@@ -119,10 +119,6 @@ Page({
     })
   },
 
-  addToPlan() {
-    wx.showToast({ title: '学习计划功能正在接入，暂不能加入候选。', icon: 'none' })
-  },
-
   openTopicDetail() {
     const node = this.data.selectedNode
     if (!node || !node.id) return
