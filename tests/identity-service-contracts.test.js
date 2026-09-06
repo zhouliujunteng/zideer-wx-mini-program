@@ -225,6 +225,47 @@ test('service contact profile and empty states are non-navigating fallbacks', as
   assert.equal(navigationCalls.length, 0)
 })
 
+test('learning-plan candidates use only the selected topic and preserve server-owned state', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PLAN_CANDIDATES, {
+    status: 'ready',
+    candidates: [
+      { id: 71, topicId: 81, topicName: '一次函数', subjectKey: 'Mathematics', subjectName: '数学', status: 'active', source: 'knowledge_map', createdAt: '2026-09-06T00:00:00Z' },
+      { id: 72, topicId: 'bad', topicName: '应丢弃' }
+    ]
+  })
+
+  const candidates = await identity.loadCurrentTopicCandidates()
+  assert.deepEqual(candidates, {
+    status: 'ready',
+    candidates: [{ id: '71', topicId: '81', topicName: '一次函数', subjectKey: 'Mathematics', subjectName: '数学', status: 'active', source: 'knowledge_map', createdAt: '2026-09-06T00:00:00Z' }]
+  })
+  assert.deepEqual(lastCall(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PLAN_CANDIDATES).variables.args, {})
+
+  actionResult(config.ACTION_FLOWS.ADD_CURRENT_LEARNING_PLAN_CANDIDATE, {
+    status: 'added', candidate: { id: 71, topicId: 81, status: 'active', source: 'knowledge_map', createdAt: '2026-09-06T00:00:00Z' }
+  })
+  assert.equal((await identity.addCurrentTopicCandidate('81')).status, 'added')
+  assert.deepEqual(lastCall(config.ACTION_FLOWS.ADD_CURRENT_LEARNING_PLAN_CANDIDATE).variables.args, { topic_id: 81 })
+
+  actionResult(config.ACTION_FLOWS.REMOVE_CURRENT_LEARNING_PLAN_CANDIDATE, { status: 'removed' })
+  assert.equal((await identity.removeCurrentTopicCandidate(81)).status, 'removed')
+  assert.deepEqual(lastCall(config.ACTION_FLOWS.REMOVE_CURRENT_LEARNING_PLAN_CANDIDATE).variables.args, { topic_id: 81 })
+})
+
+test('learning-plan candidate errors do not alter a valid login session', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.ADD_CURRENT_LEARNING_PLAN_CANDIDATE, { status: 'topic_out_of_scope' })
+  await assert.rejects(identity.addCurrentTopicCandidate(81), /不在当前年级学习范围/)
+  assert.equal(storageToken, 'test-runtime-token')
+  assert.equal(navigationCalls.length, 0)
+
+  reset()
+  await assert.rejects(identity.addCurrentTopicCandidate(0), /知识点信息不完整/)
+  await assert.rejects(identity.removeCurrentTopicCandidate('bad'), /知识点信息不完整/)
+  assert.equal(calls.length, 0)
+})
+
 test('assessment answers and submission preserve their server-owned identifiers', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.START_OR_RESUME_BASIC_ASSESSMENT, { status: 'ready', attemptId: 31 })

@@ -70,6 +70,15 @@ module.exports = {
     GET_CURRENT_SERVICE_CONTACTS: {
       id: "6ff52f1d-697a-4325-803d-0bb85750ab25",
     },
+    GET_CURRENT_LEARNING_PLAN_CANDIDATES: {
+      id: "a4efbefb-37fa-544d-5d49-ba973d0b6bd0",
+    },
+    ADD_CURRENT_LEARNING_PLAN_CANDIDATE: {
+      id: "d2a1289d-0c2a-2723-ebe8-fcc9f9357344",
+    },
+    REMOVE_CURRENT_LEARNING_PLAN_CANDIDATE: {
+      id: "a9ca3eb5-add7-8dae-240e-110e096f4932",
+    },
     CREATE_CURRENT_FEYNMAN_ACCEPTANCE: {
       id: "eb73db81-30f5-47db-8055-ced3d721dc88",
     },

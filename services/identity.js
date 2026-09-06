@@ -994,6 +994,77 @@ async function loadCurrentLiveSchedule() {
   }
 }
 
+function normalizeCandidateTopicId(topicId) {
+  const value = Number(topicId)
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    throw new Error('知识点信息不完整，请返回图谱后重试。')
+  }
+  return value
+}
+
+function normalizeLearningPlanCandidate(candidate) {
+  if (!candidate || typeof candidate !== 'object') return null
+  const topicId = Number(candidate.topicId)
+  if (!Number.isSafeInteger(topicId) || topicId <= 0) return null
+  return {
+    id: candidate.id == null ? '' : String(candidate.id),
+    topicId: String(topicId),
+    topicName: String(candidate.topicName || ''),
+    subjectKey: String(candidate.subjectKey || ''),
+    subjectName: String(candidate.subjectName || ''),
+    status: String(candidate.status || ''),
+    source: String(candidate.source || ''),
+    createdAt: candidate.createdAt || ''
+  }
+}
+
+async function loadCurrentTopicCandidates() {
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.GET_CURRENT_LEARNING_PLAN_CANDIDATES
+  )) || {}
+  const status = String(payload.status || 'unavailable')
+  return {
+    status,
+    candidates: (payload.candidates || []).map(normalizeLearningPlanCandidate).filter(Boolean)
+  }
+}
+
+async function addCurrentTopicCandidate(topicId) {
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.ADD_CURRENT_LEARNING_PLAN_CANDIDATE,
+    { topic_id: normalizeCandidateTopicId(topicId) }
+  )) || {}
+  const status = String(payload.status || 'unavailable')
+  const messages = {
+    unauthenticated: '请先登录后加入候选。',
+    profile_incomplete: '请先完善学习档案后加入候选。',
+    invalid_topic: '知识点信息不完整，请返回图谱后重试。',
+    topic_unavailable: '该知识点暂不可加入候选。',
+    topic_out_of_scope: '该知识点不在当前年级学习范围内。'
+  }
+  if (!['added', 'reactivated', 'already_active'].includes(status)) {
+    throw new Error(messages[status] || '加入候选失败，请稍后重试。')
+  }
+  return { status, candidate: normalizeLearningPlanCandidate(payload.candidate) }
+}
+
+async function removeCurrentTopicCandidate(topicId) {
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.REMOVE_CURRENT_LEARNING_PLAN_CANDIDATE,
+    { topic_id: normalizeCandidateTopicId(topicId) }
+  )) || {}
+  const status = String(payload.status || 'unavailable')
+  const messages = {
+    unauthenticated: '请先登录后管理候选。',
+    profile_incomplete: '请先完善学习档案后管理候选。',
+    invalid_topic: '知识点信息不完整，请返回图谱后重试。'
+  }
+  if (!['removed', 'not_found'].includes(status)) {
+    throw new Error(messages[status] || '移出候选失败，请稍后重试。')
+  }
+  return { status }
+}
+
 function isSafeServiceContactUrl(value) {
   const url = String(value || '').trim()
   return url.length > 0 && url.length <= 2048 && /^https:\/\/[^\s]+$/i.test(url)
@@ -2224,6 +2295,9 @@ module.exports = {
   confirmCurrentCourseGeneration,
   loadCurrentRemediationTasks,
   loadCurrentLiveSchedule,
+  loadCurrentTopicCandidates,
+  addCurrentTopicCandidate,
+  removeCurrentTopicCandidate,
   loadCurrentServiceContacts,
   createCourseLaunchUrl,
   createAcceptanceLaunchUrl,
