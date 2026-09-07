@@ -112,27 +112,34 @@
     "navigationBarTitleText": "知鹿私课"
   },
   "tabBar": {
-    "custom": true,
-    "color": "#9A9FA6",
-    "selectedColor": "#17191C",
-    "backgroundColor": "#FEFEFC",
+    "color": "#7B8078",
+    "selectedColor": "#FD7C02",
+    "backgroundColor": "#FAFAFA",
     "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/home/index",
-        "text": "首页"
+        "text": "首页",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home-active.png"
       },
       {
         "pagePath": "pages/learning/index",
-        "text": "学习"
+        "text": "学习",
+        "iconPath": "assets/tabbar/learning.png",
+        "selectedIconPath": "assets/tabbar/learning-active.png"
       },
       {
         "pagePath": "pages/knowledge-map/index",
-        "text": "知识图谱"
+        "text": "图谱",
+        "iconPath": "assets/tabbar/map.png",
+        "selectedIconPath": "assets/tabbar/map-active.png"
       },
       {
         "pagePath": "pages/me/index",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "assets/tabbar/me.png",
+        "selectedIconPath": "assets/tabbar/me-active.png"
       }
     ]
   },

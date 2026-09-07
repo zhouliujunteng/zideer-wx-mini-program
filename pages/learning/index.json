@@ -1,5 +1,3 @@
 {
-  "navigationStyle": "custom",
-  "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark"
+  "navigationStyle": "custom"
 }

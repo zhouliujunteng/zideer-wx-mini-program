@@ -1,87 +1,74 @@
-<view class="screen">
-  <view class="screen-scroll me" style="padding-top: {{navigation.statusBarHeight || 20}}px;">
-    <view class="app-nav" style="height: {{navigation.navigationBarHeight || 44}}px;">
-      <view class="app-nav__main"><text class="app-nav__title">我的</text></view>
+<view class="me-page">
+  <view class="me-topbar">
+    <view class="me-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <text class="me-topbar-title">我的</text>
     </view>
-
-    <block wx:if="{{loading}}">
-      <view class="me-loading">
-        <view class="skeleton skeleton-avatar"></view>
-        <view class="skeleton skeleton-name"></view>
-        <view class="skeleton skeleton-assets"></view>
-        <view class="skeleton skeleton-menu"></view>
-      </view>
-    </block>
-
-    <view class="state-panel" wx:elif="{{loadFailed}}">
-      <view class="state-panel__mark">!</view>
-      <text class="state-panel__title">账户资料暂时没有加载出来</text>
-      <text class="state-panel__copy">网络恢复后，可以重新读取身份、余额和家庭信息。</text>
-      <button class="state-panel__action pressable" bindtap="loadPage">重新加载</button>
-    </view>
-
-    <block wx:elif="{{profile && currentStudent}}">
-      <view class="profile-head">
-        <view class="profile-avatar">{{profile.initial}}</view>
-        <button class="profile-name pressable" data-id="learningProfile" bindtap="handleEntry">
-          <text>{{profile.displayName}}</text><text class="profile-name__arrow">›</text>
-        </button>
-        <text class="profile-meta">{{profile.gradeLabel}} · {{profile.roleLabel}}</text>
-      </view>
-
-      <button class="student-row surface pressable" bindtap="chooseStudent">
-        <view class="student-row__avatar">{{currentStudent.initial}}</view>
-        <view class="student-row__copy">
-          <text class="student-row__label">当前学生</text>
-          <text class="student-row__name">{{currentStudent.name}} · {{currentStudent.relation}}</text>
-        </view>
-        <text class="student-row__action">切换</text>
-        <text class="menu-row__arrow">›</text>
-      </button>
-
-      <view class="asset-grid asset-grid--single" wx:if="{{balances}}">
-        <button class="asset-card surface pressable" data-id="points" bindtap="handleEntry">
-          <view class="asset-card__head"><image src="/assets/icons/wallet.svg" mode="aspectFit" /><text>课程积分</text><text class="asset-card__arrow">›</text></view>
-          <view class="asset-card__value"><text>{{balances.coursePoints}}</text><text class="asset-card__unit">积分</text></view>
-          <text class="asset-card__meta">冻结 {{balances.frozenPoints}}</text>
-        </button>
-      </view>
-      <button class="student-row surface pressable" wx:else data-id="points" bindtap="handleEntry"><view class="student-row__copy"><text class="student-row__label">课程积分</text><text class="student-row__name">支付履约成功后会自动开通积分账户</text></view><text class="menu-row__arrow">›</text></button>
-      <button class="student-row surface pressable" data-id="coins" bindtap="handleEntry"><view class="student-row__copy"><text class="student-row__label">金币</text><text class="student-row__name">任务奖励、流水和提现状态</text></view><text class="menu-row__arrow">›</text></button>
-
-      <view class="me-section">
-        <view class="section-head"><text class="section-title">最近学习</text></view>
-        <button class="update-row surface pressable" wx:if="{{childUpdate}}" data-id="child" bindtap="handleEntry">
-          <view class="update-row__mark"></view>
-          <view class="update-row__copy">
-            <text class="update-row__title">{{childUpdate.title}}</text>
-            <text class="update-row__meta">{{childUpdate.detail}}</text>
-          </view>
-          <text class="menu-row__arrow">›</text>
-        </button><view class="update-row surface" wx:else><view class="update-row__mark"></view><view class="update-row__copy"><text class="update-row__title">暂时没有学习动态</text><text class="update-row__meta">开始课程或完成验收后会同步最新状态。</text></view></view>
-      </view>
-
-      <view class="me-section">
-        <view class="section-head"><text class="section-title">账户</text></view>
-        <view class="menu-list surface">
-          <button class="menu-row pressable" wx:for="{{accountItems}}" wx:key="id" data-id="{{item.id}}" bindtap="handleEntry">
-            <view class="menu-row__icon menu-row__icon--{{item.icon}}"><image src="/assets/icons/{{item.icon}}.svg" mode="aspectFit" /></view>
-            <view class="menu-row__copy"><text class="menu-row__title">{{item.label}}</text><text class="menu-row__meta">{{item.meta}}</text></view>
-            <text class="menu-row__arrow">›</text>
-          </button>
-        </view>
-      </view>
-
-      <view class="me-section">
-        <view class="section-head"><text class="section-title">服务</text></view>
-        <view class="menu-list surface">
-          <button class="menu-row pressable" wx:for="{{serviceItems}}" wx:key="id" data-id="{{item.id}}" bindtap="handleEntry">
-            <view class="menu-row__icon menu-row__icon--{{item.icon}}"><image src="/assets/icons/{{item.icon}}.svg" mode="aspectFit" /></view>
-            <view class="menu-row__copy"><text class="menu-row__title">{{item.label}}</text><text class="menu-row__meta">{{item.meta}}</text></view>
-            <text class="menu-row__arrow">›</text>
-          </button>
-        </view>
-      </view>
-    </block>
   </view>
+
+<scroll-view class="page-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+  <view class="page-shell">
+    <view class="profile">
+      <view class="avatar"></view>
+      <view class="profile-copy">
+        <view class="profile-name-row">
+          <text class="profile-name">{{model.profile.name}}</text>
+          <view class="profile-action profile-edit-action" aria-label="修改个人信息" bindtap="editProfile"><view class="profile-pencil-icon"></view></view>
+        </view>
+        <view class="profile-id-row">
+          <text class="profile-id-label">ID：</text>
+          <text class="profile-id">{{model.profile.id}}</text>
+          <view class="profile-action profile-copy-action" aria-label="复制用户 ID" bindtap="copyProfileId"><view class="profile-copy-icon"></view></view>
+        </view>
+      </view>
+    </view>
+    <view class="wallet-grid">
+      <view wx:for="{{model.accountSummary}}" wx:key="label" class="wallet-module">
+        <view class="wallet-module-heading">
+          <image class="wallet-module-icon" src="{{item.icon}}" mode="aspectFit"></image>
+          <text class="wallet-label">{{item.label}}</text>
+          <text wx:if="{{item.meta}}" class="wallet-module-meta">{{item.meta}}</text>
+        </view>
+        <view class="wallet-value-row">
+          <text class="wallet-value">{{item.value}}</text>
+          <view class="wallet-module-action" data-name="{{item.actionLabel}}" bindtap="handleItem"><text>{{item.actionLabel}}</text><text class="wallet-action-arrow">›</text></view>
+        </view>
+      </view>
+    </view>
+    <view class="quick-section">
+      <text class="quick-section-title">常用入口</text>
+      <view class="quick-grid">
+        <view wx:for="{{model.quickActions}}" wx:key="label" class="quick-item" data-name="{{item.label}}" bindtap="handleItem">
+          <view class="quick-item-icon-wrap">
+            <image class="quick-item-icon" src="{{item.icon}}" mode="aspectFit"></image>
+            <text wx:if="{{item.unreadCount}}" class="quick-item-badge">{{item.unreadCount}}</text>
+          </view>
+          <text class="quick-item-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+    <view wx:for="{{model.serviceGroups}}" wx:for-item="serviceGroup" wx:key="title" class="group">
+      <text class="group-title">{{serviceGroup.title}}</text>
+      <view wx:if="{{serviceGroup.enterpriseService}}" class="enterprise-service-card" data-name="{{serviceGroup.enterpriseService.title}}" bindtap="handleItem">
+        <image class="enterprise-service-avatar" src="{{serviceGroup.enterpriseService.avatar}}" mode="aspectFill"></image>
+        <view class="enterprise-service-copy">
+          <text class="enterprise-service-title">{{serviceGroup.enterpriseService.title}}</text>
+          <text class="enterprise-service-description">{{serviceGroup.enterpriseService.description}}</text>
+        </view>
+        <view class="enterprise-service-action">
+          <text class="enterprise-service-hours">{{serviceGroup.enterpriseService.hours}}</text>
+          <view class="enterprise-service-go"><text class="menu-arrow">›</text></view>
+        </view>
+      </view>
+      <view class="menu">
+        <view wx:for="{{serviceGroup.items}}" wx:for-item="serviceItem" wx:key="title" class="menu-item" data-name="{{serviceItem.title}}" bindtap="handleItem">
+          <view class="service-item-copy">
+            <text class="service-item-title">{{serviceItem.title}}</text>
+            <text class="service-item-description">{{serviceItem.description}}</text>
+          </view>
+          <text class="menu-arrow">›</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</scroll-view>
 </view>

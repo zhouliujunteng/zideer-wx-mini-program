@@ -1,126 +1,26 @@
-<view class="screen map-page" style="padding-top: {{navigation.statusBarHeight || 20}}px;">
-  <view class="app-nav map-nav" style="height: {{navigation.navigationBarHeight || 44}}px;">
-    <view class="app-nav__main">
-      <text class="app-nav__title">知识图谱</text>
-      <text class="app-nav__caption">{{grade}}</text>
-    </view>
-    <button class="icon-button map-search-button pressable" bindtap="searchTopics" aria-label="搜索知识点">
-      <image src="/assets/icons/search.svg" mode="aspectFit" />
-    </button>
-  </view>
-
-  <block wx:if="{{loading}}">
-    <view class="map-loading">
-      <view class="skeleton skeleton-subjects"></view>
-      <view class="skeleton skeleton-map"></view>
-    </view>
-  </block>
-
-  <view class="state-panel" wx:elif="{{loadFailed}}">
-    <view class="state-panel__mark">!</view>
-    <text class="state-panel__title">知识图谱暂时没有加载出来</text>
-    <text class="state-panel__copy">网络恢复后，可以继续查看当前学科的掌握情况。</text>
-    <button class="state-panel__action pressable" bindtap="loadPage">重新加载</button>
-  </view>
-
-  <block wx:else>
-    <scroll-view class="subject-tabs" scroll-x enable-flex show-scrollbar="{{false}}">
-      <button
-        class="subject-tab {{activeSubjectKey === item.key ? 'subject-tab--active' : ''}} pressable"
-        wx:for="{{subjects}}"
-        wx:key="key"
-        data-subject-key="{{item.key}}"
-        bindtap="chooseSubject"
-      >{{item.name}}</button>
-    </scroll-view>
-
-    <view class="map-summary">
-      <view class="map-summary__heading"><text class="map-summary__title">{{activeSubject}}知识网络</text><button class="map-summary__assessment pressable" bindtap="openSubjectAssessment">开始测评</button></view>
-      <view class="map-summary__stats">
-        <text>已掌握 {{stats.mastered}}</text>
-        <text>学习中 {{stats.learning}}</text>
-        <text>需加强 {{stats.weak}}</text>
-        <text>待测 {{stats.unknown}}</text>
-      </view>
-    </view>
-
-    <view class="map-canvas surface">
-      <movable-area class="graph-area">
-        <movable-view
-          class="graph"
-          direction="all"
-          scale
-          scale-min="0.7"
-          scale-max="1.8"
-          scale-value="{{scaleValue}}"
-          out-of-bounds
-        >
-          <view class="graph-edge" wx:for="{{edges}}" wx:key="id" style="{{item.style}}"></view>
-          <button
-            class="graph-node graph-node--{{item.status}} {{selectedNodeId === item.id ? 'graph-node--selected' : ''}} pressable"
-            wx:for="{{nodes}}"
-            wx:key="id"
-            style="left: {{item.x}}rpx; top: {{item.y}}rpx; width: {{item.size}}rpx; min-height: {{item.minHeight}}rpx;"
-            data-id="{{item.id}}"
-            bindtap="selectNode"
-          >
-            <text class="graph-node__label">{{item.shortLabel}}</text>
-            <text class="graph-node__state">{{item.statusLabel}}</text>
-          </button>
-        </movable-view>
-      </movable-area>
-
-      <view class="zoom-controls">
-        <button class="zoom-button pressable" bindtap="zoomOut" aria-label="缩小知识图谱">−</button>
-        <text class="zoom-value">{{scaleValue}}×</text>
-        <button class="zoom-button pressable" bindtap="zoomIn" aria-label="放大知识图谱">＋</button>
-      </view>
-      <text class="drag-tip">拖动画布查看完整知识网络</text>
-    </view>
-  </block>
-
-  <view class="map-search" wx:if="{{searchOpen}}">
-    <view class="map-search__bar surface">
-      <input
-        class="map-search__input"
-        value="{{searchQuery}}"
-        placeholder="搜索当前学科知识点"
-        focus
-        confirm-type="search"
-        bindinput="onSearchInput"
-      />
-      <button class="map-search__clear pressable" wx:if="{{searchQuery}}" bindtap="clearSearch" aria-label="清空搜索">×</button>
-      <button class="map-search__cancel pressable" bindtap="closeSearch">取消</button>
-    </view>
-    <view class="map-search__results surface" wx:if="{{searchQuery}}">
-      <view class="map-search__empty" wx:if="{{!searchResults.length}}">没有找到匹配的知识点</view>
-      <block wx:else>
-        <button class="map-search__result pressable" wx:for="{{searchResults}}" wx:key="id" data-id="{{item.id}}" bindtap="selectSearchResult">
-          <view class="map-search__result-copy">
-            <text class="map-search__result-title">{{item.label}}</text>
-            <text class="map-search__result-meta">{{item.searchMeta}}</text>
-          </view>
-          <text class="map-search__result-state">{{item.statusLabel}}</text>
-        </button>
-      </block>
+<view class="map-page">
+  <view class="map-topbar">
+    <view class="map-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;"><text class="map-topbar-title">图谱</text></view>
+    <view class="map-notice-button" style="top: {{notificationTop}}px; right: {{notificationRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="showNotifications">
+      <image class="map-message-icon" src="../../assets/topbar/message.png" mode="aspectFit"></image>
+      <view wx:if="{{model.notifications.count}}" class="map-notice-badge">{{model.notifications.count}}</view>
     </view>
   </view>
-
-  <view class="sheet-backdrop" wx:if="{{sheetOpen}}" bindtap="closeSheet"></view>
-  <view class="topic-sheet" wx:if="{{sheetOpen && selectedNode}}">
-    <view class="topic-sheet__handle"></view>
-    <view class="topic-sheet__head">
-      <view class="topic-sheet__copy">
-        <text class="topic-sheet__title">{{selectedNode.label}}</text>
-        <text class="topic-sheet__status topic-sheet__status--{{selectedNode.status}}">{{selectedNode.statusLabel}}</text>
-      </view>
-      <button class="sheet-close pressable" bindtap="closeSheet" aria-label="关闭知识点详情">×</button>
+  <view class="map-canvas-region {{sheetSnapping ? 'map-canvas-region-snapping' : ''}}" style="top: {{contentTop}}px; height: {{canvasClipHeight}}px;">
+    <view class="map-viewport" style="height: {{canvasHeight}}px;">
+      <canvas id="knowledge-map-canvas" type="2d" class="knowledge-map-canvas {{sheetSnapping ? 'map-canvas-follow-snapping' : ''}}" style="transform: translate3d(0, -{{canvasFollowOffset}}px, 0);" disable-scroll="true" bindtouchstart="handleMapTouchStart" bindtouchmove="handleMapTouchMove" bindtouchend="handleMapTouchEnd" bindtouchcancel="handleMapTouchEnd"></canvas>
+      <view wx:if="{{metricsVisible}}" class="map-metrics {{metricsCollapsed ? 'map-metrics-collapsed' : ''}}" catchtap="toggleMetricsPanel"><view class="map-metrics-header"><text class="map-metrics-title">{{metricsCollapsed ? '性能' : '性能监测'}}</text><view class="map-metrics-toggle {{metricsCollapsed ? 'map-metrics-toggle-collapsed' : ''}}"></view></view><block wx:if="{{!metricsCollapsed}}"><text wx:for="{{metricsRows}}" wx:key="*this" class="map-metrics-row">{{item}}</text></block></view>
+      <view class="map-gesture-tip {{sheetSnapping ? 'map-control-snapping' : ''}}" style="transform: translate3d(0, -{{sheetVisualOffset}}px, 0);"><text>{{zoomPercent}}% · 双指缩放 · 单指移动</text></view><view class="map-reset {{sheetSnapping ? 'map-control-snapping' : ''}}" style="transform: translate3d(0, -{{sheetVisualOffset}}px, 0);" bindtap="resetMap"><view class="map-reset-icon"><view class="map-reset-icon-center"></view></view></view>
     </view>
-    <view class="topic-details">
-      <view class="topic-detail"><text class="topic-detail__label">掌握依据</text><text class="topic-detail__value">{{selectedNode.evidence}}</text></view>
-      <view class="topic-detail"><text class="topic-detail__label">前置知识</text><text class="topic-detail__value">{{selectedNode.prerequisites}}</text></view>
-      <view class="topic-detail"><text class="topic-detail__label">预计提升</text><text class="topic-detail__value">{{selectedNode.contribution}}</text></view>
-    </view>
-    <button class="sheet-primary pressable" bindtap="openTopicDetail">查看知识点详情</button>
+  </view>
+  <view class="map-sheet {{sheetSnapping ? 'map-sheet-snapping' : ''}}" style="top: {{sheetStart}}rpx; transform: translate3d(0, -{{sheetVisualOffset}}px, 0);" bindtouchstart="handleMapSheetTouchStart" bindtouchmove="handleMapSheetTouchMove" bindtouchend="handleMapSheetTouchEnd" bindtouchcancel="handleMapSheetTouchEnd">
+    <view class="map-sheet-handle"></view>
+    <view class="map-section-heading"><text class="map-section-title">选择查看</text></view>
+    <scroll-view class="map-course-strip" scroll-x show-scrollbar="false" enhanced="true"><view class="map-course-list">
+      <view wx:for="{{model.courses}}" wx:key="id" class="map-course-card {{item.id === model.activeCourseId ? 'map-course-card-active' : ''}} {{item.isStressFixture ? 'map-course-card-stress' : ''}}" data-id="{{item.id}}" bindtap="selectCourse"><view class="map-course-card-top"><text class="map-course-title">{{item.title}}</text><text class="map-course-status">{{item.progressLabel}}</text></view><text class="map-course-meta">{{item.meta}}</text><view wx:if="{{item.hasProgress}}" class="map-course-track"><view class="map-course-bar" style="width: {{item.progress}}%;"></view></view><view wx:else class="map-course-stress-meta"><view class="map-course-stress-line"></view><text>性能验证</text></view></view>
+    </view></scroll-view>
+    <view class="map-legend"><view wx:for="{{model.legend}}" wx:key="key" class="map-legend-item"><view class="map-legend-mark map-legend-{{item.key}}"><text wx:if="{{item.key === 'mastered'}}">✓</text></view><text>{{item.label}}</text></view></view>
+    <text class="map-learning-summary">{{model.learningSummary}}</text>
+    <text class="map-note">{{model.tip}}</text>
   </view>
 </view>
