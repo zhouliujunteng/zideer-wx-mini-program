@@ -574,7 +574,8 @@ async function loadCurrentStudentDashboardBase() {
     id: profile.id,
     name: profileDisplayName(profile),
     relation: '本人',
-    initial: profileInitial(profile)
+    initial: profileInitial(profile),
+    gradeLabel: profileGradeLabel(profile)
   }
   return { profile, student }
 }

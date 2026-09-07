@@ -18,11 +18,19 @@ function calendar(tasks, selected) {
   }})
 }
 function taskRows(tasks) { return tasks.map((item, index) => ({ title: item.title, meta: item.meta || item.subject || '学习任务', progress: item.status === 'done' ? 100 : 0, sidePillColor: ['#CFEDE3','#F7DCCF','#DCD8F3'][index % 3] })) }
+function applyCurrentStudent(model, student) {
+  if (!model || !model.student || !student) return
+  const name = student.name || '同学'
+  model.student.name = name
+  model.student.nickname = name
+  model.student.avatarText = student.initial || name.slice(0, 1)
+  if (student.gradeLabel) model.student.grade = student.gradeLabel
+}
 
 async function getLiveHomeModel(selectedDayIndex = 0) {
   const dashboard = await loadHomeDashboard(); const model = clone(getHomeModel('member', new Date(), 0, 0))
   const tasks = dashboard.today && dashboard.today.currentTask ? [{ title: dashboard.today.currentTask, meta: dashboard.today.currentTaskMeta, status: 'active' }] : []
-  model.student.nickname = dashboard.students[0] && dashboard.students[0].name || '同学'
+  applyCurrentStudent(model, dashboard.students[0])
   model.notifications.count = dashboard.message ? 1 : 0
   model.learningCards = taskRows(tasks)
   model.studyTaskCalendar = calendar(tasks, selectedDayIndex)
@@ -34,6 +42,7 @@ async function getLiveHomeModel(selectedDayIndex = 0) {
 
 async function getLiveLearningModel(selectedDayIndex = 0) {
   const dashboard = await loadLearningDashboard(); const model = clone(getLearningModel(new Date(), 0, 0)); const tasks = taskRows(dashboard.tasks || [])
+  applyCurrentStudent(model, dashboard.students[0])
   model.notifications.count = 0; model.studyTaskCalendar = calendar(tasks, selectedDayIndex); model.studyTasks = selectedDayIndex === 0 ? tasks : []
   model.studyTaskEmptyText = selectedDayIndex === 0 ? '今天还没有可开始的学习任务' : '当天暂无学习任务'
   model.todoItems = (dashboard.tasks || []).map((item) => ({ title: item.title, meta: item.meta, status: item.status === 'done' ? 'completed' : item.status === 'active' ? 'in-progress' : 'pending' }))
