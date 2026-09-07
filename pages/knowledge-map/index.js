@@ -73,7 +73,7 @@ function getBezierPoint(geometry, progress) {
 }
 function liveGraphModel(map) {
   const status = { weak: 'reinforce', mastered: 'mastered', learning: 'learning', unknown: 'unknown' }
-  const nodes = (map.nodes || []).map((node) => ({ ...node, status: status[node.status] || 'unknown', nodeType: 'topic', coreScore: 0.5, layout: node.layout || { x: node.x, y: node.y, level: 0 } }))
+  const nodes = (map.nodes || []).map((node, index) => ({ ...node, status: status[node.status] || 'unknown', nodeType: index === 0 ? 'domain_root' : 'topic', coreScore: 0.5, layout: { x: 260 + (index % 5) * 220, y: 220 + Math.floor(index / 5) * 180, level: Math.floor(index / 5) } }))
   return {
     viewModel: { notifications: { count: 0 }, legend: [{ key: 'unknown', label: '待了解' }, { key: 'reinforce', label: '需巩固' }, { key: 'learning', label: '学习中' }, { key: 'mastered', label: '已掌握' }], courses: [{ id: map.activeSubjectKey, title: `${map.grade}${map.activeSubject}`, meta: '当前知识图谱', progress: null, progressLabel: '', hasProgress: false }], activeCourseId: map.activeSubjectKey, activeCourse: {}, learningSummary: `已掌握 ${map.stats.mastered || 0} 个，需巩固 ${map.stats.weak || 0} 个知识点。`, tip: '节点和连线来自当前学生的知识图谱数据。', isStressFixture: false },
     graphModel: { nodes, edges: map.edges || [] }
