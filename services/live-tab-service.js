@@ -60,7 +60,7 @@ async function getLiveLearningModel(selectedDayIndex = 0) {
   applyCurrentStudent(model, dashboard.students[0])
   model.notifications.count = 0; model.studyTaskCalendar = calendar(tasks, selectedDayIndex); model.studyTasks = selectedDayIndex === 0 ? tasks : []
   model.studyTaskEmptyText = selectedDayIndex === 0 ? '今天还没有可开始的学习任务' : '当天暂无学习任务'
-  model.todoItems = (dashboard.tasks || []).map((item) => ({ title: item.title, meta: item.meta, status: item.status === 'done' ? 'completed' : item.status === 'active' ? 'in-progress' : 'pending' }))
+  model.todoItems = (dashboard.tasks || []).map((item) => ({ id: item.id, planId: item.planId, title: item.title, meta: item.meta, status: item.status === 'done' ? 'completed' : item.status === 'active' ? 'in-progress' : 'pending' }))
   model.overview = overview([{ value: dashboard.summary && dashboard.summary.completed || 0, unit: '项', label: '已完成' }, { value: dashboard.summary && dashboard.summary.total || 0, unit: '项', label: '计划任务' }, { value: dashboard.currentTask && dashboard.currentTask.duration || 0, unit: '分钟', label: '当前任务' }])
   return { model, dashboard }
 }
