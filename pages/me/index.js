@@ -1,4 +1,5 @@
 const { getMeModel } = require('../../services/mock-service')
+const { getLiveMeModel } = require('../../services/live-tab-service')
 
 Page({
   data: {
@@ -27,10 +28,12 @@ Page({
       model: getMeModel()
     })
   },
-  onShow() {
+  async onShow() {
     const app = getApp()
     if (app && app.markTabVisible) app.markTabVisible('pages/me/index')
     this.setData({ model: getMeModel() })
+    try { this.setData({ model: await getLiveMeModel() }) }
+    catch (error) { wx.showToast({ title: error.message || '账户资料加载失败', icon: 'none' }) }
   },
   editProfile() { wx.navigateTo({ url: '/pages/profile-setup/index?edit=1' }) },
   copyProfileId() {

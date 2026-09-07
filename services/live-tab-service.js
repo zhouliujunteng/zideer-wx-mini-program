@@ -1,5 +1,5 @@
-const { getHomeModel, getLearningModel } = require('./mock-service')
-const { loadHomeDashboard, loadLearningDashboard } = require('./identity')
+const { getHomeModel, getLearningModel, getMeModel } = require('./mock-service')
+const { loadHomeDashboard, loadLearningDashboard, loadMeDashboard, loadCurrentGrowthCenter } = require('./identity')
 
 function clone(value) { return JSON.parse(JSON.stringify(value)) }
 function digits(value) { return String(value).split('').map((item) => ({ first: item, second: item })) }
@@ -40,4 +40,14 @@ async function getLiveLearningModel(selectedDayIndex = 0) {
   model.overview = overview([{ value: dashboard.summary && dashboard.summary.completed || 0, unit: '项', label: '已完成' }, { value: dashboard.summary && dashboard.summary.total || 0, unit: '项', label: '计划任务' }, { value: dashboard.currentTask && dashboard.currentTask.duration || 0, unit: '分钟', label: '当前任务' }])
   return { model, dashboard }
 }
-module.exports = { getLiveHomeModel, getLiveLearningModel }
+async function getLiveMeModel() {
+  const [dashboard, growth] = await Promise.all([loadMeDashboard(), loadCurrentGrowthCenter().catch(() => null)])
+  const model = clone(getMeModel())
+  model.profile.name = dashboard.profile.displayName
+  model.profile.id = String(dashboard.profile.id)
+  model.accountSummary[0].value = String(dashboard.balances && dashboard.balances.coursePoints || 0)
+  model.accountSummary[0].meta = `冻结 ${dashboard.balances && dashboard.balances.frozenPoints || 0}`
+  model.accountSummary[1].value = String(growth && growth.coinAccount && growth.coinAccount.available || 0)
+  return model
+}
+module.exports = { getLiveHomeModel, getLiveLearningModel, getLiveMeModel }
