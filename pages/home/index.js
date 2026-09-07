@@ -657,7 +657,7 @@ Page({
   openScoreForecast() { wx.navigateTo({ url: '/diagnosis/score-forecast/index' }) },
   openLearningPlans() { wx.navigateTo({ url: '/diagnosis/plans/index' }) },
   openCurrentPlan() {
-    const planId = this.data.plan && this.data.plan.id
+    const planId = this.data.model && this.data.model.plan && this.data.model.plan.id || this.data.plan && this.data.plan.id
     if (!planId) return this.openLearningPlans()
     wx.navigateTo({ url: `/diagnosis/plan-detail/index?planId=${encodeURIComponent(planId)}` })
   },

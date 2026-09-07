@@ -38,6 +38,13 @@ async function getLiveHomeModel(selectedDayIndex = 0) {
   model.studyTasks = taskRows(tasks)
   model.studyTaskEmptyText = selectedDayIndex === 0 ? '今天还没有可开始的学习任务' : '当天暂无学习任务'
   model.overview = overview([{ value: dashboard.today && dashboard.today.progress || 0, unit: '%', label: '计划进度' }, { value: dashboard.assessment && dashboard.assessment.weakCount || 0, unit: '个', label: '待巩固知识点' }, { value: dashboard.balances && dashboard.balances.coursePoints || 0, unit: '积分', label: '可用课程积分' }])
+  model.plan = dashboard.plan ? {
+    id: String(dashboard.plan.id),
+    name: dashboard.plan.name,
+    phase: dashboard.plan.phase,
+    progress: dashboard.plan.progress,
+    next: dashboard.plan.nextMilestone
+  } : null
   const products = eligibility && eligibility.eligible ? await loadCreditProducts().catch(() => null) : null
   model.moreCourses = products ? (products.products || []).map((product) => ({
     id: String(product.id),
