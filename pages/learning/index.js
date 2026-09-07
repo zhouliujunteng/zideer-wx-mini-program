@@ -128,6 +128,16 @@ Page({
     wx.navigateTo({ url: '/pages/messages/index' })
   },
 
+  openTask(e) {
+    const planItemId = String(e.currentTarget.dataset.id || '')
+    if (!planItemId) return
+    const currentTask = this.data.dashboard && this.data.dashboard.currentTask
+    const courseInstanceId = currentTask && String(currentTask.id) === planItemId
+      ? String(currentTask.generationCourseInstanceId || '')
+      : ''
+    wx.navigateTo({ url: `/learning/generation-status/index?planItemId=${encodeURIComponent(planItemId)}&courseInstanceId=${encodeURIComponent(courseInstanceId)}` })
+  },
+
   returnToToday() {
     if (this.data.selectedStudyDayIndex === 0) return
     this.selectStudyDay(0)

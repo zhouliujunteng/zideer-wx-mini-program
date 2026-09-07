@@ -17,7 +17,7 @@ function calendar(tasks, selected) {
     isToday: index === 0, isSelected: index === selected, hasTask: index === 0 && tasks.length > 0
   }})
 }
-function taskRows(tasks) { return tasks.map((item, index) => ({ title: item.title, meta: item.meta || item.subject || '学习任务', progress: item.status === 'done' ? 100 : 0, sidePillColor: ['#CFEDE3','#F7DCCF','#DCD8F3'][index % 3] })) }
+function taskRows(tasks) { return tasks.map((item, index) => ({ ...item, title: item.title, meta: item.meta || item.subject || '学习任务', progress: item.status === 'done' ? 100 : 0, sidePillColor: ['#CFEDE3','#F7DCCF','#DCD8F3'][index % 3] })) }
 function applyCurrentStudent(model, student) {
   if (!model || !model.student || !student) return
   const name = student.name || '同学'

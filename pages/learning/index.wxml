@@ -57,7 +57,7 @@
       <view class="study-task-list-card">
         <view class="study-task-list-shell {{taskListClass}}" style="height: {{taskListHeight}}rpx;">
           <block wx:if="{{model.studyTasks.length > 0}}">
-            <view wx:for="{{model.studyTasks}}" wx:key="title" class="study-task-item">
+            <view wx:for="{{model.studyTasks}}" wx:key="id" class="study-task-item" data-id="{{item.id}}" bindtap="openTask">
               <view class="study-task-side-pill" style="background: {{item.sidePillColor}};"></view>
               <view class="study-task-body">
                 <text class="study-task-title">{{item.title}}</text>
@@ -80,7 +80,7 @@
       <view class="todo-list-card">
         <view class="todo-list">
           <block wx:if="{{model.todoItems.length > 0}}">
-            <view wx:for="{{model.todoItems}}" wx:key="title" class="todo-item">
+            <view wx:for="{{model.todoItems}}" wx:key="id" class="todo-item" data-id="{{item.id}}" bindtap="openTask">
               <view class="todo-copy">
                 <text class="todo-title">{{item.title}}</text>
                 <text class="todo-meta">{{item.meta}}</text>
