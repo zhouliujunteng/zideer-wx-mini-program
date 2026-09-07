@@ -150,7 +150,7 @@
                 </swiper-item>
               </swiper>
               <view class="more-courses-grid">
-                <view wx:for="{{model.moreCourses}}" wx:key="title" class="more-course-card">
+                <view wx:for="{{model.moreCourses}}" wx:key="id" class="more-course-card" data-id="{{item.id}}" bindtap="openProduct">
                   <view class="more-course-cover"></view>
                   <view class="more-course-info">
                     <view class="more-course-copy">

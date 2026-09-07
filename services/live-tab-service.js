@@ -1,5 +1,5 @@
 const { getHomeModel, getLearningModel, getMeModel } = require('./mock-service')
-const { loadHomeDashboard, loadLearningDashboard, loadMeDashboard, loadCurrentGrowthCenter } = require('./identity')
+const { loadHomeDashboard, loadLearningDashboard, loadMeDashboard, loadCurrentGrowthCenter, loadCreditProducts, loadPurchaseEligibility } = require('./identity')
 
 function clone(value) { return JSON.parse(JSON.stringify(value)) }
 function digits(value) { return String(value).split('').map((item) => ({ first: item, second: item })) }
@@ -28,7 +28,8 @@ function applyCurrentStudent(model, student) {
 }
 
 async function getLiveHomeModel(selectedDayIndex = 0) {
-  const dashboard = await loadHomeDashboard(); const model = clone(getHomeModel('member', new Date(), 0, 0))
+  const [dashboard, eligibility] = await Promise.all([loadHomeDashboard(), loadPurchaseEligibility().catch(() => null)])
+  const model = clone(getHomeModel('member', new Date(), 0, 0))
   const tasks = dashboard.today && dashboard.today.currentTask ? [{ title: dashboard.today.currentTask, meta: dashboard.today.currentTaskMeta, status: 'active' }] : []
   applyCurrentStudent(model, dashboard.students[0])
   model.notifications.count = dashboard.message ? 1 : 0
@@ -37,6 +38,13 @@ async function getLiveHomeModel(selectedDayIndex = 0) {
   model.studyTasks = taskRows(tasks)
   model.studyTaskEmptyText = selectedDayIndex === 0 ? '今天还没有可开始的学习任务' : '当天暂无学习任务'
   model.overview = overview([{ value: dashboard.today && dashboard.today.progress || 0, unit: '%', label: '计划进度' }, { value: dashboard.assessment && dashboard.assessment.weakCount || 0, unit: '个', label: '待巩固知识点' }, { value: dashboard.balances && dashboard.balances.coursePoints || 0, unit: '积分', label: '可用课程积分' }])
+  const products = eligibility && eligibility.eligible ? await loadCreditProducts().catch(() => null) : null
+  model.moreCourses = products ? (products.products || []).map((product) => ({
+    id: String(product.id),
+    title: product.name,
+    subtitle: product.estimatedCourseCount > 0 ? `预计 ${product.estimatedCourseCount} 节课程` : '课程积分商品',
+    price: product.amount
+  })) : []
   return { model, dashboard }
 }
 

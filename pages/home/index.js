@@ -637,6 +637,12 @@ Page({
     wx.navigateTo({ url: '/commerce/products/index' })
   },
 
+  openProduct(e) {
+    const productVersionId = String(e.currentTarget.dataset.id || '')
+    if (!productVersionId) return
+    wx.navigateTo({ url: `/commerce/product-detail/index?productVersionId=${encodeURIComponent(productVersionId)}` })
+  },
+
   continueLesson(e) {
     switchTab(1)
   },
