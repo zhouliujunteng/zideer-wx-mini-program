@@ -743,6 +743,20 @@ function assessmentStatusLabel(status) {
   return labels[status] || '处理中'
 }
 
+function timestampForLatestItem(item = {}) {
+  const value = item.updated_at || item.updatedAt || item.completed_at || item.completedAt || item.generated_at || item.generatedAt || item.submitted_at || item.submittedAt || item.created_at || item.createdAt || ''
+  const timestamp = Date.parse(value)
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function sortLatestFirst(items = []) {
+  return items.slice().sort((left, right) => {
+    const timestampDelta = timestampForLatestItem(right) - timestampForLatestItem(left)
+    if (timestampDelta) return timestampDelta
+    return Number(right.id || 0) - Number(left.id || 0)
+  })
+}
+
 function learningPlanItemStatusLabel(status) {
   const labels = {
     available: '可开始', planned: '等待生成', queued: '等待生成', generating: '课程生成中',
@@ -773,12 +787,12 @@ async function loadAssessmentCenter() {
       name: subjectNames[item.key] || item.key,
       questionCount: Number(item.questionCount || 0)
     })),
-    attempts: (data.attempts || []).map((item) => ({
+    attempts: sortLatestFirst((data.attempts || []).map((item) => ({
       ...item,
       id: String(item.id),
       subjectName: subjectNames[item.subjectKey] || item.subjectKey || '未标注学科',
       statusLabel: assessmentStatusLabel(item.status)
-    }))
+    })))
   }
 }
 
@@ -879,7 +893,7 @@ async function loadCurrentLearningPlans() {
 
   return {
     profile: data.profile,
-    plans: (data.plans || []).map((plan) => ({
+    plans: sortLatestFirst((data.plans || []).map((plan) => ({
       ...plan,
       id: String(plan.id),
       plannedCredits: plan.plannedCredits === null || plan.plannedCredits === undefined ? null : Number(plan.plannedCredits),
@@ -890,7 +904,7 @@ async function loadCurrentLearningPlans() {
         estimatedCredits: item.estimatedCredits === null || item.estimatedCredits === undefined ? null : Number(item.estimatedCredits),
         estimatedCreditsDisplay: item.estimatedCredits === null || item.estimatedCredits === undefined ? null : roundedCredits(item.estimatedCredits)
       }))
-    }))
+    })))
   }
 }
 

@@ -619,6 +619,30 @@ test('read-only student, assessment, credit and growth views invoke their curren
   assert.deepEqual(lastCall(config.ACTION_FLOWS.GET_CURRENT_GROWTH_CENTER).variables.args, {})
 })
 
+test('assessment center and learning plans put the newest server records first', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_ASSESSMENT_CENTER, {
+    status: 'ready', profile: { id: 201 }, subjects: [],
+    attempts: [
+      { id: 11, subjectKey: 'Mathematics', status: 'submitted', submitted_at: '2026-09-01T00:00:00Z' },
+      { id: 12, subjectKey: 'Mathematics', status: 'completed', completed_at: '2026-09-07T00:00:00Z' }
+    ]
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PLANS, {
+    status: 'ready', profile: { id: 201 },
+    plans: [
+      { id: 31, status: 'active', generated_at: '2026-09-01T00:00:00Z', items: [] },
+      { id: 32, status: 'active', generated_at: '2026-09-07T00:00:00Z', items: [] }
+    ]
+  })
+
+  const assessment = await identity.loadAssessmentCenter()
+  const plans = await identity.loadCurrentLearningPlans()
+
+  assert.deepEqual(assessment.attempts.map((item) => item.id), ['12', '11'])
+  assert.deepEqual(plans.plans.map((item) => item.id), ['32', '31'])
+})
+
 test('current-user relationship, identity and notification readers never accept client-owned account identifiers', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.GET_CURRENT_PROMOTER_ASSIGNMENT_REQUEST, {
