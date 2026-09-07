@@ -133,11 +133,21 @@ Page({
     this.selectStudyDay(0)
   },
 
-  selectStudyDay(selectedStudyDayIndex) {
+  async selectStudyDay(selectedStudyDayIndex) {
     const previousStudyDayIndex = this.data.selectedStudyDayIndex
+    const requestVersion = (this._dateLoadVersion || 0) + 1
+    this._dateLoadVersion = requestVersion
     const numberRollVersion = this.data.numberRollVersion + 1
     const taskListVersion = this.data.taskListVersion + 1
-    const nextModel = getLearningModel(new Date(), selectedStudyDayIndex, previousStudyDayIndex)
+    let live
+    try {
+      live = await getLiveLearningModel(selectedStudyDayIndex)
+    } catch (error) {
+      if (requestVersion === this._dateLoadVersion) wx.showToast({ title: error.message || '学习任务加载失败', icon: 'none' })
+      return
+    }
+    if (requestVersion !== this._dateLoadVersion) return
+    const nextModel = live.model
     triggerDateSwitchFeedback()
     const leavingModel = {
       ...nextModel,
@@ -155,7 +165,8 @@ Page({
       taskListClass: 'study-task-list-leaving',
       // 与概览卡同时开始高度过渡，避免待办事项先上移再被任务列表撑下去。
       taskListHeight: getLearningTaskListHeight(nextModel),
-      model: leavingModel
+      model: leavingModel,
+      dashboard: live.dashboard
     })
     this._taskListSwapTimer = setTimeout(() => {
       this._taskListSwapTimer = null

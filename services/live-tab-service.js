@@ -35,7 +35,7 @@ async function getLiveHomeModel(selectedDayIndex = 0) {
   model.notifications.count = dashboard.message ? 1 : 0
   model.learningCards = taskRows(tasks)
   model.studyTaskCalendar = calendar(tasks, selectedDayIndex)
-  model.studyTasks = taskRows(tasks)
+  model.studyTasks = selectedDayIndex === 0 ? taskRows(tasks) : []
   model.studyTaskEmptyText = selectedDayIndex === 0 ? '今天还没有可开始的学习任务' : '当天暂无学习任务'
   model.overview = overview([{ value: dashboard.today && dashboard.today.progress || 0, unit: '%', label: '计划进度' }, { value: dashboard.assessment && dashboard.assessment.weakCount || 0, unit: '个', label: '待巩固知识点' }, { value: dashboard.balances && dashboard.balances.coursePoints || 0, unit: '积分', label: '可用课程积分' }])
   model.plan = dashboard.plan ? {
