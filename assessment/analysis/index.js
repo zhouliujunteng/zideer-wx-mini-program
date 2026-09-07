@@ -1,7 +1,7 @@
 const { loadAssessmentCenter } = require('../../services/identity')
 
 Page({
-  data: { loading: true, attempt: null, attemptId: '', statusLabel: '', canViewReport: false },
+  data: { loading: true, attempt: null, attemptId: '', statusLabel: '', canViewReport: false, analysisReady: false },
 
   async onLoad(options) {
     this.setData({ attemptId: String(options.attemptId || '') })
@@ -20,7 +20,12 @@ Page({
       const attempt = (center.attempts || []).find((item) => String(item.id) === this.data.attemptId)
       if (!attempt) throw new Error('未找到本次测评记录。')
       const completed = attempt.status === 'completed'
-      this.setData({ attempt, statusLabel: attempt.statusLabel, canViewReport: completed })
+      this.setData({
+        attempt,
+        statusLabel: attempt.statusLabel,
+        canViewReport: completed,
+        analysisReady: completed
+      })
     } catch (error) {
       wx.showToast({ title: error.message || '分析状态加载失败', icon: 'none' })
     } finally {
@@ -34,5 +39,10 @@ Page({
       return
     }
     wx.redirectTo({ url: '/assessment/center/index' })
+  },
+
+  openSupplement() {
+    if (!this.data.attemptId) return
+    wx.navigateTo({ url: `/assessment/recent-score/index?attemptId=${encodeURIComponent(this.data.attemptId)}` })
   }
 })

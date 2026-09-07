@@ -115,9 +115,9 @@ Page({
       }
       wx.showModal({
         title: '测评已提交',
-        content: '本次作答已冻结，正在进入分析状态。',
+        content: '本次作答已冻结，正在打开诊断结果。成绩和试卷可稍后补充。',
         showCancel: false,
-        success: () => wx.redirectTo({ url: `/assessment/recent-score/index?attemptId=${encodeURIComponent(this.data.attempt.id)}` })
+        success: () => wx.redirectTo({ url: `/assessment/analysis/index?attemptId=${encodeURIComponent(this.data.attempt.id)}` })
       })
     } catch (error) {
       wx.showToast({ title: error.message || '提交失败', icon: 'none' })
