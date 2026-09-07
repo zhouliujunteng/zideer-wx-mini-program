@@ -1,4 +1,5 @@
 const { getLearningModel } = require('../../services/mock-service')
+const { getLiveLearningModel } = require('../../services/live-tab-service')
 
 const TASK_LIST_SWAP_DURATION = 150
 const TASK_LIST_ENTER_FRAME = 16
@@ -87,12 +88,18 @@ Page({
     this.setData({ calendarPinned })
   },
 
-  onShow() {
+  async onShow() {
     const app = getApp()
     if (app && app.markTabVisible) app.markTabVisible('pages/learning/index')
     if (!this.data.model.calendarTitle) {
       const model = getLearningModel(new Date(), this.data.selectedStudyDayIndex)
       this.setData({ model, taskListHeight: getLearningTaskListHeight(model) })
+    }
+    try {
+      const live = await getLiveLearningModel(this.data.selectedStudyDayIndex)
+      this.setData({ model: live.model, dashboard: live.dashboard, taskListHeight: getLearningTaskListHeight(live.model) })
+    } catch (error) {
+      wx.showToast({ title: error.message || '学习数据加载失败', icon: 'none' })
     }
   },
 

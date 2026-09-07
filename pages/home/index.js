@@ -1,5 +1,6 @@
 const { getHomeModel } = require('../../services/mock-service')
 const { switchTab } = require('../../utils/navigation')
+const { getLiveHomeModel } = require('../../services/live-tab-service')
 
 // 手势位移和浮层停靠点都使用 px；与图谱页保持同一套双停靠吸附节奏。
 const SHEET_RAISE_THRESHOLD = 6
@@ -156,7 +157,7 @@ Page({
     })
   },
 
-  onShow() {
+  async onShow() {
     const app = getApp()
     if (app && app.markTabVisible) app.markTabVisible('pages/home/index')
     const greeting = getTimeGreeting()
@@ -174,6 +175,12 @@ Page({
     // 成员态每次显示都从第一张课堂卡开始；访客 Banner 与“更多课程”活动 Banner 一样自行轮播。
     if (homeMode === 'member' && this.data.lessonCurrent !== 0) {
       this.setData({ lessonCurrent: 0 })
+    }
+    try {
+      const live = await getLiveHomeModel(selectedStudyDayIndex)
+      this.setData({ model: live.model, dashboard: live.dashboard, taskListHeight: getHomeTaskListHeight(live.model) })
+    } catch (error) {
+      wx.showToast({ title: error.message || '首页数据加载失败', icon: 'none' })
     }
   },
 
