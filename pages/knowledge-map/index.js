@@ -1,4 +1,5 @@
 const { getKnowledgeMapModel } = require('../../services/mock-service')
+const { loadKnowledgeMap } = require('../../services/identity')
 const {
   fitTextLines,
   getKnowledgeMapLayoutProfile,
@@ -70,6 +71,14 @@ function getBezierPoint(geometry, progress) {
     y: inverse ** 3 * start.y + 3 * inverse ** 2 * t * cp1.y + 3 * inverse * t ** 2 * cp2.y + t ** 3 * end.y
   }
 }
+function liveGraphModel(map) {
+  const status = { weak: 'reinforce', mastered: 'mastered', learning: 'learning', unknown: 'unknown' }
+  const nodes = (map.nodes || []).map((node) => ({ ...node, status: status[node.status] || 'unknown', nodeType: 'topic', coreScore: 0.5, layout: node.layout || { x: node.x, y: node.y, level: 0 } }))
+  return {
+    viewModel: { notifications: { count: 0 }, legend: [{ key: 'unknown', label: '待了解' }, { key: 'reinforce', label: '需巩固' }, { key: 'learning', label: '学习中' }, { key: 'mastered', label: '已掌握' }], courses: [{ id: map.activeSubjectKey, title: `${map.grade}${map.activeSubject}`, meta: '当前知识图谱', progress: null, progressLabel: '', hasProgress: false }], activeCourseId: map.activeSubjectKey, activeCourse: {}, learningSummary: `已掌握 ${map.stats.mastered || 0} 个，需巩固 ${map.stats.weak || 0} 个知识点。`, tip: '节点和连线来自当前学生的知识图谱数据。', isStressFixture: false },
+    graphModel: { nodes, edges: map.edges || [] }
+  }
+}
 
 Page({
   data: {
@@ -124,12 +133,19 @@ Page({
     this._pageReady = true
     this.initializeCanvas()
   },
-  onShow() {
+  async onShow() {
     this._isPageVisible = true
     const app = getApp()
     if (app && app.markTabVisible) app.markTabVisible('pages/knowledge-map/index')
     if (this._canvas) this.requestGraphDraw()
     if (this.data.metricsVisible && !this.data.metricsCollapsed && !this._metricsTimer) this.startMetricsPanel()
+    try {
+      const map = await loadKnowledgeMap()
+      const live = liveGraphModel(map)
+      this._graphModel = live.graphModel
+      this._selectedNodeId = null
+      this.setData({ model: live.viewModel }, () => { if (this._canvas) { this.buildGraphScene(); this.resetGraphView() } })
+    } catch (error) { wx.showToast({ title: error.message || '知识图谱加载失败', icon: 'none' }) }
   },
   onHide() {
     this._isPageVisible = false
