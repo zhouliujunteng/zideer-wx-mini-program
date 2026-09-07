@@ -30,7 +30,7 @@
         </view>
         <view class="wallet-value-row">
           <text class="wallet-value">{{item.value}}</text>
-          <view class="wallet-module-action" data-name="{{item.actionLabel}}" bindtap="handleItem"><text>{{item.actionLabel}}</text><text class="wallet-action-arrow">›</text></view>
+          <view class="wallet-module-action" data-name="{{item.label}}" bindtap="handleItem"><text>{{item.actionLabel}}</text><text class="wallet-action-arrow">›</text></view>
         </view>
       </view>
     </view>
