@@ -53,7 +53,7 @@ Page({
     const routes = {
       '课程积分': '/commerce/entitlements/index', '金币': '/growth/coins/index',
       '家庭关系': '/account/family/index', '订单': '/commerce/orders/index',
-      '消息中心': '/pages/messages/index', '身份与登录': '/account/identity/index',
+      '消息中心': '/pages/messages/index', '账户安全': '/account/login-identities/index', '身份与登录': '/account/identity/index',
       '学习档案': '/pages/profile-setup/index?edit=1', '兑换码': '/growth/redemption/index',
       '推广伙伴': '/agent/application/index', '企微服务': '/account/service-contact/index'
     }
