@@ -597,6 +597,7 @@ async function loadHomeDashboard() {
   const assessmentData = assessmentResult.status === 'fulfilled' ? assessmentResult.value : null
   const latestAttempt = assessmentData && assessmentData.attempts && assessmentData.attempts[0] || null
   const reportData = reportsResult.status === 'fulfilled' ? reportsResult.value : null
+  const latestReport = reportData && (reportData.reports || []).find((item) => ['completed', 'ready'].includes(String(item.status || '').toLowerCase())) || reportData && reportData.reports && reportData.reports[0] || null
   const latestPrediction = reportData && reportData.predictions && reportData.predictions[0] || null
   const creditData = creditResult.status === 'fulfilled' ? creditResult.value : null
   const growthData = growthResult.status === 'fulfilled' ? growthResult.value : null
@@ -619,8 +620,8 @@ async function loadHomeDashboard() {
       subject: latestAttempt.subjectName,
       // Score predictions are not knowledge-mastery measurements. Keep the
       // dashboard honest until the mastery endpoint provides a percentage.
-      masteryLabel: '暂无有效诊断',
-      weakCount: latestPrediction && latestPrediction.weakTopics && latestPrediction.weakTopics.length || 0,
+      masteryLabel: latestReport ? '诊断已完成' : '暂无有效诊断',
+      weakCount: latestReport && latestReport.weakTopics && latestReport.weakTopics.length || latestPrediction && latestPrediction.weakTopics && latestPrediction.weakTopics.length || 0,
       forecast: latestPrediction && latestPrediction.scoreRange || '数据不足',
       confidence: latestPrediction && latestPrediction.confidencePercent !== null ? `${latestPrediction.confidencePercent}% 置信度` : '数据不足',
       measuredAt: latestAttempt.updated_at || latestAttempt.created_at || ''

@@ -643,6 +643,39 @@ test('assessment center and learning plans put the newest server records first',
   assert.deepEqual(plans.plans.map((item) => item.id), ['32', '31'])
 })
 
+test('home dashboard uses completed diagnostic evidence when score prediction is unavailable', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.INITIALIZE_CURRENT_USER, 901)
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PROFILE, {
+    id: 902, nickname: '测试学生', profile_completed_at: '2026-09-07T00:00:00Z'
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PLANS, {
+    status: 'ready', profile: { id: 902 }, plans: []
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_ASSESSMENT_CENTER, {
+    status: 'ready', profile: { id: 902 }, subjects: [],
+    attempts: [{ id: 903, subjectKey: 'Mathematics', status: 'completed', completed_at: '2026-09-07T00:00:00Z' }]
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_DIAGNOSTIC_REPORTS, {
+    status: 'ready', profile: { id: 902 },
+    reports: [{ id: 904, status: 'completed', weakTopics: ['一次函数', '全等三角形'] }],
+    predictions: []
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT, {
+    studentId: 902, account: { status: 'active', available_credits: 0, frozen_credits: 0 }, batches: [], ledger: [], orders: []
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_GROWTH_CENTER, {
+    status: 'ready', coinAccount: { status: 'active', available_coins: 0, frozen_coins: 0 }, partner: {}
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_NOTIFICATIONS, { status: 'ready', notifications: [] })
+
+  const home = await identity.loadHomeDashboard()
+
+  assert.equal(home.assessment.masteryLabel, '诊断已完成')
+  assert.equal(home.assessment.weakCount, 2)
+  assert.equal(home.assessment.forecast, '数据不足')
+})
+
 test('current-user relationship, identity and notification readers never accept client-owned account identifiers', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.GET_CURRENT_PROMOTER_ASSIGNMENT_REQUEST, {
