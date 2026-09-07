@@ -1454,6 +1454,7 @@ function buildKnowledgeMap(payload, selectedSubjectKey) {
       y: position.y,
       size: Math.round(Math.min(210, Math.max(132, 132 + score * 420))),
       minHeight: Math.round(Math.min(132, Math.max(92, (132 + score * 420) * 0.62))),
+      layout: { x: position.x, y: position.y, level: 0 },
       status: state.key,
       statusLabel: state.label,
       evidence: mastery && Number(mastery.evidence_count) > 0 ? `已汇集 ${mastery.evidence_count} 条学习证据` : '尚无测评或老师最终核验证据',
@@ -1469,7 +1470,13 @@ function buildKnowledgeMap(payload, selectedSubjectKey) {
     const to = nodeById[String(item.dependent_topic_id)]
     prerequisiteNames[to.id] = prerequisiteNames[to.id] || []
     prerequisiteNames[to.id].push(from.label)
-    return { id: String(item.id), style: edgeStyle(from, to) }
+    return {
+      id: String(item.id),
+      from: from.id,
+      to: to.id,
+      strength: String(item.prerequisite_strength || item.strength || 'hard').toLowerCase() === 'soft' ? 'soft' : 'hard',
+      style: edgeStyle(from, to)
+    }
   })
   nodes.forEach((node) => { node.prerequisites = (prerequisiteNames[node.id] || []).join('、') || '无' })
   const stats = { mastered: 0, learning: 0, weak: 0, unknown: 0 }
