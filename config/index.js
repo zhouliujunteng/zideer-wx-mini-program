@@ -1,6 +1,6 @@
 const PROJECT_ID = "ZJ2x09KOnm9";
 // OpenMAIC 的 HTTPS 课程站点。发布前需在微信公众平台同时配置 request 合法域名和业务域名。
-const COURSE_PORTAL_ORIGIN = "https://ceshi.aissyq.cn";
+const COURSE_PORTAL_ORIGIN = "https://sike.yuandianzhixv.cn";
 // 临时直连课程页：后端课程启动桥接恢复前，不携带学生、课程或验收凭证。
 const PUBLIC_COURSE_PAGE_PATH = "/course";
 
