@@ -2,7 +2,7 @@
   <view class="entry-copy">
     <text class="entry-eyebrow">费曼验收</text>
     <text class="entry-title">用自己的话讲清楚</text>
-    <text class="entry-detail">完成课程后，通过复述来整理本次知识点。AI 只会提供候选证据，最终结论由老师核验。</text>
+    <text class="entry-detail">完成课程后，通过复述讲清本次知识点。AI 验收通过后，知识点会进入你的学习宇宙。</text>
   </view>
 
   <view class="entry-checks" wx:if="{{!acceptanceId}}">
@@ -17,8 +17,9 @@
   <button wx:elif="{{!acceptanceId}}" class="entry-action pressable" loading="{{preparing}}" disabled="{{preparing}}" bindtap="prepareAcceptance">准备录音</button>
   <view wx:else class="recording-panel">
     <text class="recording-panel__title">请开始讲解本次知识点</text>
-    <text class="recording-panel__copy">讲清概念、步骤和原因。提交后会进入老师核验流程。</text>
+    <text class="recording-panel__copy">讲清概念、步骤和原因。提交后由 AI 判定已学会或需继续巩固。</text>
     <button wx:if="{{!recording}}" class="entry-action pressable" loading="{{uploading}}" disabled="{{uploading}}" bindtap="startRecording">开始录音</button>
     <button wx:else class="stop-action pressable" bindtap="stopRecording">结束并上传</button>
   </view>
 </view>
+<dev-reset-fab />

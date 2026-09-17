@@ -2,7 +2,9 @@ const { loadAuthorizedTopicLearningReports, authorizeAcceptanceAudio } = require
 
 const statusLabels = {
   generating: '报告生成中',
-  ai_evaluated_pending_teacher: 'AI 已评价，待老师核验',
+  ai_verified_passed: 'AI 验收通过',
+  ai_retake_required: 'AI 判定需巩固',
+  ai_evaluated_pending_teacher: '智能初评完成，待老师核验',
   teacher_verified_passed: '老师核验通过',
   teacher_rejected: '老师判定需补学',
   failed: '报告生成失败'
@@ -61,6 +63,8 @@ function buildReport(report, student) {
   }))
   const status = report.status || 'generating'
   const review = report.teacher_review_status || ''
+  const acceptance = report.acceptance_summary && typeof report.acceptance_summary === 'object' ? report.acceptance_summary : {}
+  const isAiVerified = status === 'ai_verified_passed' || acceptance.ai_mastery_status === 'mastered'
   return {
     ...report,
     id: report.id,
@@ -72,12 +76,13 @@ function buildReport(report, student) {
     learningDuration: durationText(report.effective_seconds),
     generatedAt: formatDate(report.generated_at || report.updated_at_business),
     learningSummary: textFrom(report.learning_summary, '学习过程摘要正在整理。'),
-    acceptanceSummary: textFrom(report.acceptance_summary, 'AI 验收摘要尚未生成。'),
+    acceptanceSummary: textFrom(report.acceptance_summary, '智能验收摘要尚未生成。'),
     coverageSummary: textFrom(report.required_concept_coverage, '必备概念覆盖结果待生成。'),
-    afterMasterySummary: textFrom(report.after_mastery_snapshot, '老师核验完成后会更新学习结果。'),
-    comparisonSummary: textFrom(report.comparison_summary, '前后掌握对比待老师核验后生成。'),
-    reviewLabel: reviewLabels[review] || '待老师核验',
-    reviewSummary: textFrom(report.teacher_review_summary, '老师完成最终核验后，会在这里展示可公开的说明。'),
+    afterMasterySummary: textFrom(report.after_mastery_snapshot, isAiVerified ? '已通过 AI 复述验收并进入学习宇宙。' : '需要继续巩固后再次复述。'),
+    comparisonSummary: textFrom(report.comparison_summary, '本次验收结果已同步到学习宇宙。'),
+    reviewLabel: reviewLabels[review] || '老师可复核',
+    reviewSummary: textFrom(report.teacher_review_summary, 'AI 已完成验收判定，老师可后续复核。'),
+    isAiVerified,
     isVerified: status === 'teacher_verified_passed' || review === 'verified_passed' || review === 'teacher_verified_passed',
     audioAssets
   }

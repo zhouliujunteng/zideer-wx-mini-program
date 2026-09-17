@@ -8,14 +8,12 @@ function loadPage({ candidateState, addResult = { status: 'added' } }) {
   const original = {
     add: identity.addCurrentTopicCandidate,
     candidates: identity.loadCurrentTopicCandidates,
-    map: identity.loadKnowledgeMap,
+    topic: identity.loadKnowledgeTopic,
     remove: identity.removeCurrentTopicCandidate
   }
   const calls = []
   const toasts = []
-  identity.loadKnowledgeMap = async () => ({
-    nodes: [{ id: 81, label: '一次函数', status: 'unknown', statusLabel: '待测', evidence: '暂无', prerequisites: '无', contribution: '待测' }]
-  })
+  identity.loadKnowledgeTopic = async () => ({ id: 81, label: '一次函数', status: 'unknown', statusLabel: '待测', evidence: '暂无', prerequisiteLinks: [], successorLinks: [], relatedLinks: [] })
   identity.loadCurrentTopicCandidates = async () => candidateState
   identity.addCurrentTopicCandidate = async (topicId) => {
     calls.push({ type: 'add', topicId })
@@ -33,7 +31,7 @@ function loadPage({ candidateState, addResult = { status: 'added' } }) {
   Object.assign(identity, {
     addCurrentTopicCandidate: original.add,
     loadCurrentTopicCandidates: original.candidates,
-    loadKnowledgeMap: original.map,
+    loadKnowledgeTopic: original.topic,
     removeCurrentTopicCandidate: original.remove
   })
 

@@ -10,9 +10,11 @@
   <view class="state-panel" wx:elif="{{!products.length}}"><view class="state-panel__mark">＋</view><text class="state-panel__title">暂无可购买商品</text><text class="state-panel__copy">管理员发布课程积分商品后，会在这里显示对应版本的价格和权益。</text></view>
   <view class="product-list" wx:else>
     <button class="product-card surface pressable" wx:for="{{products}}" wx:key="id" bindtap="openProduct" data-id="{{item.id}}">
-      <view class="product-card__top"><text class="product-card__name">{{item.name}}</text><text class="product-card__amount">¥{{item.amount}}</text></view>
+      <view class="product-card__top"><text class="product-card__name">{{item.name}}</text><view class="product-card__price"><text class="product-card__amount">¥{{item.payableAmount}}</text><text wx:if="{{item.memberPriceApplied}}" class="product-card__list">¥{{item.amount}}</text></view></view>
+      <text wx:if="{{item.memberPriceApplied}}" class="product-card__member is-applied">会员价</text><text wx:elif="{{item.memberAmount}}" class="product-card__member">会员价 ¥{{item.memberAmount}}</text>
       <text class="product-card__copy">{{item.description}}</text>
       <view class="product-card__facts"><text>{{item.credits}} 课程积分</text><text wx:if="{{item.estimatedCourseCount}}">约 {{item.estimatedCourseCount}} 节课程</text></view>
     </button>
   </view>
 </view>
+<dev-reset-fab />

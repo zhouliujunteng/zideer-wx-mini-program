@@ -14,3 +14,4 @@
     <view class="assignment-list" wx:if="{{assignments.length}}"><text class="assignment-title">当前教师服务</text><view class="assignment-row surface" wx:for="{{assignments}}" wx:key="id"><text>{{item.teacher && item.teacher.displayName ? item.teacher.displayName : '教师待确认'}}</text><text>{{item.assignmentType || '学习服务'}}</text></view></view>
   </block>
 </view>
+<dev-reset-fab />

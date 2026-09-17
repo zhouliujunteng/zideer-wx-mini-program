@@ -11,8 +11,29 @@ function profileName(profile) {
   return profile.nickname || profile.real_name || '学生档案'
 }
 
+function navigationMetrics() {
+  let info = {}
+  try { info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync() } catch (error) {}
+  const statusBarHeight = info.statusBarHeight == null ? 20 : info.statusBarHeight
+  let menu = { height: 32, top: statusBarHeight + 6 }
+  try { const actual = wx.getMenuButtonBoundingClientRect(); if (actual.height > 0) menu = actual } catch (error) {}
+  const navigationBarHeight = menu.height + Math.max(0, menu.top - statusBarHeight) * 2
+  return { statusBarHeight, navigationBarHeight, contentTop: statusBarHeight + navigationBarHeight + 18 }
+}
+
 Page({
-  data: { loading: true, failed: false, self: null, students: [], guardians: [] },
+  data: {
+    loading: true,
+    failed: false,
+    self: null,
+    students: [],
+    guardians: [],
+    statusBarHeight: 20,
+    navigationBarHeight: 44,
+    contentTop: 82
+  },
+  onLoad() { this.setData(navigationMetrics()) },
+  onResize() { this.setData(navigationMetrics()) },
   onShow() { this.loadPage() },
   async onPullDownRefresh() { await this.loadPage(); wx.stopPullDownRefresh() },
   async loadPage() {
@@ -40,6 +61,14 @@ Page({
     } finally {
       this.setData({ loading: false })
     }
+  },
+  handleBack() {
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+      wx.navigateBack({ delta: 1 })
+      return
+    }
+    wx.switchTab({ url: '/pages/me/index' })
   },
   openGuardianDashboard() {
     if (!this.data.students.length) return

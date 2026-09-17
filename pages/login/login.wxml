@@ -6,18 +6,22 @@
 
   <view class="login-content">
     <text class="login-title">开始你的专属学习</text>
-    <text class="login-copy">使用微信登录后，即可同步课程和学习计划。</text>
+    <text class="login-copy">授权手机号并完成账号验证后，即可同步你的课程与学习记录。</text>
   </view>
 
   <view class="login-footer" wx:if="{{!checkingSession}}">
+    <text class="login-error" wx:if="{{errorMessage}}">{{errorMessage}}</text>
     <button
       class="phone-button"
-      bindtap="handleWechatLogin"
+      open-type="getPhoneNumber"
+      bindgetphonenumber="handlePhoneLogin"
       loading="{{authorizing}}"
       disabled="{{authorizing}}"
-    >微信登录</button>
-    <text class="login-notice">登录即表示你同意使用微信账号完成账户验证。</text>
+    >{{authorizing ? '正在验证手机号…' : '授权手机号并登录'}}</button>
+    <text class="login-notice">手机号用于账号验证与联系。授权取消或绑定失败时，不会进入已登录状态。</text>
+    <text class="privacy-link" bindtap="openPrivacyContract">查看隐私保护指引</text>
   </view>
 
   <view class="checking-copy" wx:else>正在确认登录状态</view>
 </view>
+<dev-reset-fab />

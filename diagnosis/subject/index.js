@@ -1,4 +1,5 @@
 const { loadCurrentDiagnosticReports } = require('../../services/identity')
+const { diagnosisTypeLabel } = require('../../utils/business-labels')
 
 const subjectNames = { Chinese: '语文', Mathematics: '数学', English: '英语', Physics: '物理', Chemistry: '化学', Biology: '生物', History: '历史', Geography: '地理', Politics: '道德与法治', 'Information Technology': '信息科技' }
 
@@ -11,7 +12,7 @@ Page({
 
   async onLoad(options) {
     this.subjectKey = decodeURIComponent(options.subjectKey || '')
-    this.setData({ subjectName: subjectNames[this.subjectKey] || this.subjectKey || '学科' })
+    this.setData({ subjectName: subjectNames[this.subjectKey] || '学科' })
     await this.loadPage()
   },
 
@@ -26,7 +27,9 @@ Page({
       const weakTopics = (report && report.weakTopics || []).filter((topic) => !subjectOf(topic) || subjectOf(topic) === this.subjectKey)
       const errorTypes = Array.isArray(summary.error_types) ? summary.error_types : Array.isArray(summary.errorTypes) ? summary.errorTypes : []
       const domains = Array.isArray(summary.domains) ? summary.domains : Array.isArray(summary.domain_distribution) ? summary.domain_distribution : []
-      this.setData({ weakTopics, errorTypes, domains })
+      this.setData({ weakTopics,
+        errorTypes: errorTypes.map(item => ({ ...(typeof item === 'object' && item || {}), displayLabel: diagnosisTypeLabel(item && (item.name || item.type) || item) })),
+        domains: domains.map(item => ({ ...item, displayLabel: diagnosisTypeLabel(item.name || item.domain) })) })
     } catch (error) {
       this.setData({ failed: true })
       wx.showToast({ title: error.message || '学科诊断加载失败', icon: 'none' })

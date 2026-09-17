@@ -1,69 +1,170 @@
-<view class="profile-setup screen">
-  <view class="profile-setup__inner" wx:if="{{!loading && !loadFailed}}">
-    <view class="profile-setup__heading">
-      <text class="profile-setup__eyebrow">学习档案</text>
-      <text class="profile-setup__title">完善你的学习信息</text>
-      <text class="profile-setup__copy">这会用于匹配年级、教材和后续学习内容。</text>
+<view class="profile-setup-page">
+  <view class="profile-setup-topbar">
+    <view class="profile-setup-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="profile-setup-back" bindtap="handleBack" aria-label="返回上一页"><view class="profile-setup-back-icon"></view></view>
+      <text class="profile-setup-title">{{editing ? '个人资料' : '完善学习档案'}}</text>
+      <text class="profile-setup-progress">{{stepIndex + 1}} / {{activeSteps.length}}</text>
     </view>
+  </view>
 
-    <view class="profile-form surface">
-      <view class="profile-field">
-        <text class="profile-field__label">昵称或姓名</text>
-        <input class="profile-field__input" value="{{form.nickname}}" maxlength="24" placeholder="例如：小鹿同学" data-key="nickname" bindinput="updateTextField" />
+  <scroll-view class="profile-setup-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+    <view class="profile-setup-shell">
+      <view wx:if="{{loading}}" class="profile-load-state">正在读取学习档案…</view>
+      <view wx:elif="{{loadFailed}}" class="profile-load-state"><text>学习档案暂时无法读取</text><button bindtap="loadProfile">重新加载</button></view>
+      <block wx:else>
+      <view class="profile-setup-stepbar">
+        <view wx:for="{{activeSteps}}" wx:key="id" class="profile-setup-step-dot {{index === stepIndex ? 'is-active' : (index < stepIndex ? 'is-completed' : '')}}"></view>
       </view>
 
-      <picker mode="selector" range="{{gradeOptions}}" value="{{form.gradeIndex}}" bindchange="chooseGrade">
-        <view class="profile-field profile-picker pressable">
-          <text class="profile-field__label">年级</text>
-          <view class="profile-picker__value">
-            <text>{{form.gradeLabel}}</text><text class="profile-picker__arrow">›</text>
-          </view>
-        </view>
-      </picker>
-
-      <view class="profile-stage"><text>{{form.schoolStage}}</text><text>将按此学段匹配学习内容</text></view>
-
-      <picker mode="selector" range="{{semesterOptions}}" value="{{form.semesterIndex}}" bindchange="chooseSemester">
-        <view class="profile-field profile-picker pressable">
-          <text class="profile-field__label">学期</text>
-          <view class="profile-picker__value">
-            <text>{{form.semester}}</text><text class="profile-picker__arrow">›</text>
-          </view>
-        </view>
-      </picker>
-
-      <view class="profile-field">
-        <text class="profile-field__label">所在地区</text>
-        <input class="profile-field__input" value="{{form.regionDetail}}" maxlength="40" placeholder="例如：广东省深圳市南山区" data-key="regionDetail" bindinput="updateTextField" />
+      <view class="profile-setup-hero">
+        <text class="profile-setup-hero-title">{{activeSteps[stepIndex].title}}</text>
+        <text class="profile-setup-hero-subtitle">{{activeSteps[stepIndex].subtitle}}</text>
       </view>
 
-      <view class="profile-field">
-        <text class="profile-field__label">学校名称</text>
-        <input class="profile-field__input" value="{{form.schoolName}}" maxlength="50" placeholder="例如：南山实验学校" data-key="schoolName" bindinput="updateTextField" />
-      </view>
-
-      <picker mode="selector" range="{{textbookOptions}}" value="{{form.textbookIndex}}" bindchange="chooseTextbook">
-        <view class="profile-field profile-picker profile-field--last pressable">
-          <text class="profile-field__label">教材版本</text>
-          <view class="profile-picker__value">
-            <text>{{form.textbookVersion}}</text><text class="profile-picker__arrow">›</text>
+      <view wx:if="{{stepIndex === 0}}" class="profile-role-picker">
+        <view class="profile-role-pair">
+          <image class="profile-role-pair-surface" src="{{rolePairSources.none}}" mode="scaleToFill" aria-hidden="true"></image>
+          <image class="profile-role-pair-surface profile-role-pair-surface-active {{form.accountType === 'student' ? 'is-visible' : ''}}" src="{{rolePairSources.student}}" mode="scaleToFill" aria-hidden="true"></image>
+          <image class="profile-role-pair-surface profile-role-pair-surface-active {{form.accountType === 'guardian' ? 'is-visible' : ''}}" src="{{rolePairSources.parent}}" mode="scaleToFill" aria-hidden="true"></image>
+          <view wx:for="{{roleCards}}" wx:key="value" class="profile-role-half profile-role-half-{{item.side}} {{form.accountType === item.value ? 'is-selected' : ''}}" bindtap="handleAccountTypePick" data-value="{{item.value}}" aria-label="{{item.label}}" aria-role="button" aria-checked="{{form.accountType === item.value}}">
+            <view class="profile-role-content profile-role-content-{{item.side}}">
+              <text class="profile-role-card-label">{{item.label}}</text>
+              <view class="profile-role-character-clip" aria-hidden="true">
+                <image class="profile-role-character" src="{{item.image}}" mode="aspectFit"></image>
+              </view>
+            </view>
           </view>
         </view>
-      </picker>
+        <view wx:if="{{form.accountType === 'guardian'}}" class="profile-role-notice">
+          <view class="profile-role-notice-card">
+            <text class="profile-role-notice-text">需后续完成实名认证后，方可绑定学生。</text>
+          </view>
+        </view>
+        <view class="profile-setup-error-wrap {{errors.accountType ? 'is-visible' : ''}}" style="padding-left: 8rpx;"><text class="profile-setup-error">{{errors.accountType}}</text></view>
+      </view>
+
+      <view wx:if="{{stepIndex === 1}}" class="profile-setup-fields">
+        <view class="profile-setup-field">
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">头像</text><text class="profile-setup-optional">选填</text></view>
+          <button class="profile-personal-avatar-row" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{saving}}" aria-label="{{editing ? '更换头像' : '授权微信头像'}}">
+            <text>{{editing ? '更换头像' : '授权微信头像'}}</text><view class="profile-personal-avatar"><image wx:if="{{form.avatarPath || form.avatarUrl}}" src="{{form.avatarPath || form.avatarUrl}}" mode="aspectFill"/><text wx:else>鹿</text></view>
+          </button>
+          <text class="profile-setup-input-hint">可跳过；未授权时将展示默认头像</text>
+        </view>
+
+        <view class="profile-setup-field">
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">我的称呼</text><text class="profile-setup-required">*</text></view>
+          <input class="profile-setup-pill-input {{errors.name ? 'profile-setup-control-error' : ''}}" type="nickname" value="{{form.nickname}}" placeholder="请输入姓名或昵称" placeholder-class="profile-setup-placeholder" maxlength="24" disabled="{{saving}}" data-key="nickname" bindinput="updateTextField" />
+          <text class="profile-setup-input-hint">键盘上方可一键填入微信昵称</text>
+          <view class="profile-setup-error-wrap {{errors.name ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.name}}</text></view>
+        </view>
+        <view class="profile-setup-field">
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">性别</text><text class="profile-setup-required">*</text></view>
+          <view class="profile-gender-options">
+            <view class="profile-gender-option {{form.gender === 'male' ? 'is-selected' : ''}}" data-value="male" bindtap="handleGenderPick" aria-label="男" aria-role="button" aria-checked="{{form.gender === 'male'}}">男</view>
+            <view class="profile-gender-option {{form.gender === 'female' ? 'is-selected' : ''}}" data-value="female" bindtap="handleGenderPick" aria-label="女" aria-role="button" aria-checked="{{form.gender === 'female'}}">女</view>
+          </view>
+          <view class="profile-setup-error-wrap {{errors.gender ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.gender}}</text></view>
+        </view>
+        <view class="profile-setup-field">
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">所在地区</text><text class="profile-setup-required">*</text></view>
+          <view class="profile-setup-region-row">
+            <picker class="profile-setup-region-picker" mode="region" level="region" value="{{regionPickerValue}}" disabled="{{saving}}" bindchange="handleRegionChange">
+              <view class="profile-setup-pill-picker {{errors.region ? 'profile-setup-control-error' : ''}}"><text class="{{form.regionDetail ? 'profile-setup-value' : 'profile-setup-placeholder'}}">{{form.regionDetail || '请选择所在地区'}}</text><view class="profile-setup-chevron"></view></view>
+            </picker>
+            <picker mode="region" value="{{regionPickerValue}}" disabled="{{saving}}" bindchange="handleRegionChange"><view class="profile-setup-location-button" aria-label="选择所在地区"><image class="profile-setup-location-image" src="../../assets/me/location.svg" mode="aspectFit"></image><text>选择</text></view></picker>
+          </view>
+          <view class="profile-setup-error-wrap {{errors.region ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.region}}</text></view>
+        </view>
+        <view class="profile-setup-field">
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">生日</text><text class="profile-setup-required">*</text></view>
+          <view class="profile-birthday-row">
+            <picker mode="date" start="1900-01-01" end="{{maxBirthday}}" value="{{form.birthday || maxBirthday}}" bindchange="chooseBirthday" disabled="{{saving}}">
+              <view class="profile-setup-pill-picker"><text class="{{form.birthday ? 'profile-setup-value' : 'profile-setup-placeholder'}}">{{form.birthday || '请选择出生日期'}}</text><view class="profile-setup-chevron"></view></view>
+            </picker>
+          </view>
+          <text wx:if="{{ageLabel}}" class="profile-setup-input-hint">当前 {{ageLabel}}</text>
+          <text wx:if="{{birthdayChangeUsed}}" class="profile-setup-input-hint">生日修改机会已用完，无法再次修改</text>
+          <text wx:elif="{{originalBirthday}}" class="profile-setup-input-hint">生日设置后仅能修改一次，请谨慎选择</text>
+          <view class="profile-setup-error-wrap {{errors.birthday ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.birthday}}</text></view>
+        </view>
+      </view>
+
+      <view wx:if="{{stepIndex === 2}}" class="profile-setup-fields">
+        <view class="profile-setup-field">
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">所在学校</text><text class="profile-setup-required">*</text></view>
+          <input class="profile-setup-pill-input" value="{{form.schoolName}}" placeholder="请输入学校名称" placeholder-class="profile-setup-placeholder" maxlength="60" disabled="{{saving}}" data-key="schoolName" bindinput="updateTextField" />
+          <view class="profile-setup-error-wrap {{errors.school ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.school}}</text></view>
+        </view>
+        <view class="profile-setup-field">
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">年级与学期</text><text class="profile-setup-required">*</text></view>
+          <view class="profile-setup-pill-picker {{errors.grade ? 'profile-setup-control-error' : ''}}" bindtap="openGradeSheet"><text class="{{gradeDisplay ? 'profile-setup-value' : 'profile-setup-placeholder'}}">{{gradeDisplay || '请选择年级和学期'}}</text><view class="profile-setup-chevron"></view></view>
+          <text wx:if="{{gradeAutoFilled}}" class="profile-setup-input-hint">已按出生日期预估，可点击调整</text>
+          <view class="profile-setup-error-wrap {{errors.grade ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.grade}}</text></view>
+        </view>
+      </view>
+
+      <view wx:if="{{stepIndex === 3}}" class="profile-setup-fields">
+        <view class="profile-setup-field">
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">教材版本</text><text class="profile-setup-required">*</text></view>
+          <view class="profile-textbook-grid {{errors.textbook ? 'profile-textbook-grid-error' : ''}}">
+            <view wx:for="{{textbookCards}}" wx:key="value" class="profile-textbook-card {{(form.textbookVersion === item.value) ? 'is-selected' : ''}}" data-value="{{item.value}}" bindtap="handleTextbookPick">
+              <text class="profile-textbook-label">{{item.label}}</text>
+              <view class="profile-textbook-fan {{(form.textbookVersion === item.value) ? 'is-expanded' : ''}}" aria-hidden="true">
+                <image wx:for="{{item.covers}}" wx:for-item="cover" wx:key="role" class="profile-textbook-fan-card {{cover.role}}" src="{{cover.src}}" mode="aspectFill"></image>
+              </view>
+            </view>
+          </view>
+          <picker mode="selector" range="{{textbookOptions}}" value="{{form.textbookIndex}}" bindchange="chooseTextbook" disabled="{{saving}}">
+            <view class="profile-setup-pill-picker profile-legacy-textbook"><text>{{form.textbookVersion === '沪教版' || form.textbookVersion === '鲁教版' ? '当前教材：' + form.textbookVersion : '更多教材版本'}}</text><view class="profile-setup-chevron"></view></view>
+          </picker>
+          <view class="profile-setup-error-wrap {{errors.textbook ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.textbook}}</text></view>
+        </view>
+      </view>
+
+      </block>
     </view>
+  </scroll-view>
 
-    <button class="profile-submit" bindtap="saveProfile" loading="{{saving}}" disabled="{{saving}}">保存学习档案</button>
+  <view wx:if="{{!loading && !loadFailed}}" class="profile-setup-actionbar">
+    <view class="profile-setup-actions {{stepIndex > 0 ? 'profile-setup-actions-with-back' : ''}}">
+      <view class="profile-setup-back-slot"><view class="profile-setup-back-action" bindtap="handleBack" aria-label="返回上一步">上一步</view></view>
+      <view class="profile-setup-next-slot"><button class="profile-setup-next" bindtap="handleNext" loading="{{saving}}" disabled="{{saving}}">{{saving ? '正在保存…' : (stepIndex === activeSteps.length - 1 && editing ? '保存修改' : activeSteps[stepIndex].actionLabel)}}</button></view>
+    </view>
   </view>
 
-  <view class="state-panel" wx:elif="{{!loading && loadFailed}}">
-    <view class="state-panel__mark">!</view>
-    <text class="state-panel__title">学习档案暂时没有加载出来</text>
-    <text class="state-panel__copy">请检查网络后重新读取，避免覆盖已有学习档案。</text>
-    <button class="state-panel__action pressable" bindtap="loadProfile">重新读取</button>
+  <view wx:if="{{gradeSheetVisible}}" class="profile-setup-sheet-layer {{gradeSheetClosing ? 'is-closing' : ''}}" catchtap="closeGradeSheet">
+    <view class="profile-setup-grade-sheet" catchtap="stopTap">
+      <view class="profile-setup-sheet-handle"></view>
+      <view class="profile-setup-sheet-header"><view><text class="profile-setup-sheet-title">选择年级与学期</text></view><view class="profile-setup-sheet-close" bindtap="closeGradeSheet">×</view></view>
+      <scroll-view class="profile-setup-grade-list" scroll-y>
+        <view wx:for="{{gradeOptions}}" wx:key="*this" class="profile-setup-grade-row">
+          <text class="profile-setup-grade-label">{{gradeLabels[index]}}</text>
+          <view class="profile-setup-grade-options">
+            <view wx:for="{{semesterOptions}}" wx:for-item="semester" wx:key="*this" class="profile-setup-grade-option {{form.grade === item && form.semester === semester ? 'is-selected' : ''}}" data-grade="{{item}}" data-semester="{{semester}}" bindtap="handleGradePick">{{semester}}</view>
+          </view>
+        </view>
+        <view class="profile-setup-grade-none {{form.grade === 0 ? 'is-selected' : ''}}" data-grade="0" bindtap="handleGradePick" aria-role="button" aria-label="以上年级都不是">
+            <view class="profile-setup-grade-none-mark" aria-hidden="true"><view class="profile-setup-grade-none-cross"></view></view>
+            <text>都不是（不在以上年级中）</text>
+          </view>
+      </scroll-view>
+    </view>
   </view>
 
-  <view class="profile-setup__loading" wx:else>
-    <view class="skeleton profile-setup__skeleton-title"></view>
-    <view class="skeleton profile-setup__skeleton-form"></view>
+  <view wx:if="{{successSheetVisible}}" class="profile-success-sheet-layer">
+    <view class="profile-success-sheet">
+      <view class="profile-success-sheet-handle"></view>
+      <view class="profile-success-content">
+        <view class="profile-success-mark"><view class="profile-success-check"></view></view>
+        <text class="profile-success-title">{{editing ? '个人资料已保存' : '学习档案完成'}}</text>
+        <text class="profile-success-subtitle">接下来，我们会为你安排更合适的学习内容。</text>
+      </view>
+      <view class="profile-success-actionbar">
+        <button class="profile-success-button" bindtap="handleSuccessContinue">{{editing ? '返回我的' : '继续学习'}}</button>
+      </view>
+    </view>
   </view>
+
 </view>
+<dev-reset-fab />

@@ -1,0 +1,34 @@
+<view class="system-messages-page">
+  <view class="system-messages-topbar">
+    <view class="system-messages-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="system-messages-back-button" bindtap="handleBack" aria-label="返回上一页"><view class="system-messages-back-icon"></view></view>
+      <text class="system-messages-topbar-title">{{model.title}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="system-messages-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="system-messages-shell">
+      <view wx:if="{{loading}}" class="message-state">正在加载消息…</view>
+      <view wx:elif="{{failed}}" class="message-state"><text>消息暂时无法加载</text><button bindtap="loadPage">重新加载</button></view>
+      <block wx:else>
+      <view wx:if="{{model.systemMessages.length}}" class="system-detail-list">
+        <view wx:for="{{model.systemMessages}}" wx:key="id" class="system-detail-row" data-id="{{item.id}}" bindtap="handleSystemTap">
+          <view class="system-detail-main">
+            <view class="system-detail-title-row">
+              <text class="system-detail-title">{{item.title}}</text>
+              <text wx:if="{{item.unreadDot}}" class="system-detail-unread-dot"></text>
+              <text wx:if="{{item.badgeLabel}}" class="message-badge system-detail-badge {{item.badgeClass}}">{{item.badgeLabel}}</text>
+            </view>
+            <text class="system-detail-preview">{{item.preview}}</text>
+          </view>
+          <view class="system-detail-meta">
+            <text class="system-detail-time">{{item.time}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="system-detail-empty">{{model.emptyText}}</view>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

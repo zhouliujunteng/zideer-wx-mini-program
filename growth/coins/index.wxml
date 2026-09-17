@@ -1,1 +1,85 @@
-<growth-page id="growth-page" mode="coins" />
+<view class="coin-page points-page">
+  <view class="coin-ambient points-ambient" aria-hidden="true"><view class="coin-ambient-ribbon points-ambient-ribbon"></view></view>
+  <view class="points-topbar">
+    <view class="points-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="points-back" bindtap="handleBack" aria-label="返回我的" aria-role="button"><view class="points-back-icon"></view></view>
+      <text class="points-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{loading || !model ? '我的金币' : model.title}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="points-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+    <view class="points-shell">
+      <view wx:if="{{loading}}" class="points-state"><text>正在读取金币账户…</text></view>
+      <view wx:elif="{{failed}}" class="points-state">
+        <text>金币账户暂时没有加载出来</text>
+        <view class="points-state-action" bindtap="loadPage">重新加载</view>
+      </view>
+
+      <block wx:elif="{{model}}">
+        <view class="points-overview">
+          <view class="points-overview-main">
+            <view class="points-overview-copy">
+              <text class="balance-eyebrow">{{model.balanceLabel}}</text>
+              <text class="balance-value">{{model.balance.available}}</text>
+              <view class="usage-rules" bindtap="handleUsageRules" aria-label="查看使用规则" aria-role="button"><text class="usage-rules-frozen">冻结中：{{model.balance.frozen}}</text><text class="usage-rules-label">使用规则</text><view class="usage-rules-icon"></view></view>
+            </view>
+            <image class="balance-icon coin-balance-icon" src="{{model.balanceIcon}}" mode="aspectFit" aria-label="金币图标"></image>
+          </view>
+        </view>
+
+        <view class="points-section">
+          <view class="section-heading"><text>金币服务</text></view>
+          <view class="service-card">
+            <view class="service-row" wx:for="{{serviceEntries}}" wx:key="id" data-url="{{item.url}}" bindtap="openService" aria-role="button">
+              <view class="service-copy">
+                <text class="service-title">{{item.label}}</text>
+                <text class="service-hint">{{item.hint}}</text>
+              </view>
+              <text class="service-arrow">›</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="points-section records-section">
+          <view class="section-heading"><text>{{model.recordsTitle}}</text></view>
+          <view class="record-tabs">
+            <view wx:for="{{model.recordTabs}}" wx:key="id" class="record-tab {{item.isSelected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleRecordTab" aria-role="button">{{item.label}}</view>
+          </view>
+          <scroll-view class="records-card" scroll-y style="height: {{recordsHeight}}px; max-height: {{recordsHeight}}px;">
+            <view wx:if="{{model.activeRecordGroups.length}}" class="record-list">
+              <view wx:for="{{model.activeRecordGroups}}" wx:for-item="group" wx:key="monthKey" class="record-group">
+                <view class="record-month"><text>{{group.monthLabel}}</text></view>
+                <view wx:for="{{group.records}}" wx:for-item="record" wx:key="id" class="record-item">
+                  <view class="record-copy">
+                    <view class="record-title-row"><text class="record-title">{{record.title}}</text><text class="record-amount {{record.tone}}">{{record.amount}}</text></view>
+                    <text wx:if="{{record.detail}}" class="record-detail {{record.detailTone}}">{{record.detail}}</text>
+                    <view class="record-meta"><text>{{record.time}}</text><text class="record-status {{record.tone}}">{{record.statusLabel}}</text></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view wx:else class="records-empty"><text>暂无记录</text><text>获得或使用金币后会按月展示在这里。</text></view>
+          </scroll-view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{usageRulesSheetVisible}}" class="points-sheet-layer {{usageRulesSheetClosing ? 'is-closing' : ''}}" catchtap="closeUsageRules">
+    <view class="points-usage-rules-sheet" catchtap="stopTap" aria-modal="true">
+      <view class="points-sheet-handle" aria-hidden="true"></view>
+      <view class="points-sheet-header">
+        <text class="points-sheet-title">金币使用规则</text>
+        <view class="points-sheet-close" bindtap="closeUsageRules" aria-role="button" aria-label="关闭使用规则">×</view>
+      </view>
+      <scroll-view class="points-sheet-scroll" scroll-y>
+        <text class="points-sheet-intro">金币归属于本人默认学生档案，可由签到、学习任务和老师核验通过的知识点掌握事件按规则发放。</text>
+        <view wx:for="{{usageRulesItems}}" wx:key="*this" class="points-sheet-row">
+          <view class="points-sheet-dot coin-sheet-dot" aria-hidden="true"></view>
+          <text>{{item}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>
+<dev-reset-fab />

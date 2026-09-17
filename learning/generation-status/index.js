@@ -1,17 +1,5 @@
-const { loadCurrentLearningPlans, createCurrentCourseGenerationQuote, confirmCurrentCourseGeneration } = require('../../services/identity')
-
-const stateMap = {
-  planned: { title: '等待生成', copy: '课程已纳入学习计划，正在等待生成任务开始。', tone: 'pending' },
-  queued: { title: '等待生成', copy: '课程生成任务已排队。', tone: 'pending' },
-  generating: { title: '课程生成中', copy: '正在生成本节课程内容。', tone: 'working' },
-  validating: { title: '内容校验中', copy: '正在校验课程内容与学习目标。', tone: 'working' },
-  ready: { title: '课程已就绪', copy: '课程内容已准备完成，可以开始学习。', tone: 'ready' },
-  completed: { title: '课程已完成', copy: '本节课程已完成，等待后续验收或下一项任务。', tone: 'ready' },
-  failed: { title: '生成失败', copy: '课程生成未完成，请稍后刷新学习计划。', tone: 'error' },
-  cancelled: { title: '课程已取消', copy: '本次课程已取消，不可继续进入。', tone: 'error' },
-  voided_credit_limit: { title: '课程已作废', copy: '本次课程超过结算上限，已作废且不可访问。', tone: 'error' },
-  voided_quality_issue: { title: '课程已作废', copy: '课程因质量问题被停用，不可访问。', tone: 'error' }
-}
+const { loadCurrentLearningPlans, createCurrentCourseGenerationQuote, confirmCurrentCourseGeneration, prepareCourseOutlineReview, loadCourseOutline } = require('../../services/identity')
+const { courseGenerationState, courseCreditState, canRetryCourseGeneration } = require('../../utils/course-state')
 
 function creditsText(value) {
   if (value === null || value === undefined) return '积分结算信息将在报价后显示'
@@ -26,7 +14,7 @@ function creditsRange(settlement, fallback) {
 }
 
 Page({
-  data: { loading: true, failed: false, starting: false, quoting: false, quote: null, result: null },
+  data: { loading: true, failed: false, starting: false, quoting: false, quote: null, result: null, outlineReady: false },
 
   onLoad(options) {
     this.planItemId = String(options.planItemId || '')
@@ -35,61 +23,130 @@ Page({
     this.confirmKey = ''
   },
 
-  onShow() { this.loadPage() },
+  onShow() {
+    this._active = true
+    this._lifecycle = (this._lifecycle || 0) + 1
+    this.setData({ starting: false, quoting: false })
+    return this.loadPage()
+  },
+
+  onHide() {
+    this._active = false
+    this._lifecycle = (this._lifecycle || 0) + 1
+    this._loadVersion = (this._loadVersion || 0) + 1
+    this.stopPolling()
+  },
+
+  onUnload() { this.onHide() },
+
+  stopPolling() {
+    if (this._pollTimer) clearTimeout(this._pollTimer)
+    this._pollTimer = null
+  },
+
+  schedulePolling() {
+    this.stopPolling()
+    const result = this.data.result
+    if (!this._active || this.data.failed || !result || result.canLaunch) return
+    if (result.canPoll) {
+      this._pollTimer = setTimeout(() => this.loadPage({ silent: true }), 5000)
+    }
+  },
 
   async onPullDownRefresh() {
     await this.loadPage()
     wx.stopPullDownRefresh()
   },
 
-  async loadPage() {
-    this.setData({ loading: true, failed: false })
+  async loadPage(options = {}) {
+    this.stopPolling()
+    const version = this._loadVersion = (this._loadVersion || 0) + 1
+    this.setData({ loading: options.silent !== true, failed: false })
     try {
       const data = await loadCurrentLearningPlans()
-      const items = (data.plans || []).reduce((all, plan) => all.concat(plan.items || []), [])
-      const item = items.find((entry) => String(entry.id) === this.planItemId)
-      const course = item && (item.courseInstances || []).find((entry) => !this.courseInstanceId || String(entry.id) === this.courseInstanceId)
-      if (!item) {
+      if (version !== this._loadVersion || !this._active) return
+      const plan = (data.plans || []).find(plan => (plan.items || []).some(entry => String(entry.id) === this.planItemId))
+      const item = plan && (plan.items || []).find(entry => String(entry.id) === this.planItemId)
+      const courses = item && (item.courseInstances || []).slice().sort((a, b) => Number(b.id) - Number(a.id)) || []
+      let course = courses.find((entry) => !this.courseInstanceId || String(entry.id) === this.courseInstanceId)
+      if (!item || (this.courseInstanceId && !course)) {
         this.setData({ result: null })
         return
       }
-      const courseStatus = String(course && course.status || item.status || 'planned').toLowerCase()
+      if (course && ['failed', 'cancelled', 'voided_credit_limit'].includes(course.status) && courses[0] !== course) {
+        course = courses[0]
+        this.courseInstanceId = String(course.id)
+        this.clearQuote()
+      }
       const generationJob = course && course.generationJob || item.generationJob || null
-      const jobStatus = String(generationJob && generationJob.status || '').toLowerCase()
-      const status = ['ready', 'in_progress', 'lesson_completed', 'awaiting_acceptance', 'passed', 'closed', 'voided_credit_limit', 'voided_quality_issue', 'failed', 'cancelled'].includes(courseStatus)
-        ? courseStatus
-        : jobStatus || courseStatus
-      const state = stateMap[status] || stateMap.planned
+      const state = courseGenerationState(course, generationJob, item.status)
+      const planInactive = plan.status && plan.status !== 'active'
+      const canRetryGeneration = !planInactive && item.status === 'available' && courses.length > 0 && courses.every(canRetryCourseGeneration)
+      if (canRetryGeneration) {
+        state.label = course.status === 'voided_credit_limit' ? '上次课程已作废' : '上次生成已结束'
+        state.detail = '上次生成已结束，冻结积分已退回。可在当前任务重新获取报价并生成课程。'
+      }
+      if (planInactive && !state.canLaunch) {
+        state.canPoll = false
+        state.label = plan.status === 'paused' ? '学习计划已暂停' : '学习计划不在执行中'
+        state.detail = '可返回学习计划选择其他任务，或创建新的学习计划。'
+        state.tone = 'pending'
+      }
       const settlement = course && course.creditSettlement || null
+      const creditState = courseCreditState(settlement)
       this.setData({
         result: {
           taskTitle: item.topicName || '学习任务',
           subject: item.subjectName || '学习计划',
-          status,
           ...state,
+          title: state.label,
+          copy: state.detail,
           credits: creditsRange(settlement, item.estimatedCredits),
-          settlementNote: settlement && settlement.actualCredits !== null && settlement.actualCredits !== undefined
-            ? `实际结算 ${Math.round(Number(settlement.actualCredits))} 积分${settlement.returnedCredits ? `，退回 ${Math.round(Number(settlement.returnedCredits))} 积分` : ''}`
-            : settlement && settlement.frozenCredits !== null && settlement.frozenCredits !== undefined
-              ? `已冻结 ${Math.round(Number(settlement.frozenCredits))} 积分，等待最终结算。`
-              : '服务端以实际用量结算；页面仅展示取整后的预估。',
-          canLaunch: status === 'ready' && Boolean(course && (course.contentVersionRef || course.content_version_ref)),
-          canStartGeneration: !course && String(item.status || '').toLowerCase() === 'available',
+          settlementNote: creditState ? creditState.note : '课程按实际用量结算积分，报价时会显示本节结算上限。',
+          canRetryGeneration: Boolean(canRetryGeneration),
+          canStartGeneration: Boolean(canRetryGeneration || (!planInactive && !course && !generationJob && String(item.status || '').toLowerCase() === 'available')),
           courseInstanceId: course ? String(course.id) : ''
         }
       })
+      if (course && !canRetryGeneration) this.setData({ quote: null })
+      if (course && state.canPoll && !planInactive && !canRetryGeneration) {
+        try {
+          const generation = await loadCourseOutline(String(course.id))
+          if (version !== this._loadVersion || !this._active) return
+          const outlineReady = generation.stage === 'awaiting_outline_confirmation' && generation.outlineDraft && !generation.outlineDraft.confirmedAt
+          this.setData({ outlineReady: Boolean(outlineReady), outlineError: '' })
+          if (outlineReady) this.setData({ result: { ...this.data.result, title: '课程大纲待确认', copy: '先编辑大纲，再选择 PPT 模式或课程模式。确认后开始生成完整内容。', canPoll: false } })
+        } catch (error) {
+          if (version !== this._loadVersion || !this._active) return
+          this.setData({ outlineReady: false, outlineError: error.message || '课程大纲暂时无法读取' })
+        }
+      } else this.setData({ outlineReady: false, outlineError: '' })
     } catch (error) {
+      if (version !== this._loadVersion || !this._active) return
       this.setData({ failed: true })
       wx.showToast({ title: error.message || '课程进度加载失败', icon: 'none' })
     } finally {
-      this.setData({ loading: false })
+      if (version === this._loadVersion && this._active) {
+        this.setData({ loading: false })
+        this.schedulePolling()
+      }
     }
+  },
+
+  editOutline() {
+    if (this.data.result && this.data.outlineReady) wx.navigateTo({ url: `/learning/outline/index?courseInstanceId=${encodeURIComponent(this.data.result.courseInstanceId)}` })
   },
 
   startCourse() {
     const result = this.data.result
     if (!result || !result.canLaunch) return
     wx.redirectTo({ url: `/learning/course/index?courseInstanceId=${encodeURIComponent(result.courseInstanceId)}` })
+  },
+
+  startAcceptance() {
+    const result = this.data.result
+    if (!result || !result.canStartAcceptance || !result.courseInstanceId) return
+    wx.navigateTo({ url: `/learning/acceptance-entry/index?courseInstanceId=${encodeURIComponent(result.courseInstanceId)}` })
   },
 
   async requestQuote() {
@@ -99,39 +156,69 @@ Page({
       this.quoteKey = `course-quote-${Date.now()}-${Math.random().toString(36).slice(2)}`
     }
     this.setData({ quoting: true })
+    const lifecycle = this._lifecycle
     try {
       const quote = await createCurrentCourseGenerationQuote(this.planItemId, this.quoteKey)
+      if (lifecycle !== this._lifecycle || !this._active) return
       quote.estimatedLowerDisplay = Math.round(quote.estimatedLowerCredits)
       quote.estimatedUpperDisplay = Math.round(quote.estimatedUpperCredits)
       quote.frozenTargetDisplay = Math.round(quote.frozenTargetCredits)
       this.setData({ quote })
     } catch (error) {
+      if (lifecycle !== this._lifecycle || !this._active) return
+      if (error.code === 'COURSE_ALREADY_REQUESTED') {
+        this.clearQuote()
+        await this.loadPage()
+      }
       wx.showToast({ title: error.message || '课程报价创建失败', icon: 'none' })
     } finally {
-      this.setData({ quoting: false })
+      if (lifecycle === this._lifecycle && this._active) this.setData({ quoting: false })
     }
   },
 
   async startGeneration() {
     const result = this.data.result
     const quote = this.data.quote
-    if (!result || !quote || this.data.starting) return
+    if (!result || !result.canStartGeneration || !quote || this.data.starting) return
+    if (quote.expiresAt && Date.parse(quote.expiresAt) <= Date.now()) {
+      this.clearQuote()
+      wx.showToast({ title: '课程报价已过期，请重新获取。', icon: 'none' })
+      return
+    }
     if (!this.confirmKey) {
       this.confirmKey = `course-confirm-${Date.now()}-${Math.random().toString(36).slice(2)}`
     }
     this.setData({ starting: true })
+    const lifecycle = this._lifecycle
     try {
+      await prepareCourseOutlineReview(this.planItemId, this.confirmKey)
+      if (lifecycle !== this._lifecycle || !this._active) return
       const created = await confirmCurrentCourseGeneration(quote.quoteId, this.confirmKey)
+      if (lifecycle !== this._lifecycle || !this._active) return
       this.courseInstanceId = created.courseInstanceId
-      this.setData({ quote: null })
-      wx.showToast({ title: created.reused ? '已读取现有生成任务' : '积分已冻结，已加入生成队列', icon: 'none' })
+      this.clearQuote()
+      wx.showToast({ title: created.reused ? '已读取现有生成任务' : '积分已冻结，正在准备大纲', icon: 'none' })
       await this.loadPage()
     } catch (error) {
+      if (lifecycle !== this._lifecycle || !this._active) return
+      if (error.code === 'COURSE_ALREADY_REQUESTED') {
+        this.clearQuote()
+        wx.showToast({ title: error.message, icon: 'none' })
+        await this.loadPage()
+        return
+      }
+      if (['QUOTE_EXPIRED', 'QUOTE_NOT_AVAILABLE', 'QUOTE_NOT_FOUND', 'QUOTE_INVALID'].includes(error.code)) this.clearQuote()
       wx.showToast({ title: error.message || '课程生成任务创建失败', icon: 'none' })
     } finally {
-      this.setData({ starting: false })
+      if (lifecycle === this._lifecycle && this._active) this.setData({ starting: false })
     }
   },
 
-  goBack() { wx.navigateBack() }
+  clearQuote() {
+    this.quoteKey = ''
+    this.confirmKey = ''
+    this.setData({ quote: null })
+  },
+
+  goBack() { wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/learning/index' }) }) }
 })

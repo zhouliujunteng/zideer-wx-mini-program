@@ -1,10 +1,75 @@
 <view class="family-page">
-  <view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">家庭关系暂时无法加载</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
-  <block wx:else>
-    <view class="family-head"><text class="family-eyebrow">账户</text><text class="family-title">家庭关系</text></view>
-    <view class="family-actions surface"><button class="family-action pressable" bindtap="openBindingCode"><text class="family-action__label">我是学生</text><text class="family-action__title">生成绑定码</text></button><view class="family-actions__line"></view><button class="family-action pressable" bindtap="openBindStudent"><text class="family-action__label">我是家长</text><text class="family-action__title">绑定学生</text></button></view>
-    <view class="family-section"><view class="family-section__head"><text class="family-section__title">我绑定的学生</text><button class="family-section__action pressable" wx:if="{{students.length}}" bindtap="openGuardianDashboard">查看看板</button></view><button class="family-card surface pressable" wx:for="{{students}}" wx:key="id" bindtap="openGuardianDashboard"><view class="family-avatar">{{item.initial}}</view><view class="family-copy"><text class="family-name">{{item.name}}</text><text class="family-meta">{{item.relationLabel}} · {{item.gradeLabel}}</text></view><text class="family-status">有效 ›</text></button><view class="family-empty surface" wx:if="{{!students.length}}"><text>当前还没有绑定学生</text></view></view>
-    <view class="family-section"><text class="family-section__title">我的监护关系</text><view class="family-card surface" wx:for="{{guardians}}" wx:key="id"><view class="family-avatar">家</view><view class="family-copy"><text class="family-name">{{item.relationLabel}}</text><text class="family-meta">关系已生效</text></view><text class="family-status">有效</text></view><view class="family-empty surface" wx:if="{{!guardians.length}}"><text>暂未绑定监护人</text></view></view>
-  </block>
+  <view class="family-ambient" aria-hidden="true"><view class="family-ambient-ribbon"></view></view>
+  <view class="family-topbar">
+    <view class="family-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="family-back" bindtap="handleBack" aria-label="返回上一页" aria-role="button"><view class="family-back-icon"></view></view>
+      <text class="family-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">家庭关系</text>
+    </view>
+  </view>
+
+  <scroll-view class="family-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+    <view class="family-shell">
+      <view wx:if="{{loading}}" class="family-state"><text>正在读取家庭关系…</text></view>
+      <view wx:elif="{{failed}}" class="family-state">
+        <text>家庭关系暂时无法加载</text>
+        <view class="family-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:else>
+        <view class="family-pair-card">
+          <view class="family-pair-half" bindtap="openBindingCode" aria-role="button" aria-label="我是学生，生成绑定码">
+            <text class="family-pair-eyebrow">我是学生</text>
+            <text class="family-pair-title">生成绑定码</text>
+            <text class="family-pair-hint">让家长扫码绑定我</text>
+          </view>
+          <view class="family-pair-divider" aria-hidden="true"></view>
+          <view class="family-pair-half" bindtap="openBindStudent" aria-role="button" aria-label="我是家长，绑定学生">
+            <text class="family-pair-eyebrow">我是家长</text>
+            <text class="family-pair-title">绑定学生</text>
+            <text class="family-pair-hint">输入孩子的绑定码</text>
+          </view>
+        </view>
+
+        <view class="family-section">
+          <view class="family-section-head">
+            <text class="family-section-title">我绑定的学生</text>
+            <text wx:if="{{students.length}}" class="family-section-link" bindtap="openGuardianDashboard" aria-role="button">查看看板 ›</text>
+          </view>
+          <view class="family-list-card">
+            <view wx:if="{{students.length}}">
+              <view class="family-member" wx:for="{{students}}" wx:key="id" bindtap="openGuardianDashboard" aria-role="button">
+                <view class="family-avatar"><text>{{item.initial}}</text></view>
+                <view class="family-member-copy">
+                  <text class="family-member-name">{{item.name}}</text>
+                  <text class="family-member-meta">{{item.relationLabel}} · {{item.gradeLabel}}</text>
+                </view>
+                <view class="family-member-status"><text>有效</text><text class="family-member-arrow">›</text></view>
+              </view>
+            </view>
+            <view wx:else class="family-empty"><text>还没有绑定学生</text><text>生成绑定码或由家长完成绑定后会显示在这里。</text></view>
+          </view>
+        </view>
+
+        <view class="family-section">
+          <view class="family-section-head">
+            <text class="family-section-title">我的监护关系</text>
+          </view>
+          <view class="family-list-card">
+            <view wx:if="{{guardians.length}}">
+              <view class="family-member" wx:for="{{guardians}}" wx:key="id">
+                <view class="family-avatar family-avatar-guardian"><text>家</text></view>
+                <view class="family-member-copy">
+                  <text class="family-member-name">{{item.relationLabel}}</text>
+                  <text class="family-member-meta">关系已生效</text>
+                </view>
+                <view class="family-member-status"><text>有效</text></view>
+              </view>
+            </view>
+            <view wx:else class="family-empty"><text>暂未绑定监护人</text><text>由家长在「绑定学生」中完成绑定。</text></view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
 </view>
+<dev-reset-fab />

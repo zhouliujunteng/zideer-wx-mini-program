@@ -19,15 +19,17 @@
     </view>
 
     <view class="calendar-days-slot">
-      <view class="calendar-days">
-        <view wx:for="{{model.studyTaskCalendar}}" wx:key="id" class="calendar-day" data-index="{{index}}" bindtap="handleStudyDateSelect">
-          <text class="calendar-weekday">{{item.weekday}}</text>
-          <view class="calendar-date {{item.isToday ? 'calendar-date-today' : ''}} {{item.isSelected ? 'calendar-date-selected' : ''}} {{!item.hasTask ? 'calendar-date-no-task' : ''}}">
-            <text>{{item.date}}</text>
+      <scroll-view class="study-date-strip" scroll-x="true" show-scrollbar="false" enhanced="true" scroll-into-view="{{calendarScrollAnchor}}">
+        <view class="study-date-list">
+          <view wx:for="{{model.studyTaskCalendar}}" wx:for-index="dayIndex" wx:key="id" id="study-day-{{dayIndex}}" class="study-date {{item.hasTask ? 'study-date-has-task' : ''}}" data-index="{{dayIndex}}" bindtap="handleStudyDateSelect">
+            <view class="study-date-tile {{item.isSelected ? 'study-date-selected' : ''}}">
+              <text class="study-date-value">{{item.date}}</text>
+              <text class="study-date-label">{{item.label}}</text>
+            </view>
+            <view wx:if="{{item.hasTask}}" class="study-date-task-dot"></view>
           </view>
-          <view wx:if="{{item.hasTask}}" class="calendar-task-dot"></view>
         </view>
-      </view>
+      </scroll-view>
     </view>
 
     <view class="learning-overview-panel {{showTodayOverview ? 'learning-overview-expanded' : 'learning-overview-collapsed'}}">
@@ -73,37 +75,42 @@
       </view>
     </view>
 
-    <view class="todo-section">
-      <view class="tasks-heading">
-        <text class="tasks-title">待办事项</text>
+    <view class="my-courses-section">
+      <view class="tasks-heading my-courses-heading">
+        <text class="tasks-title">我的课程</text>
+        <text class="my-courses-library-link" bindtap="openLibrary">课程库 ›</text>
       </view>
-      <view class="todo-list-card">
-        <view class="todo-list">
-          <block wx:if="{{model.todoItems.length > 0}}">
-            <view wx:for="{{model.todoItems}}" wx:key="id" class="todo-item" data-id="{{item.id}}" bindtap="openTask">
-              <view class="todo-copy">
-                <text class="todo-title">{{item.title}}</text>
-                <text class="todo-meta">{{item.meta}}</text>
-              </view>
-              <view class="todo-status todo-status-{{item.status}}">
-                <view wx:if="{{item.status === 'in-progress'}}" class="todo-status-dot"></view>
-                <text wx:if="{{item.status === 'completed'}}" class="todo-status-check">✓</text>
-              </view>
-            </view>
-          </block>
-          <text wx:else class="todo-empty">暂无待办事项</text>
+      <input class="my-courses-search" value="{{courseSearch}}" bindinput="searchMyCourses" placeholder="搜索我的课程" maxlength="80" />
+      <view wx:if="{{visibleMyCourses.length > 0}}" class="my-courses-grid">
+        <view wx:for="{{visibleMyCourses}}" wx:key="id" class="my-course-card" data-id="{{item.id}}" data-kind="{{item.kind}}" bindtap="openMyCourse">
+          <view class="my-course-cover my-course-cover-{{item.fallbackTone}}">
+            <image wx:if="{{item.coverUrl}}" class="my-course-cover-image" src="{{item.coverUrl}}" mode="aspectFill"></image>
+            <text wx:else class="my-course-cover-mark">知鹿</text>
+          </view>
+          <view class="my-course-copy">
+            <text class="my-course-title">{{item.title}}</text>
+            <text class="my-course-meta">{{item.meta}}</text>
+            <view class="my-course-footer"><view class="my-course-state"><view wx:if="{{item.isGenerating}}" class="my-course-live-dot"></view><text class="my-course-state-label">{{item.stateLabel}}</text></view><text>{{item.progressText}}</text></view>
+            <view wx:if="{{item.isGenerating}}" class="my-course-progress-track"><view class="my-course-progress-bar" style="width: {{item.progress}}%;"></view></view>
+          </view>
         </view>
       </view>
+      <text wx:else class="my-courses-empty">{{courseSearch ? '没有找到匹配的课程' : '生成中和已生成的课程都会显示在这里'}}</text>
     </view>
   </view>
 </scroll-view>
 <view class="calendar-overlay {{calendarPinned ? 'calendar-overlay-visible' : ''}}" style="top: {{contentTop}}px;">
-  <view wx:for="{{model.studyTaskCalendar}}" wx:key="id" class="calendar-day" data-index="{{index}}" bindtap="handleStudyDateSelect">
-    <text class="calendar-weekday">{{item.weekday}}</text>
-    <view class="calendar-date {{item.isToday ? 'calendar-date-today' : ''}} {{item.isSelected ? 'calendar-date-selected' : ''}} {{!item.hasTask ? 'calendar-date-no-task' : ''}}">
-      <text>{{item.date}}</text>
+  <scroll-view class="study-date-strip" scroll-x="true" show-scrollbar="false" enhanced="true" scroll-into-view="{{calendarScrollAnchor}}">
+    <view class="study-date-list">
+      <view wx:for="{{model.studyTaskCalendar}}" wx:for-index="dayIndex" wx:key="id" id="study-day-{{dayIndex}}" class="study-date {{item.hasTask ? 'study-date-has-task' : ''}}" data-index="{{dayIndex}}" bindtap="handleStudyDateSelect">
+        <view class="study-date-tile {{item.isSelected ? 'study-date-selected' : ''}}">
+          <text class="study-date-value">{{item.date}}</text>
+          <text class="study-date-label">{{item.label}}</text>
+        </view>
+        <view wx:if="{{item.hasTask}}" class="study-date-task-dot"></view>
+      </view>
     </view>
-    <view wx:if="{{item.hasTask}}" class="calendar-task-dot"></view>
-  </view>
+  </scroll-view>
 </view>
 </view>
+<dev-reset-fab />

@@ -1,14 +1,20 @@
 {
   "pages": [
+    "pages/splash/index",
     "pages/login/login",
     "pages/profile-setup/index",
     "pages/product-intro/index",
     "pages/referral-entry/index",
     "pages/messages/index",
+    "pages/system-messages/index",
     "pages/home/index",
     "pages/learning/index",
-      "pages/knowledge-map/index",
-    "pages/me/index"
+    "pages/knowledge-map/index",
+    "pages/me/index",
+    "pages/profile/index",
+    "pages/redemption/index",
+    "pages/ai-voice/index",
+    "pages/agent-chat/index"
   ],
   "subpackages": [
     {
@@ -29,15 +35,7 @@
       "root": "assessment",
       "pages": [
         "center/index",
-        "history/index",
-        "context/index",
-        "basic/index",
-        "recent-score/index",
-        "exam-upload/index",
-        "ocr-review/index",
-        "deep-entitlement/index",
-        "deep/index",
-        "analysis/index"
+        "short/index"
       ]
     },
     {
@@ -56,6 +54,7 @@
     {
       "root": "commerce",
       "pages": [
+        "membership/index",
         "agent-gate/index",
         "assignment-request/index",
         "products/index",
@@ -76,9 +75,13 @@
         "acceptance-host/index",
         "remediation/index",
         "course/index",
+        "library/index",
+        "device-confirm/index",
         "generation-status/index",
+        "agent-course/index",
         "schedule/index",
-        "live-session/index"
+        "live-session/index",
+        "outline/index"
       ]
     },
     {
@@ -90,8 +93,7 @@
         "client-detail/index",
         "share-tools/index",
         "ai-poster/index",
-        "material-library/index",
-        "deep-assessment-gift/index"
+        "material-library/index"
       ]
     },
     {
@@ -110,6 +112,9 @@
     "navigationBarBackgroundColor": "#F6F7F9",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "知鹿私课"
+  },
+  "usingComponents": {
+    "dev-reset-fab": "/components/dev-reset-fab/index"
   },
   "tabBar": {
     "color": "#7B8078",
@@ -131,7 +136,7 @@
       },
       {
         "pagePath": "pages/knowledge-map/index",
-        "text": "图谱",
+        "text": "宇宙",
         "iconPath": "assets/tabbar/map.png",
         "selectedIconPath": "assets/tabbar/map-active.png"
       },

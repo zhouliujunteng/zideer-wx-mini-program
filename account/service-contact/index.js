@@ -1,9 +1,5 @@
 const { loadCurrentServiceContacts } = require('../../services/identity')
-
-function safeUrl(value) {
-  const url = String(value || '').trim()
-  return url.length > 0 && url.length <= 2048 && /^https:\/\/[^\s]+$/i.test(url)
-}
+const { isEnterpriseWechatContact, openCustomerServiceChat, customerServiceErrorMessage } = require('../../utils/customer-service')
 
 Page({
   data: {
@@ -11,12 +7,11 @@ Page({
     failed: false,
     profileIncomplete: false,
     contacts: [],
-    selectedUrl: '',
-    selectedTitle: ''
+    openingContactId: ''
   },
 
   onShow() {
-    if (!this.data.selectedUrl) this.loadPage()
+    this.loadPage()
   },
 
   async onPullDownRefresh() {
@@ -25,7 +20,7 @@ Page({
   },
 
   async loadPage() {
-    this.setData({ loading: true, failed: false, profileIncomplete: false, selectedUrl: '', selectedTitle: '' })
+    this.setData({ loading: true, failed: false, profileIncomplete: false, openingContactId: '' })
     try {
       const result = await loadCurrentServiceContacts()
       this.setData({ contacts: result.contacts, profileIncomplete: result.status === 'profile_incomplete' })
@@ -37,17 +32,21 @@ Page({
     }
   },
 
-  openContact(event) {
+  async openContact(event) {
+    if (this.data.openingContactId) return
     const id = String(event.currentTarget.dataset.id || '')
     const contact = this.data.contacts.find((item) => item.id === id)
-    if (!contact || !safeUrl(contact.targetRef)) {
+    if (!isEnterpriseWechatContact(contact)) {
       wx.showToast({ title: '该服务入口已失效，请刷新后重试', icon: 'none' })
       return
     }
-    this.setData({ selectedUrl: contact.targetRef, selectedTitle: contact.title })
-  },
-
-  closeWebView() {
-    this.setData({ selectedUrl: '', selectedTitle: '' })
+    this.setData({ openingContactId: id })
+    try {
+      await openCustomerServiceChat(contact)
+    } catch (error) {
+      wx.showToast({ title: customerServiceErrorMessage(error), icon: 'none' })
+    } finally {
+      this.setData({ openingContactId: '' })
+    }
   }
 })

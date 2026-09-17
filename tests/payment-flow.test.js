@@ -10,6 +10,7 @@ global.wx = {
     return key === 'zion_runtime_token' ? 'test-runtime-token' : ''
   },
   request(options) {
+    if (require('./helpers/verified-phone-session')(options)) return
     requests.push(options)
     if (String(options.data && options.data.query).includes(config.ACTION_FLOWS.CREATE_WECHAT_PAYMENT_TEST_ORDER.id)) {
       options.success({

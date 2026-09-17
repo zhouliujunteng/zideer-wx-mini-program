@@ -1,0 +1,3 @@
+<view wx:if="{{visible}}" class="dev-reset-fab-wrap">
+  <button class="dev-reset-fab" bindtap="handleTap" aria-label="重置开发测试账号">重置测试账号</button>
+</view>

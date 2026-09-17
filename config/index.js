@@ -1,13 +1,10 @@
 const PROJECT_ID = "ZJ2x09KOnm9";
 // OpenMAIC 的 HTTPS 课程站点。发布前需在微信公众平台同时配置 request 合法域名和业务域名。
 const COURSE_PORTAL_ORIGIN = "https://sike.yuandianzhixv.cn";
-// 临时直连课程页：后端课程启动桥接恢复前，不携带学生、课程或验收凭证。
-const PUBLIC_COURSE_PAGE_PATH = "/course";
 
 module.exports = {
   PROJECT_ID,
   COURSE_PORTAL_ORIGIN,
-  PUBLIC_COURSE_PAGE_PATH,
   GRAPHQL_URL: `https://zion-app.functorz.com/zero/${PROJECT_ID}/api/graphql-v2`,
   ZAI: {
     PROMOTION_POSTER_BACKGROUND: {
@@ -16,8 +13,16 @@ module.exports = {
     },
   },
   ACTION_FLOWS: {
+    K12_ASSESSMENT: { id: "c6800492-75b8-663d-7fac-4e6a27355d46" },
+    GET_CURRENT_MEMBERSHIP: { id: "036a0142-82fa-b154-7edb-a85c3aba6d19" },
+    CREATE_MEMBERSHIP_ORDER: { id: "a5ceaa32-d9cd-4cd0-d589-8d23032d3fbb" },
+    GET_PHONE_LOGIN_STATE: { id: "c1319aac-5d2c-4872-8ad4-7358254a93fc" },
+    BIND_WECHAT_PHONE: { id: "2cd366b9-322c-4b18-b73a-031aca9ee77c" },
     INITIALIZE_CURRENT_USER: {
       id: "d16370dd-e77f-46aa-960d-f57379c1d000",
+    },
+    RESET_DEVELOPMENT_ACCOUNT: {
+      id: "2849f6c0-520f-edff-e4dc-176919ba296b",
     },
     GET_CURRENT_LEARNING_PROFILE: {
       id: "5d417aed-1f56-c527-fe3b-971f5eb944fe",
@@ -26,37 +31,13 @@ module.exports = {
       id: "8b6ead87-086f-4e11-ba74-1bc6852267b2",
     },
     GET_CURRENT_STUDENT_KNOWLEDGE_MAP: {
-      id: "9f9d63ff-b309-46ab-ac9c-2caa537da966",
+      id: "083459d7-d341-7f99-7b17-2b4b92902862",
+    },
+    GET_CURRENT_K12_TOPIC_DETAIL: {
+      id: "bbf9c1d4-1665-52d6-94a1-18b5bdaa93ba",
     },
     GET_CURRENT_ASSESSMENT_CENTER: {
       id: "cd1e3f0c-c18f-45f5-ad00-8bc44650f545",
-    },
-    START_OR_RESUME_BASIC_ASSESSMENT: {
-      id: "ef66afbf-c495-452d-a2ee-4707bd7dd698",
-    },
-    SAVE_CURRENT_ASSESSMENT_ANSWER: {
-      id: "17c0afae-08c6-464e-8387-811f4cf3171d",
-    },
-    SUBMIT_CURRENT_BASIC_ASSESSMENT: {
-      id: "b8fae4ae-ca1f-4c48-869e-d3a4c5a49c1e",
-    },
-    GET_CURRENT_ASSESSMENT_SCORES: {
-      id: "8fb56733-205d-4045-a0c7-df47a0ceac6b",
-    },
-    SAVE_CURRENT_ASSESSMENT_SCORE: {
-      id: "dec6aa1c-393d-46a2-964f-ae069ef1fc4d",
-    },
-    SAVE_CURRENT_ASSESSMENT_EXAM_FILES: {
-      id: "3b24f3a3-43dd-2964-5092-3c9f3dceb19f",
-    },
-    SAVE_CURRENT_ASSESSMENT_OCR_REVIEW: {
-      id: "847c79c2-2052-cd1c-feae-935374900fed",
-    },
-    GET_CURRENT_DEEP_ASSESSMENT_ENTITLEMENTS: {
-      id: "56f06178-9781-3816-4ade-086d18c48fe8",
-    },
-    START_OR_RESUME_DEEP_ASSESSMENT: {
-      id: "640b4689-6eac-af8b-c2f9-e5a1e14e0f06",
     },
     GET_CURRENT_DIAGNOSTIC_REPORTS: {
       id: "a80f8138-65f5-febd-5737-4be865060f20",
@@ -71,13 +52,13 @@ module.exports = {
       id: "6ff52f1d-697a-4325-803d-0bb85750ab25",
     },
     GET_CURRENT_LEARNING_PLAN_CANDIDATES: {
-      id: "a4efbefb-37fa-544d-5d49-ba973d0b6bd0",
+      id: "7071bdd1-dcfd-7957-947a-79c058e4127a",
     },
     ADD_CURRENT_LEARNING_PLAN_CANDIDATE: {
-      id: "d2a1289d-0c2a-2723-ebe8-fcc9f9357344",
+      id: "20eea747-192b-bfaf-a5cf-f92b584a64f9",
     },
     REMOVE_CURRENT_LEARNING_PLAN_CANDIDATE: {
-      id: "a9ca3eb5-add7-8dae-240e-110e096f4932",
+      id: "04943d6f-e91b-53c5-8f06-1a94f5df7143",
     },
     CREATE_CURRENT_FEYNMAN_ACCEPTANCE: {
       id: "eb73db81-30f5-47db-8055-ced3d721dc88",
@@ -159,9 +140,6 @@ module.exports = {
     },
     CREATE_WECHAT_PAYMENT_TEST_ORDER: {
       id: "edbb6241-d54e-4419-9cbd-d57873ea1870",
-    },
-    GIFT_CURRENT_PROMOTER_CLIENT_DEEP_ASSESSMENT: {
-      id: "b10125b3-c638-4675-a708-ad9214c8270b",
     },
     CREATE_CURRENT_PROMOTER_INVITATION: {
       id: "ee9c57e9-908b-4e41-bfb5-eebc4236b51f",

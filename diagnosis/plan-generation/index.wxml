@@ -26,7 +26,7 @@
       <text class="section-title">优先学科</text>
       <text class="plan-subjects__hint">不选择时，将从当前年级全部可用学科中生成。</text>
       <view class="plan-subjects__chips">
-        <button class="plan-subjects__chip pressable {{selectedSubjects.indexOf(item.key) >= 0 ? 'plan-subjects__chip--selected' : ''}}" wx:for="{{subjects}}" wx:key="key" data-key="{{item.key}}" bindtap="toggleSubject">{{item.name}}</button>
+        <button class="plan-subjects__chip pressable {{item.selected ? 'plan-subjects__chip--selected' : ''}}" wx:for="{{subjects}}" wx:key="key" data-key="{{item.key}}" bindtap="toggleSubject">{{item.name}}</button>
       </view>
     </view>
 
@@ -39,3 +39,4 @@
     <button class="plan-generation__submit pressable" wx:if="{{!submitting}}" bindtap="submit">生成学习计划</button>
   </view>
 </view>
+<dev-reset-fab />

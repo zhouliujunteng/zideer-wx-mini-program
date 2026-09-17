@@ -1,0 +1,169 @@
+<view class="membership-page">
+  <view class="membership-topbar {{topbarSolid ? 'is-solid' : ''}}">
+    <view class="membership-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="membership-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="membership-back-icon"></view></view>
+      <text class="membership-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">会员中心</text>
+    </view>
+  </view>
+
+  <scroll-view class="membership-scroll" scroll-y bounces="{{true}}" enhanced="{{true}}" refresher-enabled="{{false}}" refresher-triggered="{{false}}" refresher-default-style="none" show-scrollbar="{{false}}" bindscroll="handleScroll">
+  <view class="membership-content" style="padding-top: {{contentTop}}px;">
+    <view class="membership-ambient" aria-hidden="true">
+      <view class="ambient-glow ambient-glow-one"></view>
+      <view class="ambient-glow ambient-glow-two"></view>
+      <view class="ambient-ribbon"></view>
+    </view>
+    <view class="membership-hero">
+      <view class="member-profile">
+        <view class="member-avatar">
+          <image wx:if="{{profile.avatarSrc}}" class="member-avatar-image" src="{{profile.avatarSrc}}" mode="aspectFill"></image>
+          <text wx:else class="member-avatar-initial">{{profile.initial}}</text>
+        </view>
+        <view class="member-copy">
+          <view class="member-name-row">
+            <text class="member-name">{{profile.name}}</text>
+            <text wx:if="{{member.active}}" class="vip-mark">VIP</text>
+          </view>
+          <view wx:if="{{loading}}" class="member-status-row member-status-muted">正在读取会员信息</view>
+          <view wx:elif="{{error}}" class="member-status-row member-status-muted">会员状态待确认</view>
+          <view wx:elif="{{member.active}}" class="member-status-row">
+            <text>{{member.tierLabel}}</text>
+            <text class="member-status-divider">|</text>
+            <text>{{member.validityText}}</text>
+          </view>
+          <view wx:elif="{{confirming}}" class="member-status-row member-status-muted">正在确认原订单，请勿重复付款</view>
+          <view wx:elif="{{membership.status === 'expired'}}" class="member-status-row member-status-muted">测试会员已于 {{expiresText}} 到期</view>
+          <view wx:else class="member-status-row member-status-muted">{{member.tierLabel}} · {{statusLabel}}</view>
+        </view>
+        <view class="hero-vip-art" aria-hidden="true">
+          <view class="hero-art-orbit orbit-one"></view>
+          <view class="hero-art-orbit orbit-two"></view>
+          <image class="hero-vip-crown" src="/assets/me/membership-crown-matte.png" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+
+    <view class="membership-panel">
+      <view wx:if="{{loading}}" class="membership-state">正在读取会员信息…</view>
+      <view wx:elif="{{error}}" class="membership-state">
+        <text class="membership-error">{{error}}</text>
+        <view class="membership-state-action" bindtap="refresh" aria-role="button">重新查询</view>
+      </view>
+
+      <block wx:else>
+        <view wx:if="{{member.active}}" class="active-summary">
+          <view class="active-summary-copy">
+            <text class="active-summary-label">当前等级</text>
+            <text class="active-summary-tier">{{member.tierLabel}}</text>
+          </view>
+          <view class="active-summary-side">
+            <text class="active-summary-remaining">{{member.permanent ? member.validityText : member.remainingText}}</text>
+            <text wx:if="{{member.giftCreditsText}}" class="active-summary-date">{{member.giftCreditsText}}</text>
+            <text wx:elif="{{!member.permanent}}" class="active-summary-date">{{member.validityText}}</text>
+          </view>
+        </view>
+
+        <block wx:if="{{showPlan}}">
+          <scroll-view class="plans-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+            <view class="plans-row">
+              <view wx:for="{{plans}}" wx:key="id" class="plan-card-shell" data-id="{{item.id}}" bindtap="selectTier" aria-role="radio" aria-checked="{{item.isSelected}}" aria-label="{{item.name}} {{item.price}} 元，{{item.note}}">
+                <view class="plan-promotion {{item.isSelected ? 'plan-promotion-selected' : ''}} {{planPressingId === item.id ? 'plan-promotion-pressing' : ''}}">
+                  <view class="plan-card {{item.isSelected ? 'plan-card-selected' : ''}}">
+                    <view wx:if="{{item.isSelected}}" class="plan-crown-crop" aria-hidden="true"><image class="plan-crown-icon" src="/commerce/assets/membership/plan-crown.svg" mode="aspectFit"></image></view>
+                    <text class="plan-name">{{item.name}}</text>
+                    <view class="plan-price-row"><text class="plan-yuan">¥</text><text class="plan-price">{{item.price}}</text></view>
+                  </view>
+                  <view class="plan-promotion-copy">{{item.note}}</view>
+                </view>
+              </view>
+            </view>
+          </scroll-view>
+          <text class="plans-note">会员永久有效，各等级权益相同，赠送积分永久有效；开通后不能更换等级，可购买积分包补充积分。</text>
+        </block>
+        <view wx:elif="{{!member.active && !confirming}}" class="membership-notice">会员等级暂未开放，请稍后再来看看。</view>
+
+        <view wx:if="{{notice}}" class="membership-notice">{{notice}}</view>
+
+        <view wx:if="{{primaryLabel}}" class="membership-action">
+          <button class="primary-button {{primaryAction ? '' : 'is-disabled'}}" bindtap="handlePrimaryAction" loading="{{paying}}" disabled="{{paying || !primaryAction}}">{{primaryLabel}}</button>
+          <view wx:if="{{primaryAction === 'purchase'}}" class="agreement-row">
+            <view class="agreement-checkbox {{agreementChecked ? 'agreement-checkbox-checked' : ''}}" bindtap="toggleAgreement" aria-role="checkbox" aria-checked="{{agreementChecked}}"><text wx:if="{{agreementChecked}}">✓</text></view>
+            <text class="agreement-copy" bindtap="toggleAgreement">点击付款即表示已阅读</text>
+            <text class="agreement-link" bindtap="openAgreement">《会员服务说明》</text>
+          </view>
+        </view>
+
+        <view class="benefits-heading">
+          <view class="benefits-heading-line"></view>
+          <text>我的会员权益</text>
+          <view class="benefits-heading-line benefits-heading-line-right"></view>
+        </view>
+
+        <view class="benefits-grid">
+          <view class="benefit-card benefit-card-wide">
+            <view class="benefit-copy">
+              <text class="benefit-title">会员课程库</text>
+              <text class="benefit-subtitle">平台已上架课程</text>
+              <text class="benefit-state {{member.active ? 'is-active' : ''}}">{{member.libraryLabel}}</text>
+            </view>
+            <image class="benefit-art" src="/commerce/assets/membership/benefit-learning-view.svg" mode="aspectFit" aria-hidden="true"></image>
+          </view>
+          <view class="benefit-card benefit-card-wide benefit-card-plan">
+            <view class="benefit-copy">
+              <text class="benefit-title">课程积分</text>
+              <text class="benefit-subtitle">开通赠送，永久有效，用于生成专属课程</text>
+              <text class="benefit-state {{member.giftCreditsText ? 'is-active' : ''}}">{{member.giftCreditsText || '按等级赠送'}}</text>
+            </view>
+            <image class="benefit-art" src="/commerce/assets/membership/benefit-learning-plan.svg" mode="aspectFit" aria-hidden="true"></image>
+          </view>
+          <view class="benefit-card benefit-card-wide benefit-card-link" bindtap="openProducts" aria-role="button" aria-label="购买积分包">
+            <view class="benefit-copy">
+              <text class="benefit-title">积分包</text>
+              <text class="benefit-subtitle">积分不够时随时补充，会员购买享会员价</text>
+              <text class="benefit-state {{member.active ? 'is-active' : ''}}">{{member.active ? '去购买 ›' : '开通会员享会员价'}}</text>
+            </view>
+            <image class="benefit-art" src="/commerce/assets/membership/benefit-learning-view.svg" mode="aspectFit" aria-hidden="true"></image>
+          </view>
+        </view>
+
+        <view wx:if="{{membership.order}}" class="membership-card membership-order">
+          <view class="membership-card-heading"><text class="membership-card-title">最近会员订单</text><view class="membership-text-button" bindtap="openOrder" aria-role="button">订单详情 ›</view></view>
+          <view class="membership-row"><text>订单号</text><text selectable>{{membership.order.orderNo}}</text></view>
+          <view class="membership-row"><text>订单状态</text><text>{{membership.order.statusLabel}}</text></view>
+          <view class="membership-row"><text>金额</text><text>¥{{membership.order.amount}}</text></view>
+          <view wx:if="{{paidText}}" class="membership-row"><text>开通时间</text><text>{{paidText}}</text></view>
+          <view wx:if="{{membership.order.paymentReference}}" class="membership-row"><text>支付流水</text><text selectable>{{membership.order.paymentReference}}</text></view>
+        </view>
+      </block>
+
+      <view class="membership-card membership-support">
+        <view class="membership-support-row" bindtap="refresh" aria-role="button"><image src="/assets/icons/refresh.svg" mode="aspectFit" /><text>重新查询状态</text><text class="membership-arrow">›</text></view>
+        <view class="membership-support-row" bindtap="openOrders" aria-role="button"><image src="/assets/me/quick-orders.svg" mode="aspectFit" /><text>全部订单</text><text class="membership-arrow">›</text></view>
+        <view class="membership-support-row" bindtap="openService" aria-role="button"><image src="/assets/icons/headphones.svg" mode="aspectFit" /><text>联系服务人员</text><text class="membership-arrow">›</text></view>
+      </view>
+
+      <text class="membership-footnote">会员资格与权益以服务端确认结果为准</text>
+    </view>
+  </view>
+  </scroll-view>
+
+  <view wx:if="{{agreementSheetVisible}}" class="agreement-sheet-layer {{agreementSheetClosing ? 'is-closing' : ''}}" bindtap="closeAgreement">
+    <view class="agreement-sheet" catchtap="stopTap" aria-modal="true">
+      <view class="agreement-sheet-handle" aria-hidden="true"></view>
+      <view class="agreement-sheet-header">
+        <text class="agreement-sheet-title">会员服务说明</text>
+        <view class="agreement-sheet-close" bindtap="closeAgreement" aria-role="button" aria-label="关闭会员服务说明">×</view>
+      </view>
+      <scroll-view class="agreement-sheet-scroll" scroll-y>
+        <text class="agreement-sheet-intro">开通前请确认以下内容。</text>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>支付成功并经服务端确认后即成为会员，永久有效，可访问会员课程库。各会员等级权益相同，只是价格和赠送积分不同。</text></view>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>开通时按所选等级一次性赠送课程积分，赠送积分永久有效，用于生成专属课程。</text></view>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>开通后不能更换或升级等级；积分不够时可购买积分包，会员享会员价。</text></view>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>如办理退款，会员身份将取消，并扣回赠送积分中尚未使用的部分。</text></view>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>支付后会员状态需要短暂确认。如已扣款但仍显示未开通，请勿重复支付，可重新查询或联系服务人员。</text></view>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>会员权益仅限当前账号使用。</text></view>
+      </scroll-view>
+    </view>
+  </view>
+</view>
+<dev-reset-fab />

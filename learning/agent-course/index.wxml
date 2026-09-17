@@ -1,0 +1,57 @@
+<view class="agent-course-page">
+  <view class="agent-course-skeleton" wx:if="{{loading}}"></view>
+
+  <view class="state-panel" wx:elif="{{errorMessage && !course}}">
+    <view class="state-panel__mark">!</view>
+    <text class="state-panel__title">课程进度暂时无法读取</text>
+    <text class="state-panel__copy">{{errorMessage}}</text>
+    <button class="primary-action pressable" bindtap="reload">重新读取</button>
+    <button class="secondary-action pressable" bindtap="openMyCourses">去「我的课程」看看</button>
+  </view>
+
+  <block wx:elif="{{course}}">
+    <view class="agent-course-head">
+      <text class="agent-course-eyebrow">AI 定制课程</text>
+      <text class="agent-course-title">{{course.title}}</text>
+    </view>
+
+    <view class="agent-course-progress agent-course-progress--{{course.status}}">
+      <view class="agent-course-ring" style="background: conic-gradient({{course.status === 'failed' ? '#D6574B' : '#FD7C02'}} {{course.percent}}%, rgba(253, 124, 2, 0.14) 0);">
+        <view class="agent-course-ring__inner">
+          <text class="agent-course-ring__value">{{course.percent}}<text class="agent-course-ring__unit">%</text></text>
+        </view>
+      </view>
+      <view class="agent-course-progress__copy">
+        <view class="agent-course-status">
+          <view class="agent-course-status__dot {{course.isGenerating ? 'is-live' : ''}}"></view>
+          <text>{{course.statusLabel}}</text>
+        </view>
+        <text class="agent-course-summary">{{course.summary}}</text>
+        <text class="agent-course-note" wx:if="{{course.isGenerating}}">离开这个页面不会中断生成，也可以在「学习 › 我的课程」里查看进度。</text>
+      </view>
+    </view>
+
+    <view class="agent-course-pages">
+      <view wx:for="{{course.pages}}" wx:key="order" class="agent-course-page-row is-{{item.status}}">
+        <view class="agent-course-page-row__index">{{item.order}}</view>
+        <view class="agent-course-page-row__body">
+          <text class="agent-course-page-row__title">{{item.title}}</text>
+          <text class="agent-course-page-row__type">{{item.typeLabel}}</text>
+        </view>
+        <view class="agent-course-page-row__state">
+          <view wx:if="{{item.status === 'generating'}}" class="agent-course-spinner"></view>
+          <text>{{item.statusLabel}}</text>
+        </view>
+      </view>
+    </view>
+
+    <text class="agent-course-stale" wx:if="{{errorMessage}}">{{errorMessage}}</text>
+
+    <view class="agent-course-actions">
+      <button class="primary-action pressable" wx:if="{{course.canLearn}}" bindtap="startLearning">开始学习</button>
+      <button class="primary-action primary-action--disabled" wx:elif="{{course.isGenerating}}" disabled="true">生成完成后即可学习</button>
+      <button class="secondary-action pressable" bindtap="openMyCourses">查看我的课程</button>
+    </view>
+  </block>
+</view>
+<dev-reset-fab />

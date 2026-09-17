@@ -18,6 +18,7 @@ global.wx = {
   reLaunch() {},
   switchTab() {},
   request(options) {
+    if (require('./helpers/verified-phone-session')(options)) return
     const id = flowId(options.data && options.data.query)
     let result = null
     if (id === config.ACTION_FLOWS.INITIALIZE_CURRENT_USER.id) result = 1201

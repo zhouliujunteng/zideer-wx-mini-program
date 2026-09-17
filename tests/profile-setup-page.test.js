@@ -15,6 +15,7 @@ global.wx = {
   showToast(options) { toasts.push(options) },
   reLaunch() {},
   request(options) {
+    if (require('./helpers/verified-phone-session')(options)) return
     const match = String(options.data && options.data.query).match(/actionFlowId:\s*"([^"]+)"/)
     const id = match && match[1]
     calls.push(id)
@@ -60,4 +61,23 @@ test('profile setup blocks saving until its current profile has loaded', async (
   assert.equal(calls.filter((id) => id === config.ACTION_FLOWS.SAVE_CURRENT_LEARNING_PROFILE.id).length, 0)
   assert.equal(calls.filter((id) => id === config.ACTION_FLOWS.INITIALIZE_CURRENT_USER.id).length, 2)
   assert.equal(toasts.length, 2)
+})
+
+test('profile setup ignores save and avatar selection while loading or saving', async () => {
+  const page = createInstance()
+  calls.length=0
+  await definition.saveProfile.call(page)
+  definition.chooseAvatar.call(page,{detail:{avatarUrl:'wxfile://tmp/new.png'}})
+  assert.equal(calls.length,0)
+  assert.equal(page.data.form.avatarPath,'')
+  page.data.loading=false
+  definition.chooseAvatar.call(page,{detail:{avatarUrl:'wxfile://tmp/new.png'}})
+  assert.equal(page.data.form.avatarPath,'wxfile://tmp/new.png')
+  definition.chooseAvatar.call(page,{detail:{}})
+  assert.equal(page.data.form.avatarPath,'wxfile://tmp/new.png')
+  page.data.saving=true
+  definition.chooseAvatar.call(page,{detail:{avatarUrl:'wxfile://tmp/other.png'}})
+  await definition.saveProfile.call(page)
+  assert.equal(calls.length,0)
+  assert.equal(page.data.form.avatarPath,'wxfile://tmp/new.png')
 })

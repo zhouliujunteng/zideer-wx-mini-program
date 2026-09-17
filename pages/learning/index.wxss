@@ -62,7 +62,7 @@ page {
   box-sizing: border-box;
   border: 3rpx solid #FAFAFA;
   border-radius: 999rpx;
-  background: #FD7C02;
+  background: #FD5A5F;
   color: #fff;
   font-size: 17rpx;
   line-height: 21rpx;
@@ -126,19 +126,11 @@ page {
 
 .calendar-days-slot {
   box-sizing: border-box;
-  height: 154rpx;
   margin-top: 30rpx;
   margin-right: -36rpx;
   margin-left: -36rpx;
-  padding: 0 36rpx;
+  padding: 14rpx 36rpx 16rpx;
   border-bottom: 1rpx solid #e7ebe7;
-}
-
-.calendar-days {
-  display: flex;
-  padding: 8rpx 0 4rpx;
-  box-sizing: border-box;
-  background: #FAFAFA;
 }
 
 .calendar-overlay {
@@ -146,8 +138,7 @@ page {
   left: 0;
   right: 0;
   z-index: 19;
-  display: flex;
-  padding: 8rpx 36rpx 4rpx;
+  padding: 14rpx 36rpx 16rpx;
   box-sizing: border-box;
   border-bottom: 1rpx solid #e7ebe7;
   background: #FAFAFA;
@@ -164,70 +155,97 @@ page {
   transition-delay: 0s;
 }
 
-.calendar-day {
-  position: relative;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-  height: 142rpx;
-}
-
-.calendar-weekday {
-  display: block;
-  color: #888f8a;
-  font-size: 22rpx;
-  font-weight: 500;
-  line-height: 1.2;
+.study-date-strip {
+  width: 100%;
   white-space: nowrap;
 }
 
-.calendar-date {
+.study-date-list {
+  display: inline-flex;
+  min-width: 100%;
+  height: 121rpx;
+  padding: 0 6rpx;
+  box-sizing: border-box;
+  gap: 14rpx;
+}
+
+.study-date {
+  position: relative;
+  display: flex;
+  flex: 0 0 112rpx;
+  flex-direction: column;
+  align-items: center;
+}
+
+.study-date-tile {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 62rpx;
-  height: 62rpx;
-  margin-top: 16rpx;
-  border-radius: 50%;
-  color: #202521;
-  font-size: 30rpx;
-  font-weight: 500;
-  line-height: 1;
+  flex-direction: column;
+  width: 104rpx;
+  height: 104rpx;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 20rpx;
+  background: #fff;
+  color: #252b27;
 }
 
-.calendar-date-selected {
+.study-date-value,
+.study-date-label {
+  display: block;
+}
+
+.study-date-value {
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.study-date-label {
+  margin-top: 8rpx;
+  color: #a2a8a3;
+  font-size: 20rpx;
+  line-height: 1.2;
+}
+
+.study-date-has-task .study-date-label {
+  color: #68716a;
+}
+
+.study-date-selected {
+  border: 1rpx solid #FD7C02;
   background: rgba(253, 124, 2, 0.10);
+}
+
+.study-date-selected .study-date-value {
   color: #252b27;
 }
 
-.calendar-date-today {
-  color: #FD7C02;
+.study-date-selected .study-date-label {
+  color: #969d97;
 }
 
-.calendar-date-selected.calendar-date-today {
+/* 无任务日期不表达可执行状态，日期数字与辅助标签统一弱化。 */
+.study-date:not(.study-date-has-task) .study-date-value {
+  color: #b1b8b2;
+}
+
+.study-date:not(.study-date-has-task) .study-date-selected .study-date-value {
   color: #252b27;
 }
 
-.calendar-date-no-task,
-.calendar-date-selected.calendar-date-no-task {
-  color: #aeb5af;
-}
-
-.calendar-date-selected.calendar-date-no-task {
-  color: #252b27;
-}
-
-.calendar-task-dot {
+.study-date-task-dot {
   position: absolute;
-  top: 110rpx;
+  z-index: 1;
+  top: 88rpx;
   left: 50%;
   width: 8rpx;
   height: 8rpx;
-  margin-left: -4rpx;
+  margin: 0;
   border-radius: 50%;
   background: #FD7C02;
+  transform: translateX(-50%);
 }
 
 .study-tasks-section {
@@ -245,13 +263,32 @@ page {
 }
 
 .study-task-list-card,
-.todo-list-card {
+.todo-list-card,
+.my-courses-section {
   margin-top: 20rpx;
   padding: 20rpx 30rpx;
   box-sizing: border-box;
   border-radius: 36rpx;
   background: #fff;
 }
+
+.my-courses-heading { align-items: center; }
+.my-courses-library-link { margin-left: auto; color: #7d8580; font-size: 23rpx; }
+.my-courses-search { box-sizing: border-box; width: 100%; height: 72rpx; margin-top: 18rpx; padding: 0 24rpx; border: 1rpx solid #e1e6e2; border-radius: 18rpx; background: #fafcfb; color: #24332d; font-size: 25rpx; }
+.my-courses-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18rpx; margin-top: 18rpx; }
+.my-course-card { overflow: hidden; min-width: 0; border-radius: 22rpx; background: #fff; box-shadow: 0 8rpx 24rpx rgba(36, 51, 45, .05); }
+.my-course-cover { display: flex; align-items: center; justify-content: center; height: 150rpx; }
+.my-course-cover-mint { background: #dcefe8; color: #267348; }
+.my-course-cover-peach { background: #f8e1d5; color: #b55d3d; }
+.my-course-cover-lilac { background: #e5e1f4; color: #6f62a6; }
+.my-course-cover-image { width: 100%; height: 100%; }
+.my-course-cover-mark { font-size: 34rpx; font-weight: 700; letter-spacing: 4rpx; }
+.my-course-copy { padding: 18rpx 18rpx 20rpx; }
+.my-course-title { display: block; overflow: hidden; color: #24332d; font-size: 27rpx; font-weight: 700; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+.my-course-meta { display: block; overflow: hidden; margin-top: 8rpx; color: #7d8580; font-size: 22rpx; text-overflow: ellipsis; white-space: nowrap; }
+.my-course-footer { display: flex; justify-content: space-between; gap: 8rpx; margin-top: 16rpx; color: #fd7c02; font-size: 21rpx; }
+.my-course-footer text:last-child { color: #8a938d; }
+.my-courses-empty { display: block; margin-top: 20rpx; padding: 44rpx 20rpx; border-radius: 22rpx; background: #fff; color: #8a938d; font-size: 24rpx; text-align: center; }
 
 .study-task-list-shell.study-task-list-leaving,
 .study-task-list-shell.study-task-list-enter-prep {
@@ -590,3 +627,9 @@ page {
   font-weight: 700;
   line-height: 1;
 }
+.my-course-state { display: flex; align-items: center; min-width: 0; }
+.my-course-footer .my-course-state .my-course-state-label { color: #fd7c02; }
+.my-course-live-dot { flex: 0 0 auto; width: 10rpx; height: 10rpx; margin-right: 8rpx; border-radius: 50%; background: #fd7c02; animation: my-course-live 1.4s ease-in-out infinite; }
+.my-course-progress-track { height: 6rpx; margin-top: 12rpx; overflow: hidden; border-radius: 999rpx; background: rgba(253, 124, 2, 0.14); }
+.my-course-progress-bar { height: 100%; border-radius: 999rpx; background: #fd7c02; transition: width 0.4s ease; }
+@keyframes my-course-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }

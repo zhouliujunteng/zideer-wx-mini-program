@@ -28,12 +28,15 @@ Page({
     selectedStudyDayIndex: 0,
     calendarPinned: false,
     calendarPinThreshold: 0,
+    calendarScrollAnchor: 'study-day-0',
     showTodayOverview: true,
     numberRollVersion: 0,
     numberRollClass: 'overview-digit-settled',
     taskListVersion: 0,
     taskListClass: 'study-task-list-settled',
-    taskListHeight: LEARNING_TASK_LIST_ROW_HEIGHT
+    taskListHeight: LEARNING_TASK_LIST_ROW_HEIGHT,
+    courseSearch: '',
+    visibleMyCourses: []
   },
 
   onLoad() {
@@ -89,21 +92,58 @@ Page({
   },
 
   async onShow() {
+    this._visible = true
     const app = getApp()
     if (app && app.markTabVisible) app.markTabVisible('pages/learning/index')
     if (!this.data.model.calendarTitle) {
       const model = getLearningModel(new Date(), this.data.selectedStudyDayIndex)
       this.setData({ model, taskListHeight: getLearningTaskListHeight(model) })
     }
+    await this.refreshLearning()
+  },
+
+  async refreshLearning(silent = false) {
+    this.stopProgressPolling()
+    const version = this._dateLoadVersion = (this._dateLoadVersion || 0) + 1
     try {
       const live = await getLiveLearningModel(this.data.selectedStudyDayIndex)
-      this.setData({ model: live.model, dashboard: live.dashboard, taskListHeight: getLearningTaskListHeight(live.model) })
+      if (!this._visible || version !== this._dateLoadVersion) return
+      this.setData({
+        model: live.model,
+        dashboard: live.dashboard,
+        visibleMyCourses: this.filterMyCourses(live.model.myCourses, this.data.courseSearch),
+        taskListHeight: getLearningTaskListHeight(live.model)
+      })
     } catch (error) {
-      wx.showToast({ title: error.message || '学习数据加载失败', icon: 'none' })
+      if (this._visible && version === this._dateLoadVersion && !silent) wx.showToast({ title: error.message || '学习数据加载失败', icon: 'none' })
+    } finally {
+      if (version === this._dateLoadVersion) this.scheduleProgressPolling()
     }
   },
 
+  stopProgressPolling() {
+    if (this._progressTimer) clearTimeout(this._progressTimer)
+    this._progressTimer = null
+  },
+
+  scheduleProgressPolling() {
+    this.stopProgressPolling()
+    const tasks = this.data.dashboard && this.data.dashboard.tasks || []
+    const agentGenerating = Boolean(this.data.model && this.data.model.hasGeneratingAgentCourse)
+    if (this._visible && (agentGenerating || tasks.some(task => task.canPoll))) this._progressTimer = setTimeout(() => this.refreshLearning(true), 5000)
+  },
+
+  async onPullDownRefresh() {
+    await this.refreshLearning()
+    wx.stopPullDownRefresh()
+  },
+
+  onUnload() { this.onHide() },
+
   onHide() {
+    this._visible = false
+    this._dateLoadVersion = (this._dateLoadVersion || 0) + 1
+    this.stopProgressPolling()
     if (this._taskListSwapTimer) {
       clearTimeout(this._taskListSwapTimer)
       this._taskListSwapTimer = null
@@ -128,6 +168,35 @@ Page({
     wx.navigateTo({ url: '/pages/messages/index' })
   },
 
+  openLibrary() {
+    wx.navigateTo({ url: '/learning/library/index' })
+  },
+  filterMyCourses(courses = this.data.model.myCourses || [], search = this.data.courseSearch) {
+    const needle = String(search || '').trim().toLowerCase()
+    return courses.filter((course) => !needle || `${course.title} ${course.meta}`.toLowerCase().includes(needle))
+  },
+  searchMyCourses(event) {
+    const courseSearch = String(event.detail && event.detail.value || '')
+    this.setData({ courseSearch, visibleMyCourses: this.filterMyCourses(this.data.model.myCourses, courseSearch) })
+  },
+  openMyCourse(event) {
+    const dataset = event.currentTarget.dataset || {}
+    if (dataset.kind === 'agent') {
+      const course = (this.data.model.myCourses || []).find((item) => item.id === dataset.id)
+      if (!course || !/^stage-[A-Za-z0-9_-]{1,64}$/.test(course.stageId)) return
+      // 已生成的课程直接进入学习；生成中或失败的课程打开进度页。
+      wx.navigateTo({ url: course.canLearn
+        ? `/learning/course/index?agentCourseId=${encodeURIComponent(course.stageId)}`
+        : `/learning/agent-course/index?stageId=${encodeURIComponent(course.stageId)}` })
+      return
+    }
+    const courseInstanceId = String(dataset.id || '')
+    if (!/^[1-9][0-9]*$/.test(courseInstanceId)) return
+    wx.navigateTo({ url: `/learning/course/index?courseInstanceId=${encodeURIComponent(courseInstanceId)}` })
+  },
+  openPlans() { wx.navigateTo({ url: '/diagnosis/plans/index' }) },
+  createPlan() { wx.navigateTo({ url: '/diagnosis/plan-generation/index' }) },
+
   openTask(e) {
     const planItemId = String(e.currentTarget.dataset.id || '')
     if (!planItemId) return
@@ -144,6 +213,7 @@ Page({
   },
 
   async selectStudyDay(selectedStudyDayIndex) {
+    this.stopProgressPolling()
     const previousStudyDayIndex = this.data.selectedStudyDayIndex
     const requestVersion = (this._dateLoadVersion || 0) + 1
     this._dateLoadVersion = requestVersion
@@ -154,6 +224,7 @@ Page({
       live = await getLiveLearningModel(selectedStudyDayIndex)
     } catch (error) {
       if (requestVersion === this._dateLoadVersion) wx.showToast({ title: error.message || '学习任务加载失败', icon: 'none' })
+      this.scheduleProgressPolling()
       return
     }
     if (requestVersion !== this._dateLoadVersion) return
@@ -169,6 +240,7 @@ Page({
     this.setData({
       selectedStudyDayIndex,
       showTodayOverview: selectedStudyDayIndex === 0,
+      calendarScrollAnchor: `study-day-${selectedStudyDayIndex}`,
       numberRollVersion,
       numberRollClass: numberRollVersion % 2 ? 'overview-digit-roll-a' : 'overview-digit-roll-b',
       taskListVersion,
@@ -191,6 +263,7 @@ Page({
         this.setData({ taskListClass: 'study-task-list-enter' })
       }, TASK_LIST_ENTER_FRAME)
     }, TASK_LIST_SWAP_DURATION)
+    this.scheduleProgressPolling()
   },
 
   handleStudyDateSelect(e) {

@@ -9,7 +9,8 @@
       <view class="feed-state surface"><text class="feed-state__label">当前状态</text><text class="feed-state__value">{{current.stateLabel}}</text><text class="feed-state__meta">{{current.stateUpdated}} · 当前进度 {{current.progressText}}</text></view>
       <view class="feed-section"><text class="feed-section__title">有效学习时长</text><view class="feed-metrics"><view class="feed-metric surface"><text>今日</text><text>{{current.todayDuration}}</text></view><view class="feed-metric surface"><text>本周</text><text>{{current.weekDuration}}</text></view><view class="feed-metric surface"><text>累计</text><text>{{current.totalDuration}}</text></view></view></view>
       <view class="feed-empty surface" wx:if="{{!current.hasLearningData}}"><text class="feed-empty__title">还没有学习记录</text><text class="feed-empty__copy">课程开始、学习中、待验收和老师核验等粗粒度事件进入服务端后，会显示在这里。</text></view>
-      <button class="feed-report surface pressable" bindtap="openReports"><view><text class="feed-report__title">知识点学习报告</text><text class="feed-report__copy">查看学习摘要、AI 候选评价和老师核验结果</text></view><text class="feed-report__arrow">›</text></button>
+      <button class="feed-report surface pressable" bindtap="openReports"><view><text class="feed-report__title">知识点学习报告</text><text class="feed-report__copy">查看学习摘要、智能初评和老师核验结果</text></view><text class="feed-report__arrow">›</text></button>
     </block>
   </block>
 </view>
+<dev-reset-fab />

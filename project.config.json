@@ -1,7 +1,14 @@
 {
   "description": "知鹿私课本地开发配置",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "tests" },
+      { "type": "folder", "value": "scripts" },
+      { "type": "folder", "value": "integrations" },
+      { "type": "folder", "value": ".qa" },
+      { "type": "folder", "value": ".zion-mcp" },
+      { "type": "folder", "value": ".zion" }
+    ],
     "include": []
   },
   "setting": {

@@ -7,3 +7,4 @@
     <view class="request-card surface" wx:else><view class="field"><text class="field-label">联系方式</text><input class="field-input" value="{{form.contact}}" placeholder="手机号或微信号" bindinput="updateContact" /></view><view class="field"><text class="field-label">所在地区</text><input class="field-input" value="{{form.region}}" placeholder="例如：广东深圳" bindinput="updateRegion" /></view><view class="field"><text class="field-label">方便联系时间</text><input class="field-input" value="{{form.availableTime}}" placeholder="例如：工作日 19:00 后" bindinput="updateAvailableTime" /></view><button class="request-primary pressable" loading="{{submitting}}" bindtap="submit">提交申请</button></view>
   </block>
 </view>
+<dev-reset-fab />

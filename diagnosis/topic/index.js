@@ -1,9 +1,10 @@
 const {
   addCurrentTopicCandidate,
   loadCurrentTopicCandidates,
-  loadKnowledgeMap,
+  loadKnowledgeTopic,
   removeCurrentTopicCandidate
 } = require('../../services/identity')
+const assessment = require('../../services/assessment')
 
 Page({
   data: {
@@ -29,16 +30,24 @@ Page({
   async loadTopic(topicId, subjectKey) {
     this.setData({ loading: true, failed: false })
     try {
-      const map = await loadKnowledgeMap(subjectKey)
-      const topic = (map.nodes || []).find((item) => String(item.id) === String(topicId))
-      if (!topic) throw new Error('当前年级和学科中未找到该知识点。')
+      const topic = await loadKnowledgeTopic(topicId)
       this.topicId = String(topic.id)
       this.setData({ topic })
+      try {
+        const detail = await assessment.call('topic', { topicId:Number(topic.id) })
+        const states = (detail.states || []).map(s => ({ ...s, stateLabel: assessment.masteryLabel(s), rateLabel: s.n ? `${s.c}/${s.n}` : '待测', dateLabel: s.occurredAt ? String(s.occurredAt).slice(0, 10) : '' }))
+        this.setData({ assessmentStatus: states.length ? states[0].stateLabel : '待测', states, assessmentError: false })
+      } catch (_) { this.setData({ assessmentError: true }) }
       await this.loadCandidateState()
     } catch (error) {
       this.setData({ failed: true })
       wx.showToast({ title: error.message || '知识点加载失败', icon: 'none' })
     } finally { this.setData({ loading: false }) }
+  },
+
+  openRelatedTopic(event) {
+    const id = event.currentTarget.dataset.id
+    if (id) wx.redirectTo({ url: `/diagnosis/topic/index?topicId=${encodeURIComponent(id)}` })
   },
 
   async loadCandidateState() {

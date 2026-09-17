@@ -1,68 +1,64 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
+const fs = require('node:fs')
+const path = require('node:path')
+const vm = require('node:vm')
 
-const identity = require('../services/identity')
-const basicPath = require.resolve('../assessment/basic/index.js')
-const analysisPath = require.resolve('../assessment/analysis/index.js')
-
-function clone(value) {
-  return JSON.parse(JSON.stringify(value))
+function fixture(call) {
+  let definition
+  const navigations = []
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../assessment/short/index.js'), 'utf8'), {
+    Page(page) { definition = page },
+    require() { return { call, reportView: value => value } },
+    wx: {
+      getSystemInfoSync() { return { windowWidth: 375, windowHeight: 667, statusBarHeight: 20 } },
+      showModal() {},
+      navigateTo(options) { navigations.push(options) },
+      switchTab(options) { navigations.push(options) },
+      setInterval() { return 1 },
+      clearInterval() {}
+    }
+  })
+  const instance = {
+    data: JSON.parse(JSON.stringify(definition.data)),
+    setData(values) { Object.assign(this.data, values) },
+    stopTimer: definition.stopTimer,
+    startTimer: definition.startTimer,
+    showAttempt: definition.showAttempt,
+    loadPage: definition.loadPage
+  }
+  definition.onLoad.call(instance, {})
+  instance.visible = true
+  return { definition, instance, navigations }
 }
 
-test('completed basic assessment opens analysis instead of optional score entry', async () => {
-  const originalSubmit = identity.submitCurrentBasicAssessment
-  identity.submitCurrentBasicAssessment = async () => ({ status: 'completed' })
-  delete require.cache[basicPath]
+test('short assessment starts, saves answers, and renders the submitted report', async () => {
+  const answers = []
+  const { definition, instance } = fixture(async (operation, payload) => {
+    if (operation === 'start') return { attempt: { id: '51', revision: 0, status: 'draft', answeredCount: 0, totalQuestions: 1, current: { id: 'q1', prompt: '题目', options: [{ value: 'A', label: '选项 A' }] } } }
+    if (operation === 'answer') {
+      answers.push(payload)
+      return { attempt: { id: '51', revision: 1, status: 'submitted', answeredCount: 1, totalQuestions: 1, current: null, report: { scope: { name: '数学摸底' }, answeredCount: 1, topics: [], totalScore: 100, scoreBand: '扎实' } } }
+    }
+    throw new Error(`unexpected operation: ${operation}`)
+  })
 
-  let definition = null
-  const redirects = []
-  global.Page = (page) => { definition = page }
-  global.wx = {
-    showModal(options) { options.success() },
-    redirectTo(options) { redirects.push(options) },
-    showToast() {}
-  }
-  require(basicPath)
-  identity.submitCurrentBasicAssessment = originalSubmit
+  await definition.start.call(instance, { currentTarget: { dataset: { id: '8' } } })
+  instance.setData({ answer: 'A' })
+  await definition.next.call(instance, { currentTarget: { dataset: {} } })
 
-  const instance = {
-    data: { ...clone(definition.data), attempt: { id: '51' } },
-    setData(values) { Object.assign(this.data, values) }
-  }
-  await definition.submitAssessment.call(instance)
-
-  assert.deepEqual(redirects, [{ url: '/assessment/analysis/index?attemptId=51' }])
+  assert.equal(answers.length, 1)
+  assert.equal(answers[0].attemptId, '51')
+  assert.equal(answers[0].revision, 0)
+  assert.equal(answers[0].questionId, 'q1')
+  assert.equal(answers[0].answer, 'A')
+  assert.equal(instance.data.report.totalScore, 100)
 })
 
-test('completed analysis exposes its report and optional evidence entry', async () => {
-  const originalCenter = identity.loadAssessmentCenter
-  identity.loadAssessmentCenter = async () => ({
-    attempts: [{ id: '51', status: 'completed', statusLabel: '诊断已完成', subjectName: '数学', templateTitle: '基础测评' }]
-  })
-  delete require.cache[analysisPath]
-
-  let definition = null
-  const navigations = []
-  const redirects = []
-  global.Page = (page) => { definition = page }
-  global.wx = {
-    navigateTo(options) { navigations.push(options) },
-    redirectTo(options) { redirects.push(options) },
-    showToast() {}
-  }
-  require(analysisPath)
-  identity.loadAssessmentCenter = originalCenter
-
-  const instance = {
-    data: { ...clone(definition.data), attemptId: '51' },
-    setData(values) { Object.assign(this.data, values) }
-  }
-  await definition.loadStatus.call(instance)
-  definition.goHistory.call(instance)
-  definition.openSupplement.call(instance)
-
-  assert.equal(instance.data.analysisReady, true)
-  assert.equal(instance.data.canViewReport, true)
-  assert.deepEqual(redirects, [{ url: '/diagnosis/report/index' }])
-  assert.deepEqual(navigations, [{ url: '/assessment/recent-score/index?attemptId=51' }])
+test('completed short assessment returns to its list without using deleted legacy pages', () => {
+  const { definition, instance, navigations } = fixture(async () => {})
+  instance.setData({ report: { scope: { name: '数学摸底' } }, attempt: { id: '51' } })
+  definition.backToList.call(instance)
+  assert.equal(navigations.length, 0)
+  assert.equal(instance.data.attempt, null)
 })

@@ -1,0 +1,33 @@
+page {
+  background: #fa7804;
+  height: 100%;
+  overflow: hidden;
+}
+
+.splash {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fa7804;
+}
+
+.splash-bg {
+  width: 39%;
+  height: 39%;
+  animation: splash-in 480ms ease-out both;
+}
+
+@keyframes splash-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

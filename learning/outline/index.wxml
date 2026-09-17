@@ -1,0 +1,44 @@
+<view class="outline-page">
+  <view class="state-panel" wx:if="{{loading}}"><text class="state-panel__title">正在读取课程大纲</text></view>
+  <view class="state-panel" wx:elif="{{failed}}"><text class="state-panel__title">暂时无法读取大纲</text><text class="state-panel__copy">{{errorMessage}}</text><button class="primary-action" bindtap="loadPage">重新读取</button></view>
+  <view class="state-panel" wx:elif="{{stopped}}"><text class="state-panel__title">本次生成已停止</text><text class="state-panel__copy">请返回课程进度页查看积分释放状态。</text><button class="primary-action" bindtap="goBack">查看课程进度</button></view>
+  <view class="state-panel" wx:elif="{{completed}}"><text class="state-panel__title">大纲已确认</text><text class="state-panel__copy">课程正在根据你确认的大纲与模式生成。离开此页不会中断。</text><button class="primary-action" bindtap="goBack">查看课程进度</button></view>
+  <block wx:elif="{{draft}}">
+    <text class="eyebrow">01 编辑大纲 · 02 选择模式 · 03 生成课程</text>
+    <text class="heading">让这堂课更适合你</text>
+    <text class="hint">修改每章内容和顺序，确认后开始生成完整课程。</text>
+    <view class="surface chapter"><text class="label">课程标题</text><input value="{{draft.title}}" maxlength="200" bindinput="updateTitle" disabled="{{saving}}" placeholder="填写课程标题" /></view>
+    <view class="surface chapter" wx:for="{{draft.outlines}}" wx:key="id">
+      <view class="chapter-head"><text>第 {{index + 1}} 章 · {{item.typeLabel}}</text><view class="chapter-tools"><button data-id="{{item.id}}" data-direction="-1" bindtap="moveChapter" disabled="{{saving || index === 0}}" aria-label="上移章节">↑</button><button data-id="{{item.id}}" data-direction="1" bindtap="moveChapter" disabled="{{saving || index === draft.outlines.length - 1}}" aria-label="下移章节">↓</button><button data-id="{{item.id}}" bindtap="removeChapter" disabled="{{saving || draft.outlines.length === 1}}">删除</button></view></view>
+      <input value="{{item.title}}" data-id="{{item.id}}" data-field="title" bindinput="updateChapter" maxlength="200" disabled="{{saving}}" placeholder="章节标题" />
+      <text class="label">章节类型</text>
+      <picker range="{{typeNames}}" value="{{item.typeIndex}}" data-id="{{item.id}}" bindchange="changeType" disabled="{{saving}}"><view class="config-choice">{{item.typeLabel}}　⌄</view></picker>
+      <text class="label">内容说明</text><textarea value="{{item.description}}" data-id="{{item.id}}" data-field="description" bindinput="updateChapter" maxlength="8000" auto-height disabled="{{saving}}" placeholder="这章希望学习什么？" />
+      <text class="label">知识要点（每行一条）</text><textarea value="{{item.keyPointsText}}" data-id="{{item.id}}" data-field="keyPointsText" bindinput="updateChapter" maxlength="12000" auto-height disabled="{{saving}}" placeholder="填写知识要点" />
+      <view class="chapter-config" wx:if="{{item.type === 'quiz'}}">
+        <text class="label">题目数量（1–10）</text><input type="number" value="{{item.questionCount}}" data-id="{{item.id}}" data-field="questionCount" bindblur="updateConfig" disabled="{{saving}}" />
+        <text class="label">难度</text><picker range="{{difficultyNames}}" value="{{item.difficultyIndex}}" data-id="{{item.id}}" data-field="difficulty" bindchange="updateConfig" disabled="{{saving}}"><view class="config-choice">{{difficultyNames[item.difficultyIndex]}}　⌄</view></picker>
+        <text class="label">题型（至少选择一项）</text><checkbox-group data-id="{{item.id}}" data-field="questionTypes" bindchange="updateConfig"><label class="question-option" wx:for="{{item.questionOptions}}" wx:for-item="option" wx:key="value"><checkbox value="{{option.value}}" checked="{{option.checked}}" disabled="{{saving}}" />{{option.label}}</label></checkbox-group>
+      </view>
+      <view class="chapter-config" wx:if="{{item.type === 'interactive'}}">
+        <text class="label">互动形式</text><picker range="{{item.widgetNames}}" value="{{item.widgetIndex}}" data-id="{{item.id}}" data-field="widgetType" bindchange="updateConfig" disabled="{{saving}}"><view class="config-choice">{{item.widgetNames[item.widgetIndex]}}　⌄</view></picker>
+        <text class="label">互动主题</text><textarea value="{{item.concept}}" data-id="{{item.id}}" data-field="concept" bindinput="updateConfig" maxlength="8000" auto-height disabled="{{saving}}" />
+      </view>
+      <view class="chapter-config" wx:if="{{item.type === 'pbl'}}">
+        <text class="label">项目主题</text><input value="{{item.pblConfig.projectTopic}}" data-id="{{item.id}}" data-field="projectTopic" bindinput="updateConfig" maxlength="200" disabled="{{saving}}" />
+        <text class="label">项目说明</text><textarea value="{{item.pblConfig.projectDescription}}" data-id="{{item.id}}" data-field="projectDescription" bindinput="updateConfig" maxlength="8000" auto-height disabled="{{saving}}" />
+        <text class="label">目标技能（每行一项）</text><textarea value="{{item.targetSkillsText}}" data-id="{{item.id}}" data-field="targetSkills" bindinput="updateConfig" maxlength="12000" auto-height disabled="{{saving}}" />
+        <view class="config-switch"><text>情景角色扮演</text><switch checked="{{item.pblConfig.scenarioRoleplay}}" data-id="{{item.id}}" data-field="scenarioRoleplay" bindchange="updateConfig" disabled="{{saving}}" /></view>
+        <block wx:if="{{item.pblConfig.scenarioRoleplay}}"><text class="label">情景描述</text><textarea value="{{item.pblConfig.scenarioBrief}}" data-id="{{item.id}}" data-field="scenarioBrief" bindinput="updateConfig" maxlength="8000" auto-height disabled="{{saving}}" /></block>
+      </view>
+    </view>
+    <button class="secondary-action" bindtap="addChapter" disabled="{{saving || draft.outlines.length >= 50}}">＋ 添加讲解章节</button>
+    <text class="section-title">选择生成模式</text>
+    <button class="mode {{draft.mode === 'ppt' ? 'mode--selected' : ''}}" data-mode="ppt" bindtap="selectMode" disabled="{{saving}}"><text>PPT 模式</text><text class="hint">把大纲生成可翻页阅读的课件，不生成老师语音。</text></button>
+    <button class="mode {{draft.mode === 'course' ? 'mode--selected' : ''}}" data-mode="course" bindtap="selectMode" disabled="{{saving}}"><text>课程模式</text><text class="hint">生成 AI 讲解课程，互动内容单独进入。</text></button>
+    <text class="error" wx:if="{{errorMessage}}">{{errorMessage}}</text>
+    <view class="actions"><button class="secondary-action" bindtap="saveDraft" loading="{{saving}}" disabled="{{saving}}">保存大纲</button><button class="primary-action" bindtap="confirmGeneration" loading="{{saving}}" disabled="{{saving}}">确认大纲并生成</button></view>
+    <button class="cancel" bindtap="cancelGeneration" disabled="{{saving}}">取消本次生成</button>
+  </block>
+</view>
+<dev-reset-fab />

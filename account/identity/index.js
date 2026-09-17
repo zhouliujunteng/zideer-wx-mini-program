@@ -57,10 +57,28 @@ Page({
     legalName: '',
     idCardNumber: '',
     submitting: false,
-    submissionResult: null
+    submissionResult: null,
+    submissionError: ''
   },
 
-  onShow() { this.loadPage() },
+  onShow() {
+    this._visible = true
+    this._epoch = (this._epoch || 0) + 1
+    this.setData({ submitting: !!this._submission })
+    this.loadPage()
+  },
+
+  onHide() {
+    this.setData({ legalName: '', idCardNumber: '' })
+    this._visible = false
+    this._epoch = (this._epoch || 0) + 1
+  },
+
+  onUnload() { this._visible = false; this._epoch = (this._epoch || 0) + 1 },
+
+  isCurrent(epoch, session) {
+    return this._visible && this._epoch === epoch && wx.getStorageSync('zion_runtime_token') === session
+  },
 
   async onPullDownRefresh() {
     await this.loadPage()
@@ -68,15 +86,21 @@ Page({
   },
 
   async loadPage() {
-    this.setData({ loading: true, failed: false })
+    const epoch = this._epoch
+    const session = wx.getStorageSync('zion_runtime_token')
+    const requestId = this._loadId = (this._loadId || 0) + 1
+    const current = () => this.isCurrent(epoch, session) && requestId === this._loadId
+    this.setData({ loading: !this.data.identity, failed: false })
     try {
-      this.setData({ identity: buildPageData(await loadCurrentIdentityVerification()) })
+      const result = await loadCurrentIdentityVerification()
+      if (current()) this.setData({ identity: buildPageData(result) })
     } catch (error) {
+      if (!current()) return
       if (isAuthenticationRequired(error)) return
       this.setData({ failed: true })
       wx.showToast({ title: error.message || '实名认证状态加载失败', icon: 'none' })
     } finally {
-      this.setData({ loading: false })
+      if (current()) this.setData({ loading: false })
     }
   },
 
@@ -93,13 +117,17 @@ Page({
   },
 
   async submitVerification() {
-    if (this.data.submitting) return
-    this.setData({ submitting: true, submissionResult: null })
+    if (this._submission || this.data.submitting) return
+    const epoch = this._epoch
+    const session = wx.getStorageSync('zion_runtime_token')
+    this._submission = true
+    this.setData({ submitting: true, submissionResult: null, submissionError: '' })
     try {
       const result = await submitCurrentGuardianIdentityVerification({
         name: this.data.legalName,
         idCardNumber: this.data.idCardNumber
       })
+      if (!this.isCurrent(epoch, session)) return
       this.setData({
         legalName: '',
         idCardNumber: '',
@@ -108,9 +136,17 @@ Page({
       wx.showToast({ title: result.message, icon: 'success' })
       await this.loadPage()
     } catch (error) {
-      wx.showToast({ title: error.message || '实名认证提交失败', icon: 'none' })
+      if (!this.isCurrent(epoch, session)) return
+      const message = error.message || '实名认证提交失败，请稍后重新查询状态'
+      this.setData({ submissionError: message })
+      wx.showToast({ title: message, icon: 'none' })
     } finally {
-      this.setData({ submitting: false })
+      this._submission = false
+      if (this._visible && wx.getStorageSync('zion_runtime_token') === session) {
+        this.setData({ submitting: false })
+        // A returning page needs the authoritative result of the old request.
+        if (this._epoch !== epoch) this.loadPage()
+      }
     }
   }
 })

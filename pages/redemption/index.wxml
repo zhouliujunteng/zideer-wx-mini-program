@@ -1,0 +1,96 @@
+<view class="redemption-page">
+  <view class="redemption-topbar">
+    <view class="redemption-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="redemption-back" bindtap="handleBack" aria-label="返回上一页"><view class="redemption-back-icon"></view></view>
+      <text class="redemption-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{model.title}}</text>
+      <view class="redemption-topbar-placeholder"></view>
+    </view>
+  </view>
+
+  <scroll-view class="redemption-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+    <view class="redemption-shell">
+      <view class="redemption-hero">
+        <view class="redemption-hero-copy">
+          <text class="redemption-hero-title">{{model.heroTitle}}</text>
+          <text class="redemption-hero-subtitle">{{model.heroSubtitle}}</text>
+        </view>
+        <image class="redemption-hero-image" src="{{model.heroIcon}}" mode="aspectFit" aria-label="兑换权益插画"></image>
+      </view>
+      <view class="redemption-entry">
+        <view class="redemption-code-row">
+          <input class="redemption-code-input" value="{{model.inputValue}}" maxlength="32" placeholder="{{model.inputPlaceholder}}" placeholder-class="redemption-code-placeholder" confirm-type="done" bindinput="handleInput" bindconfirm="handleRedeem" />
+          <view class="redemption-scan-button" bindtap="handleScanCode" aria-role="button" aria-label="扫码输入兑换码">
+            <image class="redemption-scan-icon" src="/assets/redemption/scan.svg" mode="aspectFit" aria-hidden="true"></image>
+          </view>
+        </view>
+        <button class="redemption-submit" bindtap="handleRedeem">{{model.buttonLabel}}</button>
+        <view wx:if="{{model.feedback}}" class="redemption-feedback">
+          <view class="redemption-feedback-dot"></view>
+          <text>{{model.feedback}}</text>
+        </view>
+      </view>
+
+      <view class="redemption-notice-trigger" bindtap="openNotice" aria-role="button" aria-label="查看兑换说明">
+        <text>{{model.noticeTitle}}</text>
+        <view class="redemption-notice-trigger-arrow"></view>
+      </view>
+
+      <view class="redemption-history-section">
+        <view class="redemption-section-heading">
+          <view class="redemption-heading-copy">
+            <text class="redemption-section-title">{{model.historyTitle}}</text>
+            <text class="redemption-section-count">{{model.historyCountLabel}}</text>
+          </view>
+          <view class="redemption-history-link" aria-role="button"><text>{{model.historyActionLabel}}</text><view class="redemption-history-link-arrow"></view></view>
+        </view>
+        <view wx:if="{{model.history.length}}" class="redemption-history-list">
+          <view wx:for="{{model.history}}" wx:key="id" class="redemption-history-item">
+            <view class="redemption-history-main">
+              <text class="redemption-history-title">{{item.title}}</text>
+              <text class="redemption-history-description">{{item.description}}</text>
+              <view class="redemption-history-meta">
+                <text>{{item.maskedCode}}</text>
+                <text class="redemption-history-time">{{item.time}}</text>
+              </view>
+            </view>
+            <view class="redemption-history-result"><view class="redemption-history-result-arrow"></view></view>
+          </view>
+        </view>
+        <view wx:else class="redemption-history-empty">暂无兑换记录</view>
+      </view>
+
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{noticeSheetVisible}}" class="redemption-sheet-layer {{noticeSheetClosing ? 'is-closing' : ''}}" catchtap="closeNotice">
+    <view class="redemption-notice-sheet" catchtap="stopTap">
+      <view class="redemption-sheet-handle"></view>
+      <view class="redemption-sheet-header">
+        <text class="redemption-sheet-title">{{model.noticeTitle}}</text>
+        <view class="redemption-sheet-close" bindtap="closeNotice">×</view>
+      </view>
+      <scroll-view class="redemption-sheet-scroll" scroll-y>
+        <text class="redemption-sheet-intro">{{model.noticeIntro}}</text>
+        <view wx:for="{{model.noticeItems}}" wx:key="*this" class="redemption-sheet-row">
+          <view class="redemption-sheet-dot"></view>
+          <text>{{item}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view wx:if="{{resultSheetVisible}}" class="redemption-result-sheet-layer {{resultSheetClosing ? 'is-closing' : ''}}" catchtap="closeResultSheet">
+    <view class="redemption-result-sheet" catchtap="stopTap">
+      <view class="redemption-result-sheet-handle"></view>
+      <view class="redemption-result-content">
+        <view class="redemption-result-mark"><text class="redemption-result-emoji">{{resultState.icon}}</text></view>
+        <text class="redemption-result-title">{{resultState.title}}</text>
+        <text class="redemption-result-subtitle">{{resultState.subtitle}}</text>
+      </view>
+      <view class="redemption-result-actionbar">
+        <button class="redemption-result-button" bindtap="closeResultSheet">我知道</button>
+      </view>
+    </view>
+  </view>
+</view>
+<dev-reset-fab />

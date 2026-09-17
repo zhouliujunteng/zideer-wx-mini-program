@@ -65,7 +65,7 @@ Page({
       wx.showToast({ title: '请先选择一个学科', icon: 'none' })
       return
     }
-    wx.navigateTo({ url: `/assessment/context/index?subjectKey=${encodeURIComponent(subjectKey)}` })
+    wx.navigateTo({ url: `/assessment/short/index?subjectKey=${encodeURIComponent(subjectKey)}` })
   },
 
   selectNode(event) {

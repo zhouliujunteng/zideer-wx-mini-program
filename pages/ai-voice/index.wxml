@@ -1,0 +1,221 @@
+<view class="voice-page {{subtitleEnabled ? 'is-subtitle-on' : 'is-subtitle-off'}}">
+  <view class="voice-background" aria-hidden="true">
+    <view class="voice-background-glow glow-pink"></view>
+    <view class="voice-background-glow glow-blue"></view>
+    <view class="voice-background-glow glow-lilac"></view>
+    <view class="voice-background-grain"></view>
+  </view>
+
+  <view class="voice-header" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;" aria-hidden="{{debugSheetVisible}}">
+    <view
+      class="subtitle-toggle {{subtitleEnabled ? 'is-active' : ''}}"
+      style="height: {{menuButtonHeight}}px;"
+      bindtap="toggleSubtitles"
+      aria-role="button"
+      aria-label="{{subtitleEnabled ? model.header.subtitleOnLabel : model.header.subtitleOffLabel}}，当前{{subtitleEnabled ? '已开启' : '已关闭'}}"
+    >
+      <view class="subtitle-icon" aria-hidden="true">
+        <text class="subtitle-icon-letter">字</text>
+        <view wx:if="{{subtitleEnabled}}" class="subtitle-icon-check"></view>
+      </view>
+      <text class="subtitle-toggle-label">字幕</text>
+    </view>
+  </view>
+
+  <view
+    class="more-button"
+    style="top: {{menuButtonTop}}px; right: {{moreButtonRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;"
+    bindtap="openDebugSheet"
+    aria-hidden="{{debugSheetVisible}}"
+    role="button"
+    aria-role="button"
+    aria-label="{{model.header.moreLabel}}"
+  >
+    <view class="more-dot"></view>
+    <view class="more-dot"></view>
+    <view class="more-dot"></view>
+  </view>
+
+  <view class="voice-stage" style="top: {{contentTop}}px; bottom: {{156 + safeAreaBottom}}px;" aria-hidden="{{debugSheetVisible}}">
+    <view class="transcript-region {{subtitlesExpanded ? 'is-expanded' : 'is-collapsed'}}" style="{{transcriptStyle}}" aria-hidden="{{!subtitleEnabled}}">
+      <view
+        class="transcript-expand"
+        catchtap="toggleTranscriptExpansion"
+        role="button"
+        aria-role="button"
+        aria-label="{{subtitlesExpanded ? model.transcript.collapseLabel : model.transcript.expandLabel}}，当前{{subtitlesExpanded ? '已展开' : '已收起'}}"
+      >
+        <view class="transcript-expand-chevron {{subtitlesExpanded ? 'is-expanded' : ''}}" aria-hidden="true"></view>
+      </view>
+      <scroll-view
+        class="transcript-scroll"
+        scroll-y
+        enhanced
+        show-scrollbar="false"
+        scroll-top="{{transcriptScrollTop}}"
+      >
+        <view class="transcript-list">
+          <block wx:for="{{transcriptEntries}}" wx:key="id">
+            <view
+              wx:if="{{subtitlesExpanded || index >= compactTranscriptStartIndex}}"
+              class="transcript-message transcript-message-{{item.role}}"
+              aria-label="{{item.role === 'user' ? model.transcript.userLabel : model.transcript.assistantLabel}}：{{item.displayText}}"
+            >
+              <text class="transcript-copy" aria-hidden="true">{{item.displayText}}</text>
+            </view>
+          </block>
+          <view class="transcript-scroll-space"></view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="aura-region">
+      <view
+        class="aura-shell state-{{voiceState}}"
+        style="width: {{auraSize}}px; height: {{auraSize}}px;"
+        aria-label="AI 状态可视化装饰"
+      >
+        <view class="aura-halo" aria-hidden="true"></view>
+        <canvas
+          id="ai-voice-aura"
+          type="2d"
+          class="aura-canvas"
+          disable-scroll="true"
+          aria-hidden="true"
+        ></canvas>
+        <view class="aura-highlight" aria-hidden="true"></view>
+      </view>
+    </view>
+
+    <view class="voice-status" aria-label="{{currentState.label}}。{{currentStateDescription}}">
+      <view class="waveform" aria-label="{{model.waveform.accessibleLabel}}">
+        <view
+          wx:for="{{waveformBars}}"
+          wx:key="id"
+          class="waveform-bar {{recorderActive || voiceState === 'speaking' || voiceState === 'thinking' ? 'is-active' : ''}}"
+          style="height: {{item.height}}rpx; opacity: {{item.opacity}};"
+        ></view>
+      </view>
+      <view class="state-line">
+        <text wx:if="{{stateOriginLabel}}" class="state-origin-badge">{{stateOriginLabel}}</text>
+        <text class="state-label">{{currentState.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="voice-controls" style="bottom: {{20 + safeAreaBottom}}px;" aria-hidden="{{debugSheetVisible}}">
+    <view class="voice-control-item">
+      <view
+        class="voice-control microphone-control {{recorderActive ? 'is-recording' : ''}} {{voiceState === 'requesting-permission' ? 'is-pending' : ''}}"
+        bindtap="toggleMicrophone"
+        role="button"
+        aria-role="button"
+        aria-label="{{micAriaLabel}}，当前{{recorderActive ? '已开启' : '已关闭'}}"
+      >
+        <view class="microphone-icon" aria-hidden="true">
+          <image
+            class="microphone-icon-image"
+            src="../../assets/me/ai-voice-microphone.svg"
+            mode="aspectFit"
+          ></image>
+          <view wx:if="{{!recorderActive}}" class="microphone-slash"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="voice-control-item">
+      <view class="voice-control end-control" bindtap="endConversation" aria-role="button" aria-label="{{model.controls[1].label}}">
+        <view class="end-icon" aria-hidden="true">
+          <view class="end-icon-line end-icon-line-a"></view>
+          <view class="end-icon-line end-icon-line-b"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view
+    wx:if="{{debugSheetVisible}}"
+    class="debug-sheet-layer {{debugSheetClosing ? 'is-closing' : ''}}"
+    catchtap="closeDebugSheet"
+  >
+    <view
+      class="debug-sheet"
+      catchtap="stopTap"
+      aria-modal="true"
+      aria-label="{{model.debugPanel.title}}"
+    >
+      <view class="debug-sheet-handle" aria-hidden="true"></view>
+      <view class="debug-sheet-header">
+        <view class="debug-sheet-heading">
+          <text class="debug-sheet-title">{{model.debugPanel.title}}</text>
+          <text class="debug-sheet-subtitle">{{model.debugPanel.noticeTitle}}</text>
+        </view>
+        <view class="debug-sheet-close" bindtap="closeDebugSheet" aria-role="button" aria-label="{{model.debugPanel.closeLabel}}">
+          <view class="debug-sheet-close-line close-line-a"></view>
+          <view class="debug-sheet-close-line close-line-b"></view>
+        </view>
+      </view>
+
+      <scroll-view class="debug-sheet-scroll" scroll-y enhanced show-scrollbar="false">
+        <view class="debug-notice">
+          <view class="debug-notice-mark">i</view>
+          <view class="debug-notice-copy">
+            <text class="debug-notice-title">{{model.debugPanel.noticeTitle}}</text>
+            <text class="debug-notice-text">{{model.debugPanel.notice}}</text>
+            <text class="debug-privacy-text">{{model.privacy.shortLabel}} · {{model.privacy.temporaryFileNote}}</text>
+          </view>
+        </view>
+
+        <view class="debug-audio-status" aria-label="{{model.waveform.accessibleLabel}}：{{audioLevelModeLabel}}">
+          <view class="debug-audio-status-dot mode-{{audioLevelMode}}"></view>
+          <text>{{audioLevelModeLabel}}</text>
+        </view>
+
+        <view class="debug-section">
+          <text class="debug-section-title">{{model.debugPanel.presetTitle}}</text>
+          <text class="debug-section-hint">{{model.debugPanel.presetHint}}</text>
+          <view class="preset-list">
+            <view
+              wx:for="{{model.presets}}"
+              wx:key="id"
+              class="preset-card"
+              data-id="{{item.id}}"
+              bindtap="selectPreset"
+              role="button"
+              aria-role="button"
+              aria-label="预览对话：{{item.label}}"
+            >
+              <view class="preset-card-topline">
+                <text class="preset-card-label">{{item.label}}</text>
+                <text class="preset-card-action">预览</text>
+              </view>
+              <text class="preset-card-text">“{{item.userText}}”</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="debug-section debug-state-section">
+          <text class="debug-section-title">{{model.debugPanel.stateTitle}}</text>
+          <text class="debug-section-hint">{{model.debugPanel.stateHint}}</text>
+          <view class="debug-state-grid">
+            <view
+              wx:for="{{model.statePreviews}}"
+              wx:key="id"
+              class="debug-state-chip {{voiceState === item.id && stateOrigin === 'debug' ? 'is-selected' : ''}}"
+              data-state="{{item.id}}"
+              bindtap="selectDebugState"
+              role="button"
+              aria-role="button"
+              aria-label="演示状态：{{item.previewLabel}}{{voiceState === item.id && stateOrigin === 'debug' ? '，当前已选中' : ''}}"
+            >
+              <view class="debug-state-dot state-dot-{{item.id}}"></view>
+              <text>{{item.previewLabel}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="debug-sheet-safe-space"></view>
+      </scroll-view>
+    </view>
+  </view>
+</view>
+<dev-reset-fab />

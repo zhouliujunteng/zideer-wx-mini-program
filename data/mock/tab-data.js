@@ -200,16 +200,9 @@ const homeModels = {
       { id: 'activity-2', backgroundColor: '#AFCFC0' },
       { id: 'activity-3', backgroundColor: '#BCC5E8' }
     ],
-    moreCourses: [
-      { title: '小数乘法进阶', subtitle: '五年级数学 · 12 讲', price: '199' },
-      { title: '图形面积专项', subtitle: '五年级数学 · 8 讲', price: '159' },
-      { title: '分数应用题', subtitle: '五年级数学 · 10 讲', price: '179' },
-      { title: '方程思维训练', subtitle: '五年级数学 · 9 讲', price: '169' },
-      { title: '小数除法巩固', subtitle: '五年级数学 · 6 讲', price: '129' },
-      { title: '统计与可能性', subtitle: '五年级数学 · 7 讲', price: '139' },
-      { title: '几何图形复习', subtitle: '五年级数学 · 8 讲', price: '149' },
-      { title: '计算能力提升', subtitle: '五年级数学 · 10 讲', price: '189' }
-    ]
+    // 会员公共课程区由 live 数据按会员资格填充；演示数据不展示。
+    hasLibraryAccess: false,
+    moreCourses: []
   }
 }
 
@@ -491,8 +484,8 @@ const meModel = {
     id: 'ZL20260906001'
   },
   accountSummary: [
-    { value: '286', label: '课程积分', icon: '../../assets/me/course-points.svg', meta: '冻结 18', actionLabel: '充值' },
-    { value: '120', label: '我的金币', icon: '../../assets/me/coins.svg', actionLabel: '兑换' }
+    { value: '286', label: '课程积分', icon: '../../assets/me/course-points.png', meta: '冻结 18', actionLabel: '充值' },
+    { value: '120', label: '我的金币', icon: '../../assets/me/coins.png', actionLabel: '兑换' }
   ],
   quickActions: [
     { label: '我的订单', icon: '../../assets/me/quick-orders.svg' },
@@ -512,13 +505,286 @@ const meModel = {
       items: [
         { title: '推广伙伴', description: '分享工具与奖励记录' },
         { title: '身份与登录', description: '实名、微信和手机号身份' },
-        { title: '兑换码', description: '兑换课程积分、金币或体验权益' }
+        { title: '兑换码', description: '兑换课程积分、金币或体验权益' },
+        { title: '测评中心', description: '开始基础测评与查看测评记录' }
       ]
     }
   ]
 }
 
+const agentPromptRows = [
+  {
+    id: 'prompt-row-1',
+    direction: 'forward',
+    items: [
+      { id: 'prompt-start', label: '这道题我该从哪里开始？' },
+      { id: 'prompt-check', label: '帮我检查一下计算过程' },
+      { id: 'prompt-fraction', label: '分数和小数怎么比较？' },
+      { id: 'prompt-explain', label: '这个知识点能再讲一遍吗？' }
+    ]
+  },
+  {
+    id: 'prompt-row-2',
+    direction: 'reverse',
+    items: [
+      { id: 'prompt-plan', label: '怎么安排今天的学习任务？' },
+      { id: 'prompt-simple', label: '有没有更简单的解法？' },
+      { id: 'prompt-careless', label: '我总是粗心，怎么改？' },
+      { id: 'prompt-review', label: '帮我做一个复习计划' }
+    ]
+  },
+  {
+    id: 'prompt-row-3',
+    direction: 'forward',
+    items: [
+      { id: 'prompt-conditions', label: '这道应用题的关键条件是什么？' },
+      { id: 'prompt-formula', label: '怎么判断什么时候用公式？' },
+      { id: 'prompt-life', label: '能用生活例子解释吗？' },
+      { id: 'prompt-challenge', label: '我想挑战一道类似的题' }
+    ]
+  }
+].map((row) => ({
+  ...row,
+  // 两份内容使用不同 key，避免小程序节点复用导致循环重置时出现跳帧。
+  loopItems: row.items.concat(row.items.map((item) => ({
+    ...item,
+    id: `${item.id}-loop`,
+    sourceId: item.id,
+    isClone: true
+  })))
+}))
+
+const agentChatModel = {
+  header: {
+    title: '知鹿智能体',
+    backLabel: '返回上一页',
+    historyLabel: '查看历史对话',
+    newConversationLabel: '开启新对话'
+  },
+  welcome: {
+    eyebrow: '知鹿学习智能体',
+    title: '今天想一起解决什么学习问题？',
+    subtitle: '我可以陪你梳理任务、讲解知识点，也可以一起想想学习方法。',
+    demoLabel: 'Zion 调试项目 · 仅用于 AI 智能体对话调试'
+  },
+  contextSummary: {
+    title: '正在学习',
+    subtitle: '来自当前设备的学习摘要',
+    items: []
+  },
+  // 页面首次打开保持真正的新对话状态；胶囊问题只是一键提问示例，不代表个性化推荐。
+  suggestedPrompts: agentPromptRows.reduce((items, row) => items.concat(row.items), []),
+  suggestedPromptRows: agentPromptRows,
+  messages: [],
+  composer: {
+    placeholder: '来问问我～ 长按语音输入',
+    voiceLabel: '长按语音输入',
+    keyboardLabel: '切换到键盘输入',
+    speakLabel: '按住说话',
+    voiceActiveNote: '松手后录音将上传用于转成文字，识别后不保留录音',
+    permissionTitle: '需要麦克风权限',
+    permissionContent: '开启后可按住说话输入。录音仅上传用于转成文字，识别完成后不保留。',
+    permissionConfirmText: '去设置',
+    permissionCancelText: '暂不开启',
+    permissionDeniedLabel: '请先开启麦克风权限',
+    sendLabel: '发送',
+    maxLength: 200
+  },
+  states: {
+    empty: { id: 'empty', label: '新的对话' },
+    ready: { id: 'ready', label: '可以开始对话' },
+    sending: { id: 'sending', label: '正在发送…' },
+    answering: { id: 'answering', label: '正在生成 AI 调试回复…' },
+    completed: { id: 'completed', label: '可以继续追问' },
+    failed: { id: 'failed', label: '演示回复暂时失败' },
+    offline: { id: 'offline', label: '当前为离线演示' },
+    cleared: { id: 'cleared', label: '已清空本地演示会话' }
+  },
+  privacy: {
+    label: 'Zion 调试项目 · 不用于正式业务数据',
+    warningLabel: '内容由AI生成',
+    detail: '当前项目仅用于 AI 智能体对话调试；不接入支付、登录成功、老师核验或正式学习结论。'
+  },
+  history: {
+    title: '历史对话',
+    searchPlaceholder: '搜索对话内容',
+    emptyText: '还没有历史对话，发一句话开始吧',
+    conversations: [
+      {
+        id: 'mock-history-1',
+        conversationId: null,
+        isMock: true,
+        title: '分数应用题怎么拆解',
+        preview: '可以先找出总量、部分量和它们之间的关系…',
+        time: '10:24',
+        createdAt: '2026-09-15T10:24:00+08:00',
+        messages: [
+          {
+            id: 'mock-history-1-user',
+            role: 'user',
+            text: '分数应用题总是读不懂，应该先看什么？',
+            createdAt: '2026-09-15T10:23:00+08:00'
+          },
+          {
+            id: 'mock-history-1-assistant',
+            role: 'assistant',
+            text: '可以先找三个信息：**总量**、**部分量**，以及题目要求的量。\n\n再把“谁和谁比较”圈出来，通常就能判断应该用乘法还是除法。',
+            createdAt: '2026-09-15T10:24:00+08:00'
+          }
+        ]
+      },
+      {
+        id: 'mock-history-2',
+        conversationId: null,
+        isMock: true,
+        title: '怎么安排今天的学习任务',
+        preview: '先挑一个十分钟内能开始的小步骤…',
+        time: '16:40',
+        createdAt: '2026-09-14T16:40:00+08:00',
+        messages: [
+          {
+            id: 'mock-history-2-user',
+            role: 'user',
+            text: '今天有好几项作业，我应该怎么安排顺序？',
+            createdAt: '2026-09-14T16:39:00+08:00'
+          },
+          {
+            id: 'mock-history-2-assistant',
+            role: 'assistant',
+            text: '先按截止时间排，再从最容易开始的一项进入状态。\n\n今天可以先写下三项作业和预计用时，只选择下一步，不需要一次安排完整的一周。',
+            createdAt: '2026-09-14T16:40:00+08:00'
+          }
+        ]
+      },
+      {
+        id: 'mock-history-3',
+        conversationId: null,
+        isMock: true,
+        title: '小数乘法总是算错',
+        preview: '先暂时忽略小数点，算完整数再确定位数…',
+        time: '20:18',
+        createdAt: '2026-09-12T20:18:00+08:00',
+        messages: [
+          {
+            id: 'mock-history-3-user',
+            role: 'user',
+            text: '小数乘法经常算错，有什么检查方法？',
+            createdAt: '2026-09-12T20:17:00+08:00'
+          },
+          {
+            id: 'mock-history-3-assistant',
+            role: 'assistant',
+            text: '可以分两步检查：先暂时忽略小数点完成计算，再数两个因数一共有几位小数，最后把小数点放回去。\n\n估算一下结果大小，也能快速发现小数点是否放错。',
+            createdAt: '2026-09-12T20:18:00+08:00'
+          }
+        ]
+      },
+      {
+        id: 'mock-history-4',
+        conversationId: null,
+        isMock: true,
+        title: '长方形面积怎么求',
+        preview: '先确认长和宽，再用面积公式计算…',
+        time: '19:05',
+        createdAt: '2026-09-13T19:05:00+08:00',
+        messages: [
+          {
+            id: 'mock-history-4-user',
+            role: 'user',
+            text: '长方形的面积公式总是记混，应该怎么理解？',
+            createdAt: '2026-09-13T19:04:00+08:00'
+          },
+          {
+            id: 'mock-history-4-assistant',
+            role: 'assistant',
+            text: '可以把长方形想成一排一排的小正方形：每一排有“长”这么多个，一共有“宽”这么排，所以面积就是 **长 × 宽**。',
+            createdAt: '2026-09-13T19:05:00+08:00'
+          }
+        ]
+      },
+      {
+        id: 'mock-history-5',
+        conversationId: null,
+        isMock: true,
+        title: '英语单词总是记不住',
+        preview: '把单词放进短句里，结合间隔复习…',
+        time: '08:30',
+        createdAt: '2026-09-10T08:30:00+08:00',
+        messages: [
+          {
+            id: 'mock-history-5-user',
+            role: 'user',
+            text: '英语单词背了又忘，有没有更容易坚持的方法？',
+            createdAt: '2026-09-10T08:29:00+08:00'
+          },
+          {
+            id: 'mock-history-5-assistant',
+            role: 'assistant',
+            text: '可以试试“少量、多次、放进语境”：每天只选一小组单词，给每个词写一个短句，第二天和一周后再各复习一次。',
+            createdAt: '2026-09-10T08:30:00+08:00'
+          }
+        ]
+      },
+      {
+        id: 'mock-history-6',
+        conversationId: null,
+        isMock: true,
+        title: '怎么检查方程答案',
+        preview: '把求出的未知数代回原式进行检验…',
+        time: '21:12',
+        createdAt: '2026-09-08T21:12:00+08:00',
+        messages: [
+          {
+            id: 'mock-history-6-user',
+            role: 'user',
+            text: '解完方程以后，怎么知道答案是不是正确？',
+            createdAt: '2026-09-08T21:11:00+08:00'
+          },
+          {
+            id: 'mock-history-6-assistant',
+            role: 'assistant',
+            text: '把求出的未知数代回原方程左边和右边，分别计算结果。如果两边相等，说明这次解答通过了检验。',
+            createdAt: '2026-09-08T21:12:00+08:00'
+          }
+        ]
+      },
+      {
+        id: 'mock-history-7',
+        conversationId: null,
+        isMock: true,
+        title: '阅读理解如何找重点',
+        preview: '先看问题，再回到原文定位关键词…',
+        time: '15:28',
+        createdAt: '2026-09-05T15:28:00+08:00',
+        messages: [
+          {
+            id: 'mock-history-7-user',
+            role: 'user',
+            text: '做阅读理解时找不到重点，该从哪里开始？',
+            createdAt: '2026-09-05T15:27:00+08:00'
+          },
+          {
+            id: 'mock-history-7-assistant',
+            role: 'assistant',
+            text: '先读题目圈出关键词，再回到原文找对应段落。找到后不要只抄一句，结合前后文确认它回答了什么。',
+            createdAt: '2026-09-05T15:28:00+08:00'
+          }
+        ]
+      }
+    ]
+  },
+  // Zion 调试失败时只保留通用兜底，不放入可误认为真实学习建议的测试预设。
+  presets: [],
+  debugPanel: {
+    title: '对话说明',
+    clearLabel: '清空本地演示会话',
+    capabilityLabel: '能力边界'
+  }
+}
+
 module.exports = {
+  agentChatModel,
+  agentPromptRows,
   homeModels,
   homeStudyDayProfiles,
   overviewIconSources,

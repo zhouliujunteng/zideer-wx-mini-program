@@ -1,0 +1,114 @@
+<view class="profile-page">
+  <view class="profile-topbar">
+    <view class="profile-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="profile-back" bindtap="handleBack" aria-label="返回上一页"><view class="profile-back-icon"></view></view>
+      <text class="profile-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{model.title}}</text>
+      <view class="profile-topbar-placeholder"></view>
+    </view>
+  </view>
+
+  <scroll-view class="profile-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+    <view class="profile-shell">
+      <view class="profile-hero">
+        <view class="profile-avatar-wrap">
+          <button class="profile-avatar profile-avatar-trigger" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" aria-label="更换头像">
+            <image wx:if="{{model.avatarSrc}}" class="profile-avatar-image" src="{{model.avatarSrc}}" mode="aspectFill"></image>
+          </button>
+          <view class="profile-avatar-edit">
+            <button class="profile-avatar-edit-button" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" aria-label="更换头像"><image class="profile-avatar-change-icon" src="../../assets/me/profile-avatar-change.svg" mode="aspectFit"></image></button>
+          </view>
+        </view>
+      </view>
+
+      <view class="profile-card">
+        <view class="profile-name-item" bindtap="editName" aria-label="编辑姓名">
+          <text class="profile-name-label">姓名</text>
+          <view class="profile-row-value-wrap">
+            <text class="profile-row-value">{{model.name}}</text>
+            <view class="profile-chevron" aria-hidden="true"></view>
+          </view>
+        </view>
+        <block wx:for="{{model.rows}}" wx:key="id" wx:for-item="item">
+          <picker wx:if="{{item.action === 'region'}}" mode="region" level="city" value="{{regionPickerValue}}" bindchange="handleRegionChange">
+            <view class="profile-row {{index === model.rows.length - 1 ? 'is-last' : ''}}">
+              <text class="profile-row-label">{{item.label}}</text>
+              <view class="profile-row-value-wrap">
+                <text class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
+                <view class="profile-chevron" aria-hidden="true"></view>
+              </view>
+            </view>
+          </picker>
+          <picker wx:elif="{{item.action === 'birthday'}}" mode="date" value="{{birthdayPickerValue}}" bindchange="handleBirthdayChange">
+            <view class="profile-row {{index === model.rows.length - 1 ? 'is-last' : ''}}">
+              <text class="profile-row-label">{{item.label}}</text>
+              <view class="profile-row-value-wrap">
+                <text class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
+                <view class="profile-chevron" aria-hidden="true"></view>
+              </view>
+            </view>
+          </picker>
+          <view wx:else class="profile-row {{index === model.rows.length - 1 ? 'is-last' : ''}}" data-action="{{item.action}}" bindtap="handleRow">
+            <text class="profile-row-label">{{item.label}}</text>
+            <view class="profile-row-value-wrap">
+              <text class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
+              <view class="profile-chevron" aria-hidden="true"></view>
+            </view>
+          </view>
+        </block>
+      </view>
+
+      <view class="profile-note"><view class="profile-note-dot"></view><text>{{model.footerNote}}</text></view>
+    </view>
+  </scroll-view>
+  <view class="profile-actionbar">
+    <button class="profile-save-button" bindtap="handleSave">保存</button>
+  </view>
+
+  <view wx:if="{{textSheetVisible}}" class="profile-sheet-layer {{textSheetClosing ? 'is-closing' : ''}}" catchtap="closeTextSheet">
+    <view class="profile-input-sheet" style="bottom: {{keyboardHeight}}px;" catchtap="stopTap">
+      <view class="profile-sheet-handle"></view>
+      <text class="profile-sheet-title">{{textSheetTitle}}</text>
+      <input class="profile-sheet-input" value="{{textSheetValue}}" focus="{{textSheetFocus}}" adjust-position="{{false}}" cursor-spacing="0" placeholder="{{textSheetPlaceholder}}" placeholder-class="profile-sheet-placeholder" confirm-type="done" bindinput="handleTextSheetInput" bindconfirm="confirmTextSheet" />
+      <view class="profile-sheet-actions">
+        <view class="profile-sheet-cancel" bindtap="closeTextSheet">取消</view>
+        <view class="profile-sheet-confirm" bindtap="confirmTextSheet">完成</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{gradeSheetVisible}}" class="profile-sheet-layer {{gradeSheetClosing ? 'is-closing' : ''}}" catchtap="closeGradeSheet">
+    <view class="profile-grade-sheet" catchtap="stopTap">
+      <view class="profile-sheet-handle"></view>
+      <view class="profile-sheet-header"><text class="profile-sheet-title">选择年级与学期</text><view class="profile-sheet-close" bindtap="closeGradeSheet">×</view></view>
+      <scroll-view class="profile-grade-list" scroll-y>
+        <view wx:for="{{model.gradeRows}}" wx:key="grade" class="profile-grade-row">
+          <text class="profile-grade-label">{{item.grade}}</text>
+          <view class="profile-grade-options">
+            <view wx:for="{{item.options}}" wx:for-item="option" wx:key="semester" class="profile-grade-option {{option.isSelected ? 'is-selected' : ''}}" data-grade="{{item.grade}}" data-semester="{{option.semester}}" bindtap="handleGradePick">{{option.label}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view wx:if="{{textbookSheetVisible}}" class="profile-sheet-layer {{textbookSheetClosing ? 'is-closing' : ''}}" catchtap="closeTextbookSheet">
+    <view class="profile-textbook-sheet" catchtap="stopTap">
+      <view class="profile-sheet-handle"></view>
+      <view class="profile-sheet-header"><text class="profile-sheet-title">选择教材版本</text><view class="profile-sheet-close" bindtap="closeTextbookSheet">×</view></view>
+      <scroll-view class="profile-textbook-list" scroll-y>
+        <view class="profile-textbook-grid">
+          <view wx:for="{{model.textbookCards}}" wx:key="value" class="profile-textbook-card {{item.value === textbookPendingValue ? 'is-selected' : ''}}" data-value="{{item.value}}" bindtap="handleTextbookPick">
+            <text class="profile-textbook-label">{{item.label}}</text>
+            <view class="profile-textbook-fan {{item.value === textbookPendingValue ? 'is-expanded' : ''}}" aria-hidden="true">
+              <image wx:for="{{item.covers}}" wx:for-item="cover" wx:key="role" class="profile-textbook-fan-card {{cover.role}}" src="{{cover.src}}" mode="aspectFill"></image>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="profile-textbook-actions">
+        <button class="profile-save-button profile-textbook-confirm" bindtap="confirmTextbookPick">确认</button>
+      </view>
+    </view>
+  </view>
+</view>
+<dev-reset-fab />

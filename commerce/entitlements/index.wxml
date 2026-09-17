@@ -1,6 +1,85 @@
-<view class="credit-page">
-  <view class="credit-head"><text class="credit-eyebrow">课程积分</text><text class="credit-title">我的积分</text></view>
-  <view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">积分账户暂时没有加载出来</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
-  <block wx:elif="{{account}}"><view class="credit-balance surface"><text class="credit-balance__label">可用课程积分</text><text class="credit-balance__value">{{account.available}}</text><view class="credit-balance__facts"><text>冻结 {{account.frozen}}</text><text>已用 {{account.consumed}}</text><text>到期 {{account.expired}}</text></view></view><view class="credit-section"><text class="credit-section__title">积分批次</text><view class="credit-empty surface" wx:if="{{!batches.length}}">暂时没有课程积分批次</view><view class="credit-list surface" wx:else><view class="credit-row" wx:for="{{batches}}" wx:key="id"><view><text>{{item.sourceLabel}}</text><text class="credit-row__meta">{{item.batch_no}}</text></view><text>{{item.remainingCreditsDisplay}}</text></view></view></view><view class="credit-section"><text class="credit-section__title">最近流水</text><view class="credit-empty surface" wx:if="{{!ledger.length}}">暂时没有积分流水</view><view class="credit-list surface" wx:else><view class="credit-row" wx:for="{{ledger}}" wx:key="id"><view><text>{{item.businessLabel}}</text><text class="credit-row__meta">{{item.occurred_at || '待处理'}}</text></view><text>{{item.creditsDisplay}}</text></view></view></view></block>
+<view class="points-page">
+  <view class="points-ambient" aria-hidden="true"><view class="points-ambient-ribbon"></view></view>
+  <view class="points-topbar">
+    <view class="points-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="points-back" bindtap="handleBack" aria-label="返回我的" aria-role="button"><view class="points-back-icon"></view></view>
+      <text class="points-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{loading || !model ? '课程积分' : model.title}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="points-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+    <view class="points-shell">
+      <view wx:if="{{loading}}" class="points-state"><text>正在读取积分账户…</text></view>
+      <view wx:elif="{{failed}}" class="points-state">
+        <text>积分账户暂时没有加载出来</text>
+        <view class="points-state-action" bindtap="loadPage">重新加载</view>
+      </view>
+
+      <block wx:elif="{{model}}">
+        <view class="points-overview">
+          <view class="points-overview-main">
+            <view class="points-overview-copy">
+              <text class="balance-eyebrow">{{model.balanceLabel}}</text>
+              <text class="balance-value">{{model.balance.available}}</text>
+              <view class="usage-rules" bindtap="handleUsageRules" aria-label="查看使用规则" aria-role="button"><text class="usage-rules-frozen">冻结中：{{model.balance.frozen}}</text><text class="usage-rules-label">使用规则</text><view class="usage-rules-icon"></view></view>
+            </view>
+            <image class="balance-icon" src="{{model.balanceIcon}}" mode="aspectFit" aria-label="课程积分图标"></image>
+          </view>
+        </view>
+
+        <view class="points-section" wx:if="{{model.batches.length}}">
+          <view class="section-heading"><text>积分批次</text></view>
+          <view class="batches-card">
+            <view class="batch-row" wx:for="{{model.batches}}" wx:key="id">
+              <view class="batch-copy">
+                <text class="batch-title">{{item.sourceLabel}}</text>
+                <text class="batch-meta">生效于 {{item.activeAtLabel}}</text>
+              </view>
+              <text class="batch-remaining">剩余 {{item.remainingCreditsDisplay}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="points-section records-section">
+          <view class="section-heading"><text>{{model.recordsTitle}}</text></view>
+          <view class="record-tabs">
+            <view wx:for="{{model.recordTabs}}" wx:key="id" class="record-tab {{item.isSelected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleRecordTab" aria-role="button">{{item.label}}</view>
+          </view>
+          <scroll-view class="records-card" scroll-y style="height: {{recordsHeight}}px; max-height: {{recordsHeight}}px;">
+            <view wx:if="{{model.activeRecordGroups.length}}" class="record-list">
+              <view wx:for="{{model.activeRecordGroups}}" wx:for-item="group" wx:key="monthKey" class="record-group">
+                <view class="record-month"><text>{{group.monthLabel}}</text></view>
+                <view wx:for="{{group.records}}" wx:for-item="record" wx:key="id" class="record-item">
+                  <view class="record-copy">
+                    <view class="record-title-row"><text class="record-title">{{record.title}}</text><text class="record-amount {{record.tone}}">{{record.amount}}</text></view>
+                    <text wx:if="{{record.detail}}" class="record-detail {{record.detailTone}}">{{record.detail}}</text>
+                    <view class="record-meta"><text>{{record.time}}</text><text class="record-status {{record.tone}}">{{record.statusLabel}}</text></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view wx:else class="records-empty"><text>暂无记录</text><text>获得或使用课程积分后会按月展示在这里。</text></view>
+          </scroll-view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{usageRulesSheetVisible}}" class="points-sheet-layer {{usageRulesSheetClosing ? 'is-closing' : ''}}" catchtap="closeUsageRules">
+    <view class="points-usage-rules-sheet" catchtap="stopTap" aria-modal="true">
+      <view class="points-sheet-handle" aria-hidden="true"></view>
+      <view class="points-sheet-header">
+        <text class="points-sheet-title">课程积分使用规则</text>
+        <view class="points-sheet-close" bindtap="closeUsageRules" aria-role="button" aria-label="关闭使用规则">×</view>
+      </view>
+      <scroll-view class="points-sheet-scroll" scroll-y>
+        <text class="points-sheet-intro">课程积分用于生成定制课程，系统会按实际消耗记录积分变化。</text>
+        <view wx:for="{{usageRulesItems}}" wx:key="*this" class="points-sheet-row">
+          <view class="points-sheet-dot" aria-hidden="true"></view>
+          <text>{{item}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
 </view>
+<dev-reset-fab />

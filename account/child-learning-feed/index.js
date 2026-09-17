@@ -5,7 +5,9 @@ const stateLabels = {
   started: '已开始学习',
   learning: '学习中',
   pending_acceptance: '待验收',
-  ai_evaluated_pending_teacher: 'AI 已评价，待老师核验',
+  ai_evaluated_pending_teacher: '智能初评完成，待老师核验',
+  ai_verified_passed: 'AI 验收通过，已进入学习宇宙',
+  ai_retake_required: 'AI 判定需继续巩固',
   teacher_verified_passed: '老师核验通过',
   teacher_rejected: '老师判定需补学',
   ended: '本次学习已结束'

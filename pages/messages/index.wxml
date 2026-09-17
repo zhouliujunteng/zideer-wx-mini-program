@@ -1,1 +1,75 @@
-<view class="messages-page"><view class="messages-skeleton skeleton" wx:if="{{loading}}"></view><view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">消息暂时无法加载</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view><block wx:else><view class="messages-head"><text class="messages-eyebrow">服务通知</text><text class="messages-title">消息中心</text></view><scroll-view class="message-filters" scroll-x show-scrollbar="{{false}}"><button class="message-filter pressable {{activeFilter === item.id ? 'message-filter--active' : ''}}" wx:for="{{filters}}" wx:key="id" data-filter="{{item.id}}" bindtap="setFilter">{{item.label}}</button></scroll-view><view class="messages-empty surface" wx:if="{{!visibleNotifications.length}}"><text class="messages-empty__title">{{notifications.length ? '当前筛选下没有消息' : '暂时没有新消息'}}</text><text class="messages-empty__copy">{{notifications.length ? '切换筛选条件查看其他服务消息。' : '有新的服务消息时，会显示在这里。'}}</text></view><view class="messages-list surface" wx:else><button class="message-row pressable" wx:for="{{visibleNotifications}}" wx:key="id" data-id="{{item.id}}" bindtap="openNotification"><view class="message-row__dot {{item.unread ? 'message-row__dot--unread' : ''}}"></view><view class="message-row__copy"><text class="message-row__title">{{item.title}}</text><text class="message-row__summary">{{item.summary}}</text><text class="message-row__time">{{item.timeLabel}}</text></view><text class="message-row__arrow">›</text></button></view></block></view>
+<view class="messages-page">
+  <view class="messages-topbar">
+    <view class="messages-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="messages-back-button" bindtap="handleBack" aria-label="返回上一页"><view class="messages-back-icon"></view></view>
+      <text class="messages-topbar-title">消息</text>
+    </view>
+    <view class="messages-search-button" style="top: {{searchTop}}px; right: {{searchRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="handleSearchTap" aria-label="搜索消息">
+      <view class="messages-search-icon"></view>
+    </view>
+  </view>
+
+  <scroll-view class="messages-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="messages-shell">
+      <view wx:if="{{searchVisible}}" class="messages-search-field">
+        <view class="messages-search-icon"></view>
+        <input class="messages-search-input" value="{{searchQuery}}" focus="{{searchFocus}}" placeholder="{{model.searchPlaceholder}}" bindinput="handleSearchInput" confirm-type="search" />
+        <text wx:if="{{searchQuery}}" class="messages-search-clear" bindtap="handleSearchTap">×</text>
+      </view>
+
+      <view wx:if="{{loading}}" class="message-state">正在加载消息…</view>
+      <view wx:elif="{{failed}}" class="message-state"><text>消息暂时无法加载</text><button bindtap="loadPage">重新加载</button></view>
+      <block wx:else>
+      <view class="message-shortcuts">
+        <view wx:for="{{model.shortcuts}}" wx:key="id" class="message-shortcut shortcut-tone-{{item.tone}}" data-id="{{item.id}}" bindtap="handleShortcutTap">
+          <view class="shortcut-icon-wrap">
+            <image class="shortcut-icon" src="{{item.icon}}" mode="aspectFit"></image>
+          </view>
+          <view class="shortcut-copy">
+            <text class="shortcut-title">{{item.label}}</text>
+          </view>
+          <text wx:if="{{item.badgeLabel}}" class="message-badge shortcut-badge {{item.badgeClass}}">{{item.badgeLabel}}</text>
+        </view>
+      </view>
+
+      <view class="message-section-heading">
+        <text>老师沟通</text>
+        <text wx:if="{{model.showTeacherSection}}" class="message-section-count">{{model.teacherCountLabel}}</text>
+      </view>
+      <view wx:if="{{model.showTeacherSection}}" class="teacher-list">
+        <view wx:for="{{model.teacherConversations}}" wx:key="id" class="teacher-row teacher-tone-{{item.tone}}" data-id="{{item.id}}" bindtap="handleTeacherTap">
+          <view class="teacher-avatar-wrap">
+            <view class="teacher-avatar" aria-label="{{item.avatarStatus}}"><view class="teacher-avatar-person"></view></view>
+            <text wx:if="{{item.badgeLabel}}" class="message-badge teacher-badge {{item.badgeClass}}">{{item.badgeLabel}}</text>
+          </view>
+          <view class="teacher-copy">
+            <view class="teacher-title-row">
+              <text class="teacher-name">{{item.teacherName}}</text>
+              <text class="teacher-subject teacher-subject-{{item.tone}}">{{item.subject}}</text>
+            </view>
+            <text class="teacher-preview">{{item.preview}}</text>
+          </view>
+          <view class="teacher-meta">
+            <text class="teacher-time">{{item.time}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{model.showSystemSection}}" class="system-summary-row" bindtap="handleSystemTap">
+        <view class="system-summary-icon">
+          <image class="system-summary-icon-image" src="../../assets/messages/system-notice.svg" mode="aspectFit"></image>
+        </view>
+        <view class="system-summary-copy">
+          <text class="system-summary-title">系统消息</text>
+          <text class="system-summary-preview">课程、测评、账户等最新提醒</text>
+        </view>
+        <view class="system-summary-meta">
+          <text class="system-summary-count">{{model.systemCountLabel}}</text>
+          <view class="system-summary-arrow"></view>
+        </view>
+      </view>
+      <view wx:if="{{!model.showTeacherSection && !model.showSystemSection}}" class="message-empty message-empty-all">{{model.emptyText}}</view>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

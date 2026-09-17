@@ -1,0 +1,9 @@
+page { --accent: #FD7C02; --accent-deep: #B95500; --accent-soft: #FFF1E6; --ink: #22322B; --ink-soft: #536158; --muted: #7D877F; --line: #ECEEEB; --line-strong: #D8DEDB; --surface: #FFFFFF; --blue: #687F92; --green: #557C63; }
+.surface { background: #FFFFFF; border-radius: 24rpx; }
+.skeleton { border-radius: 16rpx; background: #ECEEEB; }
+.state-panel { padding: 120rpx 24rpx 40rpx; text-align: center; }
+.state-panel__mark { margin-bottom: 24rpx; color: #FD7C02; font-size: 52rpx; }
+.state-panel__title { display: block; color: #22322B; font-size: 32rpx; font-weight: 600; }
+.state-panel__copy { display: block; margin: 22rpx 0 32rpx; color: #7D877F; font-size: 25rpx; line-height: 1.6; }
+.state-panel__action { color: #FFFFFF; background: #FD7C02; border-radius: 20rpx; }
+.state-panel__action::after { border: 0; }

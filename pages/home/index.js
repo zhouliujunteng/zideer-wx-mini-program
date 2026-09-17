@@ -2,6 +2,16 @@ const { getHomeModel } = require('../../services/mock-service')
 const { switchTab } = require('../../utils/navigation')
 const { getLiveHomeModel } = require('../../services/live-tab-service')
 
+const AGENT_TOOLS = Object.freeze([
+  { id: 'assessment', title: '学习测评', icon: '/assets/messages/assessment.svg', description: '了解当前掌握情况' },
+  { id: 'learning', title: '今日学习', icon: '/assets/icons/book.svg', description: '继续今天的任务' },
+  { id: 'universe', title: '学习宇宙', icon: '/assets/icons/network.svg', description: '查看知识沉淀' },
+  { id: 'plans', title: '学习计划', icon: '/assets/icons/calendar.svg', description: '调整学习路径' },
+  { id: 'library', title: '课程库', icon: '/assets/icons/bag.svg', description: '浏览会员课程' },
+  { id: 'points', title: '课程积分', icon: '/assets/icons/wallet.svg', description: '查看可用积分' },
+  { id: 'service', title: '真人服务', icon: '/assets/icons/headphones.svg', description: '联系课程顾问' }
+])
+
 // 手势位移和浮层停靠点都使用 px；与图谱页保持同一套双停靠吸附节奏。
 const SHEET_RAISE_THRESHOLD = 6
 // 必须与 index.wxss 中 .home-sheet-layer.sheet-snapping 的 0.42s 保持一致。
@@ -98,7 +108,10 @@ Page({
     pullRefreshState: 'idle',
     pullRefreshText: '下拉刷新',
     pullRefreshVisible: false,
-    pagePullSettling: false
+    pagePullSettling: false,
+    agentPrompt: '',
+    includeUniverse: true,
+    agentTools: AGENT_TOOLS
   },
 
   onLoad() {
@@ -632,6 +645,46 @@ Page({
     })
   },
 
+  switchToMe() {
+    switchTab(3)
+  },
+
+  handleAgentInput(e) {
+    this.setData({ agentPrompt: e.detail && e.detail.value || '' })
+  },
+
+  toggleAgentContext() {
+    this.setData({ includeUniverse: !this.data.includeUniverse })
+  },
+
+  sendPrompt() {
+    const prompt = String(this.data.agentPrompt || '').trim()
+    if (!prompt) {
+      wx.showToast({ title: '先写下你想聊的内容', icon: 'none' })
+      return
+    }
+    const universe = this.data.includeUniverse ? '1' : '0'
+    wx.navigateTo({ url: `/pages/agent-chat/index?prompt=${encodeURIComponent(prompt)}&universe=${universe}` })
+  },
+
+  openAgentTool(e) {
+    const id = String(e.currentTarget.dataset.id || '')
+    const routes = {
+      assessment: () => wx.navigateTo({ url: '/assessment/center/index' }),
+      learning: () => switchTab(1),
+      universe: () => switchTab(2),
+      plans: () => wx.navigateTo({ url: '/diagnosis/plans/index' }),
+      library: () => wx.navigateTo({ url: '/learning/library/index' }),
+      points: () => wx.navigateTo({ url: '/commerce/entitlements/index' }),
+      service: () => wx.navigateTo({ url: '/account/service-contact/index' })
+    }
+    if (routes[id]) routes[id]()
+  },
+
+  openMembershipCatalog() {
+    wx.navigateTo({ url: '/commerce/products/index' })
+  },
+
   handleCourseCategorySelect(e) {
     const selectedCourseCategory = e.currentTarget.dataset.category
     if (this.data.homeMode !== 'guest' || !selectedCourseCategory || selectedCourseCategory === this.data.selectedCourseCategory) return
@@ -648,10 +701,14 @@ Page({
     wx.navigateTo({ url: '/commerce/products/index' })
   },
 
-  openProduct(e) {
-    const productVersionId = String(e.currentTarget.dataset.id || '')
-    if (!productVersionId) return
-    wx.navigateTo({ url: `/commerce/product-detail/index?productVersionId=${encodeURIComponent(productVersionId)}` })
+  openLibraryCourse(e) {
+    const libraryCourseId = String(e.currentTarget.dataset.id || '')
+    if (!/^[a-f0-9]{32}$/.test(libraryCourseId)) return
+    wx.navigateTo({ url: `/learning/course/index?libraryCourseId=${libraryCourseId}` })
+  },
+
+  openLibraryList() {
+    wx.navigateTo({ url: '/learning/library/index' })
   },
 
   continueLesson(e) {
@@ -673,11 +730,6 @@ Page({
     wx.navigateTo({ url: `/diagnosis/plan-detail/index?planId=${encodeURIComponent(planId)}` })
   },
   openAssessmentProgress() {
-    const assessment = this.data.assessment
-    if (!assessment || !assessment.id) return wx.navigateTo({ url: '/assessment/center/index' })
-    if (assessment.status === 'draft') {
-      return wx.navigateTo({ url: `/assessment/basic/index?subjectKey=${encodeURIComponent(assessment.subjectKey)}&resume=1` })
-    }
-    wx.navigateTo({ url: `/assessment/analysis/index?attemptId=${encodeURIComponent(assessment.id)}` })
+    wx.navigateTo({ url: '/assessment/short/index' })
   }
 })

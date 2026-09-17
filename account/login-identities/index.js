@@ -1,6 +1,7 @@
 const { loadCurrentLoginIdentities } = require('../../services/identity')
 
 const channelLabels = {
+  wechat_miniprogram: '微信小程序',
   wechat_miniapp: '微信小程序',
   wechat: '微信',
   phone: '手机号',
@@ -35,11 +36,15 @@ function buildPageData(principal) {
   return {
     principalNo: principal.principal_no || '业务账号待初始化',
     principalStatus: principal.status || 'active',
-    createdSource: principal.created_source || '当前登录来源',
+    createdSource: channelLabels[principal.created_source] || '其他登录方式',
+    contacts: [
+      { key: 'phone', label: '绑定手机号', value: principal.contacts ? principal.contacts.phone || '未绑定' : '暂未读取' },
+      { key: 'email', label: '绑定邮箱', value: principal.contacts ? principal.contacts.email || '未绑定' : '暂未读取' }
+    ],
     identities: (principal.account_identities || []).map((item) => ({
       ...item,
       channelLabel: channelLabels[item.login_channel] || '已绑定登录方式',
-      verificationLabel: item.verified_at ? `已验证 · ${formatDate(item.verified_at)}` : '待验证',
+      verificationLabel: item.verified_at ? `已验证 · ${formatDate(item.verified_at)}` : '未记录验证时间',
       loginLabel: item.last_login_at ? `最近登录 ${formatDate(item.last_login_at)}` : '暂未记录登录时间',
       statusLabel: item.disabled_at ? '已停用' : (item.is_default ? '当前默认' : '可用')
     })),

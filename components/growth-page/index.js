@@ -1,9 +1,9 @@
-const { loadCurrentGrowthCenter, redeemCurrentStudentCode, giftCurrentPromoterClientDeepAssessment, createCurrentPromoterInvitation, generateCurrentPromoterPosterBackground, loadPublishedPromotionAssets, claimCurrentDailyCoinCheckin } = require('../../services/identity')
+const { loadCurrentGrowthCenter, redeemCurrentStudentCode, createCurrentPromoterInvitation, generateCurrentPromoterPosterBackground, loadPublishedPromotionAssets, claimCurrentDailyCoinCheckin } = require('../../services/identity')
 
 const titles = {
   application: '推广伙伴与结算资格', dashboard: '推广伙伴工作台', clients: '直属用户',
-  'client-detail': '直属用户详情', 'share-tools': '推广工具', 'ai-poster': 'AI 推广海报',
-  'material-library': '平台宣传素材', 'deep-assessment-gift': '深测赠送',
+  'client-detail': '直属用户详情', 'share-tools': '推广工具', 'ai-poster': '智能推广海报',
+  'material-library': '平台宣传素材',
   coins: '金币中心', 'coin-tasks': '金币任务', 'coin-withdrawal': '金币提现', redemption: '兑换码'
 }
 
@@ -39,12 +39,8 @@ Component({
     redemptionCode: '',
     redeeming: false,
     redemptionResult: null,
-    giftingAttributionId: '',
-    gifting: false,
-    giftResult: null,
     creatingInvitation: false,
     invitationResult: null,
-    deepGiftInvitationResult: null,
     posterTheme: '',
     generatingPoster: false,
     posterStatus: '',
@@ -83,7 +79,7 @@ Component({
           selectedClient,
           materialStatus: materials && materials.status || '',
           materialAssets: materials && materials.assets || [],
-          isPartnerPage: ['application', 'dashboard', 'clients', 'client-detail', 'share-tools', 'ai-poster', 'material-library', 'deep-assessment-gift'].includes(this.data.mode),
+          isPartnerPage: ['application', 'dashboard', 'clients', 'client-detail', 'share-tools', 'ai-poster', 'material-library'].includes(this.data.mode),
           isCoinPage: ['coins', 'coin-tasks', 'coin-withdrawal', 'redemption'].includes(this.data.mode)
         })
       } catch (error) {
@@ -115,23 +111,6 @@ Component({
         await this.loadPage()
       } catch (error) {
         wx.showToast({ title: error.message || '邀请创建失败，请稍后重试。', icon: 'none' })
-      } finally {
-        this.setData({ creatingInvitation: false })
-      }
-    },
-    async createDeepGiftInvitation() {
-      if (this.data.creatingInvitation) return
-      this.setData({ creatingInvitation: true, deepGiftInvitationResult: null })
-      try {
-        const result = await createCurrentPromoterInvitation({
-          targetPath: '/pages/referral-entry/index',
-          sceneType: 'deep_gift'
-        })
-        this.setData({ deepGiftInvitationResult: result })
-        wx.setClipboardData({ data: result.sharePath, success: () => wx.showToast({ title: '领取路径已复制', icon: 'success' }) })
-        await this.loadPage()
-      } catch (error) {
-        wx.showToast({ title: error.message || '领取链接创建失败，请稍后重试。', icon: 'none' })
       } finally {
         this.setData({ creatingInvitation: false })
       }
@@ -168,40 +147,6 @@ Component({
         return
       }
       wx.setClipboardData({ data: text, success: () => wx.showToast({ title: '文案已复制', icon: 'success' }) })
-    },
-    selectGiftClient(event) {
-      this.setData({ giftingAttributionId: String(event.currentTarget.dataset.id || ''), giftResult: null })
-    },
-    async submitDeepAssessmentGift() {
-      if (this.data.gifting) return
-      const attributionId = Number(this.data.giftingAttributionId)
-      if (!Number.isSafeInteger(attributionId) || attributionId <= 0) {
-        wx.showToast({ title: '请先选择直属用户。', icon: 'none' })
-        return
-      }
-      const client = (this.data.center.clients || []).find((item) => Number(item.id) === attributionId)
-      if (!client) {
-        wx.showToast({ title: '直属用户信息已变化，请刷新后重试。', icon: 'none' })
-        return
-      }
-      const confirmed = await new Promise((resolve) => wx.showModal({
-        title: '确认赠送深测',
-        content: `将向${client.displayName}发放一次深测资格，发放后不可撤回。`,
-        confirmText: '确认赠送',
-        success: (result) => resolve(Boolean(result.confirm))
-      }))
-      if (!confirmed) return
-      this.setData({ gifting: true, giftResult: null })
-      try {
-        const result = await giftCurrentPromoterClientDeepAssessment(attributionId)
-        this.setData({ giftResult: result.reused ? '本次请求已处理，无重复发放。' : '深测资格已发放。' })
-        wx.showToast({ title: '赠送成功', icon: 'success' })
-        await this.loadPage()
-      } catch (error) {
-        wx.showToast({ title: error.message || '赠送失败，请稍后重试。', icon: 'none' })
-      } finally {
-        this.setData({ gifting: false })
-      }
     },
     updateRedemptionCode(event) {
       const redemptionCode = String(event.detail.value || '').toUpperCase().replace(/\s+/g, '')

@@ -1,0 +1,131 @@
+<view class="short-page">
+  <view class="short-topbar">
+    <view class="short-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="short-back" bindtap="handleBack" aria-label="返回上一页"><view class="short-back-icon"></view></view>
+      <text class="short-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学科摸底诊断</text>
+    </view>
+  </view>
+
+  <scroll-view class="short-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+    <view class="short-shell">
+
+      <view wx:if="{{loading}}" class="short-card short-state-card"><text class="short-state-text">正在读取测评…</text></view>
+      <view wx:elif="{{failed}}" class="short-card short-state-card">
+        <text class="short-state-text">{{error || '测评暂时不可用'}}</text>
+        <button class="short-inline-action" bindtap="loadPage">重新加载</button>
+      </view>
+
+      <block wx:else>
+        <view wx:if="{{error}}" class="short-error-card" role="alert">
+          <text class="short-error-text">{{error}}</text>
+          <view wx:if="{{attempt}}" class="short-error-action" bindtap="loadPage">重新读取已保存答案</view>
+        </view>
+
+        <block wx:if="{{report}}">
+          <view class="short-complete-card">
+            <view class="short-complete-mark"><view class="short-complete-check"></view></view>
+            <text class="short-complete-title">本次摸底诊断已完成</text>
+            <text class="short-complete-subtitle">{{report.scope.name}} · 作答 {{report.answeredCount}} 题 · 覆盖 {{report.measuredCount}} / {{report.totalCount}} 个知识点</text>
+            <text class="short-complete-notice">{{report.notice}}</text>
+          </view>
+
+          <view class="short-card short-score-card">
+            <text class="short-card-title">综合掌握度</text>
+            <text class="short-score {{report.bandTone}}">{{report.scoreLabel}}</text>
+            <text class="short-band {{report.bandTone}}">{{report.bandLabel}}</text>
+            <text class="short-score-meta">掌握 {{report.masteredCount}} · 待巩固 {{report.reinforceCount}} · 未掌握 {{report.notMasteredCount}} · 待测 {{report.pendingCount}}</text>
+          </view>
+
+          <view class="short-card">
+            <text class="short-card-title">知识点诊断</text>
+            <view class="short-summary-list">
+              <view class="short-summary-item" wx:for="{{report.topics}}" wx:key="topicId" data-id="{{item.topicId}}" bindtap="openTopic">
+                <text class="short-summary-label">{{item.name}}</text>
+                <text class="short-summary-value {{item.tone}}">{{item.stateLabel}} {{item.rateLabel}}</text>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <block wx:elif="{{attempt}}">
+          <view class="short-question-progress">
+            <view class="short-question-progress-topline">
+              <view class="short-question-count"><text class="short-question-current">{{currentNumber}}</text><text class="short-question-slash"> / </text><text class="short-question-total">{{attempt.totalQuestions}}</text></view>
+              <view wx:if="{{countdown}}" class="short-countdown"><view class="short-countdown-dot"></view><text>剩余 {{countdown}}</text></view>
+            </view>
+            <view class="short-progress-segments">
+              <view wx:for="{{segments}}" wx:key="id" class="short-progress-segment {{item.segmentClass}}"></view>
+            </view>
+            <view class="short-progress-meta"><text>{{attempt.scope.name}}</text><text wx:if="{{roundLabel}}">{{roundLabel}}</text><text>已答 {{attempt.answeredCount}} / {{attempt.totalQuestions}} 题</text></view>
+          </view>
+
+          <view wx:if="{{attempt.current}}" class="short-question-card">
+            <view class="short-question-heading">
+              <view class="short-question-type-pill type-single">单选题</view>
+              <text class="short-question-title">{{attempt.current.prompt}}</text>
+            </view>
+            <view class="short-option-list">
+              <view wx:for="{{optionList}}" wx:key="value" class="short-option {{item.isSelected ? 'is-selected' : ''}}" data-value="{{item.value}}" bindtap="select">
+                <view class="short-option-copy">
+                  <text class="short-option-key">{{item.key}}</text>
+                  <text class="short-option-label">{{item.label}}</text>
+                </view>
+                <view class="short-option-mark"><view wx:if="{{item.isSelected}}" class="short-option-mark-icon"></view></view>
+              </view>
+            </view>
+            <text class="short-question-hint">提交本题后会保存答案。暂时不会可以跳过，跳过不会直接判为未掌握。</text>
+          </view>
+
+          <view wx:else class="short-complete-card">
+            <view class="short-complete-mark"><view class="short-complete-check"></view></view>
+            <text class="short-complete-title">本轮题目已完成</text>
+            <text class="short-complete-subtitle">生成报告后，可查看知识点掌握状态与综合掌握度。</text>
+          </view>
+        </block>
+
+        <block wx:else>
+          <view class="short-card">
+            <text class="short-card-title">了解我的知识点掌握情况</text>
+            <text class="short-card-copy">每个考试范围的首次诊断免费。根据实际作答更新图谱，未测知识点保持待测。</text>
+            <view class="short-entry-list">
+              <view class="short-entry" wx:for="{{scopes}}" wx:key="id" data-id="{{item.id}}" bindtap="start">
+                <text class="short-entry-name">{{item.name}}</text>
+                <text class="short-entry-action">{{item.actionLabel}} ›</text>
+              </view>
+              <text wx:if="{{!scopes.length}}" class="short-card-copy">当前年级、学期的诊断题库正在准备。开放后会显示在这里。</text>
+            </view>
+          </view>
+          <view class="short-card" wx:if="{{records.length}}">
+            <text class="short-card-title">我的测评记录</text>
+            <view class="short-entry-list">
+              <view class="short-entry" wx:for="{{records}}" wx:key="id" data-id="{{item.id}}" bindtap="resume">
+                <text class="short-entry-name">{{item.name}}</text>
+                <text class="short-entry-action">{{item.statusLabel}} ›</text>
+              </view>
+            </view>
+          </view>
+        </block>
+      </block>
+
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{!loading && !failed && attempt && attempt.current}}" class="short-actionbar">
+    <view class="short-action-row has-previous">
+      <view class="short-prev-slot"><button class="short-prev-action" data-skip="yes" bindtap="next" disabled="{{busy}}">暂时不会</button></view>
+      <view class="short-next-slot"><button class="short-next-action" bindtap="next" loading="{{busy}}" disabled="{{busy}}">提交本题，继续</button></view>
+    </view>
+  </view>
+  <view wx:elif="{{!loading && !failed && attempt && !attempt.current && !report}}" class="short-actionbar">
+    <view class="short-action-row">
+      <view class="short-next-slot"><button class="short-next-action" bindtap="submit" loading="{{busy}}" disabled="{{busy || !attempt.answeredCount}}">生成诊断报告</button></view>
+    </view>
+  </view>
+  <view wx:elif="{{!loading && !failed && report}}" class="short-actionbar">
+    <view class="short-action-row has-previous">
+      <view class="short-prev-slot"><button class="short-prev-action" bindtap="backToList">返回测评列表</button></view>
+      <view class="short-next-slot"><button class="short-next-action" bindtap="openMap">查看我的知识图谱</button></view>
+    </view>
+  </view>
+</view>
+<dev-reset-fab />

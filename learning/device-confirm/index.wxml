@@ -1,0 +1,15 @@
+<view class="device-page">
+  <block wx:if="{{approved}}">
+    <text class="device-title">已确认学习设备</text>
+    <text class="device-status">已授权此设备访问课程</text>
+    <button class="device-action" bindtap="goBack">返回</button>
+  </block>
+  <block wx:else>
+    <text class="device-title">学习设备确认</text>
+    <text class="device-label">设备确认码</text>
+    <input class="device-input" value="{{code}}" maxlength="32" placeholder="12位确认码" bindinput="changeCode" disabled="{{busy}}" />
+    <text class="device-error" wx:if="{{error}}">{{error}}</text>
+    <button class="device-action" bindtap="approve" loading="{{busy}}" disabled="{{busy}}">确认本人设备</button>
+  </block>
+</view>
+<dev-reset-fab />

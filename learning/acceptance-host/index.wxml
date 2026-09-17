@@ -6,3 +6,4 @@
   </view>
 </view>
 <web-view wx:else src="{{launchUrl}}"></web-view>
+<dev-reset-fab />

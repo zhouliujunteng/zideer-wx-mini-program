@@ -7,3 +7,4 @@
     <button class="code-refresh pressable" bindtap="refreshCode" loading="{{refreshing}}">{{expired ? '重新生成' : '刷新动态码'}}</button>
   </block>
 </view>
+<dev-reset-fab />

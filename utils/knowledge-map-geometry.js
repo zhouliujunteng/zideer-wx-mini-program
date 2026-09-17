@@ -122,6 +122,15 @@ function getKnowledgeMapCardMetrics(nodeType) {
   return { width: 92, height: 40, radius: 9, fontSize: 9.5, fontWeight: 500 }
 }
 
+function getKnowledgeMapTextCardMetrics(nodeType, label, measureText) {
+  const base = getKnowledgeMapCardMetrics(nodeType)
+  const maxWidth = nodeType === 'domain_root' ? 160 : 144
+  const width = clamp(Math.ceil(measureWidth(measureText, label)) + 28, 48, maxWidth)
+  const lines = fitTextLines(label, width - 28, measureText, 3)
+  const lineHeight = base.fontSize * 1.22
+  return { ...base, width, height: Math.max(32, Math.ceil(lines.length * lineHeight + 20)), lineHeight, lines }
+}
+
 function getCardBoundaryAnchor(card, toward, gap = 0) {
   const rect = normalizeRect(card)
   const radius = getRadius(card, rect.width, rect.height)
@@ -416,6 +425,7 @@ function rectIntersectsRect(a, b) {
 }
 
 module.exports = {
+  getKnowledgeMapTextCardMetrics,
   fitTextLines,
   getKnowledgeMapLayoutProfile,
   projectKnowledgeMapPoint,

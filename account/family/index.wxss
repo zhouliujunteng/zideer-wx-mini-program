@@ -1,1 +1,53 @@
-.family-page { min-height: 100vh; padding: 48rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); }.family-head { padding: 0 8rpx; }.family-eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }.family-title { display: block; margin-top: 12rpx; font-size: 42rpx; font-weight: 700; }.family-actions { display: flex; min-height: 132rpx; align-items: stretch; margin-top: 32rpx; }.family-action { display: flex; min-width: 0; flex: 1; flex-direction: column; justify-content: center; padding: 18rpx 22rpx; text-align: left; }.family-action__label { color: var(--muted); font-size: 20rpx; }.family-action__title { margin-top: 10rpx; font-size: 27rpx; font-weight: 700; }.family-actions__line { width: 1rpx; margin: 22rpx 0; background: var(--line); }.family-section { margin-top: 40rpx; }.family-section__head { display: flex; align-items: center; justify-content: space-between; margin: 0 8rpx 16rpx; }.family-section__title { color: var(--ink-soft); font-size: 23rpx; font-weight: 700; }.family-section__action { min-height: 52rpx; color: var(--accent-deep); font-size: 22rpx; }.family-card { display: flex; width: 100%; min-height: 112rpx; align-items: center; margin-top: 14rpx; padding: 20rpx 22rpx; text-align: left; }.family-avatar { display: flex; width: 58rpx; height: 58rpx; align-items: center; justify-content: center; border-radius: 29rpx; background: var(--accent-soft); color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }.family-copy { min-width: 0; flex: 1; margin-left: 18rpx; }.family-name, .family-meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.family-name { font-size: 26rpx; font-weight: 700; }.family-meta { margin-top: 8rpx; color: var(--muted); font-size: 20rpx; }.family-status { color: var(--green); font-size: 21rpx; font-weight: 700; }.family-empty { padding: 28rpx; color: var(--muted); font-size: 23rpx; }
+page { background: #FAFAFA; }
+
+.family-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+
+/* 氛围背景（与积分/金币页同一语言：角部渐变 + 白色丝带） */
+.family-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; background: radial-gradient(125% 52% at 100% 0, rgba(201, 232, 255, .60) 0%, rgba(215, 239, 255, .34) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.family-ambient-ribbon { position: absolute; top: -140rpx; left: -430rpx; width: 1480rpx; height: 720rpx; box-sizing: border-box; border: 24rpx solid rgba(255, 255, 255, .72); border-top-color: transparent; border-right-color: transparent; border-radius: 50%; opacity: .84; transform: rotate(-18deg); }
+.family-ambient-ribbon::after { position: absolute; top: 38rpx; right: 38rpx; bottom: 38rpx; left: 38rpx; box-sizing: border-box; border: 10rpx solid rgba(255, 255, 255, .38); border-top-color: transparent; border-right-color: transparent; border-radius: 50%; content: ''; }
+
+/* 自定义顶栏 */
+.family-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.family-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.family-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.family-back:active { background: #F0F2EF; }
+.family-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.family-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+
+.family-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.family-shell { min-height: 100%; padding: 0 32rpx calc(44rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+.family-state { display: flex; align-items: center; justify-content: center; min-height: 320rpx; flex-direction: column; color: #8C9991; }
+.family-state text:first-child { color: #4E6157; font-size: 28rpx; font-weight: 650; }
+.family-state-action { margin-top: 24rpx; padding: 0 44rpx; height: 72rpx; border-radius: 999rpx; background: #F0F2EF; color: #4A514C; font-size: 25rpx; font-weight: 650; line-height: 72rpx; }
+
+/* 学生 / 家长 双入口卡 */
+.family-pair-card { display: flex; align-items: stretch; border-radius: 30rpx; background: #fff; overflow: hidden; }
+.family-pair-half { display: flex; min-width: 0; flex: 1; flex-direction: column; justify-content: center; padding: 34rpx 28rpx; }
+.family-pair-half:active { background: #FAFBFA; }
+.family-pair-eyebrow { color: #98A49C; font-size: 20rpx; font-weight: 650; line-height: 1.2; }
+.family-pair-title { margin-top: 12rpx; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.25; }
+.family-pair-hint { margin-top: 10rpx; color: #A2ABA4; font-size: 20rpx; line-height: 1.35; }
+.family-pair-divider { flex: 0 0 2rpx; margin: 28rpx 0; background: #F0F3F0; }
+
+.family-section { margin-top: 38rpx; }
+.family-section-head { display: flex; align-items: center; justify-content: space-between; padding: 0 4rpx; }
+.family-section-title { color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.2; }
+.family-section-link { color: #FD7C02; font-size: 22rpx; font-weight: 650; }
+
+.family-list-card { margin-top: 22rpx; padding: 6rpx 24rpx; border-radius: 30rpx; background: #fff; }
+.family-member { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; padding: 26rpx 0; border-bottom: 2rpx solid #F0F3F0; }
+.family-member:last-child { border-bottom: 0; }
+.family-avatar { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 84rpx; height: 84rpx; border-radius: 50%; background: #FFF0E2; color: #E78435; font-size: 28rpx; font-weight: 700; }
+.family-avatar-guardian { background: #EEF5FF; color: #7894BE; }
+.family-member-copy { min-width: 0; flex: 1; }
+.family-member-name { display: block; overflow: hidden; color: #24332D; font-size: 27rpx; font-weight: 650; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.family-member-meta { display: block; margin-top: 8rpx; color: #98A39B; font-size: 20rpx; line-height: 1.3; }
+.family-member-status { display: flex; flex: 0 0 auto; align-items: center; gap: 8rpx; }
+.family-member-status > text:first-child { padding: 8rpx 16rpx; border-radius: 999rpx; background: #EDF7F1; color: #5B9E77; font-size: 19rpx; font-weight: 650; line-height: 1; }
+.family-member-arrow { color: #C2CAC3; font-size: 30rpx; line-height: 1; }
+
+.family-empty { display: flex; align-items: center; justify-content: center; min-height: 200rpx; flex-direction: column; color: #8C9991; }
+.family-empty text:first-child { color: #4E6157; font-size: 26rpx; font-weight: 650; }
+.family-empty text:last-child { margin-top: 12rpx; font-size: 20rpx; line-height: 1.5; }

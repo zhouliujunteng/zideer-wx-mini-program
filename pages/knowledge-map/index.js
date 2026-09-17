@@ -1,7 +1,8 @@
-const { getKnowledgeMapModel } = require('../../services/mock-service')
-const { loadKnowledgeMap } = require('../../services/identity')
+const { loadKnowledgeMap, loadKnowledgeTopic } = require('../../services/identity')
+const { buildKnowledgeRelationGraph } = require('../../utils/knowledge-map-relations')
+const { layoutKnowledgeRadially, spaceRadialCards } = require('../../utils/knowledge-map-radial')
 const {
-  fitTextLines,
+  getKnowledgeMapTextCardMetrics,
   getKnowledgeMapLayoutProfile,
   projectKnowledgeMapPoint,
   getKnowledgeMapCardMetrics,
@@ -29,10 +30,38 @@ const SHEET_ANIMATION_DURATION = 420
 const GRAPH_DPR_LIMIT = 2
 const SELECTION_FLOW_FRAME_MS = 34
 const STATUS_STYLES = {
+  provisional: { fill: '#F0F4F8', stroke: '#7893AC', text: '#39443F', marker: '#7893AC' },
+  assessed_stable: { fill: '#EDF5EF', stroke: '#4B8764', text: '#39443F', marker: '#4B8764' },
   unknown: { fill: '#FFFFFF', stroke: '#D8D8D5', text: '#39443F', marker: '#929995' },
   reinforce: { fill: '#FFFFFF', stroke: '#FD7C02', text: '#39443F', marker: '#FD7C02' },
   learning: { fill: '#FFF2E8', stroke: '#FD7C02', text: '#39443F', marker: '#FD7C02' },
   mastered: { fill: '#FFF2E8', stroke: '#FD7C02', text: '#39443F', marker: '#FD7C02' }
+}
+const STATUS_LABELS = {
+  unknown: '待测',
+  provisional: '初测待复测',
+  reinforce: '需巩固',
+  assessed_stable: '测评较稳',
+  learning: '学习中',
+  mastered: '已掌握'
+}
+
+// Enrich a graph node in place with the display fields the topic sheet renders.
+// Mutating keeps `selectedNode` identity stable for canvas hit-test comparisons.
+function applyTopicDisplay(node) {
+  const status = node.status || 'unknown'
+  node.status = status
+  node.statusLabel = STATUS_LABELS[status] || STATUS_LABELS.unknown
+  node.metaLine = [node.gradeLabel, node.subjectName, node.volume, node.unit].filter(Boolean).join(' · ')
+  if (Array.isArray(node.relatedLinks)) {
+    const seen = new Set([String(node.id)])
+    node.relatedLinks = node.relatedLinks.filter((link) => {
+      if (!link || link.id == null || seen.has(String(link.id))) return false
+      seen.add(String(link.id))
+      return true
+    })
+  }
+  return node
 }
 
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)) }
@@ -72,21 +101,47 @@ function getBezierPoint(geometry, progress) {
   }
 }
 function liveGraphModel(map) {
-  const status = { weak: 'reinforce', mastered: 'mastered', learning: 'learning', unknown: 'unknown' }
-  const nodes = (map.nodes || []).map((node, index) => ({ ...node, status: status[node.status] || 'unknown', nodeType: index === 0 ? 'domain_root' : 'topic', coreScore: 0.5, layout: { x: 260 + (index % 5) * 220, y: 220 + Math.floor(index / 5) * 180, level: Math.floor(index / 5) } }))
+  const status = { provisional:'provisional', assessed_stable:'assessed_stable', weak: 'reinforce', mastered: 'mastered', learning: 'learning', unknown: 'unknown' }
+  const nodes = layoutKnowledgeRadially(map.nodes || [], map.edges || []).map(node => ({ ...node, status: status[node.status] || 'unknown', coreScore: 0.5 }))
+  const universe = map.universe || {}
+  const universeTopics = nodes
+    .filter(node => node.status !== 'unknown')
+    .sort((left, right) => {
+      const priority = { mastered: 0, learning: 1, reinforce: 2, provisional: 3, assessed_stable: 4 }
+      return (priority[left.status] || 9) - (priority[right.status] || 9)
+    })
+    .slice(0, 12)
+    .map(node => ({
+      id: node.id,
+      label: node.label,
+      status: node.status,
+      statusLabel: STATUS_LABELS[node.status] || STATUS_LABELS.unknown,
+      evidence: node.evidence || '学习记录已同步'
+    }))
   return {
-    viewModel: { notifications: { count: 0 }, legend: [{ key: 'unknown', label: '待了解' }, { key: 'reinforce', label: '需巩固' }, { key: 'learning', label: '学习中' }, { key: 'mastered', label: '已掌握' }], courses: [{ id: map.activeSubjectKey, title: `${map.grade}${map.activeSubject}`, meta: '当前知识图谱', progress: null, progressLabel: '', hasProgress: false }], activeCourseId: map.activeSubjectKey, activeCourse: {}, learningSummary: `已掌握 ${map.stats.mastered || 0} 个，需巩固 ${map.stats.weak || 0} 个知识点。`, tip: '节点和连线来自当前学生的知识图谱数据。', isStressFixture: false },
-    graphModel: { nodes, edges: map.edges || [] }
+    viewModel: { notifications: { count: 0 }, legend: [{ key: 'unknown', label: '待测' }, { key: 'provisional', label: '初测待复测' }, { key: 'reinforce', label: '需巩固' }, { key: 'assessed_stable', label: '测评较稳' }, { key: 'learning', label: '学习中' }, { key: 'mastered', label: '已掌握' }], courses: (map.subjects || []).map(subject => ({ id: subject.key, title: subject.name, meta: map.semester || '当前年级知识点' })), activeCourseId: map.activeSubjectKey, activeCourse: {}, scopeLabel: [map.grade, map.semester].filter(Boolean).join(' · '), universeStats: [{key:'mastered',label:'累计掌握',value:Number(universe.masteredCount||0)},{key:'assessment',label:'测评证据',value:Number(universe.assessmentEvidenceCount||0)},{key:'course',label:'课程证据',value:Number(universe.courseEvidenceCount||0)}], universeTopics, emptyCopy: map.general ? '完成课程并通过 AI 复述验收后，新的知识点会进入你的学习宇宙。' : '完成首次测评，或通过一门课程的 AI 复述验收后，新的知识点会进入你的学习宇宙。', learningSummary: nodes.length ? `这个学习宇宙已累积 ${Number(universe.evidenceCount||0)} 条证据。当前学科已掌握 ${map.stats.mastered || 0} 个，需巩固 ${map.stats.weak || map.stats.reinforce || 0} 个。` : map.general ? '完成一门课程的 AI 复述验收后，你的学习宇宙会从第一个知识点开始生长。' : '完成首次测评后，你的学习宇宙会从第一个知识点开始生长。', termNote: map.unassignedTermCount ? `包含 ${map.unassignedTermCount} 个全年通用或来源未划分学期的知识点。` : '', tip: '点击知识图谱，查看知识点的前后关系。', isStressFixture: false },
+    graphModel: { nodes, edges: map.edges || [], radial: true }
   }
+}
+
+function diagnosisView(map) {
+  const entry=map.diagnostic||{mode:'unavailable'}
+  const subject=map.activeSubject||'当前学科'
+  const buttons={start:'开始测评',resume:'继续测评',report:'查看报告',unavailable:'题库准备中'}
+  return {...entry,button:buttons[entry.mode]||buttons.unavailable,
+    title:entry.mode==='report'?`${subject}测评后，看看我的掌握情况`:entry.mode==='resume'?'上次测评还没完成，继续了解自己':'这些知识点，我掌握了多少？',
+    description:entry.mode==='unavailable'?`${subject}当前年级、学期的测评正在准备`:entry.mode==='report'?'图谱已根据作答更新，未测部分仍标为待测':`${subject} · ${map.semester||''} · 约 10–20 分钟 · 首次免费`}
 }
 
 Page({
   data: {
     model: {}, statusBarHeight: 20, navigationBarHeight: 44, menuButtonHeight: 32,
     contentTop: 80, canvasHeight: 620, sheetStart: 860, sheetTrigger: 100,
-    canvasClipHeight: 620, canvasFollowOffset: 0, sheetSnapping: false, sheetVisualOffset: 0,
+    canvasClipHeight: 620, canvasFollowOffset: 0, canvasControlOffset: 0, sheetMinOffset: 0, sheetSnapping: false, sheetVisualOffset: 0,
     notificationTop: 26, notificationRight: 100, metricsVisible: false, metricsCollapsed: false, metricsRows: [],
-    zoomPercent: 100
+    zoomPercent: 100, diagnostic: null, diagnosticTop: 80,
+    relationMode: false, relationLoading: false, relationError: '', prerequisiteLinks: [], successorLinks: [],
+    activeView: 'universe'
   },
 
   onLoad() {
@@ -107,47 +162,59 @@ Page({
       : { left: windowWidth - 92, top: (windowInfo.statusBarHeight || 20) + 6, width: 32, height: 32 }
     const statusBarHeight = windowInfo.statusBarHeight || 20
     const navigationBarHeight = menuButton.height + (menuButton.top - statusBarHeight) * 2
-    const contentTop = statusBarHeight + navigationBarHeight + 10
+    // The diagnostic banner was removed from the template; the canvas starts
+    // directly below the custom navigation bar instead of reserving its height.
+    const diagnosticTop = statusBarHeight + navigationBarHeight + 10
+    const contentTop = diagnosticTop
     const sheetStart = Math.round(contentTop * 750 / windowWidth + 760)
     const sheetStartPx = sheetStart * windowWidth / 750
     const sheetTrigger = Math.max(0, Math.round(sheetStartPx - (windowInfo.windowHeight || 667) / 2))
-    const canvasHeight = Math.max(180, sheetStartPx - contentTop)
-    this.loadKnowledgeMapCourse(undefined, {
+    const baseCanvasHeight = Math.max(180, sheetStartPx - contentTop)
+    // windowHeight already excludes the native tab bar. Keep the grip inside that window.
+    const collapsedPeek = 44 + 18 * windowWidth / 750
+    const sheetMinOffset = Math.min(0, sheetStartPx - (windowInfo.windowHeight || 667) + collapsedPeek)
+    const canvasHeight = baseCanvasHeight - sheetMinOffset
+    this._baseCanvasHeight = baseCanvasHeight
+    this._relationSheetOffset = clamp(sheetStartPx + 660 * windowWidth / 750 - (windowInfo.windowHeight || 667), 0, sheetTrigger)
+    this.setData({
       statusBarHeight,
       navigationBarHeight,
       menuButtonHeight: menuButton.height,
-      contentTop,
+      contentTop, diagnosticTop,
       canvasHeight,
-      canvasClipHeight: canvasHeight,
+      canvasClipHeight: baseCanvasHeight,
+      canvasControlOffset: -sheetMinOffset,
+      sheetMinOffset,
       sheetStart,
       sheetTrigger,
       sheetVisualOffset: 0,
       canvasFollowOffset: 0,
       sheetSnapping: false,
       notificationTop: menuButton.top,
-      notificationRight: windowWidth - menuButton.left + 8
+      notificationRight: windowWidth - menuButton.left + 8,
+      assessmentRight: windowWidth - menuButton.left + 8 + menuButton.height + 12
     })
+  },
+
+  openAssessmentCenter() {
+    wx.navigateTo({ url: '/assessment/center/index' })
   },
 
   onReady() {
     this._pageReady = true
-    this.initializeCanvas()
+    if (this.data.activeView === 'graph') this.initializeCanvas()
   },
   async onShow() {
     this._isPageVisible = true
     const app = getApp()
     if (app && app.markTabVisible) app.markTabVisible('pages/knowledge-map/index')
-    if (this._canvas) this.requestGraphDraw()
+    if (this.data.activeView === 'graph' && this._canvas) this.requestGraphDraw()
     if (this.data.metricsVisible && !this.data.metricsCollapsed && !this._metricsTimer) this.startMetricsPanel()
-    try {
-      const map = await loadKnowledgeMap()
-      const live = liveGraphModel(map)
-      this._graphModel = live.graphModel
-      this._selectedNodeId = null
-      this.setData({ model: live.viewModel }, () => { if (this._canvas) { this.buildGraphScene(); this.resetGraphView() } })
-    } catch (error) { wx.showToast({ title: error.message || '知识图谱加载失败', icon: 'none' }) }
+    await this.loadKnowledgeMapCourse(this.data.activeSubjectKey)
   },
   onHide() {
+    this._relationGeneration = (this._relationGeneration || 0) + 1
+    this._knowledgeLoadGeneration = (this._knowledgeLoadGeneration || 0) + 1
     this._isPageVisible = false
     this.stopMetricsPanel()
     this.cancelSelectionFlowAnimation()
@@ -155,6 +222,8 @@ Page({
     this._frameLatencyTracker.reset()
   },
   onUnload() {
+    this._relationGeneration = (this._relationGeneration || 0) + 1
+    this._knowledgeLoadGeneration = (this._knowledgeLoadGeneration || 0) + 1
     this._isPageVisible = false
     this._canvasInitGeneration += 1
     if (this._mapSheetSnapTimer) clearTimeout(this._mapSheetSnapTimer)
@@ -168,30 +237,127 @@ Page({
     this._frameLatencyTracker.reset()
   },
   showNotifications() { wx.navigateTo({ url: '/pages/messages/index' }) },
+  switchMapView(e) {
+    const activeView = e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.view
+    if (!['universe', 'graph'].includes(activeView) || activeView === this.data.activeView) return
+    if (activeView === 'universe') {
+      this._canvasInitGeneration += 1
+      this.cancelSelectionFlowAnimation()
+      this.cancelGraphDraw()
+      this.stopMetricsPanel()
+      this._canvas = null
+      this._graphScene = null
+      this._graphView = null
+      this.setData({ activeView, metricsVisible: false })
+      return
+    }
+    this.setData({ activeView, metricsVisible: false }, () => {
+      if (this._pageReady && this.data.activeView === 'graph') this.initializeCanvas()
+    })
+  },
+  openDiagnosis() {
+    const d=this.data.diagnostic
+    if(this.data.loading||!d||d.mode==='unavailable')return
+    const url=d.attemptId?`/assessment/short/index?attemptId=${encodeURIComponent(d.attemptId)}`:`/assessment/short/index?scopeId=${encodeURIComponent(d.scopeId)}&subjectKey=${encodeURIComponent(this.data.activeSubjectKey)}`
+    wx.navigateTo({url})
+  },
+  editLearningScope() { wx.navigateTo({ url: '/pages/profile-setup/index?edit=1' }) },
 
-  loadKnowledgeMapCourse(courseId, extraData = {}) {
+  async loadKnowledgeMapCourse(courseId) {
+    this._relationGeneration = (this._relationGeneration || 0) + 1
+    this._overviewGraphModel = null
+    this._overviewGraphView = null
+    const generation = (this._knowledgeLoadGeneration || 0) + 1
+    this._knowledgeLoadGeneration = generation
     this.cancelSelectionFlowAnimation()
     this.cancelGraphDraw()
     this.stopMetricsPanel()
     this._metrics.reset()
     this._frameLatencyTracker.reset()
     const startedAt = this._metrics.now()
-    const { viewModel, graphModel } = getKnowledgeMapModel(courseId)
-    this._metrics.record('model', this._metrics.now() - startedAt)
-    this._graphModel = graphModel
+    this._graphModel = { nodes: [], edges: [] }
     this._selectedNodeId = null
-    this._viewModelBytes = getUtf8Size(viewModel)
-    const metricsVisible = this._isDevelop && viewModel.isStressFixture
-    const shouldResizeCanvas = extraData.canvasHeight !== undefined
-    this.setData({ model: viewModel, metricsVisible, metricsCollapsed: false, metricsRows: [], ...extraData }, () => {
-      if (metricsVisible && this._isPageVisible) this.startMetricsPanel()
-      if (!this._pageReady) return
-      if (!this._canvas || shouldResizeCanvas) this.initializeCanvas()
-      else {
-        this.buildGraphScene()
-        this.resetGraphView()
-      }
+    this.setData({ loading: true, loadError: '', diagnostic: null, selectedNode: null, model: {}, relationMode: false, relationLoading: false, relationError: '', prerequisiteLinks: [], successorLinks: [] }, () => {
+      if (this._canvas) { this.buildGraphScene(); this.requestGraphDraw() }
     })
+    try {
+      const map = await loadKnowledgeMap(courseId)
+      if (generation !== this._knowledgeLoadGeneration) return
+      const { viewModel, graphModel } = liveGraphModel(map)
+      this._metrics.record('model', this._metrics.now() - startedAt)
+      this._graphModel = graphModel
+      this._overviewGraphModel = graphModel
+      this._viewModelBytes = getUtf8Size(viewModel)
+      this.setData({ model: viewModel, diagnostic: diagnosisView(map), activeSubjectKey: map.activeSubjectKey, loading: false, metricsVisible: false, metricsRows: [] }, () => {
+        if (!this._pageReady || this.data.activeView !== 'graph') return
+        if (!this._canvas) this.initializeCanvas()
+        else { this.buildGraphScene(); this.resetGraphView() }
+      })
+    } catch (error) {
+      if (generation !== this._knowledgeLoadGeneration) return
+      this.setData({ loading: false, loadError: error.message || '知识图谱加载失败', model: {} })
+      wx.showToast({ title: error.message || '知识图谱加载失败', icon: 'none' })
+    }
+  },
+
+  async selectKnowledgeNode(node) {
+    if (!node || !node.id) return
+    const generation = (this._relationGeneration || 0) + 1
+    this._relationGeneration = generation
+    if (!this.data.relationMode) {
+      this._overviewGraphModel = this._graphModel
+      this._overviewGraphView = this._graphView && { ...this._graphView }
+      this._overviewSheetOffset = this._mapSheetOffset || 0
+      if (this._relationSheetOffset > this._overviewSheetOffset) this.updateMapSheetPosition(this._relationSheetOffset)
+    }
+    this.cancelSelectionFlowAnimation()
+    this._selectedNodeId = String(node.id)
+    this._selectionFlowStartedAt = this._metrics.now()
+    this._graphModel = buildKnowledgeRelationGraph({ id: node.id, label: node.label }, (this._overviewGraphModel || {}).nodes)
+    this.setData({ selectedNode: applyTopicDisplay(node), relationMode: true, relationLoading: true, relationError: '', prerequisiteLinks: [], successorLinks: [] })
+    this.buildGraphScene()
+    this.resetGraphView()
+    try {
+      const detail = await loadKnowledgeTopic(node.id)
+      if (generation !== this._relationGeneration || this._isPageVisible === false) return
+      const graph = buildKnowledgeRelationGraph(detail, (this._overviewGraphModel || {}).nodes)
+      this._graphModel = graph
+      this.setData({ selectedNode: applyTopicDisplay(graph.nodes[0]), relationLoading: false, prerequisiteLinks: graph.prerequisites, successorLinks: graph.successors })
+      this.buildGraphScene()
+      this.resetGraphView()
+    } catch (error) {
+      if (generation !== this._relationGeneration || this._isPageVisible === false) return
+      this.setData({ relationLoading: false, relationError: error.message || '关联知识点加载失败，请重试' })
+    }
+  },
+  selectRelatedNode(e) {
+    const id = String(e.currentTarget.dataset.id || '')
+    if (!id || id === this._selectedNodeId) return
+    const node = (this._graphModel.nodes || []).find(item => item.id === id)
+    if (node) return this.selectKnowledgeNode(node)
+    // Related links are not part of the drawn relation graph; their chips still
+    // carry enough identity (id + label) to load a full detail view directly.
+    const selected = this.data.selectedNode || {}
+    const link = [].concat(selected.relatedLinks || [], this.data.prerequisiteLinks, this.data.successorLinks)
+      .find(item => item && String(item.id) === id)
+    if (link) this.selectKnowledgeNode({ id: link.id, label: link.label })
+  },
+  noopSheetTouch() {},
+  retryRelations() { return this.selectKnowledgeNode(this.data.selectedNode) },
+  returnToOverview() {
+    this._relationGeneration = (this._relationGeneration || 0) + 1
+    this.cancelSelectionFlowAnimation()
+    this._selectedNodeId = null
+    this._graphModel = this._overviewGraphModel || this._graphModel
+    if (this._overviewSheetOffset != null && this.data.sheetTrigger != null) this.updateMapSheetPosition(this._overviewSheetOffset)
+    this.setData({ selectedNode: null, relationMode: false, relationLoading: false, relationError: '', prerequisiteLinks: [], successorLinks: [] })
+    this.buildGraphScene()
+    this.resetGraphView()
+    if (this._overviewGraphView && this._canvas) {
+      this._graphView = { ...this._overviewGraphView }
+      this.setData({ zoomPercent: Math.round(this._graphView.scale * 100) })
+      this.requestGraphDraw()
+    }
   },
 
   initializeCanvas() {
@@ -237,9 +403,12 @@ Page({
     const { context } = this._canvas
     const { nodes = [], edges = [] } = this._graphModel || {}
     this._graphLayoutProfile = getKnowledgeMapLayoutProfile(nodes.length)
-    const cards = nodes.map((node, drawIndex) => {
+    if (this._graphModel.radial) this._graphLayoutProfile = { ...this._graphLayoutProfile, scaleX: 1, scaleY: 1 }
+    let cards = nodes.map((node, drawIndex) => {
       const point = this.graphPoint(node)
-      const metrics = this.getNodeCardMetrics(node)
+      const base = this.getNodeCardMetrics(node)
+      context.font = `${base.fontWeight} ${base.fontSize}px sans-serif`
+      const metrics = getKnowledgeMapTextCardMetrics(node.nodeType, node.label, text => context.measureText(text).width)
       const card = {
         x: point.x - metrics.width / 2,
         y: point.y - metrics.height / 2,
@@ -250,15 +419,15 @@ Page({
         centerY: point.y,
         fontSize: metrics.fontSize,
         fontWeight: metrics.fontWeight,
-        lineHeight: metrics.fontSize * 1.22,
+        lineHeight: metrics.lineHeight,
+        lines: metrics.lines,
         node,
         drawIndex,
         portSides: new Set()
       }
-      context.font = `${metrics.fontWeight} ${metrics.fontSize}px sans-serif`
-      card.lines = fitTextLines(node.label, metrics.width - 24, (text) => context.measureText(text).width, 2)
       return card
     })
+    if (this._graphModel.radial) cards = spaceRadialCards(cards)
     const cardById = Object.create(null)
     cards.forEach((card) => { cardById[card.node.id] = card })
     const resolvedEdges = []
@@ -283,30 +452,45 @@ Page({
       nodeCount: scene ? scene.cards.length : 0,
       bounds: scene && scene.bounds,
       viewportWidth: width,
-      viewportHeight: height
+      viewportHeight: this.data.canvasClipHeight || height
     })
   },
   resetGraphView() {
     if (!this._canvas || !this._graphScene) return
     this._graphPresentation = this.getGraphPresentation()
+    if (this.data.relationMode) {
+      const visible = getVisibleCanvasRect(this._canvas.width, this._canvas.height, this.data.canvasClipHeight, this.data.canvasFollowOffset, true)
+      const bounds = this._graphScene.bounds
+      // Fit symmetrically around the selected center, inside the visible canvas above the sheet.
+      const halfWidth = Math.max(Math.abs(bounds.x), Math.abs(bounds.x + bounds.width), 1)
+      const halfHeight = Math.max(Math.abs(bounds.y), Math.abs(bounds.y + bounds.height), 1)
+      const scale = Math.max(0.1, Math.min(1, (visible.width - 32) / (halfWidth * 2), (visible.height - 100) / (halfHeight * 2)))
+      this._graphPresentation.minScale = Math.min(this._graphPresentation.minScale, scale)
+      this._graphView = { scale, x: visible.x + visible.width / 2, y: visible.y + visible.height / 2 }
+      this.setData({ zoomPercent: Math.round(scale * 100) })
+      this.requestGraphDraw()
+      return
+    }
     const scale = this._graphPresentation.defaultScale
+    const visible = this.getVisibleCanvasRect()
     const bounds = this._graphScene.bounds
     const rootCard = this._graphScene.rootCard
     const focusRoot = this._graphPresentation.initialFocus === 'root' && rootCard
     this._graphView = focusRoot
       ? {
           scale,
-          x: this._canvas.width * 0.24 - rootCard.centerX * scale,
-          y: this._canvas.height / 2 - rootCard.centerY * scale
+          x: this._canvas.width * (this._graphModel.radial ? 0.5 : 0.24) - rootCard.centerX * scale,
+          y: visible.y + visible.height / 2 - rootCard.centerY * scale
         }
       : {
           scale,
           x: this._canvas.width / 2 - (bounds.x + bounds.width / 2) * scale,
-          y: this._canvas.height / 2 - (bounds.y + bounds.height / 2) * scale
+          y: visible.y + visible.height / 2 - (bounds.y + bounds.height / 2) * scale
         }
     this._graphView = this.clampGraphView(scale, this._graphView.x, this._graphView.y)
     this._selectedNodeId = null
     this.cancelSelectionFlowAnimation()
+    this.setData({ selectedNode: null })
     const zoomPercent = Math.round(scale * 100)
     if (this.data.zoomPercent !== zoomPercent) this.setData({ zoomPercent })
     this.requestGraphDraw()
@@ -347,7 +531,7 @@ Page({
       height,
       this.data.canvasClipHeight,
       this.data.canvasFollowOffset,
-      Boolean(this._mapGesture)
+      true
     )
   },
   getVisibleWorldRect(canvasRect) {
@@ -437,10 +621,10 @@ Page({
     context.lineCap = 'round'
     context.lineJoin = 'round'
     const inverseScale = 1 / Math.max(scale, 0.16)
-    context.lineWidth = (strength === 'hard' ? 1.25 : 0.9) * inverseScale
+    context.lineWidth = (strength === 'hard' ? 0.8 : 0.65) * inverseScale
     context.strokeStyle = strength === 'hard'
-      ? `rgba(210, 112, 31, ${dimmed ? 0.2 : 0.58})`
-      : `rgba(221, 166, 119, ${dimmed ? 0.14 : 0.48})`
+      ? `rgba(210, 112, 31, ${dimmed ? 0.045 : 0.12})`
+      : `rgba(221, 166, 119, ${dimmed ? 0.03 : 0.08})`
     context.setLineDash(strength === 'hard' ? [] : [4 * inverseScale, 5 * inverseScale])
     context.beginPath()
     edges.forEach((edge) => {
@@ -475,7 +659,7 @@ Page({
 
     edges.slice(0, 80).forEach((edge, index) => {
       const travel = (phase + index * 0.11) % 1
-      const towardSelected = edge.to === this._selectedNodeId ? travel : 1 - travel
+      const towardSelected = this.data.relationMode || edge.to === this._selectedNodeId ? travel : 1 - travel
       const point = getBezierPoint(edge.geometry, towardSelected)
       context.beginPath()
       context.arc(point.x, point.y, 2.25 * inverseScale, 0, Math.PI * 2)
@@ -502,8 +686,10 @@ Page({
     context.closePath()
   },
   drawNodeCard(context, card, scale, gestureLod) {
-    const style = STATUS_STYLES[card.node.status] || STATUS_STYLES.unknown
     const isSelected = card.node.id === this._selectedNodeId
+    const style = isSelected
+      ? { fill: '#FD7C02', stroke: '#FD7C02', text: '#FFFFFF', marker: '#FFFFFF' }
+      : STATUS_STYLES[card.node.status] || STATUS_STYLES.unknown
     context.save()
     if (isSelected) {
       context.shadowColor = 'rgba(120, 72, 31, 0.24)'
@@ -521,7 +707,7 @@ Page({
     context.stroke()
     this.drawStatusMark(context, card, style.marker, scale)
 
-    const showText = shouldShowKnowledgeMapLabel(
+    const showText = this.data.relationMode || shouldShowKnowledgeMapLabel(
       card.fontSize,
       scale,
       card.node.nodeType,
@@ -550,7 +736,7 @@ Page({
       left: { x: card.x, y: card.centerY }
     }
     context.save()
-    context.fillStyle = '#FD7C02'
+    context.fillStyle = card.node.id === this._selectedNodeId ? '#FD7C02' : 'rgba(253, 124, 2, 0.28)'
     context.strokeStyle = '#FFFFFF'
     context.lineWidth = metrics.strokeWidth
     card.portSides.forEach((side) => {
@@ -604,14 +790,20 @@ Page({
     }
   },
   clampGraphView(scale, x, y) {
-    const { width, height } = this._canvas
-    const bounds = this._graphScene && this._graphScene.bounds
+    const viewport = getVisibleCanvasRect(this._canvas.width, this._canvas.height, this.data.canvasClipHeight, this.data.canvasFollowOffset, true)
+    const { width, height } = viewport
+    let bounds = this._graphScene && this._graphScene.bounds
     if (!bounds) return { scale, x, y }
+    if (this.data.relationMode) {
+      const halfWidth = Math.max(Math.abs(bounds.x), Math.abs(bounds.x + bounds.width))
+      const halfHeight = Math.max(Math.abs(bounds.y), Math.abs(bounds.y + bounds.height))
+      bounds = { x: -halfWidth, y: -halfHeight, width: halfWidth * 2, height: halfHeight * 2 }
+    }
     const panPadding = (this._graphPresentation && this._graphPresentation.panPadding) || 28
     const scaledWidth = bounds.width * scale
     const scaledHeight = bounds.height * scale
-    const centeredX = (width - scaledWidth) / 2 - bounds.x * scale
-    const centeredY = (height - scaledHeight) / 2 - bounds.y * scale
+    const centeredX = viewport.x + (width - scaledWidth) / 2 - bounds.x * scale
+    const centeredY = viewport.y + (height - scaledHeight) / 2 - bounds.y * scale
     let minX
     let maxX
     let minY
@@ -620,15 +812,15 @@ Page({
       minX = centeredX - panPadding
       maxX = centeredX + panPadding
     } else {
-      minX = width - panPadding - (bounds.x + bounds.width) * scale
-      maxX = panPadding - bounds.x * scale
+      minX = viewport.x + width - panPadding - (bounds.x + bounds.width) * scale
+      maxX = viewport.x + panPadding - bounds.x * scale
     }
     if (scaledHeight <= height) {
       minY = centeredY - panPadding
       maxY = centeredY + panPadding
     } else {
-      minY = height - panPadding - (bounds.y + bounds.height) * scale
-      maxY = panPadding - bounds.y * scale
+      minY = viewport.y + height - panPadding - (bounds.y + bounds.height) * scale
+      maxY = viewport.y + panPadding - bounds.y * scale
     }
     return { scale, x: clamp(x, minX, maxX), y: clamp(y, minY, maxY) }
   },
@@ -682,7 +874,7 @@ Page({
       const zoomPercent = Math.round(this._graphView.scale * 100)
       if (this.data.zoomPercent !== zoomPercent) this.setData({ zoomPercent })
     }
-    if (!gesture || this._mapDidMove || gesture.type !== 'pan' || !this._canvas) {
+    if (e.type === 'touchcancel' || !gesture || this._mapDidMove || gesture.type !== 'pan' || !this._canvas) {
       this.requestGraphDraw()
       return
     }
@@ -690,16 +882,12 @@ Page({
     const hitNode = touch && this.findNodeAt(this.getCanvasTouch(touch))
     if (!hitNode) {
       if (this._selectedNodeId) {
-        this._selectedNodeId = null
-        this.cancelSelectionFlowAnimation()
+        this.returnToOverview()
       }
       this.requestGraphDraw()
       return
     }
-    this._selectedNodeId = hitNode.id
-    this._selectionFlowStartedAt = this._metrics.now()
-    this.requestGraphDraw()
-    wx.showToast({ title: `演示知识点：${hitNode.label}`, icon: 'none' })
+    if (hitNode.id !== this._selectedNodeId) return this.selectKnowledgeNode(hitNode)
   },
   findNodeAt(point) {
     if (!this._graphScene || !this._graphView) return null
@@ -725,7 +913,7 @@ Page({
     }
     return nearestCard ? nearestCard.node : null
   },
-  resetMap() { this.resetGraphView() },
+  resetMap() { if (this.data.relationMode) this.returnToOverview(); else this.resetGraphView() },
 
   cancelSelectionFlowAnimation() {
     if (this._selectionFlowTimer) clearTimeout(this._selectionFlowTimer)
@@ -795,68 +983,70 @@ Page({
       if (gesture.kind === 'horizontal') return
     }
     if (gesture.kind !== 'vertical') return
-    this.updateMapSheetPosition(clamp(gesture.startTop - offsetY, 0, this.data.sheetTrigger))
+    this.updateMapSheetPosition(gesture.startTop - offsetY)
   },
-  handleMapSheetTouchEnd() {
+  handleMapSheetTouchEnd(e = {}) {
     if (!this._sheetGesture) return
     const gesture = this._sheetGesture
     this._sheetGesture = null
     if (gesture.kind !== 'vertical') return
-    this.snapMapSheet(gesture.startTop)
+    this.snapMapSheet(e.type === 'touchcancel' ? this._mapSheetOffset : gesture.startTop)
   },
   updateMapSheetPosition(scrollTop) {
-    const boundedTop = clamp(scrollTop, 0, this.data.sheetTrigger)
+    const boundedTop = clamp(scrollTop, this.data.sheetMinOffset || 0, this.data.sheetTrigger)
+    const baseHeight = this._baseCanvasHeight == null ? this.data.canvasHeight : this._baseCanvasHeight
+    const canvasClipHeight = clamp(baseHeight - boundedTop, 0, this.data.canvasHeight)
     this._mapSheetOffset = boundedTop
     this.setData({
       sheetVisualOffset: boundedTop,
-      canvasFollowOffset: Math.round(boundedTop * CANVAS_SHEET_FOLLOW_RATIO * 10) / 10,
-      canvasClipHeight: Math.max(0, this.data.canvasHeight - boundedTop)
+      canvasFollowOffset: Math.round(Math.max(0, boundedTop) * CANVAS_SHEET_FOLLOW_RATIO * 10) / 10,
+      canvasClipHeight,
+      canvasControlOffset: this.data.canvasHeight - canvasClipHeight
     })
+    if (this._canvas) this.requestGraphDraw()
+  },
+  toggleMapSheet() {
+    if (this._isMapSheetSnapping) return
+    const current = this._mapSheetOffset || 0
+    const midpoint = ((this.data.sheetMinOffset || 0) + this.data.sheetTrigger) / 2
+    this.snapMapSheet(current > midpoint ? current + 20 : current - 20)
   },
   snapMapSheet(startTop) {
     const current = this._mapSheetOffset || 0
     const delta = current - startTop
     let target
     if (delta > SHEET_DIRECTION_EPSILON) target = this.data.sheetTrigger
-    else if (delta < -SHEET_DIRECTION_EPSILON) target = 0
-    else target = current >= this.data.sheetTrigger / 2 ? this.data.sheetTrigger : 0
+    else if (delta < -SHEET_DIRECTION_EPSILON) target = this.data.sheetMinOffset || 0
+    else target = current >= ((this.data.sheetMinOffset || 0) + this.data.sheetTrigger) / 2 ? this.data.sheetTrigger : (this.data.sheetMinOffset || 0)
     if (Math.abs(target - current) <= SHEET_SETTLE_EPSILON) {
       this.updateMapSheetPosition(target)
       return
     }
     this._isMapSheetSnapping = true
-    this.setData({
-      sheetSnapping: true,
-      sheetVisualOffset: target,
-      canvasFollowOffset: Math.round(target * CANVAS_SHEET_FOLLOW_RATIO * 10) / 10,
-      canvasClipHeight: Math.max(0, this.data.canvasHeight - target)
-    })
+    this.setData({ sheetSnapping: true })
+    this.updateMapSheetPosition(target)
     this._mapSheetSnapTimer = setTimeout(() => {
       this._mapSheetOffset = target
       this._isMapSheetSnapping = false
       this._mapSheetSnapTimer = null
-      this.setData({
-        sheetSnapping: false,
-        sheetVisualOffset: target,
-        canvasFollowOffset: Math.round(target * CANVAS_SHEET_FOLLOW_RATIO * 10) / 10,
-        canvasClipHeight: Math.max(0, this.data.canvasHeight - target)
-      })
+      this.setData({ sheetSnapping: false })
     }, SHEET_ANIMATION_DURATION)
   },
   selectCourse(e) {
     const courseId = e.currentTarget.dataset.id
-    if (!courseId || courseId === this.data.model.activeCourseId) return
+    if (!courseId) return
+    if (courseId === this.data.model.activeCourseId) { if (this.data.relationMode) this.returnToOverview(); return }
     this.loadKnowledgeMapCourse(courseId)
     if (wx.vibrateShort) wx.vibrateShort({ type: 'light' })
   },
   openSubjectAssessment() {
     const subjectKey = String(this.data.activeSubjectKey || '')
     if (!subjectKey) return wx.showToast({ title: '请先选择一个学科', icon: 'none' })
-    wx.navigateTo({ url: `/assessment/context/index?subjectKey=${encodeURIComponent(subjectKey)}` })
+    wx.navigateTo({ url: `/assessment/short/index?subjectKey=${encodeURIComponent(subjectKey)}` })
   },
   openTopicDetail() {
     const node = this.data.selectedNode
     if (!node || !node.id) return
-    wx.navigateTo({ url: `/diagnosis/topic/index?topicId=${encodeURIComponent(node.id)}&subjectKey=${encodeURIComponent(this.data.activeSubjectKey)}` })
+    wx.navigateTo({ url: `/diagnosis/topic/index?topicId=${encodeURIComponent(node.id)}&subjectKey=${encodeURIComponent(node.subjectKey || this.data.activeSubjectKey)}` })
   }
 })

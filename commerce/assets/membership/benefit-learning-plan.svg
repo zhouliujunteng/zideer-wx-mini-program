@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 156 128" fill="none">
+  <defs><linearGradient id="calendar" x1="35" y1="20" x2="116" y2="112" gradientUnits="userSpaceOnUse"><stop stop-color="#FFFDF8"/><stop offset="1" stop-color="#FCE6BD"/></linearGradient></defs>
+  <path d="M20 108c19-7 25-26 44-33 19-7 31 4 47-10 13-11 18-23 29-29" stroke="#F3CD8B" stroke-width="3" stroke-linecap="round" stroke-dasharray="3 8"/>
+  <rect x="35" y="21" width="82" height="90" rx="16" fill="url(#calendar)" stroke="#ECCC93" stroke-width="2"/><path d="M35 48h82" stroke="#ECCC93" stroke-width="2"/><path d="M55 17v13M97 17v13" stroke="#F6901C" stroke-width="6" stroke-linecap="round"/>
+  <rect x="51" y="61" width="13" height="13" rx="4" fill="#FFF4DB"/><path d="m54 67 3 3 5-6" stroke="#F58B19" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="75" y="61" width="13" height="13" rx="4" fill="#FFF4DB"/><rect x="99" y="61" width="13" height="13" rx="4" fill="#FFF4DB"/>
+  <rect x="51" y="84" width="13" height="13" rx="4" fill="#FFF4DB"/><rect x="75" y="84" width="13" height="13" rx="4" fill="#FFF4DB"/><path d="m102 90 3 3 5-6" stroke="#F58B19" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="108" r="6" fill="#FCAF42"/><circle cx="140" cy="46" r="6" fill="#FD8B1B"/>
+</svg>

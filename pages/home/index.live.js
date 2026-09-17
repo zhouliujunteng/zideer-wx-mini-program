@@ -115,16 +115,7 @@ Page({
   },
 
   openAssessmentProgress() {
-    const assessment = this.data.assessment
-    if (!assessment || !assessment.id) {
-      this.startAssessment()
-      return
-    }
-    if (assessment.status === 'draft') {
-      wx.navigateTo({ url: `/assessment/basic/index?subjectKey=${encodeURIComponent(assessment.subjectKey)}&resume=1` })
-      return
-    }
-    wx.navigateTo({ url: `/assessment/analysis/index?attemptId=${encodeURIComponent(assessment.id)}` })
+    wx.navigateTo({ url: '/assessment/short/index' })
   },
 
   openProductIntro() {

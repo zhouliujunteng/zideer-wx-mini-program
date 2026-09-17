@@ -27,7 +27,7 @@ Page({
     dailyMinutes: 40,
     targetDate: '',
     minDate: '',
-    subjects,
+    subjects: subjects.map((item) => ({ ...item, selected: false })),
     selectedSubjects: [],
     submitting: false,
     progressText: ''
@@ -60,7 +60,10 @@ Page({
     const selected = new Set(this.data.selectedSubjects)
     if (selected.has(key)) selected.delete(key)
     else selected.add(key)
-    this.setData({ selectedSubjects: Array.from(selected) })
+    this.setData({
+      selectedSubjects: Array.from(selected),
+      subjects: this.data.subjects.map((item) => ({ ...item, selected: selected.has(item.key) }))
+    })
   },
 
   async submit() {

@@ -10,3 +10,4 @@
     <view class="remediation-actions"><button class="secondary-action pressable" wx:if="{{task.canReview}}" bindtap="reviewCourse">回顾原课程</button><button class="secondary-action pressable" wx:else disabled="true">原课程不可用</button><button class="primary-action pressable" wx:if="{{task.canContinue}}" bindtap="continueTask">查看补学进度</button><button class="primary-action primary-action--disabled" wx:else disabled="true">等待老师确认</button></view>
   </block>
 </view>
+<dev-reset-fab />

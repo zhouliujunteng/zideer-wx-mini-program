@@ -1,3 +1,5 @@
 {
-  "navigationBarTitleText": "完善学习档案"
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "完善学习档案",
+  "disableScroll": true
 }

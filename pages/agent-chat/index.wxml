@@ -1,0 +1,246 @@
+<view class="agent-page">
+  <view class="agent-ambient" aria-hidden="true"></view>
+  <view class="agent-topbar">
+    <view class="agent-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="agent-back-button" bindtap="handleBack" aria-role="button" aria-label="{{model.header.backLabel}}">
+        <view class="agent-back-icon" aria-hidden="true"></view>
+      </view>
+      <view class="agent-new-chat-button" style="width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="handleNewConversation" aria-role="button" aria-label="{{model.header.newConversationLabel}}">
+        <image class="agent-new-chat-icon" src="../../assets/new-chat.svg" mode="aspectFit" aria-hidden="true"></image>
+      </view>
+      <text class="agent-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{model.header.title}}</text>
+    </view>
+    <view class="agent-history-button" style="top: {{historyTop}}px; right: {{historyRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="openHistory" aria-role="button" aria-label="{{model.header.historyLabel}}">
+      <image class="agent-history-icon" src="../../assets/history.svg" mode="aspectFit" aria-hidden="true"></image>
+    </view>
+  </view>
+
+  <scroll-view
+    class="agent-chat-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="false"
+    scroll-into-view="{{scrollIntoView}}"
+    scroll-top="{{scrollTop}}"
+    scroll-with-animation="{{false}}"
+    bindscroll="handleChatScroll"
+    bindtouchstart="handleChatTouchStart"
+    bindtouchmove="handleChatTouchMove"
+    bindtouchend="handleChatTouchEnd"
+    bindtouchcancel="handleChatTouchEnd"
+    style="padding-top: {{contentTop}}px;"
+  >
+    <view class="agent-chat-shell">
+      <view wx:if="{{!messages.length}}" class="agent-welcome">
+        <view class="agent-welcome-avatar" aria-role="img" aria-label="知鹿智能体头像">
+          <view class="agent-welcome-avatar-shape">
+            <view class="agent-welcome-eye agent-welcome-eye-left"></view>
+            <view class="agent-welcome-eye agent-welcome-eye-right"></view>
+          </view>
+        </view>
+        <text class="agent-welcome-title">{{model.welcome.title}}</text>
+        <view class="agent-welcome-history" bindtap="openHistory" aria-role="button" aria-label="查看历史对话">
+          <image class="agent-welcome-history-icon" src="../../assets/history.svg" mode="aspectFit" aria-hidden="true"></image>
+          <text>查看历史对话</text>
+        </view>
+        <view wx:if="{{model.suggestedPromptRows && model.suggestedPromptRows.length}}" class="agent-prompt-marquees" aria-label="快捷提问示例">
+          <view wx:for="{{model.suggestedPromptRows}}" wx:for-item="row" wx:for-index="rowIndex" wx:key="id" class="agent-prompt-marquee agent-prompt-marquee-{{rowIndex}}">
+            <view class="agent-prompt-track {{row.direction === 'reverse' ? 'is-reverse' : ''}}">
+              <view wx:for="{{row.loopItems}}" wx:for-item="prompt" wx:key="id" class="agent-prompt-chip" data-id="{{prompt.sourceId || prompt.id}}" bindtap="handleSuggestion" aria-hidden="{{prompt.isClone ? 'true' : 'false'}}">
+                <text>{{prompt.label}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{messages.length}}" class="agent-message-list">
+        <view wx:for="{{messages}}" wx:key="id" id="message-{{item.id}}" class="agent-message {{item.kind ? 'agent-message-activity' : 'agent-message-' + item.role}}">
+
+          <view wx:if="{{item.kind === 'thinking'}}" class="agent-activity-think {{item.streaming ? 'is-streaming' : ''}}" data-id="{{item.id}}" bindtap="handleActivityToggle" aria-role="button" aria-label="思考过程">
+            <view class="agent-activity-think-head">
+              <view class="agent-activity-think-spinner" aria-hidden="true"></view>
+              <text class="agent-activity-think-label">{{item.streaming ? '思考中' : '思考完成'}}</text>
+              <text class="agent-activity-think-preview" wx:if="{{!item.expanded}}">{{item.preview || (item.streaming ? '正在梳理你的问题' : '整理好了回答')}}</text>
+              <text class="agent-activity-caret" wx:else>收起</text>
+            </view>
+            <view class="agent-activity-think-lines" wx:if="{{item.expanded}}">
+              <text class="agent-activity-think-line" wx:for="{{item.lines}}" wx:for-item="line" wx:key="*this">{{line}}</text>
+            </view>
+          </view>
+
+          <view wx:elif="{{item.kind === 'tool'}}" class="agent-activity-tool">
+            <!-- 过程步骤只展示状态，不提供详情：调用参数与返回结果对学生没有意义 -->
+            <view class="agent-activity-tool-row" aria-label="{{item.label}}">
+              <view class="agent-activity-tool-dot is-{{item.state}}" aria-hidden="true"></view>
+              <text class="agent-activity-tool-label">{{item.label}}</text>
+              <text class="agent-activity-tool-duration" wx:if="{{item.durationText}}">{{item.durationText}}</text>
+            </view>
+          </view>
+
+          <view wx:elif="{{item.kind === 'question'}}" class="agent-activity-question {{item.answered ? 'is-answered' : ''}}">
+            <text class="agent-activity-question-title">{{item.question}}</text>
+            <block wx:for="{{item.options}}" wx:for-item="option" wx:key="id">
+              <view wx:if="{{!item.answered || option.selected}}" class="agent-activity-question-option {{option.selected ? 'is-selected' : ''}} {{option.isConfirm ? 'is-confirm' : ''}} {{item.multiSelect ? 'is-multi' : 'is-single'}}" data-id="{{option.id}}" data-question-id="{{item.id}}" bindtap="handleQuestionOptionTap" aria-role="{{item.multiSelect ? 'checkbox' : 'radio'}}" aria-checked="{{option.selected ? 'true' : 'false'}}" aria-label="{{option.label}}">
+                <view wx:if="{{!item.answered}}" class="agent-activity-question-mark" aria-hidden="true"></view>
+                <text>{{option.label}}</text>
+              </view>
+            </block>
+            <view class="agent-activity-question-answer" wx:if="{{item.answered && item.answerText && !item.selectedCount}}">
+              <text>我的回答：{{item.answerText}}</text>
+            </view>
+            <view class="agent-activity-question-confirm {{item.selectedCount ? '' : 'is-disabled'}}" wx:if="{{!item.answered && item.options.length}}" data-question-id="{{item.id}}" bindtap="handleQuestionConfirm" aria-role="button" aria-disabled="{{item.selectedCount ? 'false' : 'true'}}" aria-label="{{item.confirmLabel}}">
+              <text>{{item.confirmLabel}}</text>
+            </view>
+            <text class="agent-activity-question-hint" wx:if="{{!item.answered}}">{{item.options.length ? '如果还有其他情况，也可以直接打字补充' : '直接在下方输入框打字回答即可'}}</text>
+          </view>
+
+          <view wx:elif="{{item.kind === 'stage'}}" class="agent-activity-stage {{item.generating ? 'is-generating' : ''}}" data-stage-id="{{item.stageId}}" bindtap="handleStageOpen" aria-role="link" aria-label="{{item.title}}，{{item.subtitle}}">
+            <view class="agent-activity-stage-body">
+              <text class="agent-activity-stage-title">{{item.title}}</text>
+              <view class="agent-activity-stage-url">
+                <view wx:if="{{item.generating}}" class="agent-activity-stage-live"></view>
+                <text>{{item.subtitle}}</text>
+              </view>
+            </view>
+            <view class="agent-activity-stage-copy">
+              <text>{{item.actionLabel}}</text>
+            </view>
+          </view>
+
+          <view wx:elif="{{item.kind === 'notice'}}" class="agent-activity-notice is-{{item.tone}}">
+            <text>{{item.text}}</text>
+          </view>
+
+          <view wx:else class="agent-message-column">
+            <view class="agent-message-bubble {{item.isTyping ? 'is-typing' : ''}}">
+              <block wx:if="{{item.isTyping && !item.text}}"><view class="typing-dots"><view></view><view></view><view></view></view></block>
+              <rich-text wx:elif="{{item.role === 'assistant'}}" class="agent-message-markdown" nodes="{{item.markdownNodes}}"></rich-text>
+              <text wx:else class="agent-message-text">{{item.text}}</text>
+              <view wx:if="{{item.role === 'assistant' && item.streamReserveLine}}" class="agent-message-stream-reserve" aria-hidden="true"><text> </text></view>
+            </view>
+            <view wx:if="{{item.role === 'assistant' && !item.isTyping && item.text}}" class="agent-message-actions">
+              <view class="agent-message-action" data-id="{{item.id}}" data-action="copy" bindtap="handleMessageAction" aria-role="button" aria-label="复制回答">
+                <image class="agent-message-action-icon" src="../../assets/chat-copy.svg" mode="aspectFit" aria-hidden="true"></image>
+              </view>
+              <view class="agent-message-action {{item.feedback === 'like' ? 'is-active' : ''}}" data-id="{{item.id}}" data-action="like" bindtap="handleMessageAction" aria-role="button" aria-label="赞">
+                <image class="agent-message-action-icon" src="../../assets/chat-like.svg" mode="aspectFit" aria-hidden="true"></image>
+              </view>
+              <view class="agent-message-action {{item.feedback === 'dislike' ? 'is-active' : ''}}" data-id="{{item.id}}" data-action="dislike" bindtap="handleMessageAction" aria-role="button" aria-label="踩">
+                <image class="agent-message-action-icon" src="../../assets/chat-dislike.svg" mode="aspectFit" aria-hidden="true"></image>
+              </view>
+              <view class="agent-message-action" data-id="{{item.id}}" data-action="share" bindtap="handleMessageAction" aria-role="button" aria-label="分享回答">
+                <image class="agent-message-action-icon" src="../../assets/chat-share.svg" mode="aspectFit" aria-hidden="true"></image>
+              </view>
+              <text class="agent-message-time">{{item.createdAtLabel}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view id="chat-bottom" class="agent-chat-bottom"></view>
+  </scroll-view>
+
+  <view wx:if="{{showScrollToBottom}}" class="agent-scroll-bottom-button" style="bottom: {{scrollButtonBottom}}px;" bindtap="handleScrollToBottom" aria-role="button" aria-label="回到底部">
+    <view class="agent-scroll-bottom-icon" aria-hidden="true"></view>
+  </view>
+
+  <view wx:if="{{voiceRecognizing}}" class="voice-demo-status {{voiceCancel ? 'is-canceling' : ''}}" aria-live="polite">
+    <text class="voice-demo-label">{{voiceCancel ? '松手取消' : '松手发送，上移取消'}}</text>
+    <view class="voice-demo-wave {{voiceSoundActive ? 'is-speaking' : 'is-silent'}}">
+      <view wx:for="{{voiceBars}}" wx:key="id" class="voice-demo-bar" style="height: {{item.height}}rpx; opacity: {{item.opacity}};"></view>
+    </view>
+  </view>
+
+  <view class="keyboard-occlusion-fill" style="height: {{keyboardHeight}}px;"></view>
+
+  <view class="agent-composer {{keyboardHeight > 0 ? 'is-keyboard-visible' : ''}}" style="bottom: {{keyboardHeight > 0 ? keyboardHeight : composerBottomOffset}}px;">
+    <scroll-view class="agent-learning-options" scroll-x enhanced show-scrollbar="{{false}}" aria-label="学习选项">
+      <view class="agent-learning-options-track">
+        <view class="agent-learning-chip {{includeUniverse ? 'is-active' : ''}}" catchtap="toggleUniverseOption" aria-role="switch" aria-checked="{{includeUniverse}}" aria-label="参考我的宇宙">
+          <image class="agent-learning-chip-icon" src="/assets/icons/network.svg" mode="aspectFit" aria-hidden="true"></image>
+          <text>参考我的宇宙</text>
+        </view>
+        <view wx:for="{{learningModes}}" wx:key="id" class="agent-learning-chip {{activeLearningMode === item.id ? 'is-active' : ''}}" data-id="{{item.id}}" catchtap="handleLearningModeTap" aria-role="radio" aria-checked="{{activeLearningMode === item.id}}" aria-label="{{item.label}}">
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+    </scroll-view>
+    <view
+      class="agent-composer-bar {{inputActive ? 'is-input-active' : ''}} {{voiceRecognizing ? 'is-voice-active' : ''}}"
+      bindtap="handleComposerTap"
+      bindtouchstart="handleComposerTouchStart"
+      bindtouchmove="handleComposerTouchMove"
+      bindtouchend="handleComposerTouchEnd"
+      bindtouchcancel="handleComposerTouchEnd"
+      bindlongpress="handleComposerLongPress"
+      aria-role="button"
+      aria-label="{{voiceMode ? '语音输入' : (inputActive ? '输入消息' : model.composer.voiceLabel)}}"
+    >
+      <view wx:if="{{voiceMode}}" class="agent-voice-button agent-keyboard-button" data-control="mode-toggle" catchtap="handleKeyboardButtonTap" aria-role="button" aria-label="{{model.composer.keyboardLabel}}">
+        <image class="agent-voice-icon" src="../../assets/keyboard-icon.svg" mode="aspectFit" data-control="mode-toggle" aria-hidden="true"></image>
+      </view>
+      <view wx:if="{{!voiceMode}}" class="agent-voice-button {{voiceHolding ? 'is-holding' : ''}} {{inputValue ? 'is-collapsing' : ''}}" data-control="mode-toggle" catchtap="handleVoiceButtonTap" aria-role="button" aria-label="切换到语音模式">
+        <image class="agent-voice-icon" src="../../assets/agent-voice.svg" mode="aspectFit" data-control="mode-toggle" aria-hidden="true"></image>
+      </view>
+      <view wx:if="{{voiceMode}}" class="agent-voice-speak-button" data-voice-trigger="true" catchtouchstart="handleComposerTouchStart" catchtouchmove="handleComposerTouchMove" catchtouchend="handleComposerTouchEnd" catchtouchcancel="handleComposerTouchEnd" catchlongpress="handleComposerLongPress" aria-role="button" aria-label="{{model.composer.speakLabel}}">
+        <text>{{model.composer.speakLabel}}</text>
+      </view>
+      <text wx:if="{{!voiceMode && !inputValue && !inputActive}}" class="agent-input agent-input-placeholder">{{model.composer.placeholder}}</text>
+      <input
+        wx:if="{{!voiceMode && (inputActive || inputValue)}}"
+        class="agent-input"
+        value="{{inputValue}}"
+        maxlength="{{model.composer.maxLength}}"
+        focus="{{inputFocus}}"
+        adjust-position="{{false}}"
+        cursor-spacing="24"
+        show-confirm-bar="{{false}}"
+        confirm-type="send"
+        bindinput="handleInput"
+        bindconfirm="handleSend"
+        bindfocus="handleInputFocus"
+        bindblur="handleInputBlur"
+        bindkeyboardheightchange="handleKeyboardHeightChange"
+        disabled="{{isSending}}"
+      />
+      <view class="agent-send-button {{canSend ? 'is-enabled' : ''}} {{isSending ? 'is-sending' : ''}}" catchtap="handleSendOrStop" aria-role="button" aria-label="{{isSending ? '停止生成' : model.composer.sendLabel}}">
+        <view wx:if="{{isSending}}" class="agent-stop-icon" aria-hidden="true"></view>
+        <image wx:else class="agent-send-icon" src="../../assets/agent-send.svg" mode="aspectFit" aria-hidden="true"></image>
+      </view>
+    </view>
+  </view>
+  <view class="agent-composer-note-background" aria-hidden="true"></view>
+  <text class="agent-composer-note">{{voiceRecognizing ? model.composer.voiceActiveNote : model.privacy.warningLabel}}</text>
+
+  <view wx:if="{{historyVisible}}" class="history-sheet-layer {{historyClosing ? 'is-closing' : ''}}" catchtap="closeHistory">
+    <view class="history-sheet" catchtap="stopTap" aria-modal="true" aria-label="{{model.history.title}}">
+      <view class="history-sheet-handle"></view>
+      <view class="history-sheet-header">
+        <text class="history-sheet-title">{{model.history.title}}</text>
+        <view class="history-sheet-close" bindtap="closeHistory" aria-label="关闭">×</view>
+      </view>
+      <view class="history-search">
+        <view class="history-search-icon" aria-hidden="true"></view>
+        <input class="history-search-input" value="{{historySearch}}" placeholder="{{model.history.searchPlaceholder}}" placeholder-class="history-search-placeholder" bindinput="handleHistorySearch" />
+        <text wx:if="{{historySearch}}" class="history-search-clear" bindtap="clearHistorySearch">×</text>
+      </view>
+      <scroll-view class="history-list" scroll-y enhanced show-scrollbar="false">
+        <view wx:if="{{historyLoading}}" class="history-empty">正在加载历史对话…</view>
+        <view wx:elif="{{historySections.length}}">
+          <view wx:for="{{historySections}}" wx:for-item="section" wx:key="key" class="history-section">
+            <text class="history-section-title">{{section.label}}</text>
+            <view wx:for="{{section.items}}" wx:for-item="item" wx:key="id" class="history-item {{item.id === activeHistoryId ? 'is-active' : ''}}" data-id="{{item.id}}" bindtap="handleHistoryPick">
+              <view class="history-item-copy"><text class="history-item-title">{{item.title}}</text><text class="history-item-time">{{item.time}}</text></view>
+              <view class="history-item-arrow"></view>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="history-empty">{{historyNotice || model.history.emptyText}}</view>
+      </scroll-view>
+      <text class="history-sheet-note">点选任意一条，继续之前的对话</text>
+    </view>
+  </view>
+</view>
+
+<dev-reset-fab />

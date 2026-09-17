@@ -1,0 +1,4 @@
+<view class="splash">
+  <image class="splash-bg" src="/assets/brand/splash.jpg" mode="aspectFit"></image>
+</view>
+<dev-reset-fab />

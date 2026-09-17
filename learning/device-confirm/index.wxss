@@ -1,0 +1,6 @@
+.device-page { padding: 48rpx 36rpx; color: #252b25; }
+.device-title { display: block; margin-bottom: 48rpx; font-size: 40rpx; font-weight: 600; }
+.device-label, .device-status { display: block; margin: 24rpx 0; font-size: 28rpx; color: #646b65; }
+.device-input { height: 96rpx; padding: 0 24rpx; border: 1px solid #ccd2ce; border-radius: 12rpx; background: #fff; font-size: 32rpx; }
+.device-action { margin-top: 40rpx; background: #267348; color: #fff; font-size: 30rpx; border-radius: 12rpx; }
+.device-error { display: block; margin-top: 24rpx; color: #b53434; font-size: 28rpx; }

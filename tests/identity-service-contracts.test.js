@@ -14,6 +14,7 @@ function actionResult(flow, value) {
 }
 
 function reset() {
+  identity.resetPhoneSessionVerification()
   calls.length = 0
   responses.clear()
   storageToken = 'test-runtime-token'
@@ -36,9 +37,16 @@ global.wx = {
     options.success({ code: `wechat-code-${wechatLoginCount}` })
   },
   request(options) {
+    if (require('./helpers/verified-phone-session')(options)) return
+    if (options.url === `${config.COURSE_PORTAL_ORIGIN}/api/learn/device`) {
+      calls.push({ url: options.url, data: options.data, header: options.header })
+      if (global.courseHandoffFails) options.fail({ errMsg: 'request:fail timeout' })
+      else options.success({ statusCode: 200, data: { ticket: 'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT', expiresAt: Date.now() + 60000 } })
+      return
+    }
     if (options.url === `${config.COURSE_PORTAL_ORIGIN}/api/course-launch/issue`) {
       calls.push({ url: options.url, data: options.data, header: options.header })
-      options.success({ statusCode: 200, data: { launchUrl: `${config.COURSE_PORTAL_ORIGIN}/launch?token=test-launch-token` } })
+      options.success({ statusCode: 200, data: { launchUrl: `${config.COURSE_PORTAL_ORIGIN}/launch?token=${'test-launch-token'.repeat(3)}` } })
       return
     }
     const query = options.data && options.data.query
@@ -60,6 +68,29 @@ global.wx = {
 }
 
 const identity = require('../services/identity')
+
+test('credit and growth displays translate runtime codes without changing their underlying values', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT, {
+    account: {}, batches: [{ source_type: 'redemption', remaining_credits: 2000 }],
+    ledger: [{ business_type: 'course_generation_limit_release', entry_type: 'release' }, { business_type: 'unknown_internal_code', entry_type: 'unknown' }]
+  })
+  const credit = await identity.loadCurrentCreditAccount()
+  assert.equal(credit.batches[0].sourceLabel, '兑换码兑换')
+  assert.equal(credit.batches[0].source_type, 'redemption')
+  assert.equal(credit.ledger[0].businessLabel, '课程超额退回')
+  assert.equal(credit.ledger[1].businessLabel, '课程积分变动')
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_GROWTH_CENTER, {
+    status: 'ready', coinLedger: [{ business_type: 'redemption' }],
+    redemptionRecords: [{ status: 'succeeded' }], withdrawals: [{ status: 'processing' }],
+    partner: { invitations: [{ scene_type: 'share', status: 'active' }] }
+  })
+  const growth = await identity.loadCurrentGrowthCenter()
+  assert.equal(growth.redemptionRecords[0].statusLabel, '兑换成功')
+  assert.equal(growth.coinLedger[0].businessLabel, '兑换码兑换')
+  assert.equal(growth.withdrawals[0].statusLabel, '处理中')
+  assert.equal(growth.invitations[0].sceneLabel, '分享邀请')
+})
 
 test('only a rejected runtime JWT returns users to login once', async () => {
   reset()
@@ -134,6 +165,7 @@ test('knowledge map initializes a newly authenticated account once before retryi
     { status: 'unauthenticated' },
     {
       status: 'ready',
+      datasetKey: 'china-k12-tokenmap-135386badef4',
       subjects: [{ id: 1, subject_key: 'Mathematics', display_name: '数学', display_order: 1 }],
       topics: [],
       dependencies: [],
@@ -178,7 +210,7 @@ test('first-user initialization and profile save use authoritative action flows'
   reset()
   actionResult(config.ACTION_FLOWS.INITIALIZE_CURRENT_USER, 101)
   actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PROFILE, {
-    id: 201, nickname: '小鹿', current_grade: 8, profile_completed_at: '2026-09-05T00:00:00Z'
+    id: 201, nickname: '小鹿', current_grade: 8, semester: '上学期', profile_completed_at: '2026-09-05T00:00:00Z'
   })
 
   const user = await identity.restoreAuthenticatedUser()
@@ -188,29 +220,30 @@ test('first-user initialization and profile save use authoritative action flows'
 
   actionResult(config.ACTION_FLOWS.SAVE_CURRENT_LEARNING_PROFILE, 201)
   await identity.saveCurrentLearningProfile({
-    nickname: '小鹿', grade: 8, schoolStage: '初中', semester: '秋季', schoolName: '测试学校', textbookVersion: '人教版', regionDetail: '深圳'
+    nickname: '小鹿', grade: 8, schoolStage: '初中', semester: '上学期', schoolName: '测试学校', textbookVersion: '人教版', regionDetail: '深圳'
   })
   assert.deepEqual(lastCall(config.ACTION_FLOWS.SAVE_CURRENT_LEARNING_PROFILE).variables.args, {
-    nickname: '小鹿', grade: 8, school_stage: '初中', semester: '秋季', school_name: '测试学校', textbook_version: '人教版', region_detail: '深圳'
+    nickname: '小鹿', grade: 8, school_stage: '初中', semester: '上学期', school_name: '测试学校', textbook_version: '人教版', region_detail: '深圳'
   })
 })
 
-test('service contacts only accept backend-issued HTTPS enterprise WeChat entries', async () => {
+test('service contacts only accept complete backend-issued enterprise WeChat chat entries', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.GET_CURRENT_SERVICE_CONTACTS, {
     status: 'ready',
     contacts: [
-      { id: 1, contactType: 'enterprise_wechat_link', title: '课程顾问', targetRef: 'https://service.example.com/contact' },
-      { id: 2, contactType: 'enterprise_wechat_link', title: '不安全链接', targetRef: 'http://service.example.com/contact' },
-      { id: 3, contactType: 'meeting_link', title: '错误类型', targetRef: 'https://service.example.com/contact' },
-      { id: 4, contactType: 'enterprise_wechat_link', title: '无效链接', targetRef: 'javascript:alert(1)' }
+      { id: 1, contactType: 'enterprise_wechat_link', title: '课程顾问', corpId: 'ww1234567890abcdef', targetRef: 'https://work.weixin.qq.com/kfid/kfc1234567890abcdef' },
+      { id: 2, contactType: 'enterprise_wechat_link', title: '缺少企业ID', targetRef: 'https://work.weixin.qq.com/kfid/kfc1234567890abcdef' },
+      { id: 3, contactType: 'enterprise_wechat_link', title: '错误域名', corpId: 'ww1234567890abcdef', targetRef: 'https://service.example.com/contact' },
+      { id: 4, contactType: 'meeting_link', title: '错误类型', corpId: 'ww1234567890abcdef', targetRef: 'https://work.weixin.qq.com/kfid/kfc1234567890abcdef' },
+      { id: 5, contactType: 'enterprise_wechat_link', title: '无效企业ID', corpId: 'not-a-corp-id', targetRef: 'https://work.weixin.qq.com/kfid/kfc1234567890abcdef' }
     ]
   })
 
   const result = await identity.loadCurrentServiceContacts()
   assert.deepEqual(result, {
     status: 'ready',
-    contacts: [{ id: '1', contactType: 'enterprise_wechat_link', title: '课程顾问', targetRef: 'https://service.example.com/contact' }]
+    contacts: [{ id: '1', contactType: 'enterprise_wechat_link', title: '课程顾问', corpId: 'ww1234567890abcdef', targetRef: 'https://work.weixin.qq.com/kfid/kfc1234567890abcdef' }]
   })
   assert.deepEqual(lastCall(config.ACTION_FLOWS.GET_CURRENT_SERVICE_CONTACTS).variables.args, {})
 })
@@ -266,50 +299,6 @@ test('learning-plan candidate errors do not alter a valid login session', async 
   assert.equal(calls.length, 0)
 })
 
-test('assessment answers and submission preserve their server-owned identifiers', async () => {
-  reset()
-  actionResult(config.ACTION_FLOWS.START_OR_RESUME_BASIC_ASSESSMENT, { status: 'ready', attemptId: 31 })
-  actionResult(config.ACTION_FLOWS.SAVE_CURRENT_ASSESSMENT_ANSWER, { status: 'saved', answer: 'B' })
-  actionResult(config.ACTION_FLOWS.SUBMIT_CURRENT_BASIC_ASSESSMENT, { status: 'submitted', attemptId: 31 })
-
-  await identity.startOrResumeBasicAssessment('Mathematics', '中考')
-  assert.deepEqual(lastCall(config.ACTION_FLOWS.START_OR_RESUME_BASIC_ASSESSMENT).variables.args, {
-    subject_key: 'Mathematics', target_exam: '中考'
-  })
-  assert.equal(await identity.saveCurrentAssessmentAnswer(31, 9, 'B'), 'B')
-  assert.deepEqual(lastCall(config.ACTION_FLOWS.SAVE_CURRENT_ASSESSMENT_ANSWER).variables.args, {
-    attempt_id: 31, question_id: 9, answer: 'B'
-  })
-  await identity.submitCurrentBasicAssessment(31)
-  assert.deepEqual(lastCall(config.ACTION_FLOWS.SUBMIT_CURRENT_BASIC_ASSESSMENT).variables.args, { attempt_id: 31 })
-})
-
-test('assessment scores, exam files and OCR review preserve the owning attempt', async () => {
-  reset()
-  actionResult(config.ACTION_FLOWS.GET_CURRENT_ASSESSMENT_SCORES, {
-    status: 'ready', uploads: [{ id: 41, score: 92, full_score: 100, exam_name: '月考', exam_date: '2026-09-05', original_files: [] }]
-  })
-  actionResult(config.ACTION_FLOWS.SAVE_CURRENT_ASSESSMENT_SCORE, { status: 'saved', upload: { id: 41 } })
-  actionResult(config.ACTION_FLOWS.SAVE_CURRENT_ASSESSMENT_EXAM_FILES, { status: 'saved', upload: { id: 41 } })
-  actionResult(config.ACTION_FLOWS.SAVE_CURRENT_ASSESSMENT_OCR_REVIEW, { status: 'saved', upload: { id: 41 } })
-
-  assert.equal((await identity.loadCurrentAssessmentScores(31))[0].id, '41')
-  await identity.saveCurrentAssessmentScore(31, { examName: '月考', examDate: '2026-09-05', score: 92, fullScore: 100, rankText: '年级测试' })
-  assert.deepEqual(lastCall(config.ACTION_FLOWS.SAVE_CURRENT_ASSESSMENT_SCORE).variables.args, {
-    attempt_id: 31, upload_id: null, exam_name: '月考', exam_date: '2026-09-05', score: 92, full_score: 100, rank_text: '年级测试'
-  })
-  const files = [{ assetId: 'asset-1', sizeBytes: 1024, md5Base64: 'AAAAAAAAAAAAAAAAAAAAAA==', suffix: 'JPG' }]
-  await identity.saveCurrentAssessmentExamFiles(31, { id: 41, examName: '月考', examDate: '2026-09-05' }, files)
-  assert.deepEqual(lastCall(config.ACTION_FLOWS.SAVE_CURRENT_ASSESSMENT_EXAM_FILES).variables.args, {
-    attempt_id: 31, upload_id: 41, exam_name: '月考', exam_date: '2026-09-05',
-    original_files: [{ pageNo: 1, assetId: 'asset-1', name: '试卷第 1 页', sizeBytes: 1024, md5Base64: 'AAAAAAAAAAAAAAAAAAAAAA==', suffix: 'JPG', uploadedAt: '' }]
-  })
-  await identity.saveCurrentAssessmentOcrReview(31, 41, { score: '92' })
-  assert.deepEqual(lastCall(config.ACTION_FLOWS.SAVE_CURRENT_ASSESSMENT_OCR_REVIEW).variables.args, {
-    attempt_id: 31, upload_id: 41, ocr_corrected: { score: '92' }
-  })
-})
-
 test('course generation quotes and confirms use distinct idempotency keys', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.CREATE_CURRENT_COURSE_GENERATION_QUOTE, {
@@ -331,15 +320,68 @@ test('course generation quotes and confirms use distinct idempotency keys', asyn
   })
 })
 
-test('temporary course and acceptance launch open the configured public HTTPS page without a bridge request', async () => {
+test('course entry carries a single-use ticket, shared links carry no credential, and acceptance retains its authorized entry', async () => {
   reset()
 
   const courseUrl = await identity.createCourseLaunchUrl(51)
-  assert.equal(courseUrl, `${config.COURSE_PORTAL_ORIGIN}${config.PUBLIC_COURSE_PAGE_PATH}`)
-  assert.equal(calls.length, 0)
+  assert.equal(courseUrl, `${config.COURSE_PORTAL_ORIGIN}/api/learn/entry?course=51&layout=focus&ticket=TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT`)
+  assert.deepEqual(calls[0].data, { operation: 'handoff', courseInstanceId: 51 })
+  assert.equal(calls[0].header.authorization, 'Bearer test-runtime-token')
+  assert.equal(identity.courseShareUrl(courseUrl), `${config.COURSE_PORTAL_ORIGIN}/learn?course=51&layout=focus`)
+
+  const libraryId = 'a'.repeat(32)
+  const libraryUrl = await identity.createLibraryCourseLaunchUrl(libraryId)
+  assert.equal(libraryUrl, `${config.COURSE_PORTAL_ORIGIN}/api/learn/entry?library=${libraryId}&layout=focus&ticket=TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT`)
+  assert.deepEqual(calls[1].data, { operation: 'handoff', libraryCourseId: libraryId })
+
+  // 换券失败时回落到不含凭证的地址，由课程页走设备确认
+  global.courseHandoffFails = true
+  try {
+    assert.equal(await identity.createCourseLaunchUrl(51), `${config.COURSE_PORTAL_ORIGIN}/learn?course=51&layout=focus`)
+  } finally {
+    global.courseHandoffFails = false
+  }
+  calls.length = 0
 
   const acceptanceUrl = await identity.createAcceptanceLaunchUrl(51, 61)
-  assert.equal(acceptanceUrl, `${config.COURSE_PORTAL_ORIGIN}${config.PUBLIC_COURSE_PAGE_PATH}`)
+  assert.equal(acceptanceUrl, `${config.COURSE_PORTAL_ORIGIN}/launch?token=${'test-launch-token'.repeat(3)}`)
+  assert.deepEqual(calls[0].data, { courseInstanceId: 51, targetScene: 'acceptance', acceptanceId: 61 })
+  assert.equal(calls[0].header.authorization, 'Bearer test-runtime-token')
+  assert.equal(calls.length, 1)
+})
+
+test('course quote failures preserve actionable server codes for page recovery', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.CONFIRM_CURRENT_COURSE_GENERATION, { status: 'COURSE_DISPATCH_UNCONFIRMED' })
+  await assert.rejects(identity.confirmCurrentCourseGeneration(41, 'confirm-unreceived'), (error) => {
+    assert.equal(error.code, 'COURSE_DISPATCH_UNCONFIRMED')
+    assert.match(error.message, /暂未确认课程服务收到请求/)
+    return true
+  })
+  actionResult(config.ACTION_FLOWS.CONFIRM_CURRENT_COURSE_GENERATION, { status: 'COURSE_ALREADY_REQUESTED' })
+  await assert.rejects(identity.confirmCurrentCourseGeneration(41, 'confirm-competing'), (error) => {
+    assert.equal(error.code, 'COURSE_ALREADY_REQUESTED')
+    assert.match(error.message, /已创建课程/)
+    return true
+  })
+  actionResult(config.ACTION_FLOWS.CONFIRM_CURRENT_COURSE_GENERATION, { status: 'QUOTE_EXPIRED' })
+  await assert.rejects(identity.confirmCurrentCourseGeneration(41, 'confirm-expired'), (error) => {
+    assert.equal(error.code, 'QUOTE_EXPIRED')
+    assert.match(error.message, /报价已过期/)
+    return true
+  })
+  actionResult(config.ACTION_FLOWS.CREATE_CURRENT_COURSE_GENERATION_QUOTE, { status: 'PLAN_ITEM_LOCKED' })
+  await assert.rejects(identity.createCurrentCourseGenerationQuote(11, 'quote-locked'), (error) => {
+    assert.equal(error.code, 'PLAN_ITEM_LOCKED')
+    assert.match(error.message, /尚未解锁/)
+    return true
+  })
+})
+
+test('a signed-out learner never receives a public creator-page fallback', async () => {
+  reset()
+  storageToken = ''
+  await assert.rejects(identity.createCourseLaunchUrl(51), (error) => error.code === 'AUTH_REQUIRED')
   assert.equal(calls.length, 0)
 })
 
@@ -418,42 +460,6 @@ test('guardian identity submission keeps the raw card transient and maps server 
   assert.equal(calls.length, 0)
 })
 
-test('deep assessment, diagnosis, plan and acceptance flows preserve server-owned state', async () => {
-  reset()
-  actionResult(config.ACTION_FLOWS.GET_CURRENT_DEEP_ASSESSMENT_ENTITLEMENTS, {
-    status: 'ready', profile: { id: 201 }, grants: [{ id: 301, status: 'available', sourceType: 'promotion' }]
-  })
-  actionResult(config.ACTION_FLOWS.START_OR_RESUME_DEEP_ASSESSMENT, { status: 'ready', attemptId: 302 })
-  actionResult(config.ACTION_FLOWS.GET_CURRENT_DIAGNOSTIC_REPORTS, {
-    status: 'ready', profile: { id: 201 }, reports: [{ id: 401, confidence: 0.82, weakTopics: ['一次函数'] }],
-    predictions: [{ id: 402, subjectCode: 'Mathematics', scoreLower: 88, scoreUpper: 96, confidence: 0.8 }]
-  })
-  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PLANS, {
-    status: 'ready', profile: { id: 201 }, plans: [{ id: 501, plannedCredits: 12.5, items: [{ id: 502, status: 'available', estimatedCredits: 2.5 }] }]
-  })
-  actionResult(config.ACTION_FLOWS.GET_CURRENT_REMEDIATION_TASKS, { status: 'ready', tasks: [] })
-  actionResult(config.ACTION_FLOWS.GET_CURRENT_LIVE_SCHEDULE, { status: 'ready', profile: { id: 201 }, sessions: [], assignments: [] })
-  actionResult(config.ACTION_FLOWS.CREATE_CURRENT_FEYNMAN_ACCEPTANCE, { status: 'ready', acceptanceId: 601, courseInstanceId: 602, topicId: 603 })
-
-  const grants = await identity.loadDeepAssessmentEntitlements()
-  assert.equal(grants.grants[0].sourceLabel, '推广赠送')
-  await identity.startOrResumeDeepAssessment(301, 'Mathematics')
-  assert.deepEqual(lastCall(config.ACTION_FLOWS.START_OR_RESUME_DEEP_ASSESSMENT).variables.args, {
-    grant_id: '301', subject_key: 'Mathematics'
-  })
-  const diagnostics = await identity.loadCurrentDiagnosticReports()
-  assert.equal(diagnostics.reports[0].confidencePercent, 82)
-  assert.equal(diagnostics.predictions[0].scoreRange, '88 - 96')
-  const plans = await identity.loadCurrentLearningPlans()
-  assert.equal(plans.plans[0].items[0].estimatedCreditsDisplay, '3')
-  assert.deepEqual(await identity.loadCurrentRemediationTasks(), { status: 'ready', tasks: [] })
-  assert.deepEqual((await identity.loadCurrentLiveSchedule()).sessions, [])
-  assert.deepEqual(await identity.createCurrentFeynmanAcceptance(602), {
-    acceptanceId: '601', courseInstanceId: '602', topicId: '603'
-  })
-  assert.deepEqual(lastCall(config.ACTION_FLOWS.CREATE_CURRENT_FEYNMAN_ACCEPTANCE).variables.args, { course_instance_id: 602 })
-})
-
 test('promotion assignment and family-facing flows keep identity and idempotency server-side', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.SUBMIT_PROMOTER_ASSIGNMENT_REQUEST, { request: { id: 701, status: 'pending' } })
@@ -479,26 +485,6 @@ test('promotion assignment and family-facing flows keep identity and idempotency
   assert.deepEqual((await identity.loadGuardianDashboard()).children, [])
   assert.deepEqual((await identity.loadGuardianLearningFeed()).children, [])
   assert.equal((await identity.loadAuthorizedTopicLearningReports()).students[0].source, 'self')
-})
-
-test('deep assessment gift only submits a safe attribution identifier', async () => {
-  reset()
-  actionResult(config.ACTION_FLOWS.GIFT_CURRENT_PROMOTER_CLIENT_DEEP_ASSESSMENT, {
-    status: 'granted', reused: false, grant: { id: 901, grantNo: 'DGR-test', status: 'available' }
-  })
-
-  const result = await identity.giftCurrentPromoterClientDeepAssessment(701, 'deep-gift-key')
-  assert.equal(result.reused, false)
-  assert.equal(result.grant.grantNo, 'DGR-test')
-  assert.deepEqual(lastCall(config.ACTION_FLOWS.GIFT_CURRENT_PROMOTER_CLIENT_DEEP_ASSESSMENT).variables.args, {
-    attribution_id: 701,
-    idempotency_key: 'deep-gift-key'
-  })
-
-  reset()
-  actionResult(config.ACTION_FLOWS.GIFT_CURRENT_PROMOTER_CLIENT_DEEP_ASSESSMENT, { status: 'already_received' })
-  await assert.rejects(identity.giftCurrentPromoterClientDeepAssessment(701, 'deep-gift-key'), /已获得过推广深测资格/)
-  await assert.rejects(identity.giftCurrentPromoterClientDeepAssessment(0, 'deep-gift-key'), /有效的直属用户/)
 })
 
 test('promotion invitations and attribution only send a token, safe path, scene and idempotency key', async () => {
@@ -564,6 +550,7 @@ test('read-only student, assessment, credit and growth views invoke their curren
   reset()
   actionResult(config.ACTION_FLOWS.GET_CURRENT_STUDENT_KNOWLEDGE_MAP, {
     status: 'ready', grade: 8,
+    datasetKey: 'china-k12-tokenmap-135386badef4',
     subjects: [{ id: 1, subject_key: 'Mathematics', display_name: '数学', display_order: 1 }],
     topics: [{ id: 11, subject_id: 1, display_name: '一次函数', centrality: 0.6 }],
     masteries: [{ knowledge_topic_id: 11, status: 'learning', evidence_count: 2 }],
@@ -591,7 +578,7 @@ test('read-only student, assessment, credit and growth views invoke their curren
   const map = await identity.loadKnowledgeMap('Mathematics')
   assert.equal(map.activeSubjectKey, 'Mathematics')
   assert.equal(map.nodes[0].status, 'learning')
-  assert.equal(map.nodes[0].evidence, '已汇集 2 条学习证据')
+  assert.equal(map.nodes[0].evidence, '已汇集 2 条学习证据 · 测评 0 · 课程 0')
   assert.deepEqual(lastCall(config.ACTION_FLOWS.GET_CURRENT_STUDENT_KNOWLEDGE_MAP).variables.args, {})
 
   const center = await identity.loadAssessmentCenter()
@@ -602,7 +589,7 @@ test('read-only student, assessment, credit and growth views invoke their curren
 
   const products = await identity.loadCreditProducts()
   assert.deepEqual(products.products[0], {
-    id: 31, productCode: 'TRY', name: '体验积分包', description: undefined, amount: '0.01', credits: '3', estimatedCourseCount: 1,
+    id: 31, productCode: 'TRY', name: '体验积分包', description: undefined, amount: '0.01', memberAmount: '', payableAmount: '0.01', memberPriceApplied: false, credits: '3', estimatedCourseCount: 1,
     validityRule: {}, serviceRule: {}, refundRule: {}, subjectScope: []
   })
   assert.deepEqual(lastCall(config.ACTION_FLOWS.GET_CREDIT_PRODUCTS).variables.args, {})
@@ -641,6 +628,67 @@ test('assessment center and learning plans put the newest server records first',
 
   assert.deepEqual(assessment.attempts.map((item) => item.id), ['12', '11'])
   assert.deepEqual(plans.plans.map((item) => item.id), ['32', '31'])
+})
+
+test('learning task rows use course generation and settlement instead of stale plan estimates', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.INITIALIZE_CURRENT_USER, 901)
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PROFILE, {
+    id: 902, nickname: '测试学生', profile_completed_at: '2026-09-07T00:00:00Z'
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PLANS, {
+    status: 'ready', profile: { id: 902 }, plans: [{ id: 501, status: 'active', items: [
+      { id: 1, status: 'available', estimatedCredits: 1, courseInstances: [{ id: 10, status: 'planned', generationJob: { status: 'queued' }, creditSettlement: { frozenCredits: 10, actualCredits: null } }] },
+      { id: 2, status: 'available', estimatedCredits: 1, courseInstances: [{ id: 11, status: 'ready', contentVersionRef: 'saved-course', creditSettlement: { frozenCredits: 10, actualCredits: 8, returnedCredits: 2 } }] },
+      { id: 3, status: 'available', estimatedCredits: 1, courseInstances: [{ id: 12, status: 'ready', contentVersionRef: 'free-course', creditSettlement: { actualCredits: 0 } }] },
+      { id: 4, status: 'available', estimatedCredits: 1, generationJob: { status: 'generating' } },
+      { id: 5, status: 'available', estimatedCredits: 3 },
+      { id: 6, status: 'locked', estimatedCredits: null },
+      { id: 7, status: 'available', estimatedCredits: 1, courseInstances: [{ id: 13, status: 'failed', creditSettlement: { status: 'released', frozenCredits: 10, voidedCredits: 10 } }] }
+    ] }]
+  })
+
+  const dashboard = await identity.loadLearningDashboard()
+
+  assert.equal(dashboard.currentTask.status, '等待生成')
+  assert.deepEqual(dashboard.tasks.map((task) => task.meta), [
+    '等待生成 · 已冻结 10 积分',
+    '课程已就绪 · 已结算 8 积分',
+    '课程已就绪 · 已结算 0 积分',
+    '课程生成中 · 预计 1 积分',
+    '可开始 · 预计 3 积分',
+    '等待前置任务',
+    '生成失败 · 已退回 10 积分'
+  ])
+})
+
+test('learning dashboard keeps launchable courses from older plans when the current task is voided', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.INITIALIZE_CURRENT_USER, 901)
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PROFILE, {
+    id: 902, nickname: '测试学生', profile_completed_at: '2026-09-07T00:00:00Z'
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PLANS, {
+    status: 'ready', profile: { id: 902 }, plans: [
+      {
+        id: 601, status: 'active', generated_at: '2026-09-08T00:00:00Z', items: [
+          { id: 61, status: 'available', topicName: '被作废的课程', courseInstances: [{ id: 6011, status: 'voided_credit_limit', contentVersionRef: '' }] }
+        ]
+      },
+      {
+        id: 600, status: 'completed', generated_at: '2026-09-01T00:00:00Z', items: [
+          { id: 60, status: 'lesson_completed', topicName: '历史已生成课程', subjectName: '数学', courseInstances: [{ id: 6001, status: 'awaiting_acceptance', contentVersionRef: 'saved-course', coverUrl: 'https://assets.example/cover.png' }] }
+        ]
+      }
+    ]
+  })
+
+  const dashboard = await identity.loadLearningDashboard()
+
+  assert.equal(dashboard.currentTask.courseInstanceId, null)
+  assert.deepEqual(dashboard.myCourses.map((course) => course.courseInstanceId), ['6001'])
+      assert.equal(dashboard.myCourses[0].stateLabel, '需要复述')
+  assert.equal(dashboard.myCourses[0].canStartAcceptance, true)
 })
 
 test('home dashboard uses completed diagnostic evidence when score prediction is unavailable', async () => {

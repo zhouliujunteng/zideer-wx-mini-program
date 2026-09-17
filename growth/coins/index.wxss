@@ -1,1 +1,23 @@
+/* 金币页复用课程积分页的设计体系，叠加金币暖色氛围与图标规格 */
+@import "../../commerce/entitlements/index.wxss";
 
+.coin-page { background: #FAFAFA; }
+.coin-ambient {
+  background: radial-gradient(125% 52% at 100% 0, rgba(255, 224, 181, .86) 0%, rgba(255, 241, 211, .52) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA;
+}
+.coin-ambient-ribbon { opacity: .78; }
+.coin-balance-icon { width: 220rpx; height: 184rpx; margin-top: 0; margin-right: -2rpx; transform: rotate(8deg); }
+.coin-sheet-dot { background: #E8AC5A; }
+
+/* 金币服务入口 */
+.service-card { margin-top: 22rpx; padding: 6rpx 24rpx; border-radius: 36rpx; background: #fff; }
+.service-row { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; padding: 26rpx 0; border-bottom: 2rpx solid #F0F3F0; }
+.service-row:last-child { border-bottom: 0; }
+.service-copy { min-width: 0; flex: 1; }
+.service-title { display: block; color: #24332D; font-size: 26rpx; font-weight: 600; line-height: 1.4; }
+.service-hint { display: block; margin-top: 8rpx; color: #98A39B; font-size: 19rpx; line-height: 1.3; }
+.service-arrow { flex: 0 0 auto; color: #C2CAC3; font-size: 32rpx; line-height: 1; }
+
+@media (max-width: 350px) {
+  .coin-balance-icon { width: 180rpx; height: 156rpx; margin-right: 0; }
+}

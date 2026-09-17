@@ -3,3 +3,4 @@ miniprogram_npm/
 project.private.config.json
 .DS_Store
 .finesse/
+.qa/

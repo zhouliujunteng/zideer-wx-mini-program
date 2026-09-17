@@ -1,0 +1,4 @@
+.dev-reset-fab-wrap { position: fixed; right: 24rpx; bottom: calc(132rpx + env(safe-area-inset-bottom)); z-index: 1000; }
+.dev-reset-fab { display: flex; align-items: center; justify-content: center; min-width: 148rpx; height: 56rpx; padding: 0 20rpx; box-sizing: border-box; border: 2rpx solid rgba(180, 71, 37, .22); border-radius: 999rpx; background: rgba(255, 247, 241, .96); box-shadow: 0 8rpx 24rpx rgba(87, 49, 32, .16); color: #A4472F; font-size: 21rpx; line-height: 1; }
+.dev-reset-fab::after { border: 0; }
+.dev-reset-fab:active { opacity: .72; transform: translateY(1rpx); }

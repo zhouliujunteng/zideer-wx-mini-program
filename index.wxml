@@ -1,0 +1,105 @@
+<view class="me-page">
+  <view class="me-topbar" style="background-color: {{topbarBackground}};">
+    <view class="me-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <text class="me-topbar-title">我的</text>
+    </view>
+    <view
+      class="me-edit-profile-pill {{showEditProfile ? '' : 'is-hidden'}}"
+      style="top: {{editProfileTop}}px; right: {{editProfileRight}}px; height: {{menuButtonHeight}}px;"
+      bindtap="openProfileSetup"
+      aria-label="编辑资料"
+    >编辑资料</view>
+  </view>
+
+<scroll-view class="page-scroll" scroll-y bindscroll="handlePageScroll">
+  <view class="page-shell">
+    <view class="profile" style="padding-top: {{profilePaddingTop}}px;" bindtap="openProfileSetup">
+      <view class="profile-avatar-wrap">
+        <image wx:if="{{model.profile.avatarSrc}}" class="avatar avatar-image" src="{{model.profile.avatarSrc}}" mode="aspectFill"></image>
+        <view wx:else class="avatar"></view>
+      </view>
+      <view class="profile-copy">
+        <view class="profile-name-row">
+          <text class="profile-name">{{model.profile.name}}</text>
+        </view>
+        <view class="profile-id-row">
+          <text class="profile-id-label">ID：</text>
+          <text class="profile-id">{{model.profile.id}}</text>
+          <view class="profile-action profile-copy-action" aria-label="复制用户 ID" catchtap="copyProfileId"><view class="profile-copy-icon"></view></view>
+        </view>
+      </view>
+    </view>
+    <view class="membership-card" bindtap="handleMembershipTap" aria-label="查看知鹿会员权益">
+      <view class="membership-copy">
+        <text class="membership-title">{{model.membershipCard.title}}</text>
+        <text class="membership-subtitle">{{model.membershipCard.subtitle}}</text>
+      </view>
+      <view class="membership-art" aria-hidden="true">
+        <view class="membership-ring membership-ring-back"></view>
+        <view class="membership-ring membership-ring-front"></view>
+        <image class="membership-crown" src="{{model.membershipCard.crownIcon}}" mode="aspectFit"></image>
+      </view>
+    </view>
+    <view class="wallet-grid">
+      <view wx:for="{{model.accountSummary}}" wx:key="label" class="wallet-module">
+        <image class="wallet-module-illustration" src="{{item.icon}}" mode="aspectFit"></image>
+        <view class="wallet-module-copy">
+          <text class="wallet-label">{{item.label}}</text>
+          <text class="wallet-value">{{item.value}}</text>
+        </view>
+        <view class="wallet-module-go" aria-hidden="true"><view class="wallet-module-chevron"></view></view>
+      </view>
+    </view>
+    <view class="quick-section">
+      <text class="quick-section-title">常用入口</text>
+      <view class="quick-grid">
+        <view wx:for="{{model.quickActions}}" wx:key="label" class="quick-item" data-name="{{item.label}}" bindtap="handleItem">
+          <view class="quick-item-icon-wrap">
+            <image class="quick-item-icon" src="{{item.icon}}" mode="aspectFit"></image>
+            <text wx:if="{{item.unreadCount}}" class="quick-item-badge">{{item.unreadCount}}</text>
+          </view>
+          <text class="quick-item-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+    <view wx:for="{{model.serviceGroups}}" wx:for-item="serviceGroup" wx:key="title" class="group">
+      <text class="group-title">{{serviceGroup.title}}</text>
+      <view wx:if="{{serviceGroup.enterpriseService}}" class="enterprise-service-card" data-name="{{serviceGroup.enterpriseService.title}}" bindtap="handleItem">
+        <image class="enterprise-service-avatar" src="{{serviceGroup.enterpriseService.avatar}}" mode="aspectFill"></image>
+        <view class="enterprise-service-copy">
+          <text class="enterprise-service-title">{{serviceGroup.enterpriseService.title}}</text>
+          <text class="enterprise-service-description">{{serviceGroup.enterpriseService.description}}</text>
+        </view>
+        <view class="enterprise-service-action">
+          <text class="enterprise-service-hours">{{serviceGroup.enterpriseService.hours}}</text>
+          <view class="enterprise-service-go"><text class="menu-arrow">›</text></view>
+        </view>
+      </view>
+      <view class="menu">
+        <view wx:for="{{serviceGroup.items}}" wx:for-item="serviceItem" wx:key="title" class="menu-item" data-name="{{serviceItem.title}}" bindtap="handleItem">
+          <view class="service-item-copy">
+            <text class="service-item-title">{{serviceItem.title}}</text>
+            <text class="service-item-description">{{serviceItem.description}}</text>
+          </view>
+          <text class="menu-arrow">›</text>
+        </view>
+      </view>
+    </view>
+    <view class="developer-previews">
+      <view
+        wx:for="{{model.developerPreviews}}"
+        wx:key="id"
+        class="developer-entry"
+        data-id="{{item.id}}"
+        bindtap="handleDeveloperPreview"
+        aria-label="打开 {{item.label}} {{item.hint}}"
+      >
+        <text class="developer-entry-code">{{item.code}}</text>
+        <text class="developer-entry-label">{{item.label}}</text>
+        <text class="developer-entry-hint">{{item.hint}}</text>
+        <text class="developer-entry-arrow">›</text>
+      </view>
+    </view>
+  </view>
+</scroll-view>
+</view>

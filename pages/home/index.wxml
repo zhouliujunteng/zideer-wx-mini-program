@@ -1,199 +1,59 @@
-<view class="home-viewport {{homeMode === 'guest' ? 'guest-mode' : 'member-mode'}}" bindtouchstart="handlePagePullStart" bindtouchmove="handlePagePullMove" bindtouchend="handlePagePullEnd" bindtouchcancel="handlePagePullEnd">
-  <view class="pull-refresh-indicator {{pullRefreshState}} {{pullRefreshVisible ? 'pull-refresh-visible' : ''}}" style="top: {{refreshIndicatorBaseTop}}px; transform: translate3d(-50%, {{refreshIndicatorOffset}}px, 0);">
-    <text class="pull-refresh-icon">↻</text>
-    <text>{{pullRefreshText}}</text>
-  </view>
-
-  <view class="topbar {{navSolid ? 'topbar-solid' : ''}}">
-    <view class="topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
-      <text class="brand-name">知鹿私课</text>
-    </view>
-    <view wx:if="{{homeMode === 'guest' && navSolid}}" class="topbar-search-capsule" style="top: {{notificationTop}}px; left: {{topbarSearchLeft}}px; width: {{topbarSearchWidth}}px; height: {{menuButtonHeight}}px;" bindtap="handleSearchTap">
-      <view class="home-search-icon"></view>
-      <text>{{model.hero.searchPlaceholder}}</text>
-    </view>
-    <view class="notice-button" style="top: {{notificationTop}}px; right: {{notificationRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="showNotifications">
-      <image class="message-icon" src="../../assets/topbar/message.png" mode="aspectFit"></image>
-      <view wx:if="{{model.notifications.count > 0}}" class="notice-badge">{{model.notifications.count}}</view>
+<view class="agent-home">
+  <view class="agent-topbar" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+    <view class="agent-brand"><image class="agent-brand-lockup" src="/assets/brand/brand-lockup.png" mode="aspectFit" aria-label="知鹿私课"></image></view>
+    <view class="agent-top-actions">
+      <view class="agent-top-action" bindtap="switchToMe" role="button" aria-label="打开我的"><image src="/assets/icons/user.svg" mode="aspectFit"></image></view>
+      <view class="agent-top-action" bindtap="showNotifications" role="button" aria-label="打开消息"><image src="/assets/topbar/message.png" mode="aspectFit"></image><view wx:if="{{model.notifications.count > 0}}" class="agent-notice-dot"></view></view>
     </view>
   </view>
 
-  <view class="home-refresh-content {{pagePullSettling ? 'home-refresh-settling' : ''}}" style="transform: translate3d(0, {{pagePullOffset}}px, 0);">
-    <view class="background-content">
-      <view class="page-shell" style="padding-top: {{contentTop}}px;">
-        <view class="hero-copy {{homeMode === 'guest' ? 'guest-hero-copy' : ''}}">
-          <block wx:if="{{homeMode === 'guest'}}">
-            <view class="guest-search-field" bindtap="handleSearchTap">
-              <view class="home-search-icon"></view>
-              <text>{{model.hero.searchPlaceholder}}</text>
-            </view>
-          </block>
-          <block wx:else>
-            <view class="hero-copy-main">
-              <text class="hero-greeting">{{greeting}}，{{model.student.nickname}}</text>
-              <text class="hero-title">{{model.hero.title}}</text>
-            </view>
-            <text class="hero-lesson-progress">
-              <text>{{lessonCurrent + 1}}</text>
-              <text class="hero-lesson-progress-slash">/</text>
-              <text>{{model.learningCards.length}}</text>
-            </text>
-          </block>
+  <scroll-view class="agent-scroll" scroll-y="true" enhanced="true" show-scrollbar="false" style="padding-top: {{contentTop}}px;">
+    <view class="agent-content">
+      <view class="agent-intro">
+        <text class="agent-eyebrow">你的专属学习 Agent</text>
+        <view class="agent-avatar" aria-hidden="true"><text>知</text></view>
+        <text class="agent-title">说说此刻的想法，剩下的交给我。</text>
+        <text class="agent-subtitle">我会结合你的学习情况，陪你找到下一步。</text>
+      </view>
+
+      <view class="agent-composer">
+        <textarea class="agent-input" value="{{agentPrompt}}" placeholder="今天想学什么？" placeholder-class="agent-input-placeholder" maxlength="500" auto-height="true" confirm-type="send" bindinput="handleAgentInput" bindconfirm="sendPrompt" aria-label="输入想和 AI 学伴聊的内容"></textarea>
+        <view class="agent-composer-footer">
+          <view class="agent-context {{includeUniverse ? 'agent-context-active' : ''}}" bindtap="toggleAgentContext" role="button" aria-label="{{includeUniverse ? '已参考学习宇宙' : '未参考学习宇宙'}}"><image src="/assets/icons/network.svg" mode="aspectFit"></image><text>{{includeUniverse ? '参考我的学习宇宙' : '不参考学习宇宙'}}</text></view>
+          <view class="agent-send {{agentPrompt ? 'agent-send-ready' : ''}}" bindtap="sendPrompt" role="button" aria-label="发送"><text>↑</text></view>
         </view>
       </view>
-    </view>
+      <text class="agent-helper">你的经历、观点与语言，都值得被认真保留。</text>
 
-    <swiper wx:if="{{homeMode === 'member'}}" class="lesson-swiper {{sheetRaised ? 'lesson-covered' : ''}}" style="top: {{lessonTop}}px;" current="{{lessonCurrent}}" display-multiple-items="2" duration="280" easing-function="easeOutCubic" bindtouchstart="handleLessonAreaStart" bindtouchmove="handleLessonAreaMove" bindtouchend="handleLessonAreaEnd" bindtouchcancel="handleLessonAreaEnd" bindchange="handleLessonChange">
-      <swiper-item wx:for="{{model.learningCards}}" wx:key="title">
-        <view class="lesson-card" style="background: #FFFFFF; background-color: #FFFFFF;">
-          <view class="lesson-card-surface"></view>
-          <text class="lesson-title">{{item.title}}</text>
-          <text class="lesson-name">{{item.className}}</text>
-          <view class="lesson-card-spacer"></view>
-          <view class="lesson-bottom">
-            <view class="lesson-progress-summary">
-              <text class="lesson-progress-value">{{item.progress}}%</text>
-              <view class="lesson-progress-track">
-                <view class="lesson-progress-bar" style="width: {{item.progress}}%;"></view>
+      <view class="agent-section agent-tools-section">
+        <view class="agent-section-head"><text class="agent-section-title">学习工具</text><text class="agent-section-caption">为你准备</text></view>
+        <view class="agent-tools-grid">
+          <view class="agent-tool-item" wx:for="{{agentTools}}" wx:key="id" data-id="{{item.id}}" bindtap="openAgentTool" role="button" aria-label="{{item.title}}"><view class="agent-tool-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view><text class="agent-tool-title">{{item.title}}</text><text class="agent-tool-description">{{item.description}}</text></view>
+        </view>
+      </view>
+
+      <view class="agent-section agent-courses-section">
+        <view class="agent-section-head"><text class="agent-section-title">会员课程</text><view class="agent-section-link" bindtap="openMembershipCatalog" role="button" aria-label="查看全部会员课程">查看全部 <text>›</text></view></view>
+        <view wx:if="{{model.moreCourses && model.moreCourses.length}}" class="agent-course-list">
+          <view wx:for="{{model.moreCourses}}" wx:key="id" class="agent-course-card" data-id="{{item.id}}" bindtap="openLibraryCourse" role="button" aria-label="打开课程 {{item.title}}">
+            <view class="agent-course-cover agent-course-cover-{{item.tone}}">
+              <view class="agent-course-cover-art" aria-hidden="true">
+                <view class="agent-course-cover-line agent-course-cover-line-title"></view>
+                <view class="agent-course-cover-line agent-course-cover-line-sub"></view>
+                <view class="agent-course-cover-block"></view>
               </view>
+              <view wx:if="{{!item.isMember}}" class="agent-course-lock" aria-label="需会员查看"><text>会员</text></view>
             </view>
-            <view class="lesson-go" data-title="{{item.title}}" bindtap="continueLesson">↗</view>
+            <view class="agent-course-caption">
+              <text class="agent-course-title">{{item.title}}</text>
+              <text class="agent-course-meta">{{item.subtitle}}</text>
+            </view>
           </view>
         </view>
-      </swiper-item>
-    </swiper>
-
-    <swiper wx:else class="activity-banner-swiper guest-banner-swiper {{sheetRaised ? 'guest-banner-covered' : ''}}" style="top: {{guestBannerTop}}px;" autoplay="true" interval="4000" duration="500" circular="true" easing-function="easeInOutCubic" indicator-dots="true" indicator-color="rgba(255, 255, 255, .48)" indicator-active-color="#FFFFFF" bindtouchstart="handleLessonAreaStart" bindtouchmove="handleLessonAreaMove" bindtouchend="handleLessonAreaEnd" bindtouchcancel="handleLessonAreaEnd">
-      <swiper-item wx:for="{{model.promotionalBanners}}" wx:key="id">
-        <view class="activity-banner" style="background-color: {{item.backgroundColor}};"></view>
-      </swiper-item>
-    </swiper>
-
-    <view class="home-sheet-layer {{sheetRaised ? 'home-sheet-layer-raised' : ''}} {{sheetSnapping ? 'sheet-snapping' : ''}} {{navSolid ? 'home-sheet-layer-docked' : ''}}" style="top: {{sheetStart}}rpx; height: {{sheetViewportHeight}}px; transform: translate3d(0, -{{sheetVisualOffset}}px, 0);">
-      <scroll-view class="home-sheet-scroll" scroll-y="{{sheetContentScrollEnabled}}" show-scrollbar="{{false}}" scroll-top="{{sheetContentScrollTop}}" scroll-into-view="{{sheetContentScrollAnchor}}" bindscroll="handleSheetContentScroll">
-        <view id="home-sheet-content" class="learning-sheet {{homeMode === 'guest' ? 'guest-learning-sheet' : ''}} {{navSolid ? 'sheet-docked' : ''}}" bindtouchstart="handleSheetGrabStart" bindtouchmove="handleSheetGrabMove" bindtouchend="handleSheetRelease" bindtouchcancel="handleSheetRelease">
-          <view class="sheet-handle"></view>
-
-          <block wx:if="{{homeMode === 'member'}}">
-            <view class="section-heading study-tasks-heading">
-              <text class="section-title">学习任务</text>
-              <view class="task-all-link" data-label="学习任务" bindtap="handleSheetAction">
-                <text>查看全部</text>
-                <text class="task-all-icon">›</text>
-              </view>
-            </view>
-            <scroll-view class="study-date-strip" scroll-x="true" show-scrollbar="false" enhanced="true" bindtouchstart="handleSheetGrabStart" bindtouchmove="handleSheetGrabMove" bindtouchend="handleSheetRelease" bindtouchcancel="handleSheetRelease">
-              <view class="study-date-list">
-                <view wx:for="{{model.studyTaskCalendar}}" wx:for-index="dayIndex" wx:key="id" class="study-date {{item.hasTask ? 'study-date-has-task' : ''}}" data-index="{{dayIndex}}" bindtap="handleStudyDateSelect">
-                  <view class="study-date-tile {{item.isSelected ? 'study-date-selected' : ''}}">
-                    <text class="study-date-value">{{item.date}}</text>
-                    <text class="study-date-label">{{item.label}}</text>
-                  </view>
-                  <view wx:if="{{item.hasTask}}" class="study-date-task-dot"></view>
-                </view>
-              </view>
-            </scroll-view>
-
-            <view class="home-overview-panel {{showTodayOverview ? 'home-overview-visible' : 'home-overview-collapsed'}}" style="height: {{homeOverviewHeight}}rpx; opacity: {{homeOverviewOpacity}};">
-              <view class="overview-grid">
-                <view wx:for="{{model.overview}}" wx:key="label" class="overview-item">
-                  <image class="overview-icon" src="{{item.icon}}" mode="aspectFit"></image>
-                  <view class="overview-copy">
-                    <view class="overview-value">
-                      <view wx:for="{{item.rollDigits}}" wx:for-item="digit" wx:for-index="digitIndex" wx:key="digitIndex" class="overview-digit-window">
-                        <view class="overview-digit-track {{item.rollDirection}} {{numberRollClass}}">
-                          <text class="overview-digit">{{digit.first}}</text>
-                          <text class="overview-digit">{{digit.second}}</text>
-                        </view>
-                      </view>
-                      <text class="overview-unit">{{item.unit}}</text>
-                    </view>
-                    <text class="overview-label">{{item.label}}</text>
-                  </view>
-                </view>
-              </view>
-            </view>
-
-            <view class="study-tasks-section {{showTodayOverview ? 'study-tasks-with-overview' : ''}} {{taskListClass}}">
-              <view class="study-task-list-card">
-                <view class="study-task-list-shell" style="height: {{taskListHeight}}rpx;">
-                  <block wx:if="{{model.studyTasks.length > 0}}">
-                    <view wx:for="{{model.studyTasks}}" wx:key="title" class="study-task-item">
-                      <view class="study-task-side-pill" style="background: {{item.sidePillColor}};"></view>
-                      <view class="study-task-body">
-                        <text class="study-task-title">{{item.title}}</text>
-                        <text class="study-task-meta">{{item.meta}}</text>
-                      </view>
-                      <view class="progress-ring study-task-ring" style="background: conic-gradient(#FD7C02 {{item.progress}}%, rgba(253, 124, 2, 0.14) 0);">
-                        <view class="progress-ring-inner">
-                          <text>{{item.progress}}%</text>
-                        </view>
-                      </view>
-                    </view>
-                  </block>
-                  <text wx:else class="study-task-empty">{{model.studyTaskEmptyText}}</text>
-                </view>
-              </view>
-            </view>
-
-            <view class="more-courses-section">
-              <view class="section-heading">
-                <text class="section-title">更多课程</text>
-                <view class="task-all-link" data-label="更多课程" bindtap="handleSheetAction">
-                  <text>查看全部</text>
-                  <text class="task-all-icon">›</text>
-                </view>
-              </view>
-              <swiper class="activity-banner-swiper" autoplay="true" interval="4000" duration="500" circular="true" easing-function="easeInOutCubic" indicator-dots="true" indicator-color="rgba(255, 255, 255, .48)" indicator-active-color="#FFFFFF">
-                <swiper-item wx:for="{{model.activityBanners}}" wx:key="id">
-                  <view class="activity-banner" style="background-color: {{item.backgroundColor}};"></view>
-                </swiper-item>
-              </swiper>
-              <view class="more-courses-grid">
-                <view wx:for="{{model.moreCourses}}" wx:key="id" class="more-course-card" data-id="{{item.id}}" bindtap="openProduct">
-                  <view class="more-course-cover"></view>
-                  <view class="more-course-info">
-                    <view class="more-course-copy">
-                      <text class="more-course-title">{{item.title}}</text>
-                      <text class="more-course-subtitle">{{item.subtitle}}</text>
-                    </view>
-                    <text class="more-course-price">¥{{item.price}}</text>
-                  </view>
-                </view>
-              </view>
-            </view>
-          </block>
-
-          <block wx:else>
-            <view class="guest-featured-section">
-              <view class="section-heading guest-featured-heading">
-                <text class="section-title">精选课程</text>
-                <view class="task-all-link" data-label="精选课程" bindtap="handleSheetAction">
-                  <text>查看全部</text>
-                  <text class="task-all-icon">›</text>
-                </view>
-              </view>
-              <scroll-view class="course-category-strip" scroll-x="true" show-scrollbar="false" enhanced="true" bindtouchstart="handleSheetGrabStart" bindtouchmove="handleSheetGrabMove" bindtouchend="handleSheetRelease" bindtouchcancel="handleSheetRelease">
-                <view class="course-category-list">
-                  <view wx:for="{{model.courseCategories}}" wx:key="id" class="course-category-pill {{item.isSelected ? 'course-category-selected' : ''}}" data-category="{{item.id}}" bindtap="handleCourseCategorySelect">{{item.label}}</view>
-                </view>
-              </scroll-view>
-              <view class="more-courses-grid guest-featured-grid">
-                <view wx:for="{{model.featuredCourses}}" wx:key="id" class="more-course-card" data-title="{{item.title}}" bindtap="handleGuestCourseTap">
-                  <view class="more-course-cover"></view>
-                  <view class="more-course-info">
-                    <view class="more-course-copy">
-                      <text class="more-course-title">{{item.title}}</text>
-                      <text class="more-course-subtitle">{{item.subtitle}}</text>
-                    </view>
-                    <text class="more-course-price">{{item.priceLabel}}</text>
-                  </view>
-                </view>
-              </view>
-            </view>
-          </block>
-        </view>
-      </scroll-view>
+        <view wx:else class="agent-course-empty"><view class="agent-course-empty-copy"><text class="agent-course-empty-title">课程正在上架</text><text class="agent-course-empty-subtitle">已发布的公共课程会出现在这里。</text></view><view class="agent-course-empty-action" bindtap="openLibraryList" role="button" aria-label="进入课程库">去课程库 <text>›</text></view></view>
+      </view>
+      <view class="agent-safe-space"></view>
     </view>
-  </view>
+  </scroll-view>
 </view>
+<dev-reset-fab />

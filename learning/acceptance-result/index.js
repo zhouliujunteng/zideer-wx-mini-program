@@ -2,7 +2,9 @@ const { loadAuthorizedTopicLearningReports } = require('../../services/identity'
 
 const statusLabels = {
   generating: '评价生成中',
-  ai_evaluated_pending_teacher: 'AI 已评价，待老师核验',
+  ai_verified_passed: 'AI 验收通过',
+  ai_retake_required: 'AI 判定需巩固',
+  ai_evaluated_pending_teacher: '智能初评完成，待老师核验',
   teacher_verified_passed: '老师核验通过',
   teacher_rejected: '老师判定需补学',
   failed: '评价生成失败'
@@ -34,6 +36,9 @@ function durationText(seconds) {
 function buildResult(report, student) {
   const status = report.status || 'generating'
   const review = report.teacher_review_status || ''
+  const acceptance = report.acceptance_summary && typeof report.acceptance_summary === 'object' ? report.acceptance_summary : {}
+  const isAiVerified = status === 'ai_verified_passed' || acceptance.ai_mastery_status === 'mastered'
+  const isAiRemediation = status === 'ai_retake_required' || acceptance.ai_mastery_status === 'reinforce'
   const assets = report.audioAssets || report.feynman_acceptance && report.feynman_acceptance.audio_assets || []
   return {
     id: report.id,
@@ -41,13 +46,14 @@ function buildResult(report, student) {
     studentName: student.profile.nickname || student.profile.real_name || '学生档案',
     reportNo: report.report_no || `报告 #${report.id}`,
     statusLabel: statusLabels[status] || '评价处理中',
-    reviewLabel: reviewLabels[review] || '老师核验中',
+    reviewLabel: reviewLabels[review] || '老师可复核',
+    isAiVerified,
     isVerified: status === 'teacher_verified_passed' || review === 'verified_passed' || review === 'teacher_verified_passed',
-    isRemediation: status === 'teacher_rejected' || review === 'rejected_for_remediation' || review === 'teacher_rejected',
+    isRemediation: isAiRemediation || status === 'teacher_rejected' || review === 'rejected_for_remediation' || review === 'teacher_rejected',
     learningDuration: durationText(report.effective_seconds),
-    acceptanceSummary: textFrom(report.acceptance_summary, 'AI 正在整理候选评价。'),
+    acceptanceSummary: textFrom(report.acceptance_summary, '正在整理智能初评结果。'),
     coverageSummary: textFrom(report.required_concept_coverage, '必备概念覆盖结果待生成。'),
-    reviewSummary: textFrom(report.teacher_review_summary, '老师完成最终核验后，会在这里展示可公开的结论。'),
+    reviewSummary: textFrom(report.teacher_review_summary, 'AI 已完成本次验收，老师仍可后续复核。'),
     afterMasterySummary: textFrom(report.after_mastery_snapshot, '核验通过后会同步最终学习结果。'),
     comparisonSummary: textFrom(report.comparison_summary, '核验通过后会生成前后掌握对比。'),
     audioCount: assets.length,

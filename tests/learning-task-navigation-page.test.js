@@ -29,3 +29,24 @@ test('learning task opens its live generation state without trusting a client co
     { url: '/learning/generation-status/index?planItemId=7&courseInstanceId=' }
   ])
 })
+
+test('learning page exposes planning and creation without requiring an existing task', () => {
+  const { definition, instance, navigations } = loadPage()
+  definition.openPlans.call(instance)
+  definition.createPlan.call(instance)
+  definition.openLibrary.call(instance)
+  assert.deepEqual(navigations, [
+    { url: '/diagnosis/plans/index' },
+    { url: '/diagnosis/plan-generation/index' },
+    { url: '/learning/library/index' }
+  ])
+})
+
+test('learning page opens an existing generated course from my courses', () => {
+  const { definition, instance, navigations } = loadPage()
+  definition.openMyCourse.call(instance, { currentTarget: { dataset: { id: '42' } } })
+  definition.openMyCourse.call(instance, { currentTarget: { dataset: { id: 'not-a-course' } } })
+  assert.deepEqual(navigations, [
+    { url: '/learning/course/index?courseInstanceId=42' }
+  ])
+})

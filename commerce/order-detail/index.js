@@ -16,6 +16,7 @@ Page({
       this.setData({ loading: false })
     }
   },
+  goMembership() { wx.navigateTo({ url: '/commerce/membership/index' }) },
   goCredits() { wx.navigateTo({ url: '/commerce/entitlements/index' }) },
   goProducts() { wx.navigateTo({ url: '/commerce/products/index' }) }
 })
