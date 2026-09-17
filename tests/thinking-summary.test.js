@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
 
-const { summarizeTopic, thinkingSummary, leadSentence } = require('../utils/course-agent-fold')
+const { summarizeTopic, thinkingSummary } = require('../utils/course-agent-fold')
 
 test('topic summary trims punctuation and clips long questions', () => {
   assert.equal(summarizeTopic('我想学一下微积分。'), '我想学一下微积分')
@@ -20,12 +20,6 @@ test('thinking summary follows the phase of the run', () => {
   assert.equal(thinkingSummary(confirm, 'course'), '按确认的方案开始生成课程')
   assert.equal(thinkingSummary(ask, 'answer'), '围绕「我想学编程」整理好了回答')
   assert.equal(thinkingSummary(ask, 'failed'), '这次没有完成，可以重新发送试试')
-})
-
-test('lead sentence strips markdown and stops at the first sentence', () => {
-  assert.equal(leadSentence('**零基础**，那我心里就有数了。第一课不写代码'), '零基础，那我心里就有数了')
-  assert.equal(leadSentence('答对了，7 是对的（2×3+1）！\n再来一道'), '答对了，7 是对的（2×3+1）')
-  assert.equal(leadSentence('方向定了：\n- 每天 20 分钟'), '方向定了')
 })
 
 const pagePath = require.resolve('../pages/agent-chat/index.js')
@@ -87,6 +81,7 @@ test('each turn gets its own thinking card and a summary of what it decided', ()
   const cards = thinking()
   assert.equal(new Set(cards.map((card) => card.id)).size, cards.length, '同一毫秒回放也不会出现重复 key')
   assert.equal(cards[1].streaming, false)
-  assert.equal(cards[1].preview, '零基础，那我心里就有数了')
+  // 小字是"这一轮在想什么"的一句话总结，不是回复正文本身
+  assert.equal(cards[1].preview, '根据你的回答「完全没碰过」，继续了解你的基础')
   page.onUnload()
 })

@@ -10,7 +10,7 @@ function setup(load) {
   const timers = new Map()
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../pages/learning/index.js'), 'utf8'), {
     Page: value => { definition = value },
-    require: () => ({ getLiveLearningModel: load, getLearningModel: () => ({ calendarTitle: '今天', studyTasks: [] }) }),
+    require: () => ({ getLiveLearningModel: load, getLearningModel: () => ({ calendarTitle: '今天', studyTasks: [] }), takeAgentCourseFocus: () => '' }),
     getApp: () => ({}), wx: { showToast() {}, stopPullDownRefresh() {} },
     setTimeout: fn => { timers.set(++serial, fn); return serial }, clearTimeout: id => timers.delete(id),
   })

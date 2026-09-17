@@ -87,21 +87,44 @@ test('learning tab lists agent courses (generating first) even when they are not
   assert.equal(fallback.model.hasGeneratingAgentCourse, false)
 })
 
-function setupLearningPage() {
+function fakeStorage() {
+  const store = new Map()
+  return {
+    setStorageSync: (key, value) => store.set(key, value),
+    getStorageSync: (key) => (store.has(key) ? store.get(key) : ''),
+    removeStorageSync: (key) => store.delete(key),
+    store
+  }
+}
+
+function setupLearningPage(storage = fakeStorage()) {
   let definition
   const navigations = []
   const timers = new Map()
   let serial = 0
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../pages/learning/index.js'), 'utf8'), {
     Page: (value) => { definition = value },
-    require: () => ({ getLearningModel: () => ({ calendarTitle: '今天', studyTasks: [] }) }),
+    require: (name) => (name.endsWith('agent-course-focus')
+      ? loadFocusUtil(storage)
+      : { getLearningModel: () => ({ calendarTitle: '今天', studyTasks: [] }) }),
     getApp: () => ({}),
-    wx: { navigateTo: ({ url }) => navigations.push(url), showToast() {} },
+    wx: { navigateTo: ({ url }) => navigations.push(url), showToast() {}, ...storage },
     setTimeout: (fn) => { timers.set(++serial, fn); return serial },
     clearTimeout: (id) => timers.delete(id)
   })
   const page = { ...definition, data: JSON.parse(JSON.stringify(definition.data)), setData(values) { Object.assign(this.data, values) } }
-  return { page, navigations, timers }
+  return { page, navigations, timers, storage }
+}
+
+// 交接工具直接读全局 wx，这里给它一份测试用的 storage。
+function loadFocusUtil(storage) {
+  const module = { exports: {} }
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../utils/agent-course-focus.js'), 'utf8'), {
+    module,
+    wx: { ...storage },
+    Date
+  })
+  return module.exports
 }
 
 test('opening an agent course goes to live progress until it can be learned', () => {
@@ -204,4 +227,91 @@ test('one course card per course: created, then flipped to generating in place',
   const cards = state.nodes.filter((node) => node.kind === 'stage')
   assert.equal(cards.length, 1)
   assert.equal(cards[0].generating, true)
+})
+
+test('the course card in the chat hands the course over to 我的课程', () => {
+  const storage = fakeStorage()
+  const pagePath = require.resolve('../pages/agent-chat/index.js')
+  delete require.cache[pagePath]
+  const routes = []
+  let definition = null
+  global.Page = (value) => { definition = value }
+  global.getApp = () => ({ globalData: {} })
+  global.wx = {
+    ...storage,
+    getWindowInfo: () => ({ windowWidth: 375, windowHeight: 667, statusBarHeight: 20, screenHeight: 667, safeArea: { bottom: 667 } }),
+    getMenuButtonBoundingClientRect: () => ({ left: 276, top: 26, width: 87, height: 32 }),
+    switchTab: ({ url }) => routes.push(url),
+    navigateTo: ({ url }) => routes.push(url),
+    showToast: ({ title }) => routes.push(`toast:${title}`),
+    nextTick: (callback) => callback(),
+    request() {},
+    hideKeyboard() {}
+  }
+  require(pagePath)
+  const page = { ...definition, data: {}, setData() {} }
+
+  page.handleStageOpen({ currentTarget: { dataset: { stageId: STAGE } } })
+  assert.deepEqual(routes, ['/pages/learning/index'])
+  assert.equal(storage.store.get('agent-course-focus').stageId, STAGE)
+
+  // 链接坏掉时不跳转，也不留下待聚焦的课程
+  storage.store.clear()
+  routes.length = 0
+  page.handleStageOpen({ currentTarget: { dataset: { stageId: '../../etc' } } })
+  assert.deepEqual(routes, ['toast:课程还在准备中，请稍后再试'])
+  assert.equal(storage.store.size, 0)
+})
+
+test('我的课程 picks up the handed-over course: progress while generating, straight into learning when ready', () => {
+  const storage = fakeStorage()
+  const focus = loadFocusUtil(storage)
+
+  focus.rememberAgentCourseFocus(STAGE)
+  const generating = setupLearningPage(storage)
+  generating.page._visible = true
+  generating.page._focusStageId = STAGE
+  generating.page.data.model = { myCourses: [agentCourseCard(normalizeAgentCourse(rawCourse()))] }
+  generating.page.applyAgentCourseFocus()
+  assert.deepEqual(generating.navigations, [])
+  assert.equal(generating.page.data.focusCourseId, `agent:${STAGE}`)
+  assert.equal(generating.page.data.courseScrollAnchor, 'my-courses-anchor')
+  // 高亮只是短暂提示，超时后自动收起
+  ;[...generating.timers.values()].pop()()
+  assert.equal(generating.page.data.focusCourseId, '')
+
+  const ready = setupLearningPage(storage)
+  ready.page._visible = true
+  ready.page._focusStageId = STAGE
+  ready.page.data.model = { myCourses: [agentCourseCard(normalizeAgentCourse(rawCourse({ status: 'completed', canLearn: true })))] }
+  ready.page.applyAgentCourseFocus()
+  assert.deepEqual(ready.navigations, [`/learning/course/index?agentCourseId=${STAGE}`])
+  assert.equal(ready.page._focusStageId, '')
+})
+
+test('a course that is not registered yet keeps the learning tab refreshing, then gives up', () => {
+  const { page, timers } = setupLearningPage()
+  page._visible = true
+  page._focusStageId = STAGE
+  page.data.dashboard = { tasks: [] }
+  page.data.model = { myCourses: [], hasGeneratingAgentCourse: false }
+  page.applyAgentCourseFocus()
+  assert.equal(page._focusStageId, STAGE)
+  page.scheduleProgressPolling()
+  assert.equal(timers.size, 1, '等待中的课程应继续按节拍刷新')
+  for (let attempt = 0; attempt < 12; attempt += 1) page.applyAgentCourseFocus()
+  assert.equal(page._focusStageId, '')
+  page.scheduleProgressPolling()
+  assert.equal(timers.size, 0)
+})
+
+test('the learning tab consumes the handover once, and ignores a stale one', () => {
+  const storage = fakeStorage()
+  const focus = loadFocusUtil(storage)
+  focus.rememberAgentCourseFocus(STAGE)
+  assert.equal(focus.takeAgentCourseFocus(), STAGE)
+  assert.equal(focus.takeAgentCourseFocus(), '')
+
+  storage.setStorageSync('agent-course-focus', { stageId: STAGE, at: Date.now() - 6 * 60 * 1000 })
+  assert.equal(focus.takeAgentCourseFocus(), '')
 })

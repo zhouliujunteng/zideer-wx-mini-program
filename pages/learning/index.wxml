@@ -9,7 +9,7 @@
     </view>
   </view>
 
-<scroll-view class="page-scroll" scroll-y bindscroll="handlePageScroll" style="padding-top: {{contentTop}}px;">
+<scroll-view class="page-scroll" scroll-y scroll-with-animation scroll-into-view="{{courseScrollAnchor}}" bindscroll="handlePageScroll" style="padding-top: {{contentTop}}px;">
   <view class="page-shell">
     <view class="calendar-heading">
       <text class="calendar-title">{{model.calendarTitle}}</text>
@@ -75,14 +75,14 @@
       </view>
     </view>
 
-    <view class="my-courses-section">
+    <view id="my-courses-anchor" class="my-courses-section">
       <view class="tasks-heading my-courses-heading">
         <text class="tasks-title">我的课程</text>
         <text class="my-courses-library-link" bindtap="openLibrary">课程库 ›</text>
       </view>
       <input class="my-courses-search" value="{{courseSearch}}" bindinput="searchMyCourses" placeholder="搜索我的课程" maxlength="80" />
       <view wx:if="{{visibleMyCourses.length > 0}}" class="my-courses-grid">
-        <view wx:for="{{visibleMyCourses}}" wx:key="id" class="my-course-card" data-id="{{item.id}}" data-kind="{{item.kind}}" bindtap="openMyCourse">
+        <view wx:for="{{visibleMyCourses}}" wx:key="id" class="my-course-card {{item.id === focusCourseId ? 'is-focused' : ''}}" data-id="{{item.id}}" data-kind="{{item.kind}}" bindtap="openMyCourse">
           <view class="my-course-cover my-course-cover-{{item.fallbackTone}}">
             <image wx:if="{{item.coverUrl}}" class="my-course-cover-image" src="{{item.coverUrl}}" mode="aspectFill"></image>
             <text wx:else class="my-course-cover-mark">知鹿</text>

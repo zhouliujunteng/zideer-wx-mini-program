@@ -453,17 +453,6 @@ function summarizeTopic(text, max = 14) {
   return characters.length > max ? `${characters.slice(0, max).join('')}…` : source
 }
 
-/** 回复正文的第一句（去掉 Markdown 符号），作为 AI 对这一轮的自我概括。 */
-function leadSentence(text, max = 22) {
-  const plain = String(text || '')
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/[*_`#>]+/g, '')
-    .replace(/^\s*[-+]\s+/gm, '')
-    .trim()
-  const first = plain.split(/[。！？!?\n]/u).map((part) => part.trim()).find(Boolean) || ''
-  return summarizeTopic(first.replace(/[：:]$/u, ''), max)
-}
-
 /**
  * 思考卡副标题。
  * context: { topic, answer }：topic 为用户本轮原话摘要；answer 为回答问题卡时的答案摘要。
@@ -497,6 +486,5 @@ module.exports = {
   presentToolLine,
   summarizeTopic,
   thinkingSummary,
-  leadSentence,
   TOOL_PRESENTATION,
 }

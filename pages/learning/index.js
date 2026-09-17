@@ -1,10 +1,15 @@
 const { getLearningModel } = require('../../services/mock-service')
 const { getLiveLearningModel } = require('../../services/live-tab-service')
+const { takeAgentCourseFocus } = require('../../utils/agent-course-focus')
 
 const TASK_LIST_SWAP_DURATION = 150
 const TASK_LIST_ENTER_FRAME = 16
 const LEARNING_TASK_LIST_ROW_HEIGHT = 96
 const LEARNING_TASK_LIST_ROW_GAP = 20
+// 对话里刚提交生成的课程可能还没登记到「我的课程」：按刷新节拍（5 秒）最多再等约 1 分钟。
+const AGENT_COURSE_FOCUS_RETRIES = 12
+const AGENT_COURSE_HIGHLIGHT_MS = 6000
+const MY_COURSES_ANCHOR = 'my-courses-anchor'
 
 function getLearningTaskListHeight(model) {
   const taskCount = model && model.studyTasks ? model.studyTasks.length : 0
@@ -36,7 +41,9 @@ Page({
     taskListClass: 'study-task-list-settled',
     taskListHeight: LEARNING_TASK_LIST_ROW_HEIGHT,
     courseSearch: '',
-    visibleMyCourses: []
+    visibleMyCourses: [],
+    focusCourseId: '',
+    courseScrollAnchor: ''
   },
 
   onLoad() {
@@ -95,6 +102,12 @@ Page({
     this._visible = true
     const app = getApp()
     if (app && app.markTabVisible) app.markTabVisible('pages/learning/index')
+    // 从对话的课程卡片跳过来：这次刷新之后聚焦到那门课。
+    const focusStageId = takeAgentCourseFocus()
+    if (focusStageId) {
+      this._focusStageId = focusStageId
+      this._focusAttempts = 0
+    }
     if (!this.data.model.calendarTitle) {
       const model = getLearningModel(new Date(), this.data.selectedStudyDayIndex)
       this.setData({ model, taskListHeight: getLearningTaskListHeight(model) })
@@ -114,6 +127,7 @@ Page({
         visibleMyCourses: this.filterMyCourses(live.model.myCourses, this.data.courseSearch),
         taskListHeight: getLearningTaskListHeight(live.model)
       })
+      this.applyAgentCourseFocus()
     } catch (error) {
       if (this._visible && version === this._dateLoadVersion && !silent) wx.showToast({ title: error.message || '学习数据加载失败', icon: 'none' })
     } finally {
@@ -130,7 +144,7 @@ Page({
     this.stopProgressPolling()
     const tasks = this.data.dashboard && this.data.dashboard.tasks || []
     const agentGenerating = Boolean(this.data.model && this.data.model.hasGeneratingAgentCourse)
-    if (this._visible && (agentGenerating || tasks.some(task => task.canPoll))) this._progressTimer = setTimeout(() => this.refreshLearning(true), 5000)
+    if (this._visible && (this._focusStageId || agentGenerating || tasks.some(task => task.canPoll))) this._progressTimer = setTimeout(() => this.refreshLearning(true), 5000)
   },
 
   async onPullDownRefresh() {
@@ -144,6 +158,9 @@ Page({
     this._visible = false
     this._dateLoadVersion = (this._dateLoadVersion || 0) + 1
     this.stopProgressPolling()
+    this.clearCourseHighlight()
+    // 锚点清空后再次进入才会重新滚动到「我的课程」。
+    if (this.data.courseScrollAnchor || this.data.focusCourseId) this.setData({ courseScrollAnchor: '', focusCourseId: '' })
     if (this._taskListSwapTimer) {
       clearTimeout(this._taskListSwapTimer)
       this._taskListSwapTimer = null
@@ -179,6 +196,34 @@ Page({
     const courseSearch = String(event.detail && event.detail.value || '')
     this.setData({ courseSearch, visibleMyCourses: this.filterMyCourses(this.data.model.myCourses, courseSearch) })
   },
+  // 对话里的课程链接落到这里：已经生成好的课直接进入学习，还在生成的课滚到「我的课程」并高亮，
+  // 进度就显示在卡片上。刚提交生成时课程可能还没登记，按刷新节拍再等几轮。
+  applyAgentCourseFocus() {
+    const stageId = this._focusStageId
+    if (!stageId) return
+    const course = (this.data.model.myCourses || []).find((item) => item.kind === 'agent' && item.stageId === stageId)
+    if (!course) {
+      if ((this._focusAttempts = (this._focusAttempts || 0) + 1) > AGENT_COURSE_FOCUS_RETRIES) this._focusStageId = ''
+      return
+    }
+    this._focusStageId = ''
+    if (course.canLearn) {
+      wx.navigateTo({ url: `/learning/course/index?agentCourseId=${encodeURIComponent(stageId)}` })
+      return
+    }
+    this.clearCourseHighlight()
+    this.setData({ focusCourseId: course.id, courseScrollAnchor: MY_COURSES_ANCHOR })
+    this._highlightTimer = setTimeout(() => {
+      this._highlightTimer = null
+      if (this._visible) this.setData({ focusCourseId: '' })
+    }, AGENT_COURSE_HIGHLIGHT_MS)
+  },
+
+  clearCourseHighlight() {
+    if (this._highlightTimer) clearTimeout(this._highlightTimer)
+    this._highlightTimer = null
+  },
+
   openMyCourse(event) {
     const dataset = event.currentTarget.dataset || {}
     if (dataset.kind === 'agent') {

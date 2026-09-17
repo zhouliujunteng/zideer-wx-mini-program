@@ -150,24 +150,19 @@ page { height: 100%; overflow: hidden; background: #F9FAFF; }
    跟随本页设计令牌：白卡片 + #E9EEE9 描边 + 品牌橙 #FD7C02 强调。 */
 
 .agent-message-activity { justify-content: flex-start; }
-.agent-activity-think { width: 88%; box-sizing: border-box; border: 1rpx solid #E9EEE9; border-radius: 24rpx 24rpx 24rpx 8rpx; background: #FFFFFF; overflow: hidden; }
-.agent-activity-think-head { display: flex; align-items: center; min-height: 68rpx; padding: 14rpx 22rpx; }
-.agent-activity-think-spinner { flex: 0 0 auto; width: 22rpx; height: 22rpx; margin-right: 14rpx; border: 3rpx solid #E9EEE9; border-top-color: #FD7C02; border-radius: 50%; }
+.agent-activity-think { width: 88%; box-sizing: border-box; border: 1rpx solid #E9EEE9; border-radius: 20rpx 20rpx 20rpx 8rpx; background: #FFFFFF; overflow: hidden; }
+.agent-activity-think-head { display: flex; align-items: center; min-height: 48rpx; padding: 6rpx 18rpx; }
+.agent-activity-think-spinner { flex: 0 0 auto; width: 20rpx; height: 20rpx; margin-right: 12rpx; border: 3rpx solid #E9EEE9; border-top-color: #FD7C02; border-radius: 50%; }
 .agent-activity-think.is-streaming .agent-activity-think-spinner { animation: agent-activity-spin .9s linear infinite; }
-.agent-activity-think:not(.is-streaming) .agent-activity-think-spinner { width: 14rpx; height: 14rpx; margin: 0 18rpx 0 4rpx; border: 0; background: #57B36A; }
-.agent-activity-think-label { flex: 0 0 auto; margin-right: 14rpx; color: #526057; font-size: 23rpx; font-weight: 600; }
-.agent-activity-think-preview { flex: 1; min-width: 0; overflow: hidden; color: #AAB2AB; font-size: 22rpx; white-space: nowrap; text-overflow: ellipsis; }
-.agent-activity-caret { flex: 0 0 auto; color: #B5BCB6; font-size: 20rpx; }
-.agent-activity-think-lines { padding: 2rpx 22rpx 18rpx 58rpx; }
-.agent-activity-think-line { display: block; color: #526057; font-size: 22rpx; line-height: 1.9; }
+.agent-activity-think:not(.is-streaming) .agent-activity-think-spinner { width: 12rpx; height: 12rpx; margin: 0 16rpx 0 4rpx; border: 0; background: #57B36A; }
+.agent-activity-think-label { flex: 0 0 auto; margin-right: 12rpx; color: #526057; font-size: 22rpx; font-weight: 600; }
+.agent-activity-think-preview { flex: 1; min-width: 0; overflow: hidden; color: #AAB2AB; font-size: 21rpx; white-space: nowrap; text-overflow: ellipsis; }
 @keyframes agent-activity-spin { to { transform: rotate(360deg); } }
 /* 活动卡片（思考、步骤、问题、课程、提示）与消息气泡出现时淡入上浮，不再整块蹦出。
    列表以 id 为 key，已存在的节点重渲染不会重复播放。 */
 .agent-message-activity, .agent-message-assistant, .agent-message-user { animation: agent-card-enter .38s cubic-bezier(.2, .8, .2, 1) both; }
-.agent-activity-think-lines { animation: agent-card-expand .26s ease-out both; }
 .agent-activity-think-preview { transition: color .2s ease; }
 @keyframes agent-card-enter { from { opacity: 0; transform: translate3d(0, 18rpx, 0) scale(.985); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
-@keyframes agent-card-expand { from { opacity: 0; transform: translate3d(0, -6rpx, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
 
 .agent-activity-tool { width: 82%; margin-left: 26rpx; }
 .agent-activity-tool-row { display: flex; align-items: center; box-sizing: border-box; min-height: 64rpx; padding: 12rpx 20rpx; border: 1rpx solid #E9EEE9; border-radius: 20rpx; background: #FFFFFF; }

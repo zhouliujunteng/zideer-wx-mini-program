@@ -8,6 +8,7 @@ const { getSharedRecorderBridge } = require('../../utils/recorder-session-bridge
 const { COURSE_PORTAL_ORIGIN } = require('../../config/index')
 const ASR_TRANSCRIBE_URL = COURSE_PORTAL_ORIGIN + '/api/asr/transcribe'
 const { renderMarkdown } = require('../../utils/markdown')
+const { rememberAgentCourseFocus } = require('../../utils/agent-course-focus')
 const {
   COURSE_AGENT,
   createCourseAgentSession,
@@ -23,7 +24,7 @@ const {
   clearCourseAgentAccess,
   playMockCourseAgentTimeline
 } = require('../../services/course-agent-service')
-const { presentToolLine, summarizeTopic, thinkingSummary, leadSentence } = require('../../utils/course-agent-fold')
+const { presentToolLine, summarizeTopic, thinkingSummary } = require('../../utils/course-agent-fold')
 const { REVEAL_TICK_MS, createStreamReveal, renderRevealFrame } = require('../../utils/stream-reveal')
 const { ensureZionSession } = require('../../services/zion-auth-service')
 const {
@@ -325,7 +326,9 @@ function copyMessage(message) {
 function filterHistory(items, keyword) {
   const query = String(keyword || '').trim().toLowerCase()
   if (!query) return items.slice()
-  return items.filter((item) => `${item.title} ${item.preview}`.toLowerCase().includes(query))
+  // keywords 是不展示的提问原文：标题是总结之后，按原话搜索仍要命中。
+  return items.filter((item) =>
+    `${item.title} ${item.preview} ${item.keywords || ''}`.toLowerCase().includes(query))
 }
 
 function getHistoryDayKey(value) {
@@ -744,13 +747,16 @@ Page({
         const conversations = (Array.isArray(sessions) ? sessions : []).map((session) => {
           const sessionId = String(session && session.id || '')
           const prompt = String(session && session.prompt || '')
+          // 服务端在一轮问答结束后写入一句话标题；还没写入（或旧会话）时退回首条提问。
+          const summary = String(session && session.title || '').trim()
           const createdAt = normalizeMessageTimestamp(session && session.updatedAt)
           return {
             id: `agent-session-${sessionId}`,
             sessionId,
             status: String(session && session.status || ''),
-            title: stripLearningAppendix(prompt).slice(0, 24) || 'AI 课程对话',
+            title: summary || stripLearningAppendix(prompt).slice(0, 24) || 'AI 课程对话',
             preview: statusLabels[String(session && session.status || '')] || 'AI 课程对话',
+            keywords: stripLearningAppendix(prompt),
             time: formatHistoryItemTime(createdAt),
             createdAt
           }
@@ -1705,7 +1711,6 @@ Page({
         const args = data.args && typeof data.args === 'object' && !Array.isArray(data.args) ? data.args : {}
         const label = presentToolLine(toolName, args)
         this.openThinkingActivity()
-        this.appendThinkingLine(label)
         this.upsertAgentActivity({
           kind: 'tool',
           id: `tool-${data.toolCallId || event.id}`,
@@ -1715,8 +1720,7 @@ Page({
           resultText: '',
           traces: [],
           startedAt: Number(event.ts) || 0,
-          durationText: '',
-          expanded: false
+          durationText: ''
         })
         break
       }
@@ -1919,9 +1923,7 @@ Page({
     this.insertAgentActivity({
       kind: 'thinking',
       id,
-      lines: [],
       streaming: true,
-      expanded: false,
       context,
       preview: thinkingSummary(context, 'thinking')
     })
@@ -1944,16 +1946,6 @@ Page({
     return { topic: '', answer: '' }
   },
 
-  appendThinkingLine(line) {
-    if (!line) return
-    const target = this.data.messages.find((item) => item.id === this._runThinkingId) ||
-      this.data.messages.find((item) => item.kind === 'thinking' && item.streaming)
-    if (!target) return
-    target.lines = (target.lines || []).concat([line]).slice(-60)
-    if (target.streaming) target.preview = line
-    this.renderAgentMessages()
-  },
-
   settleThinkingActivity() {
     let changed = false
     this.data.messages.forEach((item) => {
@@ -1968,6 +1960,7 @@ Page({
   },
 
   // run 结束：按这一轮的结果（提问 / 建课 / 回复 / 失败）给思考卡写一句总结。
+  // 小字只概括「这一轮在想什么」，不搬运回复正文——那是答案本身，不是思考的总结。
   finalizeThinkingSummary(status) {
     const messages = this.data.messages
     const index = messages.findIndex((item) => item.id === this._runThinkingId)
@@ -1981,13 +1974,7 @@ Page({
           ? 'question'
           : 'answer'
     const card = messages[index]
-    // 回答问题卡的轮次：用 AI 回复的第一句作为思考方向（通常就是它对回答的判断），
-    // 首次提问、建课、失败仍用规则文案，避免落成寒暄语
-    const reply = after.find((item) => item.role === 'assistant' && item.text)
-    const lead = reply && card.context && card.context.answer && phase !== 'course' && phase !== 'failed'
-      ? leadSentence(reply.text)
-      : ''
-    card.preview = lead || thinkingSummary(card.context, phase)
+    card.preview = thinkingSummary(card.context, phase)
     this.renderAgentMessages()
   },
 
@@ -2103,14 +2090,6 @@ Page({
     })
   },
 
-  handleActivityToggle(e) {
-    const id = String(e.currentTarget.dataset.id || '')
-    const item = this.data.messages.find((entry) => entry.id === id)
-    if (!item || !item.kind) return
-    item.expanded = !item.expanded
-    this.renderAgentMessages()
-  },
-
   // 选项卡片：点选只改变选中状态，统一由「确认」按钮提交（单选、多选一致）。
   // 选中态写在每个选项的 selected 上：WXML 表达式不支持 indexOf 等方法调用，
   // 真机上 selectedIds.indexOf(...) 恒为假，会导致点了没有任何反馈。
@@ -2170,14 +2149,20 @@ Page({
     this.sendMessage(labels.join('、') || '继续')
   },
 
-  // 课程卡片就是课程链接：进入后看实时生成进度，生成完成后在那里开始学习。
+  // 课程卡片就是这门课唯一的链接：点开落到「学习 › 我的课程」——还在生成就在那里看进度，
+  // 已经生成好就直接进入课程学习。switchTab 不能带参数，聚焦哪门课通过 storage 交接。
   handleStageOpen(e) {
     const stageId = String(e.currentTarget.dataset.stageId || '')
     if (!/^stage-[A-Za-z0-9_-]{1,64}$/.test(stageId)) {
       wx.showToast({ title: '课程还在准备中，请稍后再试', icon: 'none' })
       return
     }
-    wx.navigateTo({ url: `/learning/agent-course/index?stageId=${encodeURIComponent(stageId)}` })
+    rememberAgentCourseFocus(stageId)
+    wx.switchTab({
+      url: '/pages/learning/index',
+      // 学习页打不开时（极少见）退回单课进度页，链接不至于点了没反应。
+      fail: () => wx.navigateTo({ url: `/learning/agent-course/index?stageId=${encodeURIComponent(stageId)}` })
+    })
   },
 
   startFakeStreamReply(text, runToken) {

@@ -68,7 +68,7 @@ test('mock timeline drives the designer page into a pseudo-thinking conversation
   assert.equal(tool.resultText, '8 条来源：同分母先加减、异分母通分、约分最简…')
 
   const thinking = page.data.messages.find((message) => message.kind === 'thinking')
-  assert.ok(thinking.lines.length >= 1)
+  assert.ok(thinking.preview, '思考卡带一句话总结')
   page.onUnload()
 })
 
@@ -99,19 +99,15 @@ test('ask_user lands a question card; answering resumes and streams the final re
   page.onUnload()
 })
 
-test('tool cards expand into code blocks and thinking bar settles with the reply', async () => {
+test('thinking bar stays a single summary line and settles with the reply', async () => {
   const definition = loadPage()
   const page = instantiate(definition)
   page.onLoad({ mock: '1' })
   await sleep(8600)
 
-  const tool = page.data.messages.find((message) => message.kind === 'tool')
-  page.handleActivityToggle({ currentTarget: { dataset: { id: tool.id } } })
-  await sleep(200)
-  const expanded = page.data.messages.find((message) => message.id === tool.id)
-  assert.equal(expanded.expanded, true)
-
   const thinking = page.data.messages.find((message) => message.kind === 'thinking')
+  assert.ok(thinking.preview, '思考卡始终带一句话总结')
+  assert.equal(thinking.lines, undefined, '不再保存可展开的思考明细')
   assert.equal(thinking.streaming, true, 'run 停在提问时思考条仍打开')
   page.onUnload()
 })

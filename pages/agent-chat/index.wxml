@@ -57,15 +57,11 @@
       <view wx:if="{{messages.length}}" class="agent-message-list">
         <view wx:for="{{messages}}" wx:key="id" id="message-{{item.id}}" class="agent-message {{item.kind ? 'agent-message-activity' : 'agent-message-' + item.role}}">
 
-          <view wx:if="{{item.kind === 'thinking'}}" class="agent-activity-think {{item.streaming ? 'is-streaming' : ''}}" data-id="{{item.id}}" bindtap="handleActivityToggle" aria-role="button" aria-label="思考过程">
+          <view wx:if="{{item.kind === 'thinking'}}" class="agent-activity-think {{item.streaming ? 'is-streaming' : ''}}" aria-label="思考过程">
             <view class="agent-activity-think-head">
               <view class="agent-activity-think-spinner" aria-hidden="true"></view>
               <text class="agent-activity-think-label">{{item.streaming ? '思考中' : '思考完成'}}</text>
-              <text class="agent-activity-think-preview" wx:if="{{!item.expanded}}">{{item.preview || (item.streaming ? '正在梳理你的问题' : '整理好了回答')}}</text>
-              <text class="agent-activity-caret" wx:else>收起</text>
-            </view>
-            <view class="agent-activity-think-lines" wx:if="{{item.expanded}}">
-              <text class="agent-activity-think-line" wx:for="{{item.lines}}" wx:for-item="line" wx:key="*this">{{line}}</text>
+              <text class="agent-activity-think-preview">{{item.preview || (item.streaming ? '正在梳理你的问题' : '整理好了回答')}}</text>
             </view>
           </view>
 

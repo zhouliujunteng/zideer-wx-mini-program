@@ -277,6 +277,8 @@ page {
 .my-courses-search { box-sizing: border-box; width: 100%; height: 72rpx; margin-top: 18rpx; padding: 0 24rpx; border: 1rpx solid #e1e6e2; border-radius: 18rpx; background: #fafcfb; color: #24332d; font-size: 25rpx; }
 .my-courses-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18rpx; margin-top: 18rpx; }
 .my-course-card { overflow: hidden; min-width: 0; border-radius: 22rpx; background: #fff; box-shadow: 0 8rpx 24rpx rgba(36, 51, 45, .05); }
+/* 从对话的课程链接跳过来时，短暂高亮这门课的卡片 */
+.my-course-card.is-focused { box-shadow: 0 0 0 4rpx rgba(253, 124, 2, .55), 0 10rpx 28rpx rgba(253, 124, 2, .18); transition: box-shadow .24s ease; }
 .my-course-cover { display: flex; align-items: center; justify-content: center; height: 150rpx; }
 .my-course-cover-mint { background: #dcefe8; color: #267348; }
 .my-course-cover-peach { background: #f8e1d5; color: #b55d3d; }
