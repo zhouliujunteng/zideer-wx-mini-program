@@ -1,6 +1,7 @@
 const { getLearningModel } = require('../../services/mock-service')
 const { getLiveLearningModel } = require('../../services/live-tab-service')
 const { takeAgentCourseFocus } = require('../../utils/agent-course-focus')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 const TASK_LIST_SWAP_DURATION = 150
 const TASK_LIST_ENTER_FRAME = 16
@@ -47,6 +48,7 @@ Page({
   },
 
   onLoad() {
+    attachUiAssets(this)
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const windowWidth = windowInfo.windowWidth || 375
     const menuButton = wx.getMenuButtonBoundingClientRect
@@ -315,5 +317,11 @@ Page({
     const selectedStudyDayIndex = Number(e.currentTarget.dataset.index)
     if (!Number.isInteger(selectedStudyDayIndex) || selectedStudyDayIndex === this.data.selectedStudyDayIndex) return
     this.selectStudyDay(selectedStudyDayIndex)
+  },
+
+  // 「连续学习」统计格进入每日学习打卡页（设计仓库 E05）。
+  handleOverviewTap(e) {
+    if (e.currentTarget.dataset.label !== '连续学习') return
+    wx.navigateTo({ url: '/learning/check-in/index' })
   }
 })

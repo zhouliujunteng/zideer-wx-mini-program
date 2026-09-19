@@ -1,6 +1,7 @@
 const { loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired } = require('../../services/identity')
 const { postProfileUrl } = require('../../utils/referral-context')
 const { todayDate, validBirthday, normalizeSemester, ageDisplay, gradeForBirthday } = require('../../utils/profile-form')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 const gradeOptions = Array.from({ length: 12 }, (_, index) => index + 1)
 const semesterOptions = ['上学期', '下学期']
@@ -114,6 +115,7 @@ Page({
   },
 
   async onLoad(options = {}) {
+    attachUiAssets(this)
     this.disposed = false
     this.isEditing = String(options.edit || '') === '1'
     this.setData({ editing: this.isEditing, maxBirthday: todayDate(), ...navigationMetrics() })

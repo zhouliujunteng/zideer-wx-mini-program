@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="me-page">
   <view class="me-topbar" style="background-color: {{topbarBackground}};">
     <view class="me-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
@@ -11,11 +12,13 @@
     >编辑资料</view>
   </view>
 
-<scroll-view class="page-scroll" scroll-y bindscroll="handlePageScroll">
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" refresher-enabled="{{false}}" refresher-triggered="{{false}}" refresher-default-style="none" show-scrollbar="{{false}}" bindscroll="handlePageScroll">
   <view class="page-shell" style="padding-top: {{contentTop}}px;">
+    <!-- 顶部氛围色必须随内容滚动，不能放在页面根层，否则底部回弹会透出淡橙色（设计仓库 4cde86d）。 -->
+    <view class="me-profile-ambient" aria-hidden="true"></view>
     <view class="profile" style="padding-top: {{profilePaddingTop}}px;" bindtap="editProfile">
       <view class="profile-avatar-wrap">
-        <image wx:if="{{model.profile.avatarSrc}}" class="avatar avatar-image" src="{{model.profile.avatarSrc}}" mode="aspectFill"></image>
+        <image wx:if="{{model.profile.avatarSrc}}" class="avatar avatar-image" src="{{UA.src(ui, model.profile.avatarSrc)}}" mode="aspectFill"></image>
         <view wx:else class="avatar"></view>
       </view>
       <view class="profile-copy">
@@ -37,7 +40,7 @@
       <view class="membership-art" aria-hidden="true">
         <view class="membership-ring membership-ring-back"></view>
         <view class="membership-ring membership-ring-front"></view>
-        <image class="membership-crown" src="{{model.membershipCard.crownIcon}}" mode="aspectFit"></image>
+        <image class="membership-crown" src="{{UA.src(ui, model.membershipCard.crownIcon)}}" mode="aspectFit"></image>
       </view>
     </view>
     <view class="me-content-panel">
@@ -45,7 +48,7 @@
       <view class="me-content-panel-corner me-content-panel-corner-right" aria-hidden="true"></view>
       <view class="wallet-grid">
         <view wx:for="{{model.accountSummary}}" wx:key="label" class="wallet-module" data-name="{{item.label}}" bindtap="handleWalletTap" role="button" aria-label="打开{{item.label}}">
-          <image class="wallet-module-illustration" src="{{item.icon}}" mode="aspectFit"></image>
+          <image class="wallet-module-illustration" src="{{UA.src(ui, item.icon)}}" mode="aspectFit"></image>
           <view class="wallet-module-copy">
             <text class="wallet-label">{{item.label}}</text>
             <text class="wallet-value">{{item.value}}</text>
@@ -58,7 +61,7 @@
         <view class="quick-grid">
           <view wx:for="{{model.quickActions}}" wx:key="label" class="quick-item" data-name="{{item.label}}" bindtap="handleItem">
             <view class="quick-item-icon-wrap">
-              <image class="quick-item-icon" src="{{item.icon}}" mode="aspectFit"></image>
+              <image class="quick-item-icon" src="{{UA.src(ui, item.icon)}}" mode="aspectFit"></image>
               <text wx:if="{{item.unreadCount}}" class="quick-item-badge">{{item.unreadCount}}</text>
             </view>
             <text class="quick-item-label">{{item.label}}</text>
@@ -68,7 +71,7 @@
       <view wx:for="{{model.serviceGroups}}" wx:for-item="serviceGroup" wx:key="title" class="group">
         <text class="group-title">{{serviceGroup.title}}</text>
         <view wx:if="{{serviceGroup.enterpriseService}}" class="enterprise-service-card" bindtap="openEnterpriseService">
-          <image class="enterprise-service-avatar" src="{{serviceGroup.enterpriseService.avatar}}" mode="aspectFill"></image>
+          <image class="enterprise-service-avatar" src="{{UA.src(ui, serviceGroup.enterpriseService.avatar)}}" mode="aspectFill"></image>
           <view class="enterprise-service-copy">
             <text class="enterprise-service-title">{{serviceGroup.enterpriseService.title}}</text>
             <text class="enterprise-service-description">{{serviceGroup.enterpriseService.description}}</text>

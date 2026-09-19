@@ -1,4 +1,5 @@
 const { loadCurrentCreditAccount } = require('../../services/identity')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 // 设计师 M34 课程积分页视图模型：余额 + 批次 + 按月分组流水（获得/使用页签）
 const RECORD_TABS = [
@@ -72,6 +73,7 @@ Page({
   },
 
   onLoad() {
+    attachUiAssets(this)
     // 自定义顶栏需要的安全区尺寸（环境不提供时保持默认）
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {})
     const windowWidth = windowInfo.windowWidth || 375

@@ -1,4 +1,5 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="splash">
-  <image class="splash-bg" src="/assets/brand/splash.jpg" mode="aspectFit"></image>
+  <image class="splash-bg" src="{{UA.src(ui, '/assets/brand/splash.jpg')}}" mode="aspectFit"></image>
 </view>
 <dev-reset-fab />

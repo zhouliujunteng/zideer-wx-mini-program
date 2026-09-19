@@ -2135,19 +2135,24 @@ async function loadPublishedPromotionAssets() {
   }
 }
 
-async function loadUiAssetMap() {
-  const data = await graphql(`query LoadUiAssetMap {
-    promotion_asset(where: {asset_no: {_in: ["ui-me-course-points", "ui-me-coins"]}, status: {_eq: "published"}}, order_by: {version_no: desc}) {
-      asset_no version_no cover_image { id url }
-    }
-  }`)
-  const result = {}
-  for (const item of (data && data.promotion_asset) || []) {
-    const key = String(item.asset_no || '')
-    if (!key || result[key] || !item.cover_image || !item.cover_image.url) continue
-    result[key] = { id: String(item.cover_image.id || ''), url: String(item.cover_image.url) }
+// 每日学习打卡：返回北京时间的今天与打卡日期（当天有效课程学习累计满门槛秒数算一天）。
+async function loadCurrentLearningCheckin() {
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.GET_CURRENT_LEARNING_CHECKIN, {}, { timeout: 10000 }
+  )) || {}
+  if (payload.status === 'unauthenticated') throw new Error('请先登录后查看学习打卡。')
+  if (payload.status === 'not_initialized') throw new Error('请先完善学习档案后查看学习打卡。')
+  const dayPattern = /^\d{4}-\d{2}-\d{2}$/
+  if (payload.status !== 'ready' || !dayPattern.test(String(payload.today || ''))) {
+    throw new Error('学习打卡暂时无法读取，请稍后重试。')
   }
-  return result
+  return {
+    today: String(payload.today),
+    thresholdSeconds: wholeNumber(payload.thresholdSeconds),
+    todaySeconds: wholeNumber(payload.todaySeconds),
+    checkedDates: (Array.isArray(payload.checkedDates) ? payload.checkedDates : [])
+      .map(String).filter((day) => dayPattern.test(day))
+  }
 }
 
 async function claimCurrentDailyCoinCheckin() {
@@ -2845,8 +2850,8 @@ module.exports = {
   loadCurrentGrowthCenter,
   generateCurrentPromoterPosterBackground,
   loadPublishedPromotionAssets,
-  loadUiAssetMap,
   claimCurrentDailyCoinCheckin,
+  loadCurrentLearningCheckin,
   createCurrentPromoterInvitation,
   recordCurrentPromotionTouchAndAttribute,
   saveCurrentLearningProfile,

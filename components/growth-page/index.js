@@ -1,4 +1,5 @@
 const { loadCurrentGrowthCenter, redeemCurrentStudentCode, createCurrentPromoterInvitation, generateCurrentPromoterPosterBackground, loadPublishedPromotionAssets, claimCurrentDailyCoinCheckin } = require('../../services/identity')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 const titles = {
   application: '推广伙伴与结算资格', dashboard: '推广伙伴工作台', clients: '直属用户',
@@ -52,7 +53,7 @@ Component({
     checkingIn: false,
     checkinResult: null
   },
-  lifetimes: { attached() { this.loadPage() } },
+  lifetimes: { attached() { attachUiAssets(this); this.loadPage() } },
   methods: {
     async loadPage() {
       this.setData({ loading: true, failed: false, title: titles[this.data.mode] || '成长中心' })

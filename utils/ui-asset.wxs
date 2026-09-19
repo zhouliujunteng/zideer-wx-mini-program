@@ -1,0 +1,17 @@
+// 模板里显示界面图片：把包内路径（如 /assets/me/coins.png、../../assets/me/coins.png、
+// /commerce/assets/membership/plan-crown.svg）换成后端 ui_asset 表下发的地址。
+// 素材键 = 路径中最后一个 "assets/" 之后的部分（me/coins.png），与上传时一致。
+// 网络图片、微信临时文件等非素材路径原样返回；找不到素材时返回空串，不回退到包内文件。
+var MARKER = 'assets/'
+
+function src(ui, value) {
+  if (!value) return ''
+  var text = '' + value
+  if (text.indexOf('http') === 0 || text.indexOf('wxfile') === 0 || text.indexOf('data:') === 0 || text.indexOf('cloud://') === 0) return text
+  var index = text.lastIndexOf(MARKER)
+  if (index < 0) return text
+  var key = text.substring(index + MARKER.length)
+  return (ui && ui[key]) || ''
+}
+
+module.exports = { src: src }

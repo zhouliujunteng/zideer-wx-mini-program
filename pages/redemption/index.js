@@ -1,4 +1,5 @@
 const { loadCurrentGrowthCenter, redeemCurrentStudentCode } = require('../../services/identity')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 function formatDate(value) {
   if (!value) return '待处理'
@@ -40,6 +41,7 @@ Page({
   data: { model: createModel(), statusBarHeight: 20, navigationBarHeight: 44, contentTop: 80, currentStudentId: null, loading: true, redeeming: false, noticeSheetVisible: false, noticeSheetClosing: false, resultSheetVisible: false, resultSheetClosing: false, resultState: {} },
 
   onLoad() {
+    attachUiAssets(this)
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const width = windowInfo.windowWidth || 375
     const menuButton = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : { top: (windowInfo.statusBarHeight || 20) + 6, height: 32, width: 87, left: width - 92 }

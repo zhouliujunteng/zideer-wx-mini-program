@@ -81,7 +81,7 @@
         "agent-course/index",
         "schedule/index",
         "live-session/index",
-        "outline/index"
+        "outline/index", "check-in/index"
       ]
     },
     {

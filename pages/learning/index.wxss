@@ -635,3 +635,7 @@ page {
 .my-course-progress-track { height: 6rpx; margin-top: 12rpx; overflow: hidden; border-radius: 999rpx; background: rgba(253, 124, 2, 0.14); }
 .my-course-progress-bar { height: 100%; border-radius: 999rpx; background: #fd7c02; transition: width 0.4s ease; }
 @keyframes my-course-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* 「连续学习」统计格可点击进入每日打卡（设计仓库 7ebabb2）。 */
+.overview-item-streak { cursor: pointer; }
+.overview-item-streak:active { opacity: .76; }

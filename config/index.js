@@ -1,6 +1,6 @@
 const PROJECT_ID = "ZJ2x09KOnm9";
 // OpenMAIC 的 HTTPS 课程站点。发布前需在微信公众平台同时配置 request 合法域名和业务域名。
-const COURSE_PORTAL_ORIGIN = "https://sike.yuandianzhixv.cn";
+const COURSE_PORTAL_ORIGIN = "https://course.zideer.cn";
 
 module.exports = {
   PROJECT_ID,
@@ -149,6 +149,10 @@ module.exports = {
     },
     GET_CURRENT_PUBLISHED_PROMOTION_ASSETS: {
       id: "ec11ac62-f933-4700-b6a4-0d00c0ef3294",
+    },
+    // 每日学习打卡：当天有效课程学习满 5 分钟算一天，只读（2026-09-19）。
+    GET_CURRENT_LEARNING_CHECKIN: {
+      id: "8c5cc15b-e766-5512-fda2-16369afadb85",
     },
     CLAIM_CURRENT_DAILY_COIN_CHECKIN: {
       id: "3c70dfba-adfb-41d7-a36b-08dad3c4fbe9",

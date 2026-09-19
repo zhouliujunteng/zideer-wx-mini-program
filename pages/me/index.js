@@ -3,6 +3,7 @@ const { getLiveMeModel } = require('../../services/live-tab-service')
 const { loadCurrentMembership, loadCurrentServiceContacts } = require('../../services/identity')
 const { membershipView } = require('../../services/membership-view')
 const { openCustomerServiceChat, customerServiceErrorMessage } = require('../../utils/customer-service')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 function loadingMeModel() {
   const model = getMeModel()
@@ -31,6 +32,7 @@ Page({
     topbarBackground: '#FFF1E6'
   },
   onLoad() {
+    attachUiAssets(this)
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const windowWidth = windowInfo.windowWidth || 375
     const menuButton = wx.getMenuButtonBoundingClientRect
@@ -143,7 +145,7 @@ Page({
     const routes = {
       '课程积分': '/commerce/entitlements/index', '金币': '/growth/coins/index',
       '家庭关系': '/account/family/index', '订单': '/commerce/orders/index',
-      '消息中心': '/pages/messages/index', '账户安全': '/account/login-identities/index', '身份与登录': '/account/identity/index',
+      '消息中心': '/pages/messages/index', '账户安全': '/account/login-identities/index', '身份与登录': '/account/login-identities/index',
       '学习档案': '/pages/profile-setup/index?edit=1', '兑换码': '/pages/redemption/index', '测评中心': '/assessment/center/index',
       '推广伙伴': '/agent/application/index'
     }
@@ -154,7 +156,7 @@ Page({
   handleEntry(e) {
     const id = String(e.currentTarget.dataset.id || '')
     if (id === 'learningProfile') return wx.navigateTo({ url: '/pages/profile-setup/index?edit=1' })
-    if (id === 'identity') return wx.navigateTo({ url: '/account/identity/index' })
+    if (id === 'identity') return wx.navigateTo({ url: '/account/login-identities/index' })
     if (id === 'orders') return wx.navigateTo({ url: '/commerce/orders/index' })
     if (id === 'family') return wx.navigateTo({ url: '/account/family/index' })
     if (id === 'redeem') return wx.navigateTo({ url: '/pages/redemption/index' })

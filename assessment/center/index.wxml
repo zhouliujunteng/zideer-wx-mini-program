@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="assessment-page">
   <view class="assessment-topbar">
     <view class="assessment-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
@@ -34,7 +35,7 @@
         <text class="assessment-section-title stats-section-title">{{model.statsTitle}}</text>
         <view class="assessment-stats-row">
           <view wx:for="{{model.stats}}" wx:key="label" class="assessment-stat {{item.tone}}">
-            <image class="assessment-stat-icon" src="{{item.icon}}" mode="aspectFit"></image>
+            <image class="assessment-stat-icon" src="{{UA.src(ui, item.icon)}}" mode="aspectFit"></image>
             <view class="assessment-stat-copy">
               <text class="assessment-stat-label">{{item.label}}</text>
               <text class="assessment-stat-value {{item.numberTone}}">{{item.value}}</text>

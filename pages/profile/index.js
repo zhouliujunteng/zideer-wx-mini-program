@@ -1,5 +1,6 @@
 const { getProfileModel } = require('../../services/mock-service')
 const { loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired } = require('../../services/identity')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 const STORAGE_KEY = 'zhilu-mock-profile-setup'
 
@@ -41,6 +42,7 @@ Page({
   },
 
   onLoad() {
+    attachUiAssets(this)
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const windowWidth = windowInfo.windowWidth || 375
     const menuButton = wx.getMenuButtonBoundingClientRect

@@ -1,7 +1,9 @@
 const { loadCurrentServiceContacts } = require('../../services/identity')
 const { isEnterpriseWechatContact, openCustomerServiceChat, customerServiceErrorMessage } = require('../../utils/customer-service')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 Page({
+  onLoad() { attachUiAssets(this) },
   data: {
     loading: true,
     failed: false,

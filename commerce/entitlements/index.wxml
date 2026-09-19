@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="points-page">
   <view class="points-ambient" aria-hidden="true"><view class="points-ambient-ribbon"></view></view>
   <view class="points-topbar">
@@ -23,7 +24,7 @@
               <text class="balance-value">{{model.balance.available}}</text>
               <view class="usage-rules" bindtap="handleUsageRules" aria-label="查看使用规则" aria-role="button"><text class="usage-rules-frozen">冻结中：{{model.balance.frozen}}</text><text class="usage-rules-label">使用规则</text><view class="usage-rules-icon"></view></view>
             </view>
-            <image class="balance-icon" src="{{model.balanceIcon}}" mode="aspectFit" aria-label="课程积分图标"></image>
+            <image class="balance-icon" src="{{UA.src(ui, model.balanceIcon)}}" mode="aspectFit" aria-label="课程积分图标"></image>
           </view>
         </view>
 

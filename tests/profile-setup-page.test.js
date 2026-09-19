@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
+require('./helpers/stub-ui-assets')
 
 const config = require('../config/index')
 

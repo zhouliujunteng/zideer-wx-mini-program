@@ -10,6 +10,7 @@ const {
   getDemoSpeakingLevel
 } = require('../../utils/ai-voice-visualizer')
 const { getSharedRecorderBridge } = require('../../utils/recorder-session-bridge')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 const AURA_DPR_LIMIT = 2
 const AURA_POINT_COUNT = 42
@@ -176,6 +177,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    attachUiAssets(this)
     this._isDestroyed = false
     this._isPageVisible = true
     this._pageReady = false

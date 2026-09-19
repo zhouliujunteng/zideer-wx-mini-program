@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="profile-page">
   <view class="profile-topbar">
     <view class="profile-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
@@ -12,10 +13,10 @@
       <view class="profile-hero">
         <view class="profile-avatar-wrap">
           <button class="profile-avatar profile-avatar-trigger" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" aria-label="更换头像">
-            <image wx:if="{{model.avatarSrc}}" class="profile-avatar-image" src="{{model.avatarSrc}}" mode="aspectFill"></image>
+            <image wx:if="{{model.avatarSrc}}" class="profile-avatar-image" src="{{UA.src(ui, model.avatarSrc)}}" mode="aspectFill"></image>
           </button>
           <view class="profile-avatar-edit">
-            <button class="profile-avatar-edit-button" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" aria-label="更换头像"><image class="profile-avatar-change-icon" src="../../assets/me/profile-avatar-change.svg" mode="aspectFit"></image></button>
+            <button class="profile-avatar-edit-button" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" aria-label="更换头像"><image class="profile-avatar-change-icon" src="{{UA.src(ui, '../../assets/me/profile-avatar-change.svg')}}" mode="aspectFit"></image></button>
           </view>
         </view>
       </view>
@@ -100,7 +101,7 @@
           <view wx:for="{{model.textbookCards}}" wx:key="value" class="profile-textbook-card {{item.value === textbookPendingValue ? 'is-selected' : ''}}" data-value="{{item.value}}" bindtap="handleTextbookPick">
             <text class="profile-textbook-label">{{item.label}}</text>
             <view class="profile-textbook-fan {{item.value === textbookPendingValue ? 'is-expanded' : ''}}" aria-hidden="true">
-              <image wx:for="{{item.covers}}" wx:for-item="cover" wx:key="role" class="profile-textbook-fan-card {{cover.role}}" src="{{cover.src}}" mode="aspectFill"></image>
+              <image wx:for="{{item.covers}}" wx:for-item="cover" wx:key="role" class="profile-textbook-fan-card {{cover.role}}" src="{{UA.src(ui, cover.src)}}" mode="aspectFill"></image>
             </view>
           </view>
         </view>

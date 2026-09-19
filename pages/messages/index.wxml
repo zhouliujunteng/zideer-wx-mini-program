@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="messages-page">
   <view class="messages-topbar">
     <view class="messages-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
@@ -23,7 +24,7 @@
       <view class="message-shortcuts">
         <view wx:for="{{model.shortcuts}}" wx:key="id" class="message-shortcut shortcut-tone-{{item.tone}}" data-id="{{item.id}}" bindtap="handleShortcutTap">
           <view class="shortcut-icon-wrap">
-            <image class="shortcut-icon" src="{{item.icon}}" mode="aspectFit"></image>
+            <image class="shortcut-icon" src="{{UA.src(ui, item.icon)}}" mode="aspectFit"></image>
           </view>
           <view class="shortcut-copy">
             <text class="shortcut-title">{{item.label}}</text>
@@ -56,7 +57,7 @@
       </view>
       <view wx:if="{{model.showSystemSection}}" class="system-summary-row" bindtap="handleSystemTap">
         <view class="system-summary-icon">
-          <image class="system-summary-icon-image" src="../../assets/messages/system-notice.svg" mode="aspectFit"></image>
+          <image class="system-summary-icon-image" src="{{UA.src(ui, '../../assets/messages/system-notice.svg')}}" mode="aspectFit"></image>
         </view>
         <view class="system-summary-copy">
           <text class="system-summary-title">系统消息</text>

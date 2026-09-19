@@ -1,6 +1,8 @@
 const { loadMemberCourseLibrary } = require('../../services/identity')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 Page({
+  onLoad() { attachUiAssets(this) },
   data: { loading: true, error: '', membershipRequired: false, courses: [], visibleCourses: [], search: '' },
   onShow() { this.loadCourses() },
   onHide() { this._requestVersion = (this._requestVersion || 0) + 1 },

@@ -1,3 +1,4 @@
+<wxs module="UA" src="../utils/ui-asset.wxs" />
 <view class="tabbar-wrap">
   <view class="tabbar">
     <button
@@ -11,7 +12,7 @@
       <view class="tabbar__icon-shell">
         <image
           class="tabbar__icon"
-          src="/assets/icons/{{item.icon}}{{selected === index ? '-active' : ''}}.svg"
+          src="{{UA.src(ui, '/assets/icons/' + (item.icon) + (selected === index ? '-active' : '') + '.svg')}}"
           mode="aspectFit"
         />
       </view>

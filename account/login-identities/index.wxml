@@ -1,17 +1,105 @@
-<view class="identity-page">
-  <view class="identity-skeleton skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">登录身份暂时无法加载</text><text class="state-panel__copy">网络恢复后可以重新读取账号状态。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
-  <block wx:else>
-    <view class="identity-head"><text class="identity-eyebrow">我的账户</text><text class="identity-title">联系方式与登录</text></view>
-    <view class="identity-empty surface" wx:if="{{!account}}"><text class="identity-empty__title">账号信息尚未初始化</text><text class="identity-empty__copy">请重新登录后再查看业务账号与登录身份。</text></view>
-    <block wx:else>
-      <view class="identity-section"><text class="identity-section__title">当前登录账号的联系方式</text><view class="identity-list surface"><view class="identity-row" wx:for="{{account.contacts}}" wx:key="key"><text class="identity-row__title">{{item.label}}</text><text class="identity-row__status">{{item.value}}</text></view></view></view>
-      <view class="verification-card surface"><text class="verification-card__copy">当前使用微信身份和授权手机号完成登录。手机号在登录时绑定，邮箱不会自动绑定；已绑定信息会部分隐藏以保护隐私。本页用于查看，暂不提供换绑。</text></view>
-      <view class="principal-card surface"><text class="principal-card__label">业务用户号</text><text class="principal-card__no">{{account.principalNo}}</text><text class="principal-card__meta">来源：{{account.createdSource}}</text></view>
-      <view class="identity-section"><text class="identity-section__title">实名认证</text><view class="verification-card surface"><text class="verification-card__status">{{account.verification.label}}</text><text class="verification-card__copy">{{account.verification.detail}}</text></view></view>
-      <view class="identity-section"><text class="identity-section__title">已绑定登录方式</text><view class="identity-list surface" wx:if="{{account.identities.length}}"><view class="identity-row" wx:for="{{account.identities}}" wx:key="id"><view class="identity-row__copy"><text class="identity-row__title">{{item.channelLabel}}</text><text class="identity-row__meta">{{item.verificationLabel}} · {{item.loginLabel}}</text></view><text class="identity-row__status {{item.disabled_at ? 'identity-row__status--disabled' : ''}}">{{item.statusLabel}}</text></view></view><view class="identity-empty surface" wx:else><text class="identity-empty__copy">暂未读取到已绑定登录方式。</text></view></view>
-      <view class="identity-section"><text class="identity-section__title">业务身份</text><view class="role-list surface" wx:if="{{account.roles.length}}"><view class="role-row" wx:for="{{account.roles}}" wx:key="id"><text>{{item.label}}</text><text>已生效</text></view></view><view class="identity-empty surface" wx:else><text class="identity-empty__copy">当前没有额外业务身份。</text></view></view>
-    </block>
-  </block>
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 结构取自 UI 设计仓库 d9627f0 的 M63 身份与登录页；数据来自 loadCurrentLoginIdentities（见 index.js）。 -->
+<view class="account-page">
+  <view class="account-topbar">
+    <view class="account-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="account-back" bindtap="handleBack" role="button" aria-label="返回上一页"><view class="account-back-icon"></view></view>
+      <text class="account-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">账号与登录</text>
+    </view>
+  </view>
+
+  <scroll-view class="account-scroll" scroll-y refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" bindrefresherrefresh="handleRefresh" style="padding-top: {{contentTop}}px;">
+    <view class="account-shell">
+      <view wx:if="{{loading}}" class="account-state"><text>正在读取账号信息…</text></view>
+      <view wx:elif="{{failed}}" class="account-state"><text class="account-state-title">账号信息暂时无法加载</text><text class="account-state-copy">网络恢复后可以重新读取账号状态。</text><view class="account-state-action" bindtap="loadPage" role="button">重新加载</view></view>
+      <view wx:elif="{{!account}}" class="account-state"><text class="account-state-title">账号信息尚未初始化</text><text class="account-state-copy">请重新登录后再查看业务账号与登录身份。</text></view>
+      <block wx:else>
+        <view class="account-profile">
+          <image wx:if="{{avatarSrc}}" class="account-avatar account-avatar-image" src="{{UA.src(ui, avatarSrc)}}" mode="aspectFill"></image>
+          <view wx:else class="account-avatar account-avatar-placeholder" aria-label="当前用户头像">{{avatarText}}</view>
+          <view class="account-profile-copy">
+            <text class="account-profile-id-label">业务ID</text>
+            <view class="account-profile-id-row">
+              <text class="account-profile-id">{{account.principalNo}}</text>
+              <view wx:if="{{account.hasPrincipalNo}}" class="account-profile-copy-action" aria-label="复制业务 ID" catchtap="copyAccountId"><view class="account-profile-copy-icon"></view></view>
+            </view>
+          </view>
+        </view>
+
+        <view class="account-section real-name-section">
+          <text class="account-section-title">实名认证</text>
+          <view class="account-card real-name-card">
+            <view class="real-name-copy">
+              <text class="real-name-status {{account.verification.tone}}">{{account.verification.label}}</text>
+              <text class="real-name-time">{{account.verification.detail}}</text>
+            </view>
+            <view wx:if="{{account.verification.actionLabel}}" class="real-name-action-button" bindtap="openRealNameVerification" role="button">{{account.verification.actionLabel}}</view>
+          </view>
+        </view>
+
+        <view class="account-section">
+          <text class="account-section-title">联系方式</text>
+          <view class="account-card contact-card">
+            <view wx:for="{{account.contacts}}" wx:key="key" class="contact-row {{index === account.contacts.length - 1 ? 'is-last' : ''}}">
+              <text class="contact-label">{{item.label}}</text>
+              <view class="contact-value-wrap"><text class="contact-value {{item.tone}}">{{item.value}}</text></view>
+            </view>
+            <text class="account-note">当前使用微信身份和授权手机号完成登录。手机号在登录时绑定，邮箱不会自动绑定；已绑定信息会部分隐藏以保护隐私。本页用于查看，暂不提供换绑。</text>
+          </view>
+        </view>
+
+        <!-- 设计稿此处为「最近设备」；后端没有设备记录，改为展示真实的已绑定登录方式与最近登录时间。 -->
+        <view class="account-section">
+          <text class="account-section-title">登录方式</text>
+          <view class="account-card device-card">
+            <view wx:if="{{!account.identities.length}}" class="device-row is-last"><view class="device-copy"><text class="device-detail">暂未读取到已绑定登录方式。</text></view></view>
+            <view wx:for="{{account.identities}}" wx:key="id" class="device-row {{index === account.identities.length - 1 ? 'is-last' : ''}}">
+              <view class="device-copy">
+                <text class="device-label">{{item.channelLabel}}</text>
+                <text class="device-detail">{{item.verificationLabel}} · {{item.loginLabel}}</text>
+              </view>
+              <text class="device-status {{item.statusTone}}">{{item.statusLabel}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="account-section management-section">
+          <text class="account-section-title">业务身份</text>
+          <view class="account-card device-card">
+            <view wx:if="{{!account.roles.length}}" class="device-row is-last"><view class="device-copy"><text class="device-detail">当前没有额外业务身份。</text></view></view>
+            <view wx:for="{{account.roles}}" wx:key="id" class="device-row {{index === account.roles.length - 1 ? 'is-last' : ''}}">
+              <view class="device-copy"><text class="device-label">{{item.label}}</text></view>
+              <text class="device-status success">已生效</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 实名认证弹层：结构取自设计仓库 M63；提交走现有身份证核验动作流（后端目前只支持身份证）。 -->
+  <view wx:if="{{realNameSheetVisible}}" class="real-name-verify-layer {{realNameSheetClosing ? 'is-closing' : ''}}" catchtap="closeRealNameVerification">
+    <view class="real-name-verify-sheet" style="bottom: {{realNameKeyboardHeight}}px;" catchtap="stopRealNameVerificationTap">
+      <view class="account-email-sheet-handle" aria-hidden="true"></view>
+      <view class="account-email-sheet-header">
+        <text class="account-email-sheet-title">实名认证</text>
+        <view class="account-email-sheet-close" bindtap="closeRealNameVerification" role="button" aria-label="关闭实名认证">×</view>
+      </view>
+      <text class="real-name-verify-subtitle">请填写本人真实信息</text>
+      <text class="real-name-verify-label">证件类型</text>
+      <picker class="real-name-verify-picker" mode="selector" range="{{realNameDocumentTypeLabels}}" value="{{realNameDocumentTypeIndex}}" disabled="{{realNameSubmitting}}" bindchange="handleRealNameDocumentTypeChange">
+        <view class="real-name-verify-picker-content">
+          <text>{{realNameDocumentTypeLabels[realNameDocumentTypeIndex]}}</text>
+          <view class="real-name-verify-picker-chevron" aria-hidden="true"></view>
+        </view>
+      </picker>
+      <text class="real-name-verify-label">姓名</text>
+      <input class="real-name-verify-input" value="{{realNameFormName}}" type="text" maxlength="50" disabled="{{realNameSubmitting}}" adjust-position="false" cursor-spacing="0" placeholder="请输入真实姓名" placeholder-class="real-name-verify-placeholder" bindinput="handleRealNameNameInput" bindkeyboardheightchange="handleRealNameKeyboard" />
+      <text class="real-name-verify-label">身份证号</text>
+      <input class="real-name-verify-input" value="{{realNameFormDocument}}" type="idcard" maxlength="18" disabled="{{realNameSubmitting}}" adjust-position="false" cursor-spacing="0" placeholder="请输入18位身份证号" placeholder-class="real-name-verify-placeholder" bindinput="handleRealNameIdInput" bindkeyboardheightchange="handleRealNameKeyboard" />
+      <text wx:if="{{realNameError}}" class="real-name-verify-error">{{realNameError}}</text>
+      <view class="account-email-primary real-name-verify-submit {{realNameSubmitting ? 'is-submitting' : ''}}" bindtap="submitRealNameVerification" role="button">{{realNameSubmitting ? '正在核验' : '提交认证'}}</view>
+    </view>
+  </view>
 </view>
 <dev-reset-fab />

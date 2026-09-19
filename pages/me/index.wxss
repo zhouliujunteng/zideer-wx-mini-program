@@ -1,6 +1,8 @@
 page { background: #FAFAFA; }
 
-.me-page { position: relative; height: 100vh; overflow: hidden; background: linear-gradient(180deg, #FFF1E6 0, #FFF1E6 1120rpx, #FAFAFA 1120rpx, #FAFAFA 100%); color: #24332d; }
+.me-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332d; }
+/* 顶部橡皮筋的常驻底色：仅覆盖资料区高度，绝不能延伸到页面底部。 */
+.me-page::before { position: absolute; z-index: 0; top: 0; right: 0; left: 0; height: 720rpx; background: #FFF1E6; content: ''; pointer-events: none; }
 
 .me-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: #FFF1E6; }
 .me-topbar-inner { display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 16rpx; }
@@ -140,10 +142,12 @@ page { background: #FAFAFA; }
 .profile-copy-action .profile-copy-icon { width: 22rpx; height: 24rpx; }
 .profile-copy-action .profile-copy-icon::after { background: #FFF1E6; }
 .wallet-grid { margin-top: 24rpx; }
-.page-scroll { position: relative; z-index: 2; background: transparent; }
-.page-shell { padding-top: 0; padding-bottom: 0; }
-/* 底部上拉保护区不得低于 540rpx：180rpx 基础留白 + 360rpx 回弹兜底。 */
-.me-content-panel { position: relative; z-index: 1; margin: -88rpx -36rpx 0; padding: 112rpx 36rpx 540rpx; box-sizing: border-box; border-radius: 0; background: #FAFAFA; }
+.page-scroll { position: absolute; z-index: 2; top: 0; right: 0; bottom: 0; left: 0; height: auto; overflow: hidden; background: transparent; }
+.page-shell { position: relative; min-height: 100%; padding-top: 0; padding-bottom: 0; background: #FAFAFA; }
+/* 淡橙色资料层随内容滚动；根层另有仅限顶部的回弹底色，页面底部始终由灰白色承接。 */
+.me-profile-ambient { position: absolute; z-index: 0; top: 0; right: 0; left: 0; height: 720rpx; background: #FFF1E6; pointer-events: none; }
+/* 回弹由四边钉死的原生滚动容器承接；此处只保留内容与安全区所需的正常尾部留白。 */
+.me-content-panel { position: relative; z-index: 1; margin: -88rpx -36rpx 0; padding: 112rpx 36rpx calc(80rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 0; background: #FAFAFA; }
 .me-content-panel-corner {
   position: absolute;
   z-index: 1;
@@ -161,7 +165,7 @@ page { background: #FAFAFA; }
 }
 .me-content-panel-corner-left { left: 0; -webkit-mask-position: 0 100%; mask-position: 0 100%; }
 .me-content-panel-corner-right { right: 0; -webkit-mask-position: 100% 100%; mask-position: 100% 100%; }
-.profile { margin: 0 -36rpx; padding-bottom: 160rpx; border-radius: 0; box-shadow: none; }
+.profile { z-index: 1; margin: 0 -36rpx; padding-bottom: 160rpx; border-radius: 0; box-shadow: none; }
 .me-topbar { background-color: #FFF1E6; transition: background-color .08s ease-out; }
 .me-edit-profile-pill { position: fixed; z-index: 22; display: flex; align-items: center; justify-content: center; width: 132rpx; box-sizing: border-box; border: 0; border-radius: 999rpx; background: rgba(255, 255, 255, .88); color: #1F2722; font-size: 20rpx; font-weight: 600; line-height: 1; white-space: nowrap; transition: opacity .08s ease-out, transform .08s ease-out; }
 .me-edit-profile-pill:active { opacity: .68; }

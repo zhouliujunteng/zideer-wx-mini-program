@@ -1,0 +1,155 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 结构取自 UI 设计仓库 b5cc5ab 的每日学习打卡页（E05）；数据来自「读取当前学生学习打卡」动作流，开发调试面板未移植。 -->
+<view class="checkin-page">
+  <view class="checkin-topbar {{model.hero.tone === 'idle' ? 'checkin-topbar-idle' : ''}}">
+    <view class="checkin-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="checkin-back" bindtap="handleBack" aria-role="button" aria-label="返回学习">
+        <view class="checkin-back-icon"></view>
+      </view>
+      <text class="checkin-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{model.header.title}}</text>
+    </view>
+    <view class="checkin-share-button" style="top: {{shareTop}}px; right: {{shareRight}}px; width: {{shareSize}}px; height: {{shareSize}}px;" bindtap="handleShare" aria-role="button" aria-label="分享学习连胜">
+      <image class="share-glyph-svg" src="{{UA.src(ui, '/learning/assets/check-in/share.svg')}}" mode="aspectFit"></image>
+    </view>
+  </view>
+
+  <view wx:if="{{loadState !== 'ready'}}" class="checkin-state" style="padding-top: {{contentTop}}px;">
+    <text wx:if="{{loadState === 'loading'}}" class="checkin-state-copy">正在读取学习打卡…</text>
+    <block wx:else><text class="checkin-state-title">学习打卡暂时无法读取</text><text class="checkin-state-copy">{{loadError}}</text><view class="checkin-state-action" bindtap="loadCheckIn" role="button">重新加载</view></block>
+  </view>
+
+  <scroll-view wx:if="{{loadState === 'ready'}}" class="checkin-scroll" scroll-y>
+    <view class="checkin-stage {{model.hero.tone === 'idle' ? 'checkin-stage-idle' : ''}}" style="height: {{heroStageHeight}}px;">
+      <view class="corner-pixel-grid" aria-hidden="true">
+        <view wx:for="{{model.hero.cornerSquares}}" wx:key="id" class="corner-pixel" style="left: {{item.x}}rpx; bottom: {{item.bottom}}rpx; opacity: {{model.hero.tone === 'active' ? item.activeOpacity : item.opacity}};"></view>
+      </view>
+      <view class="checkin-hero {{model.hero.tone === 'idle' ? 'checkin-hero-idle' : 'checkin-hero-active'}}">
+        <view class="hero-copy">
+          <text class="hero-label">{{model.hero.label}}</text>
+          <view class="hero-number-row">
+            <text class="hero-number">{{model.streak.days}}</text>
+            <text class="hero-number-unit">天</text>
+          </view>
+          <text class="hero-state">{{model.hero.stateLabel}}</text>
+        </view>
+        <image class="hero-spark-svg" src="{{UA.src(ui, model.hero.animationSrc)}}" mode="aspectFit"></image>
+      </view>
+    </view>
+    <view class="checkin-shell">
+      <view class="calendar-month-header">
+        <text class="calendar-month-label">{{model.calendar.monthLabel}}</text>
+        <view class="calendar-month-actions">
+          <view class="calendar-month-button calendar-month-button-prev" bindtap="handleMonthChange" data-direction="-1" aria-role="button" aria-label="上个月"></view>
+          <view class="calendar-month-button {{model.calendar.canGoNext ? '' : 'calendar-month-button-disabled'}}" bindtap="handleMonthChange" data-direction="1" aria-role="button" aria-label="下个月"></view>
+        </view>
+      </view>
+
+      <view class="checkin-stat-grid">
+        <view class="checkin-stat-card">
+          <view class="checkin-stat-icon checkin-stat-icon-check">✓</view>
+          <view class="checkin-stat-copy">
+            <text class="checkin-stat-value">{{model.streak.totalDays}}</text>
+            <text class="checkin-stat-label">打卡天数</text>
+          </view>
+        </view>
+        <view class="checkin-stat-card">
+          <view class="checkin-stat-icon checkin-stat-icon-week">
+            <image class="checkin-stat-icon-svg" src="{{UA.src(ui, '/learning/assets/check-in/calendar.svg')}}" mode="aspectFit"></image>
+          </view>
+          <view class="checkin-stat-copy">
+            <text class="checkin-stat-value">{{model.streak.streakWeeks}}</text>
+            <text class="checkin-stat-label">连胜周数</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="calendar-card-wrap {{calendarTransitionClass}}" style="height: {{model.calendar.height}}rpx;">
+        <view class="calendar-card">
+          <view class="calendar-weekday-row">
+            <text wx:for="{{model.calendar.weekdayLabels}}" wx:key="*this" class="calendar-weekday">{{item}}</text>
+          </view>
+          <view class="calendar-grid">
+            <view wx:for="{{model.calendar.days}}" wx:key="id" class="calendar-cell {{!item.isInMonth ? 'calendar-cell-outside' : ''}}" data-index="{{index}}" bindtap="handleDayTap">
+              <view class="calendar-day-mark {{item.isChecked ? 'calendar-day-mark-checked' : ''}} {{item.isToday ? 'calendar-day-mark-today' : ''}} {{item.isRunStart ? 'calendar-day-mark-run-start' : ''}} {{item.isRunMiddle ? 'calendar-day-mark-run-middle' : ''}} {{item.isRunEnd ? 'calendar-day-mark-run-end' : ''}}">
+                <text class="calendar-day-number {{item.isToday && item.isChecked ? 'calendar-day-number-today-checked' : ''}}">{{item.isInMonth ? item.date : ''}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{loadState === 'ready'}}" class="checkin-actionbar">
+    <view class="checkin-primary-button {{model.action.state === 'checked-in' ? 'checkin-primary-button-share' : ''}}" bindtap="handlePrimaryAction" aria-role="button">{{model.action.label}}</view>
+  </view>
+
+  <view wx:if="{{showSuccessSheet}}" class="success-mask" catchtap="noop">
+    <view class="success-sheet" catchtap="noop">
+      <view class="success-sheet-handle"></view>
+      <view class="success-sheet-heading">
+        <view class="success-sheet-icon">✦</view>
+        <view class="success-sheet-copy">
+          <text class="success-sheet-title">{{model.successSheet.title}}</text>
+          <text class="success-sheet-subtitle">{{model.successSheet.subtitle}}</text>
+        </view>
+        <view class="success-sheet-close" bindtap="handleCloseSheet">×</view>
+      </view>
+      <view class="share-preview">
+        <view class="share-preview-copy">
+          <text class="share-preview-small">{{model.successSheet.posterDate}}</text>
+          <text class="share-preview-title">{{model.successSheet.posterTitle}}</text>
+          <text class="share-preview-days">{{model.successSheet.streakDays}} 天</text>
+          <text class="share-preview-subtitle">{{model.successSheet.posterSubtitle}}</text>
+        </view>
+        <view class="share-preview-qr"><view wx:for="{{model.successSheet.qrPattern}}" wx:key="index" class="qr-cell {{item ? 'qr-cell-dark' : ''}}"></view></view>
+      </view>
+      <view class="share-copy-line">{{model.successSheet.shareCopy}}</view>
+      <view class="share-actions">
+        <block wx:for="{{model.shareActions}}" wx:key="id">
+          <view wx:if="{{item.id === 'friend'}}" class="share-action share-action-{{item.id}}">
+            <button class="share-native-button" open-type="share" bindtap="handleCloseShareSheet" aria-label="分享给好友"></button>
+            <view class="share-action-icon"><image class="share-action-svg" src="{{UA.src(ui, item.iconSrc)}}" mode="aspectFit"></image></view>
+            <text>{{item.label}}</text>
+          </view>
+          <view wx:else class="share-action share-action-{{item.id}}" data-action="{{item.id}}" bindtap="handleSheetAction">
+            <view class="share-action-icon"><image class="share-action-svg" src="{{UA.src(ui, item.iconSrc)}}" mode="aspectFit"></image></view>
+            <text>{{item.label}}</text>
+          </view>
+        </block>
+      </view>
+      <view class="success-sheet-done" bindtap="handleCloseSheet">我知道了</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showShareSheet || shareSheetClosing}}" class="share-mask {{shareSheetClosing ? 'share-mask-closing' : ''}}" bindtap="handleCloseShareSheet">
+    <view class="share-poster-stage">
+      <view class="share-poster-card" catchtap="noop" style="width: {{sharePosterWidth}}px; height: {{sharePosterHeight}}px;">
+        <canvas canvas-id="sharePosterCanvas" class="share-poster-canvas" width="{{sharePosterWidth}}" height="{{sharePosterHeight}}" style="width: {{sharePosterWidth}}px; height: {{sharePosterHeight}}px;"></canvas>
+        <canvas canvas-id="sharePosterExportCanvas" class="share-poster-export-canvas" width="{{shareCanvasWidth}}" height="{{shareCanvasHeight}}" style="width: {{shareCanvasWidth}}px; height: {{shareCanvasHeight}}px;"></canvas>
+      </view>
+    </view>
+    <view class="share-sheet" catchtap="noop">
+      <view class="share-sheet-header">
+        <text class="share-sheet-title">分享海报</text>
+      </view>
+      <view class="share-actions share-actions-compact">
+        <block wx:for="{{model.shareActions}}" wx:key="id">
+          <view wx:if="{{item.id === 'friend'}}" class="share-action share-action-{{item.id}}">
+            <button class="share-native-button" open-type="share" bindtap="handleCloseShareSheet" aria-label="分享给好友"></button>
+            <view class="share-action-icon"><image class="share-action-svg" src="{{UA.src(ui, item.iconSrc)}}" mode="aspectFit"></image></view>
+            <text>{{item.label}}</text>
+          </view>
+          <view wx:else class="share-action share-action-{{item.id}}" data-action="{{item.id}}" bindtap="handleSheetAction">
+            <view class="share-action-icon"><image class="share-action-svg" src="{{UA.src(ui, item.iconSrc)}}" mode="aspectFit"></image></view>
+            <text>{{item.label}}</text>
+          </view>
+        </block>
+      </view>
+      <view class="share-sheet-cancel" bindtap="handleCloseShareSheet">取消</view>
+    </view>
+  </view>
+
+</view>
+<dev-reset-fab />

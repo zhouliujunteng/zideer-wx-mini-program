@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="profile-setup-page">
   <view class="profile-setup-topbar">
     <view class="profile-setup-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
@@ -23,14 +24,14 @@
 
       <view wx:if="{{stepIndex === 0}}" class="profile-role-picker">
         <view class="profile-role-pair">
-          <image class="profile-role-pair-surface" src="{{rolePairSources.none}}" mode="scaleToFill" aria-hidden="true"></image>
-          <image class="profile-role-pair-surface profile-role-pair-surface-active {{form.accountType === 'student' ? 'is-visible' : ''}}" src="{{rolePairSources.student}}" mode="scaleToFill" aria-hidden="true"></image>
-          <image class="profile-role-pair-surface profile-role-pair-surface-active {{form.accountType === 'guardian' ? 'is-visible' : ''}}" src="{{rolePairSources.parent}}" mode="scaleToFill" aria-hidden="true"></image>
+          <image class="profile-role-pair-surface" src="{{UA.src(ui, rolePairSources.none)}}" mode="scaleToFill" aria-hidden="true"></image>
+          <image class="profile-role-pair-surface profile-role-pair-surface-active {{form.accountType === 'student' ? 'is-visible' : ''}}" src="{{UA.src(ui, rolePairSources.student)}}" mode="scaleToFill" aria-hidden="true"></image>
+          <image class="profile-role-pair-surface profile-role-pair-surface-active {{form.accountType === 'guardian' ? 'is-visible' : ''}}" src="{{UA.src(ui, rolePairSources.parent)}}" mode="scaleToFill" aria-hidden="true"></image>
           <view wx:for="{{roleCards}}" wx:key="value" class="profile-role-half profile-role-half-{{item.side}} {{form.accountType === item.value ? 'is-selected' : ''}}" bindtap="handleAccountTypePick" data-value="{{item.value}}" aria-label="{{item.label}}" aria-role="button" aria-checked="{{form.accountType === item.value}}">
             <view class="profile-role-content profile-role-content-{{item.side}}">
               <text class="profile-role-card-label">{{item.label}}</text>
               <view class="profile-role-character-clip" aria-hidden="true">
-                <image class="profile-role-character" src="{{item.image}}" mode="aspectFit"></image>
+                <image class="profile-role-character" src="{{UA.src(ui, item.image)}}" mode="aspectFit"></image>
               </view>
             </view>
           </view>
@@ -47,7 +48,7 @@
         <view class="profile-setup-field">
           <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">头像</text><text class="profile-setup-optional">选填</text></view>
           <button class="profile-personal-avatar-row" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{saving}}" aria-label="{{editing ? '更换头像' : '授权微信头像'}}">
-            <text>{{editing ? '更换头像' : '授权微信头像'}}</text><view class="profile-personal-avatar"><image wx:if="{{form.avatarPath || form.avatarUrl}}" src="{{form.avatarPath || form.avatarUrl}}" mode="aspectFill"/><text wx:else>鹿</text></view>
+            <text>{{editing ? '更换头像' : '授权微信头像'}}</text><view class="profile-personal-avatar"><image wx:if="{{form.avatarPath || form.avatarUrl}}" src="{{UA.src(ui, form.avatarPath || form.avatarUrl)}}" mode="aspectFill"/><text wx:else>鹿</text></view>
           </button>
           <text class="profile-setup-input-hint">可跳过；未授权时将展示默认头像</text>
         </view>
@@ -72,7 +73,7 @@
             <picker class="profile-setup-region-picker" mode="region" level="region" value="{{regionPickerValue}}" disabled="{{saving}}" bindchange="handleRegionChange">
               <view class="profile-setup-pill-picker {{errors.region ? 'profile-setup-control-error' : ''}}"><text class="{{form.regionDetail ? 'profile-setup-value' : 'profile-setup-placeholder'}}">{{form.regionDetail || '请选择所在地区'}}</text><view class="profile-setup-chevron"></view></view>
             </picker>
-            <picker mode="region" value="{{regionPickerValue}}" disabled="{{saving}}" bindchange="handleRegionChange"><view class="profile-setup-location-button" aria-label="选择所在地区"><image class="profile-setup-location-image" src="../../assets/me/location.svg" mode="aspectFit"></image><text>选择</text></view></picker>
+            <picker mode="region" value="{{regionPickerValue}}" disabled="{{saving}}" bindchange="handleRegionChange"><view class="profile-setup-location-button" aria-label="选择所在地区"><image class="profile-setup-location-image" src="{{UA.src(ui, '../../assets/me/location.svg')}}" mode="aspectFit"></image><text>选择</text></view></picker>
           </view>
           <view class="profile-setup-error-wrap {{errors.region ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.region}}</text></view>
         </view>
@@ -111,7 +112,7 @@
             <view wx:for="{{textbookCards}}" wx:key="value" class="profile-textbook-card {{(form.textbookVersion === item.value) ? 'is-selected' : ''}}" data-value="{{item.value}}" bindtap="handleTextbookPick">
               <text class="profile-textbook-label">{{item.label}}</text>
               <view class="profile-textbook-fan {{(form.textbookVersion === item.value) ? 'is-expanded' : ''}}" aria-hidden="true">
-                <image wx:for="{{item.covers}}" wx:for-item="cover" wx:key="role" class="profile-textbook-fan-card {{cover.role}}" src="{{cover.src}}" mode="aspectFill"></image>
+                <image wx:for="{{item.covers}}" wx:for-item="cover" wx:key="role" class="profile-textbook-fan-card {{cover.role}}" src="{{UA.src(ui, cover.src)}}" mode="aspectFill"></image>
               </view>
             </view>
           </view>

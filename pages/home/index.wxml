@@ -1,58 +1,43 @@
-<view class="agent-home">
-  <view class="agent-topbar" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
-    <view class="agent-brand"><image class="agent-brand-lockup" src="/assets/brand/brand-lockup.png" mode="aspectFit" aria-label="知鹿私课"></image></view>
-    <view class="agent-top-actions">
-      <view class="agent-top-action" bindtap="switchToMe" role="button" aria-label="打开我的"><image src="/assets/icons/user.svg" mode="aspectFit"></image></view>
-      <view class="agent-top-action" bindtap="showNotifications" role="button" aria-label="打开消息"><image src="/assets/topbar/message.png" mode="aspectFit"></image><view wx:if="{{model.notifications.count > 0}}" class="agent-notice-dot"></view></view>
-    </view>
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 结构取自 UI 设计仓库 d9627f0 的首页；数据与跳转沿用正式小程序（见 index.js）。 -->
+<view class="home-viewport home-flat-viewport member-mode">
+  <view class="topbar topbar-solid home-flat-topbar">
+    <view class="topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;"><image class="brand-logo" src="{{UA.src(ui, '/assets/home/brand-logo.png')}}" mode="aspectFit" aria-label="知鹿学习 iDeer"></image></view>
+    <view class="notice-button" style="top: {{notificationTop}}px; right: {{notificationRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="showNotifications" role="button" aria-label="打开消息"><image class="message-icon" src="{{UA.src(ui, '/assets/topbar/message.png')}}" mode="aspectFit"></image><view wx:if="{{model.notifications.count > 0}}" class="notice-badge">{{model.notifications.count}}</view></view>
   </view>
 
-  <scroll-view class="agent-scroll" scroll-y="true" enhanced="true" show-scrollbar="false" style="padding-top: {{contentTop}}px;">
-    <view class="agent-content">
-      <view class="agent-intro">
-        <text class="agent-eyebrow">你的专属学习 Agent</text>
-        <view class="agent-avatar" aria-hidden="true"><text>知</text></view>
-        <text class="agent-title">说说此刻的想法，剩下的交给我。</text>
-        <text class="agent-subtitle">我会结合你的学习情况，陪你找到下一步。</text>
-      </view>
-
-      <view class="agent-composer">
-        <textarea class="agent-input" value="{{agentPrompt}}" placeholder="今天想学什么？" placeholder-class="agent-input-placeholder" maxlength="500" auto-height="true" confirm-type="send" bindinput="handleAgentInput" bindconfirm="sendPrompt" aria-label="输入想和 AI 学伴聊的内容"></textarea>
-        <view class="agent-composer-footer">
-          <view class="agent-context {{includeUniverse ? 'agent-context-active' : ''}}" bindtap="toggleAgentContext" role="button" aria-label="{{includeUniverse ? '已参考学习宇宙' : '未参考学习宇宙'}}"><image src="/assets/icons/network.svg" mode="aspectFit"></image><text>{{includeUniverse ? '参考我的学习宇宙' : '不参考学习宇宙'}}</text></view>
-          <view class="agent-send {{agentPrompt ? 'agent-send-ready' : ''}}" bindtap="sendPrompt" role="button" aria-label="发送"><text>↑</text></view>
+  <scroll-view class="home-flat-scroll" scroll-y="true" show-scrollbar="false" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" refresher-default-style="white" refresher-background="#FAFAFA" bindrefresherrefresh="handleRefresh">
+    <view class="home-flat-content" style="padding-top: {{contentTop}}px;">
+      <view class="home-priority-tools" aria-label="重点 AI 提分工具">
+        <view wx:for="{{primaryTools}}" wx:key="id" class="home-priority-tool home-priority-tool-{{item.tone}}" data-label="{{item.label}}" bindtap="handleScoreToolTap" role="button" aria-label="{{item.label}}">
+          <view class="home-priority-tool-copy"><text class="home-priority-tool-label">{{item.label}}</text><text class="home-priority-tool-hint">{{item.hint}}</text></view>
+          <view class="home-priority-tool-icon"><image class="score-tool-icon-image" src="{{UA.src(ui, '/assets/home/score-tools/' + (item.id) + '.png')}}" mode="aspectFit" aria-hidden="true"></image></view>
         </view>
       </view>
-      <text class="agent-helper">你的经历、观点与语言，都值得被认真保留。</text>
-
-      <view class="agent-section agent-tools-section">
-        <view class="agent-section-head"><text class="agent-section-title">学习工具</text><text class="agent-section-caption">为你准备</text></view>
-        <view class="agent-tools-grid">
-          <view class="agent-tool-item" wx:for="{{agentTools}}" wx:key="id" data-id="{{item.id}}" bindtap="openAgentTool" role="button" aria-label="{{item.title}}"><view class="agent-tool-icon"><image src="{{item.icon}}" mode="aspectFit"></image></view><text class="agent-tool-title">{{item.title}}</text><text class="agent-tool-description">{{item.description}}</text></view>
-        </view>
-      </view>
-
-      <view class="agent-section agent-courses-section">
-        <view class="agent-section-head"><text class="agent-section-title">会员课程</text><view class="agent-section-link" bindtap="openMembershipCatalog" role="button" aria-label="查看全部会员课程">查看全部 <text>›</text></view></view>
-        <view wx:if="{{model.moreCourses && model.moreCourses.length}}" class="agent-course-list">
-          <view wx:for="{{model.moreCourses}}" wx:key="id" class="agent-course-card" data-id="{{item.id}}" bindtap="openLibraryCourse" role="button" aria-label="打开课程 {{item.title}}">
-            <view class="agent-course-cover agent-course-cover-{{item.tone}}">
-              <view class="agent-course-cover-art" aria-hidden="true">
-                <view class="agent-course-cover-line agent-course-cover-line-title"></view>
-                <view class="agent-course-cover-line agent-course-cover-line-sub"></view>
-                <view class="agent-course-cover-block"></view>
-              </view>
-              <view wx:if="{{!item.isMember}}" class="agent-course-lock" aria-label="需会员查看"><text>会员</text></view>
-            </view>
-            <view class="agent-course-caption">
-              <text class="agent-course-title">{{item.title}}</text>
-              <text class="agent-course-meta">{{item.subtitle}}</text>
+      <swiper class="home-secondary-swiper" duration="260" circular="{{false}}" indicator-dots="{{false}}" bindchange="handleSecondaryToolsChange" aria-label="更多 AI 提分工具">
+        <swiper-item class="home-secondary-swiper-item" wx:for="{{secondaryToolPages}}" wx:for-item="page" wx:for-index="pageIndex" wx:key="pageIndex">
+          <view class="home-secondary-tools">
+            <view wx:for="{{page}}" wx:for-item="tool" wx:key="id" class="home-secondary-tool" data-label="{{tool.label}}" bindtap="handleScoreToolTap" role="button" aria-label="{{tool.label}}">
+              <view class="learning-tool-icon learning-tool-icon-{{tool.tone}}"><image class="score-tool-icon-image score-tool-icon-image-small" src="{{UA.src(ui, '/assets/home/score-tools/' + (tool.id) + '.png')}}" mode="aspectFit" aria-hidden="true"></image></view><text class="learning-tool-label">{{tool.label}}</text>
             </view>
           </view>
-        </view>
-        <view wx:else class="agent-course-empty"><view class="agent-course-empty-copy"><text class="agent-course-empty-title">课程正在上架</text><text class="agent-course-empty-subtitle">已发布的公共课程会出现在这里。</text></view><view class="agent-course-empty-action" bindtap="openLibraryList" role="button" aria-label="进入课程库">去课程库 <text>›</text></view></view>
+        </swiper-item>
+      </swiper>
+      <view wx:if="{{secondaryToolPages.length > 1}}" class="home-secondary-indicator" aria-label="轻入口分页">
+        <view wx:for="{{secondaryToolPages}}" wx:for-index="pageIndex" wx:key="pageIndex" class="home-secondary-indicator-segment {{secondaryPage === pageIndex ? 'is-active' : ''}}"></view>
       </view>
-      <view class="agent-safe-space"></view>
+
+      <view class="home-flat-course-section">
+        <view class="section-heading"><text class="section-title">会员课程</text><view class="task-all-link" bindtap="openMembershipCatalog" role="button" aria-label="查看全部会员课程"><text>查看全部</text><view class="task-all-icon" aria-hidden="true"></view></view></view>
+        <view wx:if="{{model.moreCourses && model.moreCourses.length}}" class="more-courses-grid home-flat-course-grid">
+          <view wx:for="{{model.moreCourses}}" wx:key="id" class="more-course-card" data-id="{{item.id}}" bindtap="openLibraryCourse" role="button" aria-label="打开课程 {{item.title}}">
+            <view class="more-course-cover"></view>
+            <view class="more-course-info"><view class="more-course-copy"><text class="more-course-title">{{item.title}}</text><text class="more-course-subtitle">{{item.subtitle}}</text></view><text wx:if="{{!item.isMember}}" class="more-course-tag">会员</text></view>
+          </view>
+        </view>
+        <view wx:else class="home-course-empty"><view class="home-course-empty-copy"><text class="home-course-empty-title">课程正在上架</text><text class="home-course-empty-subtitle">已发布的公共课程会出现在这里。</text></view><view class="home-course-empty-action" bindtap="openLibraryList" role="button" aria-label="进入课程库">去课程库 ›</view></view>
+      </view>
+      <view class="home-flat-safe-space"></view>
     </view>
   </scroll-view>
 </view>

@@ -1,4 +1,5 @@
 const { loadAssessmentCenter } = require('../../services/identity')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 function formatDate(value) {
   if (!value) return '日期待确认'
@@ -65,6 +66,7 @@ Page({
   data: { model: {}, loading: true, loadFailed: false, refreshing: false, statusBarHeight: 20, navigationBarHeight: 44, contentTop: 80 },
 
   onLoad() {
+    attachUiAssets(this)
     const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const width = info.windowWidth || 375
     const menu = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : { top: (info.statusBarHeight || 20) + 6, height: 32 }

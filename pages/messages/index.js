@@ -1,5 +1,6 @@
 const { loadCurrentNotifications } = require('../../services/identity')
 const { buildMessagesModel, normalizeNotification, messageNavigationMetrics, handleBack } = require('../../utils/message-view')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 Page({
   data: {
@@ -8,7 +9,7 @@ Page({
     menuButtonHeight: 32, searchTop: 26, searchRight: 100,
     searchVisible: false, searchFocus: false, searchQuery: ''
   },
-  onLoad() { this.setData(messageNavigationMetrics()) },
+  onLoad() { attachUiAssets(this); this.setData(messageNavigationMetrics()) },
   onShow() { this.disposed = false; return this.loadPage() },
   onUnload() { this.disposed = true },
   onResize() { this.setData(messageNavigationMetrics()) },

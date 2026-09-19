@@ -19,6 +19,7 @@ function setup(loadCurrentMembership, contactResult = { status: 'no_active_conta
       if (name.endsWith('/customer-service')) return { openCustomerServiceChat: async contact => { openedContacts.push(contact) } }
       if (name.endsWith('/mock-service')) return { getMeModel: () => ({ profile: {}, accountSummary: [] }) }
       if (name.endsWith('/live-tab-service')) return { getLiveMeModel: async () => ({ profile: { name: 'Current student' } }) }
+      if (name.endsWith('/ui-assets')) return { attachUiAssets: () => Promise.resolve({}) }
       throw Error('Unexpected import')
     }
   })

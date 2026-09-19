@@ -219,8 +219,11 @@ test('WXML expressions never call methods (unsupported on device)', () => {
         if (entry.name !== 'node_modules' && !entry.name.startsWith('.')) walk(full)
       } else if (entry.name.endsWith('.wxml')) {
         const wxml = fs.readFileSync(full, 'utf8')
+        // 调用本文件 <wxs module="X"> 声明的 WXS 函数（X.fn(...)）是官方支持的写法，真机可用；其余调用一律拦截。
+        const wxsModules = [...wxml.matchAll(/<wxs\s+module="([A-Za-z_$][\w$]*)"/g)].map((match) => match[1])
         for (const expression of wxml.match(/\{\{[^}]*\}\}/g) || []) {
-          if (/[A-Za-z_$][\w$]*\s*\(/.test(expression)) calls.push(`${path.relative(root, full)}: ${expression}`)
+          const withoutWxsCalls = wxsModules.reduce((text, name) => text.replace(new RegExp(`\\b${name}\\.[A-Za-z_$][\\w$]*\\s*\\(`, 'g'), '('), expression)
+          if (/[A-Za-z_$][\w$]*\s*\(/.test(withoutWxsCalls)) calls.push(`${path.relative(root, full)}: ${expression}`)
         }
       }
     }

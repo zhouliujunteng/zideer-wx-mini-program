@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="map-page">
   <view class="map-topbar">
     <view class="map-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
@@ -7,10 +8,10 @@
       </view>
     </view>
     <view class="map-assessment-button" style="top: {{notificationTop}}px; right: {{assessmentRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="openAssessmentCenter" role="button" aria-label="打开测评中心">
-      <image class="map-assessment-icon" src="../../assets/messages/assessment.svg" mode="aspectFit"></image>
+      <image class="map-assessment-icon" src="{{UA.src(ui, '../../assets/messages/assessment.svg')}}" mode="aspectFit"></image>
     </view>
     <view class="map-notice-button" style="top: {{notificationTop}}px; right: {{notificationRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="showNotifications">
-      <image class="map-message-icon" src="../../assets/topbar/message.png" mode="aspectFit"></image>
+      <image class="map-message-icon" src="{{UA.src(ui, '../../assets/topbar/message.png')}}" mode="aspectFit"></image>
       <view wx:if="{{model.notifications.count}}" class="map-notice-badge">{{model.notifications.count}}</view>
     </view>
   </view>

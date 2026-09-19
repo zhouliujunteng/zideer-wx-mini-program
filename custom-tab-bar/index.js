@@ -1,6 +1,8 @@
 const { switchTab } = require('../utils/navigation')
+const { attachUiAssets } = require('../services/ui-assets')
 
 Component({
+  lifetimes: { attached() { attachUiAssets(this) } },
   data: {
     selected: 0,
     tabs: [

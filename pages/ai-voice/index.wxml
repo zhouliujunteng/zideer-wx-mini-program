@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="voice-page {{subtitleEnabled ? 'is-subtitle-on' : 'is-subtitle-off'}}">
   <view class="voice-background" aria-hidden="true">
     <view class="voice-background-glow glow-pink"></view>
@@ -115,7 +116,7 @@
         <view class="microphone-icon" aria-hidden="true">
           <image
             class="microphone-icon-image"
-            src="../../assets/me/ai-voice-microphone.svg"
+            src="{{UA.src(ui, '../../assets/me/ai-voice-microphone.svg')}}"
             mode="aspectFit"
           ></image>
           <view wx:if="{{!recorderActive}}" class="microphone-slash"></view>

@@ -1,5 +1,6 @@
 const { loadCurrentMembership, createMembershipOrder, payWechatOrder, isWechatPaymentCancelled, loadMeDashboard } = require('../../services/identity')
 const { membershipView, dateText, creditsText } = require('../../services/membership-view')
+const { attachUiAssets } = require('../../services/ui-assets')
 const WAITING_KEY = 'library_membership_confirming_order'
 const labels = { active: '会员已开通', inactive: '尚未开通', expired: '会员已到期', pending: '订单待支付', refunded: '退款处理中或已退款', closed: '订单已关闭' }
 
@@ -36,6 +37,7 @@ Page({
     agreementChecked: false, agreementSheetVisible: false, agreementSheetClosing: false
   },
   onLoad() {
+    attachUiAssets(this)
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const windowWidth = windowInfo.windowWidth || 375
     const statusBarHeight = windowInfo.statusBarHeight || 20

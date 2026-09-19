@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="agent-page">
   <view class="agent-ambient" aria-hidden="true"></view>
   <view class="agent-topbar">
@@ -6,12 +7,12 @@
         <view class="agent-back-icon" aria-hidden="true"></view>
       </view>
       <view class="agent-new-chat-button" style="width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="handleNewConversation" aria-role="button" aria-label="{{model.header.newConversationLabel}}">
-        <image class="agent-new-chat-icon" src="../../assets/new-chat.svg" mode="aspectFit" aria-hidden="true"></image>
+        <image class="agent-new-chat-icon" src="{{UA.src(ui, '../../assets/new-chat.svg')}}" mode="aspectFit" aria-hidden="true"></image>
       </view>
       <text class="agent-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{model.header.title}}</text>
     </view>
     <view class="agent-history-button" style="top: {{historyTop}}px; right: {{historyRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="openHistory" aria-role="button" aria-label="{{model.header.historyLabel}}">
-      <image class="agent-history-icon" src="../../assets/history.svg" mode="aspectFit" aria-hidden="true"></image>
+      <image class="agent-history-icon" src="{{UA.src(ui, '../../assets/history.svg')}}" mode="aspectFit" aria-hidden="true"></image>
     </view>
   </view>
 
@@ -40,7 +41,7 @@
         </view>
         <text class="agent-welcome-title">{{model.welcome.title}}</text>
         <view class="agent-welcome-history" bindtap="openHistory" aria-role="button" aria-label="查看历史对话">
-          <image class="agent-welcome-history-icon" src="../../assets/history.svg" mode="aspectFit" aria-hidden="true"></image>
+          <image class="agent-welcome-history-icon" src="{{UA.src(ui, '../../assets/history.svg')}}" mode="aspectFit" aria-hidden="true"></image>
           <text>查看历史对话</text>
         </view>
         <view wx:if="{{model.suggestedPromptRows && model.suggestedPromptRows.length}}" class="agent-prompt-marquees" aria-label="快捷提问示例">
@@ -117,16 +118,16 @@
             </view>
             <view wx:if="{{item.role === 'assistant' && !item.isTyping && item.text}}" class="agent-message-actions">
               <view class="agent-message-action" data-id="{{item.id}}" data-action="copy" bindtap="handleMessageAction" aria-role="button" aria-label="复制回答">
-                <image class="agent-message-action-icon" src="../../assets/chat-copy.svg" mode="aspectFit" aria-hidden="true"></image>
+                <image class="agent-message-action-icon" src="{{UA.src(ui, '../../assets/chat-copy.svg')}}" mode="aspectFit" aria-hidden="true"></image>
               </view>
               <view class="agent-message-action {{item.feedback === 'like' ? 'is-active' : ''}}" data-id="{{item.id}}" data-action="like" bindtap="handleMessageAction" aria-role="button" aria-label="赞">
-                <image class="agent-message-action-icon" src="../../assets/chat-like.svg" mode="aspectFit" aria-hidden="true"></image>
+                <image class="agent-message-action-icon" src="{{UA.src(ui, '../../assets/chat-like.svg')}}" mode="aspectFit" aria-hidden="true"></image>
               </view>
               <view class="agent-message-action {{item.feedback === 'dislike' ? 'is-active' : ''}}" data-id="{{item.id}}" data-action="dislike" bindtap="handleMessageAction" aria-role="button" aria-label="踩">
-                <image class="agent-message-action-icon" src="../../assets/chat-dislike.svg" mode="aspectFit" aria-hidden="true"></image>
+                <image class="agent-message-action-icon" src="{{UA.src(ui, '../../assets/chat-dislike.svg')}}" mode="aspectFit" aria-hidden="true"></image>
               </view>
               <view class="agent-message-action" data-id="{{item.id}}" data-action="share" bindtap="handleMessageAction" aria-role="button" aria-label="分享回答">
-                <image class="agent-message-action-icon" src="../../assets/chat-share.svg" mode="aspectFit" aria-hidden="true"></image>
+                <image class="agent-message-action-icon" src="{{UA.src(ui, '../../assets/chat-share.svg')}}" mode="aspectFit" aria-hidden="true"></image>
               </view>
               <text class="agent-message-time">{{item.createdAtLabel}}</text>
             </view>
@@ -154,7 +155,7 @@
     <scroll-view class="agent-learning-options" scroll-x enhanced show-scrollbar="{{false}}" aria-label="学习选项">
       <view class="agent-learning-options-track">
         <view class="agent-learning-chip {{includeUniverse ? 'is-active' : ''}}" catchtap="toggleUniverseOption" aria-role="switch" aria-checked="{{includeUniverse}}" aria-label="参考我的宇宙">
-          <image class="agent-learning-chip-icon" src="/assets/icons/network.svg" mode="aspectFit" aria-hidden="true"></image>
+          <image class="agent-learning-chip-icon" src="{{UA.src(ui, '/assets/icons/network.svg')}}" mode="aspectFit" aria-hidden="true"></image>
           <text>参考我的宇宙</text>
         </view>
         <view wx:for="{{learningModes}}" wx:key="id" class="agent-learning-chip {{activeLearningMode === item.id ? 'is-active' : ''}}" data-id="{{item.id}}" catchtap="handleLearningModeTap" aria-role="radio" aria-checked="{{activeLearningMode === item.id}}" aria-label="{{item.label}}">
@@ -174,10 +175,10 @@
       aria-label="{{voiceMode ? '语音输入' : (inputActive ? '输入消息' : model.composer.voiceLabel)}}"
     >
       <view wx:if="{{voiceMode}}" class="agent-voice-button agent-keyboard-button" data-control="mode-toggle" catchtap="handleKeyboardButtonTap" aria-role="button" aria-label="{{model.composer.keyboardLabel}}">
-        <image class="agent-voice-icon" src="../../assets/keyboard-icon.svg" mode="aspectFit" data-control="mode-toggle" aria-hidden="true"></image>
+        <image class="agent-voice-icon" src="{{UA.src(ui, '../../assets/keyboard-icon.svg')}}" mode="aspectFit" data-control="mode-toggle" aria-hidden="true"></image>
       </view>
       <view wx:if="{{!voiceMode}}" class="agent-voice-button {{voiceHolding ? 'is-holding' : ''}} {{inputValue ? 'is-collapsing' : ''}}" data-control="mode-toggle" catchtap="handleVoiceButtonTap" aria-role="button" aria-label="切换到语音模式">
-        <image class="agent-voice-icon" src="../../assets/agent-voice.svg" mode="aspectFit" data-control="mode-toggle" aria-hidden="true"></image>
+        <image class="agent-voice-icon" src="{{UA.src(ui, '../../assets/agent-voice.svg')}}" mode="aspectFit" data-control="mode-toggle" aria-hidden="true"></image>
       </view>
       <view wx:if="{{voiceMode}}" class="agent-voice-speak-button" data-voice-trigger="true" catchtouchstart="handleComposerTouchStart" catchtouchmove="handleComposerTouchMove" catchtouchend="handleComposerTouchEnd" catchtouchcancel="handleComposerTouchEnd" catchlongpress="handleComposerLongPress" aria-role="button" aria-label="{{model.composer.speakLabel}}">
         <text>{{model.composer.speakLabel}}</text>
@@ -202,7 +203,7 @@
       />
       <view class="agent-send-button {{canSend ? 'is-enabled' : ''}} {{isSending ? 'is-sending' : ''}}" catchtap="handleSendOrStop" aria-role="button" aria-label="{{isSending ? '停止生成' : model.composer.sendLabel}}">
         <view wx:if="{{isSending}}" class="agent-stop-icon" aria-hidden="true"></view>
-        <image wx:else class="agent-send-icon" src="../../assets/agent-send.svg" mode="aspectFit" aria-hidden="true"></image>
+        <image wx:else class="agent-send-icon" src="{{UA.src(ui, '../../assets/agent-send.svg')}}" mode="aspectFit" aria-hidden="true"></image>
       </view>
     </view>
   </view>

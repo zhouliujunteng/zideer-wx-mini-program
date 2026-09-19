@@ -1,5 +1,6 @@
 const { getHomeModel, getLearningModel, getMeModel } = require('./mock-service')
-const { loadHomeDashboard, loadLearningDashboard, loadMeDashboard, loadCurrentGrowthCenter, loadMemberCourseLibrary, loadUiAssetMap, loadAgentCourses } = require('./identity')
+const { loadHomeDashboard, loadLearningDashboard, loadMeDashboard, loadCurrentGrowthCenter, loadMemberCourseLibrary, loadAgentCourses, loadCurrentLearningCheckin } = require('./identity')
+const checkinModel = require('./checkin-model')
 const { agentCourseCard } = require('../utils/agent-course-view')
 
 function clone(value) { return JSON.parse(JSON.stringify(value)) }
@@ -58,11 +59,18 @@ async function getLiveHomeModel(selectedDayIndex = 0) {
   return { model, dashboard }
 }
 
+function learningStreakDays(checkin) {
+  if (!checkin || typeof checkinModel.countStreakDays !== 'function') return 0
+  const today = checkinModel.parseDay(checkin.today)
+  return today ? checkinModel.countStreakDays(new Set(checkin.checkedDates || []), today) : 0
+}
 async function getLiveLearningModel(selectedDayIndex = 0) {
   // 智能体课程与学习计划并行读取；读取失败不影响学习页，只是这次不显示 AI 课程。
-  const [dashboard, agentCourses] = await Promise.all([
+  // 连续学习天数来自每日学习打卡（当天有效课程学习满 5 分钟算一天）；读取失败显示 0，不影响学习页。
+  const [dashboard, agentCourses, checkin] = await Promise.all([
     loadLearningDashboard(),
-    typeof loadAgentCourses === 'function' ? loadAgentCourses().catch(() => []) : Promise.resolve([])
+    typeof loadAgentCourses === 'function' ? loadAgentCourses().catch(() => []) : Promise.resolve([]),
+    typeof loadCurrentLearningCheckin === 'function' ? loadCurrentLearningCheckin().catch(() => null) : Promise.resolve(null)
   ])
   const model = clone(getLearningModel(new Date(), 0, 0)); const tasks = taskRows(dashboard.tasks || [])
   applyCurrentStudent(model, dashboard.students[0])
@@ -87,14 +95,14 @@ async function getLiveLearningModel(selectedDayIndex = 0) {
   model.myCourses = agentCards.filter((card) => card.isGenerating)
     .concat(agentCards.filter((card) => !card.isGenerating), model.myCourses)
   model.hasGeneratingAgentCourse = agentCards.some((card) => card.isGenerating)
-  model.overview = overview([{ value: dashboard.summary && dashboard.summary.completed || 0, unit: '项', label: '已完成' }, { value: dashboard.summary && dashboard.summary.total || 0, unit: '项', label: '计划任务' }, { value: dashboard.currentTask && dashboard.currentTask.duration || 0, unit: '分钟', label: '当前任务' }])
+  model.overview = overview([{ value: dashboard.summary && dashboard.summary.completed || 0, unit: '项', label: '已完成' }, { value: learningStreakDays(checkin), unit: '天', label: '连续学习' }, { value: dashboard.currentTask && dashboard.currentTask.duration || 0, unit: '分钟', label: '当前任务' }])
   return { model, dashboard }
 }
 async function getLiveMeModel() {
-  const [dashboard, growth, uiAssets] = await Promise.all([
+  // 积分 / 金币图标沿用模型里的包内路径作素材名，由模板经 ui_asset 取后端地址（不再读推广素材表）。
+  const [dashboard, growth] = await Promise.all([
     loadMeDashboard(),
-    loadCurrentGrowthCenter().catch(() => null),
-    typeof loadUiAssetMap === 'function' ? loadUiAssetMap().catch(() => ({})) : Promise.resolve({})
+    loadCurrentGrowthCenter().catch(() => null)
   ])
   const model = clone(getMeModel())
   model.membershipCard = model.membershipCard || {
@@ -111,8 +119,6 @@ async function getLiveMeModel() {
   model.accountSummary[0].value = String(dashboard.balances && dashboard.balances.coursePoints || 0)
   model.accountSummary[0].meta = `冻结 ${dashboard.balances && dashboard.balances.frozenPoints || 0}`
   model.accountSummary[1].value = String(growth && growth.coinAccount && growth.coinAccount.available || 0)
-  if (uiAssets['ui-me-course-points']) model.accountSummary[0].icon = uiAssets['ui-me-course-points'].url
-  if (uiAssets['ui-me-coins']) model.accountSummary[1].icon = uiAssets['ui-me-coins'].url
   const serviceGroup = (model.serviceGroups || []).find((group) => group.title === '知鹿服务')
   if (serviceGroup && Array.isArray(serviceGroup.items) && !serviceGroup.items.some((item) => item.title === '测评中心')) {
     serviceGroup.items.push({ title: '测评中心', description: '开始基础测评与查看测评记录' })

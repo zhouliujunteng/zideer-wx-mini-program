@@ -1,10 +1,11 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="learning-page">
   <view class="learning-topbar">
     <view class="learning-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
       <text class="learning-topbar-title">学习</text>
     </view>
     <view class="learning-notice-button" style="top: {{notificationTop}}px; right: {{notificationRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="showNotifications">
-      <image class="learning-message-icon" src="../../assets/topbar/message.png" mode="aspectFit"></image>
+      <image class="learning-message-icon" src="{{UA.src(ui, '../../assets/topbar/message.png')}}" mode="aspectFit"></image>
       <view wx:if="{{model.notifications.count}}" class="learning-notice-badge">{{model.notifications.count}}</view>
     </view>
   </view>
@@ -34,8 +35,8 @@
 
     <view class="learning-overview-panel {{showTodayOverview ? 'learning-overview-expanded' : 'learning-overview-collapsed'}}">
       <view class="overview-grid">
-        <view wx:for="{{model.overview}}" wx:key="label" class="overview-item">
-          <image class="overview-icon" src="{{item.icon}}" mode="aspectFit"></image>
+        <view wx:for="{{model.overview}}" wx:key="label" class="overview-item {{item.label === '连续学习' ? 'overview-item-streak' : ''}}" data-label="{{item.label}}" bindtap="handleOverviewTap" role="button" aria-label="{{item.label}}">
+          <image class="overview-icon" src="{{UA.src(ui, item.icon)}}" mode="aspectFit"></image>
           <view class="overview-copy">
             <view class="overview-value">
               <view wx:for="{{item.rollDigits}}" wx:for-item="digit" wx:for-index="digitIndex" wx:key="digitIndex" class="overview-digit-window">
@@ -84,7 +85,7 @@
       <view wx:if="{{visibleMyCourses.length > 0}}" class="my-courses-grid">
         <view wx:for="{{visibleMyCourses}}" wx:key="id" class="my-course-card {{item.id === focusCourseId ? 'is-focused' : ''}}" data-id="{{item.id}}" data-kind="{{item.kind}}" bindtap="openMyCourse">
           <view class="my-course-cover my-course-cover-{{item.fallbackTone}}">
-            <image wx:if="{{item.coverUrl}}" class="my-course-cover-image" src="{{item.coverUrl}}" mode="aspectFill"></image>
+            <image wx:if="{{item.coverUrl}}" class="my-course-cover-image" src="{{UA.src(ui, item.coverUrl)}}" mode="aspectFill"></image>
             <text wx:else class="my-course-cover-mark">知鹿</text>
           </view>
           <view class="my-course-copy">

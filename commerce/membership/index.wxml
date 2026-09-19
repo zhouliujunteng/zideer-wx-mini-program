@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="membership-page">
   <view class="membership-topbar {{topbarSolid ? 'is-solid' : ''}}">
     <view class="membership-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
@@ -16,7 +17,7 @@
     <view class="membership-hero">
       <view class="member-profile">
         <view class="member-avatar">
-          <image wx:if="{{profile.avatarSrc}}" class="member-avatar-image" src="{{profile.avatarSrc}}" mode="aspectFill"></image>
+          <image wx:if="{{profile.avatarSrc}}" class="member-avatar-image" src="{{UA.src(ui, profile.avatarSrc)}}" mode="aspectFill"></image>
           <text wx:else class="member-avatar-initial">{{profile.initial}}</text>
         </view>
         <view class="member-copy">
@@ -38,7 +39,7 @@
         <view class="hero-vip-art" aria-hidden="true">
           <view class="hero-art-orbit orbit-one"></view>
           <view class="hero-art-orbit orbit-two"></view>
-          <image class="hero-vip-crown" src="/assets/me/membership-crown-matte.png" mode="aspectFit"></image>
+          <image class="hero-vip-crown" src="{{UA.src(ui, '/assets/me/membership-crown-matte.png')}}" mode="aspectFit"></image>
         </view>
       </view>
     </view>
@@ -69,7 +70,7 @@
               <view wx:for="{{plans}}" wx:key="id" class="plan-card-shell" data-id="{{item.id}}" bindtap="selectTier" aria-role="radio" aria-checked="{{item.isSelected}}" aria-label="{{item.name}} {{item.price}} 元，{{item.note}}">
                 <view class="plan-promotion {{item.isSelected ? 'plan-promotion-selected' : ''}} {{planPressingId === item.id ? 'plan-promotion-pressing' : ''}}">
                   <view class="plan-card {{item.isSelected ? 'plan-card-selected' : ''}}">
-                    <view wx:if="{{item.isSelected}}" class="plan-crown-crop" aria-hidden="true"><image class="plan-crown-icon" src="/commerce/assets/membership/plan-crown.svg" mode="aspectFit"></image></view>
+                    <view wx:if="{{item.isSelected}}" class="plan-crown-crop" aria-hidden="true"><image class="plan-crown-icon" src="{{UA.src(ui, '/commerce/assets/membership/plan-crown.svg')}}" mode="aspectFit"></image></view>
                     <text class="plan-name">{{item.name}}</text>
                     <view class="plan-price-row"><text class="plan-yuan">¥</text><text class="plan-price">{{item.price}}</text></view>
                   </view>
@@ -106,7 +107,7 @@
               <text class="benefit-subtitle">平台已上架课程</text>
               <text class="benefit-state {{member.active ? 'is-active' : ''}}">{{member.libraryLabel}}</text>
             </view>
-            <image class="benefit-art" src="/commerce/assets/membership/benefit-learning-view.svg" mode="aspectFit" aria-hidden="true"></image>
+            <image class="benefit-art" src="{{UA.src(ui, '/commerce/assets/membership/benefit-learning-view.svg')}}" mode="aspectFit" aria-hidden="true"></image>
           </view>
           <view class="benefit-card benefit-card-wide benefit-card-plan">
             <view class="benefit-copy">
@@ -114,7 +115,7 @@
               <text class="benefit-subtitle">开通赠送，永久有效，用于生成专属课程</text>
               <text class="benefit-state {{member.giftCreditsText ? 'is-active' : ''}}">{{member.giftCreditsText || '按等级赠送'}}</text>
             </view>
-            <image class="benefit-art" src="/commerce/assets/membership/benefit-learning-plan.svg" mode="aspectFit" aria-hidden="true"></image>
+            <image class="benefit-art" src="{{UA.src(ui, '/commerce/assets/membership/benefit-learning-plan.svg')}}" mode="aspectFit" aria-hidden="true"></image>
           </view>
           <view class="benefit-card benefit-card-wide benefit-card-link" bindtap="openProducts" aria-role="button" aria-label="购买积分包">
             <view class="benefit-copy">
@@ -122,7 +123,7 @@
               <text class="benefit-subtitle">积分不够时随时补充，会员购买享会员价</text>
               <text class="benefit-state {{member.active ? 'is-active' : ''}}">{{member.active ? '去购买 ›' : '开通会员享会员价'}}</text>
             </view>
-            <image class="benefit-art" src="/commerce/assets/membership/benefit-learning-view.svg" mode="aspectFit" aria-hidden="true"></image>
+            <image class="benefit-art" src="{{UA.src(ui, '/commerce/assets/membership/benefit-learning-view.svg')}}" mode="aspectFit" aria-hidden="true"></image>
           </view>
         </view>
 
@@ -137,9 +138,9 @@
       </block>
 
       <view class="membership-card membership-support">
-        <view class="membership-support-row" bindtap="refresh" aria-role="button"><image src="/assets/icons/refresh.svg" mode="aspectFit" /><text>重新查询状态</text><text class="membership-arrow">›</text></view>
-        <view class="membership-support-row" bindtap="openOrders" aria-role="button"><image src="/assets/me/quick-orders.svg" mode="aspectFit" /><text>全部订单</text><text class="membership-arrow">›</text></view>
-        <view class="membership-support-row" bindtap="openService" aria-role="button"><image src="/assets/icons/headphones.svg" mode="aspectFit" /><text>联系服务人员</text><text class="membership-arrow">›</text></view>
+        <view class="membership-support-row" bindtap="refresh" aria-role="button"><image src="{{UA.src(ui, '/assets/icons/refresh.svg')}}" mode="aspectFit" /><text>重新查询状态</text><text class="membership-arrow">›</text></view>
+        <view class="membership-support-row" bindtap="openOrders" aria-role="button"><image src="{{UA.src(ui, '/assets/me/quick-orders.svg')}}" mode="aspectFit" /><text>全部订单</text><text class="membership-arrow">›</text></view>
+        <view class="membership-support-row" bindtap="openService" aria-role="button"><image src="{{UA.src(ui, '/assets/icons/headphones.svg')}}" mode="aspectFit" /><text>联系服务人员</text><text class="membership-arrow">›</text></view>
       </view>
 
       <text class="membership-footnote">会员资格与权益以服务端确认结果为准</text>

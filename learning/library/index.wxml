@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="library-page">
   <input class="library-search" placeholder="搜索课程、学科或年级" value="{{search}}" bindinput="searchCourses" maxlength="100" />
   <view wx:if="{{loading}}" class="library-state">正在读取课程</view>
@@ -8,7 +9,7 @@
   <view wx:else class="library-list">
     <view wx:for="{{visibleCourses}}" wx:key="id" class="library-course" bindtap="openCourse" data-id="{{item.id}}" role="button" aria-label="{{item.title}}">
       <view class="library-course-main"><text class="library-course-meta">{{item.grade}} · {{item.subject}}</text><text class="library-course-title">{{item.title}}</text></view>
-      <image class="library-course-icon" src="/assets/tabbar/learning.png" mode="aspectFit"></image>
+      <image class="library-course-icon" src="{{UA.src(ui, '/assets/tabbar/learning.png')}}" mode="aspectFit"></image>
     </view>
   </view>
 </view>

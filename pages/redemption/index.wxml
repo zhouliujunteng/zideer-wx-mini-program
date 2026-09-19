@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="redemption-page">
   <view class="redemption-topbar">
     <view class="redemption-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
@@ -14,13 +15,13 @@
           <text class="redemption-hero-title">{{model.heroTitle}}</text>
           <text class="redemption-hero-subtitle">{{model.heroSubtitle}}</text>
         </view>
-        <image class="redemption-hero-image" src="{{model.heroIcon}}" mode="aspectFit" aria-label="兑换权益插画"></image>
+        <image class="redemption-hero-image" src="{{UA.src(ui, model.heroIcon)}}" mode="aspectFit" aria-label="兑换权益插画"></image>
       </view>
       <view class="redemption-entry">
         <view class="redemption-code-row">
           <input class="redemption-code-input" value="{{model.inputValue}}" maxlength="32" placeholder="{{model.inputPlaceholder}}" placeholder-class="redemption-code-placeholder" confirm-type="done" bindinput="handleInput" bindconfirm="handleRedeem" />
           <view class="redemption-scan-button" bindtap="handleScanCode" aria-role="button" aria-label="扫码输入兑换码">
-            <image class="redemption-scan-icon" src="/assets/redemption/scan.svg" mode="aspectFit" aria-hidden="true"></image>
+            <image class="redemption-scan-icon" src="{{UA.src(ui, '/assets/redemption/scan.svg')}}" mode="aspectFit" aria-hidden="true"></image>
           </view>
         </view>
         <button class="redemption-submit" bindtap="handleRedeem">{{model.buttonLabel}}</button>

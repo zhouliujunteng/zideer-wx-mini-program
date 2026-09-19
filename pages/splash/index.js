@@ -1,5 +1,6 @@
 const { restoreAuthenticatedUser } = require('../../services/identity')
 const { postAuthenticationUrl } = require('../../utils/referral-context')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 const SPLASH_MIN_MS = 1500
 const SESSION_WAIT_MS = 3000
@@ -10,6 +11,7 @@ Page({
   sessionPromise: null,
 
   onLoad() {
+    attachUiAssets(this)
     this.sessionPromise = Promise.race([
       restoreAuthenticatedUser().catch(() => null),
       new Promise((resolve) => setTimeout(() => resolve(undefined), SESSION_WAIT_MS))

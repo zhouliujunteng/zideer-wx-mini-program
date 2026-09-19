@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="screen">
   <view class="screen-scroll service-contact">
     <view class="page-head"><text class="page-head__title">真人服务</text><text class="page-head__copy">课程顾问和真人陪跑服务</text></view>
@@ -9,7 +10,7 @@
 
     <view class="service-list" wx:else>
       <button class="service-row surface pressable" wx:for="{{contacts}}" wx:key="id" data-id="{{item.id}}" bindtap="openContact" disabled="{{!!openingContactId}}">
-        <view class="service-row__icon"><image src="/assets/icons/headphones.svg" mode="aspectFit" /></view>
+        <view class="service-row__icon"><image src="{{UA.src(ui, '/assets/icons/headphones.svg')}}" mode="aspectFit" /></view>
         <view class="service-row__copy"><text class="service-row__title">{{item.title}}</text><text class="service-row__meta">{{openingContactId === item.id ? '正在打开…' : '企业微信服务'}}</text></view>
         <text class="service-row__arrow">›</text>
       </button>

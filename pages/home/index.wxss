@@ -1,80 +1,72 @@
-/* 首页 · 设计师浅色设计语言（功能结构不变，仅视觉重置） */
+/* 首页样式取自 UI 设计仓库 JiahaoTang-Alvin/zhilu-miniprogram 提交 d9627f0 的 pages/home/index.wxss，
+   只保留新首页实际用到的规则（输入区、底部浮层等已删除功能的样式未搬入）。
+   分类标签、活动轮播、占位入口没有真实数据，未移植。 */
 page { background: #FAFAFA; }
+.home-viewport { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332d; }
+.topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; box-shadow: none; transition: background-color .1s ease; }
+.topbar-solid { background-color: #FAFAFA; box-shadow: none; }
+.topbar-solid::after { position: absolute; right: 0; bottom: 0; left: 0; height: 1rpx; background: #e5e8e5; content: ''; pointer-events: none; }
+.topbar-inner { display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 16rpx; }
+.brand-logo { display: block; width: 176rpx; height: 60rpx; }
+.notice-button { position: fixed; z-index: 21; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: 1rpx solid #e7ebe6; border-radius: 50%; background: #fff; box-shadow: none; }
+.message-icon { display: block; width: 34rpx; height: 34rpx; }
+.notice-badge { position: absolute; top: -8rpx; right: -8rpx; min-width: 27rpx; height: 27rpx; padding: 0 6rpx; box-sizing: border-box; border: 3rpx solid #FAFAFA; border-radius: 999rpx; background: #FD5A5F; color: #fff; font-size: 17rpx; line-height: 21rpx; text-align: center; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; }
+.section-title { color: #24332d; font-size: 30rpx; font-weight: 700; }
+.task-all-link { display: flex; align-items: center; color: #8b958e; font-size: 23rpx; }
+.task-all-icon { display: block; flex: 0 0 13rpx; width: 13rpx; height: 13rpx; margin-left: 12rpx; box-sizing: border-box; border-top: 2rpx solid #a6afa9; border-right: 2rpx solid #a6afa9; transform: rotate(45deg); }
+.more-courses-grid { display: flex; flex-wrap: wrap; margin-top: 28rpx; gap: 36rpx 22rpx; }
+.more-course-card { width: calc((100% - 22rpx) / 2); min-width: 0; }
+.more-course-cover { height: 210rpx; border-radius: 24rpx; background: #e7eae8; }
+.more-course-info { display: flex; align-items: flex-start; justify-content: space-between; margin-top: 14rpx; gap: 10rpx; }
+.more-course-copy { flex: 1; min-width: 0; }
+.more-course-title,
+.more-course-subtitle { display: block; }
+.more-course-title { overflow: hidden; color: #34423b; font-size: 25rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.more-course-subtitle { margin-top: 6rpx; color: #9aa49d; font-size: 19rpx; line-height: 1.35; }
+.more-course-price { flex: 0 0 auto; color: #2c312e; font-size: 24rpx; font-weight: 700; line-height: 1.2; }
+.learning-tool-icon { display: flex; align-items: center; justify-content: center; width: 72rpx; height: 72rpx; border: 1rpx solid #edf0ed; border-radius: 21rpx; background: #fff; color: #435048; font-size: 30rpx; line-height: 1; box-shadow: 0 4rpx 12rpx rgba(36, 51, 45, .03); transition: transform .16s ease; }
+.learning-tool-icon-blue { color: #4ea9e8; background: #f2f9fd; }
+.learning-tool-icon-green { color: #73ae7d; background: #f3faf3; }
+.learning-tool-icon-orange { color: #fd7c02; background: #fff7ee; }
+.learning-tool-label { margin-top: 8rpx; color: #3b463f; font-size: 22rpx; font-weight: 600; }
+.home-flat-viewport { background: #FAFAFA; }
+.home-flat-topbar { background: #FAFAFA; }
+.home-flat-topbar::after { display: none; }
+.home-flat-scroll { height: 100vh; box-sizing: border-box; }
+.home-flat-content { padding: 0 36rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.home-priority-tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18rpx; margin-top: 22rpx; }
+.home-priority-tool { position: relative; min-height: 160rpx; padding: 22rpx 16rpx; overflow: hidden; border-radius: 28rpx; box-sizing: border-box; }
+.home-priority-tool-orange { background: linear-gradient(to bottom right, #e98270 0%, #f4a989 54%, #ffd0a2 100%); }
+.home-priority-tool-blue { background: linear-gradient(to bottom right, #6b8edc 0%, #80b7ed 52%, #a8dce9 100%); }
+.home-priority-tool-purple { background: linear-gradient(to bottom right, #8d78bf 0%, #aa91db 54%, #d2b6ed 100%); }
+.home-priority-tool::before,
+.home-priority-tool::after { position: absolute; display: block; content: ''; border-radius: 999rpx; background: rgba(255, 255, 255, .16); pointer-events: none; }
+.home-priority-tool::before { top: 30rpx; right: -72rpx; width: 220rpx; height: 14rpx; transform: rotate(-16deg); }
+.home-priority-tool::after { right: -28rpx; bottom: 28rpx; width: 168rpx; height: 10rpx; opacity: .72; transform: rotate(-16deg); }
+.home-priority-tool-copy { position: relative; width: 78%; z-index: 1; display: flex; flex-direction: column; }
+.home-priority-tool-label { color: #fff; font-size: 24rpx; font-weight: 700; line-height: 1.25; letter-spacing: -1rpx; white-space: nowrap; }
+.home-priority-tool-hint { width: 100%; margin-top: 7rpx; color: rgba(255, 255, 255, .9); font-size: 16rpx; font-weight: 600; line-height: 1.35; white-space: nowrap; }
+.home-priority-tool-icon { position: absolute; right: -24rpx; bottom: -38rpx; display: flex; align-items: center; justify-content: center; width: 146rpx; height: 146rpx; z-index: 2; transform: rotate(-11deg); transform-origin: center; }
+.score-tool-icon-image { width: 166rpx; height: 166rpx; }
+.score-tool-icon-image-small { width: 84rpx; height: 84rpx; opacity: .98; }
+.home-secondary-swiper { width: 100%; height: 148rpx; margin-top: 30rpx; }
+.home-secondary-tools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8rpx; height: 148rpx; margin: 0; }
+.home-secondary-tool { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.home-secondary-tool .learning-tool-icon { width: 96rpx; height: 96rpx; border: 0; border-radius: 0; background: transparent !important; box-shadow: none; }
+.home-secondary-tool .learning-tool-label { display: block; width: 100%; text-align: center; max-width: none; margin-top: 8rpx; overflow: visible; font-size: 22rpx; font-weight: 600; line-height: 1.25; text-overflow: clip; white-space: normal; }
+.home-secondary-indicator { display: flex; align-items: center; justify-content: center; gap: 8rpx; width: 100%; margin: 10rpx 0 28rpx; }
+.home-secondary-indicator-segment { width: 20rpx; height: 8rpx; border-radius: 999rpx; background: #f3ddd0; transition: background-color .2s ease, width .2s ease; }
+.home-secondary-indicator-segment.is-active { width: 24rpx; background: #efb391; }
+.home-flat-course-section { padding-top: 36rpx; }
+.home-flat-course-section .section-heading { margin-bottom: 22rpx; }
+.home-flat-course-grid { padding-bottom: 30rpx; }
 
-.agent-home { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
-
-/* 顶栏：品牌 lockup 原图 + 圆形操作钮 */
-.agent-topbar { position: fixed; top: 0; right: 0; left: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 0 36rpx 16rpx; box-sizing: content-box; background: #FAFAFA; }
-.agent-topbar::after { position: absolute; right: 0; bottom: 0; left: 0; height: 1rpx; background: #E8EBE8; content: ''; }
-.agent-brand { display: flex; align-items: center; }
-.agent-brand-lockup { display: block; width: 168rpx; height: 66rpx; }
-.agent-top-actions { display: flex; align-items: center; gap: 18rpx; }
-.agent-top-action { position: relative; display: flex; align-items: center; justify-content: center; width: 58rpx; height: 58rpx; border: 1rpx solid #E7EBE6; border-radius: 50%; background: #FFFFFF; }
-.agent-top-action image { width: 30rpx; height: 30rpx; }
-.agent-notice-dot { position: absolute; top: 8rpx; right: 8rpx; width: 10rpx; height: 10rpx; border-radius: 50%; background: #FD7C02; }
-
-.agent-scroll { position: absolute; top: 0; right: 0; bottom: 0; left: 0; box-sizing: border-box; }
-.agent-content { padding: 44rpx 36rpx 0; box-sizing: border-box; }
-
-/* 开场介绍 */
-.agent-intro { display: flex; align-items: center; flex-direction: column; padding-top: 10rpx; text-align: center; }
-.agent-eyebrow { color: #98A49C; font-size: 21rpx; letter-spacing: 2rpx; line-height: 1.4; }
-.agent-avatar { display: flex; align-items: center; justify-content: center; width: 164rpx; height: 164rpx; margin-top: 38rpx; border-radius: 47% 53% 52% 48%; background: #FD7C02; color: #FFFFFF; transform: rotate(-9deg); box-shadow: 0 14rpx 44rpx rgba(253, 124, 2, .22); }
-.agent-avatar text { display: block; font-size: 60rpx; font-weight: 700; line-height: 1; transform: rotate(9deg); }
-.agent-title { display: block; margin-top: 34rpx; color: #24332D; font-size: 29rpx; font-weight: 650; line-height: 1.5; }
-.agent-subtitle { display: block; margin-top: 12rpx; color: #7D8981; font-size: 22rpx; line-height: 1.6; }
-
-/* 输入卡 */
-.agent-composer { margin-top: 42rpx; padding: 26rpx 28rpx 22rpx; border: 2rpx solid #F0F2EE; border-radius: 30rpx; background: #FFFFFF; }
-.agent-input { display: block; width: 100%; min-height: 54rpx; max-height: 180rpx; color: #24332D; font-size: 28rpx; line-height: 1.55; }
-.agent-input-placeholder { color: #B4BCB6; }
-.agent-composer-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 22rpx; }
-.agent-context { display: flex; align-items: center; min-width: 0; max-width: 76%; color: #98A49C; font-size: 21rpx; line-height: 1.3; }
-.agent-context image { flex: 0 0 auto; width: 32rpx; height: 32rpx; margin-right: 12rpx; }
-.agent-context-active { color: #E78435; font-weight: 600; }
-.agent-send { display: flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 64rpx; height: 64rpx; border-radius: 50%; background: rgba(253, 124, 2, .14); color: #FD7C02; transition: background .18s ease, color .18s ease; }
-.agent-send-ready { background: #FD7C02; color: #FFFFFF; }
-.agent-send text { font-size: 42rpx; font-weight: 300; line-height: 1; transform: translateY(-3rpx); }
-.agent-helper { display: block; margin-top: 22rpx; color: #A2ABA4; font-size: 20rpx; line-height: 1.5; text-align: center; }
-
-/* 分区 */
-.agent-section { margin-top: 54rpx; }
-.agent-section-head { display: flex; align-items: center; justify-content: space-between; }
-.agent-section-title { color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.35; }
-.agent-section-caption { color: #98A49C; font-size: 20rpx; }
-.agent-section-link { color: #FD7C02; font-size: 21rpx; font-weight: 650; line-height: 1.35; }
-.agent-section-link text { padding-left: 6rpx; font-size: 32rpx; line-height: 0; }
-
-/* 学习工具 */
-.agent-tools-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28rpx 12rpx; margin-top: 28rpx; }
-.agent-tool-item { display: flex; align-items: center; min-width: 0; flex-direction: column; text-align: center; }
-.agent-tool-icon { display: flex; align-items: center; justify-content: center; width: 68rpx; height: 68rpx; border: 2rpx solid #F0F2EE; border-radius: 22rpx; background: #FFFFFF; }
-.agent-tool-icon image { width: 34rpx; height: 34rpx; }
-.agent-tool-title { display: block; margin-top: 13rpx; overflow: hidden; color: #34443A; font-size: 21rpx; font-weight: 600; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
-.agent-tool-description { display: block; width: 100%; margin-top: 6rpx; overflow: hidden; color: #98A49C; font-size: 16rpx; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
-
-/* 会员课程 */
-.agent-courses-section { margin-top: 62rpx; }
-.agent-course-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16rpx; margin-top: 24rpx; }
-.agent-course-card { min-width: 0; overflow: hidden; border: 2rpx solid #F0F2EE; border-radius: 24rpx; background: #FFFFFF; }
-/* 封面：浅色底 + 程序化「课件版式」装饰（对齐 OpenMAIC 课程库封面语言） */
-.agent-course-cover { position: relative; height: 220rpx; border-radius: 22rpx 22rpx 0 0; overflow: hidden; background: linear-gradient(135deg, #E7F0FF 0%, #F3F7FF 100%); }
-.agent-course-cover-1 { background: linear-gradient(135deg, #E4F6EA 0%, #F2FBF5 100%); }
-.agent-course-cover-2 { background: linear-gradient(135deg, #FFF1E2 0%, #FFFAF2 100%); }
-.agent-course-cover-art { position: absolute; top: 26rpx; left: 26rpx; right: 26rpx; }
-.agent-course-cover-line { height: 12rpx; border-radius: 6rpx; background: rgba(36, 51, 45, .16); }
-.agent-course-cover-line-title { width: 62%; }
-.agent-course-cover-line-sub { width: 38%; margin-top: 12rpx; opacity: .6; }
-.agent-course-cover-block { margin-top: 22rpx; width: 46%; height: 84rpx; border-radius: 12rpx; background: rgba(255, 255, 255, .85); box-shadow: 0 8rpx 22rpx rgba(36, 51, 45, .08); }
-.agent-course-cover-block::after { display: block; width: 60%; height: 10rpx; margin: 16rpx 0 0 14rpx; border-radius: 5rpx; background: rgba(36, 51, 45, .12); content: ''; }
-.agent-course-lock { position: absolute; top: 14rpx; right: 14rpx; display: flex; align-items: center; justify-content: center; min-width: 76rpx; height: 40rpx; padding: 0 14rpx; box-sizing: border-box; border-radius: 999rpx; background: rgba(36, 51, 45, .55); color: #FFFFFF; font-size: 18rpx; font-weight: 650; letter-spacing: 2rpx; backdrop-filter: blur(6rpx); }
-.agent-course-caption { padding: 18rpx 20rpx 22rpx; }
-.agent-course-title { display: block; overflow: hidden; color: #24332D; font-size: 26rpx; font-weight: 700; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
-.agent-course-meta { display: block; margin-top: 8rpx; overflow: hidden; color: #98A49C; font-size: 19rpx; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
-.agent-course-empty { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; margin-top: 24rpx; padding: 24rpx 22rpx; border: 2rpx solid #F0F2EE; border-radius: 24rpx; background: #FFFFFF; }
-.agent-course-empty-copy { min-width: 0; }
-.agent-course-empty-title { display: block; color: #24332D; font-size: 24rpx; font-weight: 650; line-height: 1.4; }
-.agent-course-empty-subtitle { display: block; margin-top: 8rpx; color: #98A49C; font-size: 19rpx; line-height: 1.4; }
-.agent-course-empty-action { flex: 0 0 auto; color: #FD7C02; font-size: 20rpx; font-weight: 650; }
-.agent-course-empty-action text { padding-left: 4rpx; font-size: 30rpx; }
-.agent-safe-space { height: 150rpx; }
+/* 以下为正式小程序补充：设计稿按价格展示课程，真实课程库没有价格，改为「会员」标签与空状态。 */
+.more-course-tag { flex-shrink: 0; padding: 4rpx 12rpx; border-radius: 999rpx; background: #FFF1E6; color: #FD7C02; font-size: 20rpx; line-height: 28rpx; }
+.home-course-empty { display: flex; align-items: center; justify-content: space-between; margin-top: 24rpx; padding: 32rpx; border-radius: 24rpx; background: #FFFFFF; }
+.home-course-empty-copy { display: flex; flex-direction: column; }
+.home-course-empty-title { color: #24332D; font-size: 28rpx; font-weight: 600; line-height: 40rpx; }
+.home-course-empty-subtitle { margin-top: 8rpx; color: #8A948F; font-size: 24rpx; line-height: 34rpx; }
+.home-course-empty-action { flex-shrink: 0; color: #FD7C02; font-size: 24rpx; }
+.home-flat-safe-space { height: calc(160rpx + env(safe-area-inset-bottom)); }

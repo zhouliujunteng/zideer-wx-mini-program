@@ -1,6 +1,7 @@
 const { loadKnowledgeMap, loadKnowledgeTopic } = require('../../services/identity')
 const { buildKnowledgeRelationGraph } = require('../../utils/knowledge-map-relations')
 const { layoutKnowledgeRadially, spaceRadialCards } = require('../../utils/knowledge-map-radial')
+const { attachUiAssets } = require('../../services/ui-assets')
 const {
   getKnowledgeMapTextCardMetrics,
   getKnowledgeMapLayoutProfile,
@@ -145,6 +146,7 @@ Page({
   },
 
   onLoad() {
+    attachUiAssets(this)
     this._mapSheetOffset = 0
     this._isMapSheetSnapping = false
     this._sheetGesture = null

@@ -27,6 +27,7 @@ const {
 const { presentToolLine, summarizeTopic, thinkingSummary } = require('../../utils/course-agent-fold')
 const { REVEAL_TICK_MS, createStreamReveal, renderRevealFrame } = require('../../utils/stream-reveal')
 const { ensureZionSession } = require('../../services/zion-auth-service')
+const { attachUiAssets } = require('../../services/ui-assets')
 const {
   LEARNING_MODES,
   toggleLearningMode,
@@ -470,6 +471,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    attachUiAssets(this)
     // 首页带问题进入：待模型初始化后直接发送
     this._entryPrompt = decodeURIComponent(String(options.prompt || '')).trim()
     this._replyTimer = null
