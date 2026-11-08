@@ -125,6 +125,31 @@ test('course detail and acceptance pages widen beyond the default column on larg
   assert.match(acceptance, /\.agent-page \.agent-composer-bar \{ width: 100%; max-width: 760px;/)
 })
 
+// 测评、知鹿服务里的页面（2026-11-07 用户：「测评和知鹿服务里的都需要」跟平板适配）：放宽到阅读栏，
+// 题目、解析配图套一层外框限宽，栏放宽后配图不会撑到近 700px 高。
+test('assessment and 知鹿服务 pages widen to LARGE_SCREEN_READING_COLUMN on large screens', () => {
+  const { LARGE_SCREEN_READING_COLUMN } = require('../utils/screen')
+  assert.equal(LARGE_SCREEN_READING_COLUMN, 760)
+  const pages = [
+    'assessment/center', 'assessment/short', 'assessment/report',
+    'agent/promotion', 'account/login-identities', 'pages/redemption', 'commerce/orders', 'commerce/order-detail',
+    'account/about', 'account/agreement', 'account/help-center', 'account/help-guide', 'account/help-feedback', 'account/parent-reports'
+  ]
+  const narrow = pages.filter((page) => {
+    const css = fs.readFileSync(path.join(root, `${page}/index.wxss`), 'utf8')
+    return !new RegExp(`@media \\(min-width: 450px\\) \\{\\s*page \\{ --lg-col: ${LARGE_SCREEN_READING_COLUMN}px; \\}`).test(css)
+  })
+  assert.deepEqual(narrow, [])
+  const short = fs.readFileSync(path.join(root, 'assessment/short/index.wxml'), 'utf8')
+  assert.match(short, /<view class="short-figure-frame">\s*<view wx:for="\{\{attempt\.current\.figures\}\}"/)
+  assert.match(fs.readFileSync(path.join(root, 'assessment/short/index.wxss'), 'utf8'), /\.short-figure-frame \{ max-width: 520px;/)
+  const report = fs.readFileSync(path.join(root, 'assessment/report/index.wxml'), 'utf8')
+  assert.equal((report.match(/<view class="review-figure-frame">/g) || []).length, 2)
+  assert.match(fs.readFileSync(path.join(root, 'assessment/report/index.wxss'), 'utf8'), /\.review-figure-frame \{ max-width: 520px;/)
+  // 帮助中心头图按 450px 宽画的，栏放宽后要居中，否则灯泡压在标题上
+  assert.match(fs.readFileSync(path.join(root, 'account/help-center/index.wxss'), 'utf8'), /\.hc-hero \.hc-hero-art-wrap \{ left: 50%; transform: translateX\(-50%\); \}/)
+})
+
 test('iPad can rotate: app.json enables resizable', () => {
   assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8')).resizable, true)
 })

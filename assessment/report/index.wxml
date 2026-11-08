@@ -182,9 +182,11 @@
               </view>
               <text class="timing-caption">用时 {{item.timingLabel}} {{item.timingNote}}</text>
               <view wx:if="{{openReview === index}}" class="review-body">
-                <view wx:for="{{item.figures}}" wx:for-item="figure" wx:key="url" class="review-figure" style="{{QF.box(figure, 1)}}">
-                  <view wx:if="{{QF.failed(failedFigures, figure.url)}}" class="review-figure-failed" bindtap="retryFigures" aria-role="button" aria-label="配图没加载出来，点这里重新加载"><text>配图没加载出来，点这里重新加载</text></view>
-                  <image wx:else class="review-figure-image" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" data-group="{{item.questionId}}" bindtap="previewFigure" binderror="figureFailed" aria-label="{{figure.alt || '题目配图'}}"></image>
+                <view class="review-figure-frame">
+                  <view wx:for="{{item.figures}}" wx:for-item="figure" wx:key="url" class="review-figure" style="{{QF.box(figure, 1)}}">
+                    <view wx:if="{{QF.failed(failedFigures, figure.url)}}" class="review-figure-failed" bindtap="retryFigures" aria-role="button" aria-label="配图没加载出来，点这里重新加载"><text>配图没加载出来，点这里重新加载</text></view>
+                    <image wx:else class="review-figure-image" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" data-group="{{item.questionId}}" bindtap="previewFigure" binderror="figureFailed" aria-label="{{figure.alt || '题目配图'}}"></image>
+                  </view>
                 </view>
                 <view wx:for="{{item.options}}" wx:for-item="option" wx:key="value" class="review-option {{option.tone}}">
                   <text>{{option.value}}、{{option.label}}</text>
@@ -195,9 +197,11 @@
                 </view>
                 <text class="review-line">你的答案：{{item.selectedLabel}} · 正确答案：{{item.answer}}</text>
                 <text wx:if="{{item.explanation}}" class="review-line"><text class="review-key">解析</text> {{item.explanation}}</text>
-                <view wx:for="{{item.explanationFigures}}" wx:for-item="figure" wx:key="url" class="review-figure" style="{{QF.box(figure, 1)}}">
-                  <view wx:if="{{QF.failed(failedFigures, figure.url)}}" class="review-figure-failed" bindtap="retryFigures" aria-role="button" aria-label="配图没加载出来，点这里重新加载"><text>配图没加载出来，点这里重新加载</text></view>
-                  <image wx:else class="review-figure-image" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" data-group="{{item.questionId}}" bindtap="previewFigure" binderror="figureFailed" aria-label="{{figure.alt || '解析配图'}}"></image>
+                <view class="review-figure-frame">
+                  <view wx:for="{{item.explanationFigures}}" wx:for-item="figure" wx:key="url" class="review-figure" style="{{QF.box(figure, 1)}}">
+                    <view wx:if="{{QF.failed(failedFigures, figure.url)}}" class="review-figure-failed" bindtap="retryFigures" aria-role="button" aria-label="配图没加载出来，点这里重新加载"><text>配图没加载出来，点这里重新加载</text></view>
+                    <image wx:else class="review-figure-image" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" data-group="{{item.questionId}}" bindtap="previewFigure" binderror="figureFailed" aria-label="{{figure.alt || '解析配图'}}"></image>
+                  </view>
                 </view>
                 <text wx:if="{{item.misconception}}" class="review-line"><text class="review-key">易错点</text> {{item.misconception}}</text>
               </view>

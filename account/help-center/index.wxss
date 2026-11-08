@@ -147,4 +147,16 @@ page { background: #FAFAFA; }
 @keyframes hc-unfold { from { opacity: 0; transform: translateY(-10rpx); } to { opacity: 1; transform: translateY(0); } }
 @keyframes hc-search-sway { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(8rpx, -6rpx); } }
 
+/* 平板（2026-11-07 用户：「测评和知鹿服务里的页面也都要跟平板适配」）：默认大屏模式把页面收进 450px 居中栏，平板上只占中间一条。
+   这一页放宽到 LARGE_SCREEN_READING_COLUMN（760px，utils/screen.js）：列表、表单、阅读类页面再宽一行就太长，顶栏、底栏跟着这一栏走。 */
+@media (min-width: 450px) {
+  page { --lg-col: 760px; }
+  /* 头图按 450px 宽画的（两侧 3D 小元素夹着中间的标题），栏放宽后要跟着标题居中，否则灯泡会压在标题上 */
+  .hc-hero .hc-hero-art-wrap { left: 50%; transform: translateX(-50%); }
+  /* 图两侧露出的头部底色：图从 heroArtTop 处开始、从顶端橙色到浅米色只用了约 130px，底色跟着它的位置和节奏走，接缝处才看不出一块方框 */
+  .hc-page .hc-hero { background: linear-gradient(180deg, #FECFA1 0, #FECFA1 var(--hero-art-top, 0px), #FFF9EF calc(var(--hero-art-top, 0px) + 130px), #FFFAF3 calc(var(--hero-art-top, 0px) + 396px), #FFFAF3 100%); }
+  /* 搜索框保持手机上的宽度：450px 栏乘 0.72，不压到图里左下角的书 */
+  .hc-hero-copy .hc-search { max-width: 324px; }
+}
+
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

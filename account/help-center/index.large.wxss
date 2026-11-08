@@ -126,4 +126,7 @@ page{background:#FAFAFA}
 @keyframes hc-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes hc-unfold{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes hc-search-sway{0%, 100%{transform:translate(0, 0)}50%{transform:translate(4px, -4px)}}
+.hc-hero .hc-hero-art-wrap{left:50%}
+.hc-page .hc-hero{background:linear-gradient(180deg, #FECFA1 0, #FECFA1 var(--hero-art-top, 0px), #FFF9EF calc(var(--hero-art-top, 0px) + 130px), #FFFAF3 calc(var(--hero-art-top, 0px) + 396px), #FFFAF3 100%)}
+.hc-hero-copy .hc-search{max-width:324px}
 }

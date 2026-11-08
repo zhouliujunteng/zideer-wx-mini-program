@@ -95,4 +95,5 @@
 .short-option-sk{height:55px;margin-top:9px;border-radius:10px}
 .short-entry-detail-sk{width:88%;height:12px}
 .short-entry-action-sk{flex:none;width:57px;height:15px}
+.short-figure-frame{max-width:520px;margin-right:auto;margin-left:auto}
 }

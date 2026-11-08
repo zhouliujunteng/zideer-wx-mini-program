@@ -16,7 +16,7 @@
     <!-- 顶部大图按屏幕宽、原图比例完整显示（两侧元素不裁），标题、搜索框居中嵌在图里；内容比图高时下面接同色底。
          图按这台手机的顶栏高度往下挪（heroArtTop），上面两个元素落在顶栏下方、不和返回键与微信胶囊挤在一起，挪出来的顶部用图片顶端的颜色补齐。
          图没读到时先显示同色渐变底 -->
-    <view class="hc-hero" style="padding-top: {{contentTop}}px;">
+    <view class="hc-hero" style="padding-top: {{contentTop}}px; --hero-art-top: {{heroArtTop}}px;">
       <view class="hc-hero-cap" style="height: {{heroArtTop + 1}}px;" aria-hidden="true"></view>
       <view class="hc-hero-art-wrap" style="top: {{heroArtTop}}px;" aria-hidden="true">
         <image wx:if="{{UA.src(ui, '/assets/help/hero.jpg')}}" class="hc-hero-art {{heroLoaded ? 'is-loaded' : ''}}" src="{{UA.src(ui, '/assets/help/hero.jpg')}}" mode="aspectFill" bindload="handleHeroLoad"></image>

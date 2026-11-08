@@ -16,6 +16,8 @@ const LARGE_SCREEN_RPX = 0.6
 const LARGE_SCREEN_COLUMN = 750 * LARGE_SCREEN_RPX
 // 首页与四个 tab 页（学习、宇宙、图谱、我的）在大屏下放宽到这一栏，wxss 里对应写 --lg-col: 1040px。
 const LARGE_SCREEN_WIDE_COLUMN = 1040
+// 测评、知鹿服务（订单、兑换码、帮助、关于等）列表与阅读类页面在大屏下放宽到这一栏，wxss 里对应写 --lg-col: 760px。
+const LARGE_SCREEN_READING_COLUMN = 760
 
 function readWindowWidth() {
   try {
@@ -75,6 +77,7 @@ module.exports = {
   LARGE_SCREEN_RPX,
   LARGE_SCREEN_COLUMN,
   LARGE_SCREEN_WIDE_COLUMN,
+  LARGE_SCREEN_READING_COLUMN,
   isLargeScreen,
   rpxUnit,
   rpxToPx,

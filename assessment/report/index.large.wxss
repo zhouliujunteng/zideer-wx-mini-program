@@ -185,4 +185,5 @@ page{background:#FAFAFA}
 .timing-value{flex-shrink:0;font-weight:600}
 .timing-caption{margin-top:6px;font-size:13px;line-height:1.6}
 .timing-notice{margin-top:14px;font-size:13px;line-height:1.7}
+.review-figure-frame{max-width:520px;margin-right:auto;margin-left:auto}
 }

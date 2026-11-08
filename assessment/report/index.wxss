@@ -254,4 +254,12 @@ page { background: #FAFAFA; }
 .timing-caption { display: block; margin-top: 10rpx; font-size: 23rpx; line-height: 1.6; color: #737e77; overflow-wrap: anywhere; }
 .timing-notice { display: block; margin-top: 24rpx; font-size: 22rpx; line-height: 1.7; color: #8a938c; }
 
+/* 平板（2026-11-07 用户：「测评和知鹿服务里的页面也都要跟平板适配」）：默认大屏模式把页面收进 450px 居中栏，平板上只占中间一条。
+   这一页放宽到 LARGE_SCREEN_READING_COLUMN（760px，utils/screen.js）：列表、表单、阅读类页面再宽一行就太长，顶栏、底栏跟着这一栏走。 */
+@media (min-width: 450px) {
+  page { --lg-col: 760px; }
+  /* 题目、解析配图按外框宽度定尺寸：栏放宽后不让配图跟着撑到近 700px 高，横屏时选项还看得到 */
+  .review-figure-frame { max-width: 520px; margin-right: auto; margin-left: auto; }
+}
+
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

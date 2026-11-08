@@ -65,9 +65,12 @@
               <text class="short-question-title">{{attempt.current.prompt}}</text>
             </view>
             <block wx:if="{{attempt.current.figures.length}}">
-              <view wx:for="{{attempt.current.figures}}" wx:for-item="figure" wx:key="url" class="short-figure" style="{{QF.box(figure, 1)}}">
-                <view wx:if="{{QF.failed(failedFigures, figure.url)}}" class="short-figure-failed" bindtap="retryFigures" role="button" aria-label="配图没加载出来，点这里重新加载"><text>配图没加载出来，点这里重新加载</text></view>
-                <image wx:else class="short-figure-image" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" data-group="current" bindtap="previewFigure" binderror="figureFailed" aria-label="{{figure.alt || '题目配图'}}"></image>
+              <!-- 外框：平板上限制配图最大宽度（配图按外框宽度的百分比定宽高，直接给配图设上限会把比例拉坏） -->
+              <view class="short-figure-frame">
+                <view wx:for="{{attempt.current.figures}}" wx:for-item="figure" wx:key="url" class="short-figure" style="{{QF.box(figure, 1)}}">
+                  <view wx:if="{{QF.failed(failedFigures, figure.url)}}" class="short-figure-failed" bindtap="retryFigures" role="button" aria-label="配图没加载出来，点这里重新加载"><text>配图没加载出来，点这里重新加载</text></view>
+                  <image wx:else class="short-figure-image" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" data-group="current" bindtap="previewFigure" binderror="figureFailed" aria-label="{{figure.alt || '题目配图'}}"></image>
+                </view>
               </view>
               <text class="short-figure-tip">点图片可以放大查看</text>
             </block>
