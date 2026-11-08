@@ -125,4 +125,14 @@ page { height: 100%; overflow: hidden; background: #F9FAFF; }
 .voice-demo-status.is-canceling .voice-demo-bar { background: #FF4242; box-shadow: 0 0 8rpx rgba(255, 65, 65, .12); }
 .voice-demo-status.is-canceling .voice-demo-bar:nth-child(3n) { background: #FF9A9A; }
 
+/* 平板（2026-11-08 用户反馈「复述验收跟平板屏幕适配」）：默认大屏模式把页面收进 450px 居中栏，背景、对话、输入框都挤在中间一条。
+   这一页让背景、顶栏、底部输入区铺满整个窗口，对话和输入框限宽 760px 居中，一行字不会拉得太长。
+   选择器带上 .agent-page：文件末尾生成的大屏样式会重写同名规则，要比它更具体才盖得住。 */
+@media (min-width: 450px) {
+  page { --lg-col: 100vw; }
+  .agent-page .diagnosis-room-shell,
+  .agent-page .acc-skeleton,
+  .agent-page .agent-composer-bar { width: 100%; max-width: 760px; margin-right: auto; margin-left: auto; }
+}
+
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

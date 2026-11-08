@@ -87,4 +87,5 @@ page{height:100%}
 .voice-demo-wave{width:82%;height:45px;margin-top:34px}
 .voice-demo-bar{min-width:1px;max-width:4px;height:calc(var(--bar-height, 4) * 600px / 1000);margin:0 1px;border-radius:599px;box-shadow:0 0 4px rgba(255, 255, 255, .14)}
 .voice-demo-status.is-canceling .voice-demo-bar{box-shadow:0 0 4px rgba(255, 65, 65, .12)}
+.agent-page .diagnosis-room-shell, .agent-page .acc-skeleton, .agent-page .agent-composer-bar{width:100%;max-width:760px;margin-right:auto;margin-left:auto}
 }

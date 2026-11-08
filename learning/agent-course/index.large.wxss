@@ -105,4 +105,12 @@
 .primary-action::after, .secondary-action::after{border:0}
 .primary-action{font-weight:600}
 .secondary-action{margin-top:10px;border:0.5px solid #E9EEE9}
+.course-bottom-inner .course-primary-button{flex:0 0 auto;width:360px;max-width:100%}
+}
+@media (min-width: 450px) and (min-width: 700px) {
+.course-display-shell{padding-right:24px;padding-left:24px}
+.course-detail-layout .course-detail-aside{top:0;flex:0 0 40%;min-width:0;max-width:400px;margin-right:24px}
+.course-detail-layout .course-detail-main{flex:1;min-width:0}
+.course-detail-layout .course-detail-main > .course-review-section:first-child{margin-top:12px}
+.course-detail-layout .course-cover-thumb{height:auto;min-height:150px}
 }

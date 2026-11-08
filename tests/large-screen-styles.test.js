@@ -111,6 +111,20 @@ test('home and tab pages widen to LARGE_SCREEN_WIDE_COLUMN on large screens', ()
   assert.doesNotMatch(universe, /columnWidth\(this\._windowWidth\)/)
 })
 
+// 课程详情、复述验收（2026-11-08 用户：平板上只占中间一条）：同样不能在同步设计稿时丢掉放宽的那段。
+test('course detail and acceptance pages widen beyond the default column on large screens', () => {
+  const { LARGE_SCREEN_WIDE_COLUMN } = require('../utils/screen')
+  const detail = fs.readFileSync(path.join(root, 'learning/agent-course/index.wxss'), 'utf8')
+  assert.match(detail, new RegExp(`@media \\(min-width: 450px\\) \\{\\s*page \\{ --lg-col: ${LARGE_SCREEN_WIDE_COLUMN}px; \\}`))
+  assert.match(detail, /\.course-detail-layout \{ display: flex;/)
+  const wxml = fs.readFileSync(path.join(root, 'learning/agent-course/index.wxml'), 'utf8')
+  assert.equal((wxml.match(/class="course-detail-aside"/g) || []).length, 2)
+  assert.equal((wxml.match(/class="course-detail-main"/g) || []).length, 2)
+  const acceptance = fs.readFileSync(path.join(root, 'learning/agent-acceptance/index.wxss'), 'utf8')
+  assert.match(acceptance, /@media \(min-width: 450px\) \{\s*page \{ --lg-col: 100vw; \}/)
+  assert.match(acceptance, /\.agent-page \.agent-composer-bar \{ width: 100%; max-width: 760px;/)
+})
+
 test('iPad can rotate: app.json enables resizable', () => {
   assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8')).resizable, true)
 })

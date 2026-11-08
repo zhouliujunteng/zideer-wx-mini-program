@@ -23,7 +23,8 @@
   <scroll-view class="course-display-scroll" scroll-y refresher-enabled="{{!!course}}" refresher-triggered="{{refreshing}}" refresher-default-style="white" refresher-background="#FAFAFA" bindrefresherrefresh="handlePullRefresh" style="padding-top: {{contentTop}}px;">
     <view class="course-display-shell">
       <!-- 第一次读到课程前：骨架，形状与下面的真实内容一致 -->
-      <block wx:if="{{loading}}">
+      <view wx:if="{{loading}}" class="course-detail-layout">
+        <view class="course-detail-aside">
         <view class="course-overview-card">
           <view class="course-cover-thumb sk"></view>
           <view class="course-overview-copy">
@@ -33,6 +34,8 @@
             <view class="course-mini-progress"><view class="sk sk-line sk-mid"></view><view class="sk cd-sk-track"></view></view>
           </view>
         </view>
+        </view>
+        <view class="course-detail-main">
         <view class="course-review-section">
           <view class="course-section-head"><text class="course-section-title">复述验收</text></view>
           <view class="course-review-card">
@@ -53,7 +56,8 @@
             </view>
           </view>
         </view>
-      </block>
+        </view>
+      </view>
 
       <view class="state-panel" wx:elif="{{errorMessage && !course}}">
         <view class="state-panel__mark">!</view>
@@ -63,7 +67,8 @@
         <button class="secondary-action pressable" bindtap="openMyCourses">去「我的课程」看看</button>
       </view>
 
-      <block wx:elif="{{course}}">
+      <view wx:elif="{{course}}" class="course-detail-layout">
+        <view class="course-detail-aside">
         <view class="course-overview-card">
           <image wx:if="{{coverUrl}}" class="course-cover-thumb" src="{{coverUrl}}" mode="aspectFill"></image>
           <view wx:else class="course-cover-thumb" aria-label="课程封面占位"></view>
@@ -85,7 +90,9 @@
             </view>
           </view>
         </view>
+        </view>
 
+        <view class="course-detail-main">
         <!-- 系列课按顺序学（2026-10-15 用户规则）：上一节还没学完进复述验收，这一节锁着，点一下去学上一节 -->
         <view wx:if="{{detail.lock}}" class="course-review-section">
           <view class="course-review-card is-available" bindtap="openPrevious" role="button" aria-label="{{detail.lock.title}}，去学上一节">
@@ -188,7 +195,8 @@
         </view>
 
         <text class="course-stale" wx:if="{{errorMessage}}">{{errorMessage}}</text>
-      </block>
+        </view>
+      </view>
     </view>
   </scroll-view>
 

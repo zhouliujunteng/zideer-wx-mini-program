@@ -158,4 +158,23 @@ page { background: #FAFAFA; }
   .course-bottom-bar { padding-right: 24rpx; padding-left: 24rpx; }
 }
 
+/* 平板（2026-11-08 用户反馈「课程详情跟平板屏幕适配」）：默认大屏模式把页面收进 450px 居中栏，平板上只占中间一条、两边空着。
+   这一页放宽到和四个 tab 页同一栏宽（1040px），窗口够宽（≥ 700px，平板竖屏起）时排成两栏：
+   左边课程卡（封面、标题、进度）停在顶上，右边复述验收、课后作业、课程内容。
+   下面的选择器都带上 .course-detail-layout：文件末尾生成的大屏样式会重写同名规则，要比它更具体才盖得住。 */
+@media (min-width: 450px) {
+  page { --lg-col: 1040px; }
+  .course-bottom-inner .course-primary-button { flex: 0 0 auto; width: 360px; max-width: 100%; }
+}
+@media (min-width: 700px) {
+  .course-display-shell { padding-right: 24px; padding-left: 24px; }
+  .course-detail-layout { display: flex; align-items: flex-start; }
+  .course-detail-layout .course-detail-aside { position: sticky; top: 0; flex: 0 0 40%; min-width: 0; max-width: 400px; margin-right: 24px; }
+  .course-detail-layout .course-detail-main { flex: 1; min-width: 0; }
+  /* 右栏第一块与左边课程卡顶端对齐 */
+  .course-detail-layout .course-detail-main > .course-review-section:first-child { margin-top: 12px; }
+  /* 封面按栏宽等比（332:210，与「我的课程」卡片同一裁法）；不认 aspect-ratio 的旧版微信至少留 150px 高，占位块不会塌成 0 */
+  .course-detail-layout .course-cover-thumb { height: auto; min-height: 150px; aspect-ratio: 332 / 210; }
+}
+
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */
