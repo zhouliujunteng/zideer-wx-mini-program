@@ -1,0 +1,43 @@
+<view class="sh-page">
+  <view class="sh-topbar">
+    <view class="sh-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="sh-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="sh-back-icon"></view></view>
+      <text class="sh-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">提分记录</text>
+    </view>
+  </view>
+
+  <view class="sh-content" style="padding-top: {{contentTop}}px;">
+    <view wx:if="{{loadState === 'loading'}}">
+      <view wx:for="{{[1, 2, 3, 4]}}" wx:key="*this" class="sh-item">
+        <view class="sk sk-line sk-short"></view>
+        <view class="sk sk-line"></view>
+        <view class="sk sk-line sk-mid"></view>
+      </view>
+    </view>
+
+    <view wx:elif="{{loadState === 'failed'}}" class="sh-state">
+      <text class="sh-state-title">记录暂时读不到</text>
+      <text class="sh-state-copy">{{loadError}}</text>
+      <view class="sh-state-action" bindtap="retry" aria-role="button">重新加载</view>
+    </view>
+
+    <view wx:elif="{{!runs.length}}" class="sh-state">
+      <text class="sh-state-title">还没有提分记录</text>
+      <text class="sh-state-copy">在首页用「审题拆解」「错因诊断」分析过的题，会保存在这里。</text>
+    </view>
+
+    <block wx:else>
+      <view wx:for="{{runs}}" wx:key="id" class="sh-item" data-id="{{item.id}}" bindtap="openRun" bindlongpress="askDelete" aria-role="button">
+        <view class="sh-item-head">
+          <text class="sh-tool">{{item.toolLabel}}</text>
+          <text wx:if="{{item.statusText}}" class="sh-status sh-status-{{item.status}}">{{item.statusText}}</text>
+          <text wx:if="{{item.creditsText}}" class="sh-credits">{{item.creditsText}}</text>
+          <text class="sh-time">{{item.time}}</text>
+        </view>
+        <text class="sh-stem">{{item.stem}}</text>
+      </view>
+      <text class="sh-footnote">长按一条记录可以删除</text>
+    </block>
+  </view>
+</view>
+<dev-reset-fab />

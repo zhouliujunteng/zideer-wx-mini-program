@@ -1,0 +1,55 @@
+<!-- 目标导图：目标 → 大条件 → 知识点 → 前置知识点。卡片、曲线都是 view，排版见 utils/goal-map.js -->
+<view class="gm-map-card">
+  <view class="gm-map-head">
+    <text class="gm-map-title">目标导图</text>
+    <view class="gm-zoom">
+      <view class="gm-zoom-btn" bindtap="zoomOut" aria-role="button" aria-label="缩小">－</view>
+      <text class="gm-zoom-text">{{zoomText}}</text>
+      <view class="gm-zoom-btn" bindtap="zoomIn" aria-role="button" aria-label="放大">＋</view>
+    </view>
+  </view>
+  <movable-area class="gm-map-box" scale-area style="height: {{height}}px;">
+    <movable-view wx:if="{{map && map.width}}" class="gm-map-view" direction="all" scale scale-min="{{0.4}}" scale-max="{{2}}" scale-value="{{scaleValue}}" bindscale="handleScale" style="width: {{map.width}}px; height: {{map.height}}px;">
+      <view wx:for="{{map.lines}}" wx:key="id" class="gm-arc gm-arc-{{item.type}} {{item.hot ? 'is-hot' : ''}}" style="left: {{item.x}}px; top: {{item.y}}px; width: {{item.width}}px; height: {{item.height}}px;"></view>
+      <view wx:for="{{map.cards}}" wx:key="id" class="gm-card gm-card-{{item.kind}} tone-{{item.tone}} {{item.current ? 'is-current' : ''}} {{item.alias ? 'is-alias' : ''}}" style="left: {{item.x}}px; top: {{item.y}}px; width: {{item.width}}px; height: {{item.height}}px;" data-id="{{item.id}}" bindtap="openCard" aria-role="button" aria-label="{{item.label}}，{{item.statusText}}">
+        <text class="gm-card-text">{{item.text}}</text>
+        <view class="gm-card-meta"><view class="gm-card-dot"></view><text>{{item.statusText}}</text><text wx:if="{{item.courseCount}}" class="gm-card-courses"> · {{item.courseCount}} 节课</text></view>
+      </view>
+    </movable-view>
+  </movable-area>
+  <view class="gm-legend">
+    <view class="gm-legend-item tone-mastered"><view class="gm-card-dot"></view><text>已掌握</text></view>
+    <view class="gm-legend-item tone-shaky"><view class="gm-card-dot"></view><text>需巩固</text></view>
+    <view class="gm-legend-item tone-gap"><view class="gm-card-dot"></view><text>卡点</text></view>
+    <view class="gm-legend-item tone-root"><view class="gm-card-dot"></view><text>根源卡点</text></view>
+    <view class="gm-legend-item tone-pending"><view class="gm-card-dot"></view><text>待测</text></view>
+  </view>
+  <text class="gm-map-tip">{{sample ? '这是示例导图' : '双指缩放 · 拖动查看 · 点卡片看说明和课程'}}</text>
+</view>
+
+<view wx:if="{{detail}}" class="gm-sheet-mask" bindtap="closeDetail">
+  <view class="gm-sheet" catchtap="noop">
+    <view class="gm-sheet-handle"></view>
+    <view class="gm-sheet-head">
+      <text class="gm-sheet-title">{{detail.label}}</text>
+      <view class="gm-sheet-chip tone-{{detail.tone}}"><view class="gm-card-dot"></view><text>{{detail.statusText}}</text></view>
+    </view>
+    <text wx:if="{{detail.gradeLabel}}" class="gm-sheet-meta">{{detail.gradeLabel}}的知识点</text>
+    <text wx:if="{{detail.note}}" class="gm-sheet-note">{{detail.note}}</text>
+    <text wx:if="{{detail.tone === 'root'}}" class="gm-sheet-note">往前检查到这里就到底了，问题出在这个知识点本身，先从它补起。</text>
+    <text wx:elif="{{detail.tone === 'gap'}}" class="gm-sheet-note">这里答错或不会，已经往前检查了它需要的基础，看它右边的分支。</text>
+    <text wx:elif="{{detail.tone === 'shaky'}}" class="gm-sheet-note">对了一部分，还不太稳，练一练就能巩固。</text>
+    <text wx:elif="{{detail.tone === 'untested'}}" class="gm-sheet-note">这个知识点这次没有合适的题，下次再测。</text>
+    <text wx:if="{{detail.alias}}" class="gm-sheet-note">这个知识点在导图别处已经测过，这里和那边结果一样。</text>
+    <view wx:if="{{detail.courses.length}}" class="gm-sheet-courses">
+      <text class="gm-sheet-meta">补这个知识点的定制课程</text>
+      <view wx:for="{{detail.courses}}" wx:key="stageId" class="gm-course-row" data-stage="{{item.stageId}}" data-state="{{item.state}}" bindtap="openCourse" aria-role="button" aria-label="{{item.title}}">
+        <view class="gm-course-icon" aria-hidden="true"></view>
+        <text class="gm-course-title">{{item.title}}</text>
+        <text class="gm-course-go">{{item.stateText || '查看课程'}}</text>
+      </view>
+    </view>
+    <text wx:elif="{{detail.tone === 'gap' || detail.tone === 'root' || detail.tone === 'shaky'}}" class="gm-sheet-meta gm-sheet-wait">老师定制课程后，补这个知识点的课会出现在这里。</text>
+    <view class="gm-ghost-btn" bindtap="closeDetail" aria-role="button">知道了</view>
+  </view>
+</view>

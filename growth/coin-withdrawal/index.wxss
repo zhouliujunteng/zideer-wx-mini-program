@@ -1,1 +1,3 @@
+@import "../../styles/account-form.wxss";
 
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

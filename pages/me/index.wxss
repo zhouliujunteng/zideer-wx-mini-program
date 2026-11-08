@@ -1,3 +1,4 @@
+@import "../../styles/skeleton.wxss";
 page { background: #FAFAFA; }
 
 .me-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332d; }
@@ -86,19 +87,14 @@ page { background: #FAFAFA; }
 .service-item-title, .service-item-description { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .service-item-title { color: #24332d; font-size: 26rpx; font-weight: 600; line-height: 1.3; }
 .service-item-description { margin-top: 14rpx; color: #adb5af; font-size: 21rpx; line-height: 1.2; }
+/* 标题后的小标签（如「推广伙伴」后的「邀请码」）：浅橙底橙字，与头像下的学校标签同色 */
+.service-item-title-row { display: flex; align-items: center; min-width: 0; }
+.service-item-title-row .service-item-title { flex: 0 1 auto; min-width: 0; }
+.service-item-tag { flex: none; height: 30rpx; margin-left: 12rpx; padding: 0 12rpx; box-sizing: border-box; border-radius: 999rpx; background: rgba(253, 124, 2, 0.10); color: #FD7C02; font-size: 18rpx; font-weight: 500; line-height: 30rpx; }
 .menu-item { min-height: 132rpx; padding-right: 32rpx; padding-left: 32rpx; }
 .menu-item { position: relative; border-bottom: 0; }
 .menu-item:not(:last-child)::after { position: absolute; right: 28rpx; bottom: 0; left: 28rpx; border-bottom: 1rpx solid #f0f1ed; content: ''; }
 .menu-item:last-child { border: 0; }
-.enterprise-service-card { display: flex; align-items: center; min-height: 140rpx; margin-bottom: 24rpx; padding: 26rpx 30rpx 26rpx 28rpx; box-sizing: border-box; border-radius: 40rpx; background: #fff; }
-.enterprise-service-avatar { flex: 0 0 auto; width: 72rpx; height: 72rpx; border-radius: 50%; background: #eef1ee; }
-.enterprise-service-copy { min-width: 0; flex: 1; margin-left: 22rpx; }
-.enterprise-service-title { display: block; overflow: hidden; color: #24332d; font-size: 26rpx; font-weight: 600; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
-.enterprise-service-description { display: block; margin-top: 12rpx; overflow: hidden; color: #adb5af; font-size: 21rpx; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
-.enterprise-service-action { display: flex; flex: 0 0 auto; align-items: center; min-height: 42rpx; margin-left: 20rpx; }
-.enterprise-service-hours { display: inline-flex; align-items: center; justify-content: center; min-width: 112rpx; height: 32rpx; padding: 0 13rpx; box-sizing: border-box; border-radius: 999rpx; background: rgba(253, 124, 2, 0.10); color: #FD7C02; font-size: 18rpx; line-height: 32rpx; white-space: nowrap; }
-.enterprise-service-go { display: flex; align-items: center; justify-content: center; width: 42rpx; height: 42rpx; margin-left: 12rpx; color: #87928a; font-size: 22rpx; line-height: 1; }
-.enterprise-service-go .menu-arrow { display: block; line-height: 42rpx; transform: translateY(-1rpx); }
 .developer-previews { overflow: hidden; margin: 48rpx 0 14rpx; border-top: 1rpx solid #eef0ed; border-bottom: 1rpx solid #eef0ed; }
 .developer-entry { position: relative; display: flex; align-items: center; min-height: 74rpx; padding: 0 8rpx; }
 .developer-entry:not(:last-child)::after { position: absolute; right: 8rpx; bottom: 0; left: 8rpx; border-bottom: 1rpx solid #f0f1ee; content: ''; }
@@ -136,6 +132,8 @@ page { background: #FAFAFA; }
 .profile-id-row { margin-top: 20rpx; }
 .profile-id-label, .profile-id { color: #8A958D; }
 .profile-id { flex: 0 0 auto; max-width: calc(100% - 96rpx); }
+/* 未登录、没完善学习资料的一行提示（2026-09-27）：主题橙，点资料区去登录 / 去完善 */
+.profile-access-hint { color: #FD7C02; font-size: 23rpx; line-height: 1.2; text-align: center; }
 .profile-action { position: absolute; top: 50%; margin-left: 0; background: rgba(255, 255, 255, .72); transform: translateY(-50%); }
 .profile-edit-action, .profile-copy-action { right: 0; }
 .profile-copy-action { position: relative; top: auto; right: auto; width: 28rpx; height: 28rpx; margin-left: 12rpx; background: transparent; transform: none; }
@@ -146,8 +144,10 @@ page { background: #FAFAFA; }
 .page-shell { position: relative; min-height: 100%; padding-top: 0; padding-bottom: 0; background: #FAFAFA; }
 /* 淡橙色资料层随内容滚动；根层另有仅限顶部的回弹底色，页面底部始终由灰白色承接。 */
 .me-profile-ambient { position: absolute; z-index: 0; top: 0; right: 0; left: 0; height: 720rpx; background: #FFF1E6; pointer-events: none; }
-/* 回弹由四边钉死的原生滚动容器承接；此处只保留内容与安全区所需的正常尾部留白。 */
-.me-content-panel { position: relative; z-index: 1; margin: -88rpx -36rpx 0; padding: 112rpx 36rpx calc(80rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 0; background: #FAFAFA; }
+/* 回弹由四边钉死的原生滚动容器承接；此处只保留内容与安全区所需的正常尾部留白。
+   自定义底栏（custom-tab-bar，高 49px + 底部安全区）盖在页面上，尾部留白要把它算进去；
+   另留的 42rpx 与版本号上方的 .me-version-row margin-top 相同，滚到底时版本号离上面的卡片和底栏一样远。 */
+.me-content-panel { position: relative; z-index: 1; margin: -88rpx -36rpx 0; padding: 112rpx 36rpx calc(49px + 42rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 0; background: #FAFAFA; }
 .me-content-panel-corner {
   position: absolute;
   z-index: 1;
@@ -179,12 +179,95 @@ page { background: #FAFAFA; }
 .membership-ring { position: absolute; z-index: 1; box-sizing: border-box; border: 2rpx solid rgba(226, 174, 45, .54); border-radius: 50%; }
 .membership-ring-back { right: 28rpx; bottom: 18rpx; width: 150rpx; height: 42rpx; transform: rotate(-13deg); }
 .membership-ring-front { right: 70rpx; bottom: 4rpx; width: 118rpx; height: 32rpx; transform: rotate(10deg); }
+/* 尚未付费开通任何会员：灰色卡片与灰色皇冠，开通后才显示金色「知鹿会员」。 */
+.membership-card-plain { background: linear-gradient(105deg, #fff 0%, #fff 38%, #F3F4F5 62%, #E1E3E6 100%); }
+.membership-card-plain .membership-title { color: #3B3E42; }
+.membership-card-plain .membership-subtitle { color: #8C9096; }
+.membership-card-plain .membership-ring { border-color: rgba(150, 154, 160, .5); }
 .wallet-module { position: relative; display: flex; align-items: center; min-height: 116rpx; padding: 18rpx; box-sizing: border-box; overflow: visible; }
 .wallet-module-illustration { position: relative; top: auto; left: auto; z-index: 1; flex: 0 0 auto; width: 96rpx; height: 96rpx; filter: drop-shadow(0 3rpx 4rpx rgba(36, 51, 45, .12)); transform: translate(-6rpx, 0); }
 .wallet-module-copy { position: relative; z-index: 2; min-width: 0; margin-left: 18rpx; }
-.wallet-module-copy { flex: 1; }
+.wallet-module-copy { flex: 1; overflow: hidden; }
 .wallet-module-go { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 26rpx; height: 32rpx; margin-left: 6rpx; }
 .wallet-module-chevron { width: 12rpx; height: 12rpx; border-top: 3rpx solid #C3CAC4; border-right: 3rpx solid #C3CAC4; transform: rotate(45deg); }
 .wallet-label { display: block; overflow: hidden; color: #6F7D74; font-size: 23rpx; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
-.wallet-value { display: block; margin-top: 8rpx; color: #24332D; font-size: 36rpx; font-weight: 700; line-height: 1.05; }
+/* 积分、金币数字：位数多时由 index.js 的 fitWalletValues 按卡内可用宽度缩小字号（行内 font-size，px）。
+   inline-block + 不换行才能量到文字本身的宽度；行高固定，字号变小时卡片高度不变。 */
+.wallet-value { display: inline-block; max-width: none; height: 38rpx; margin-top: 8rpx; color: #24332D; font-size: 36rpx; font-weight: 700; line-height: 38rpx; white-space: nowrap; vertical-align: top; }
 .menu { border-radius: 40rpx; }
+
+/* 页面最底部的小程序版本号：浅主题色胶囊、主题色文字（同 .service-item-tag）；上方间距与 .me-content-panel 底部另留的 42rpx 相同 */
+.me-version-row { display: flex; justify-content: center; margin-top: 42rpx; }
+.me-version { height: 44rpx; padding: 0 22rpx; box-sizing: border-box; border-radius: 999rpx; background: rgba(253, 124, 2, 0.10); color: #FD7C02; font-size: 22rpx; font-weight: 500; line-height: 44rpx; }
+
+/* 首次加载骨架（styles/skeleton.wxss） */
+.profile-name-skeleton { width: 220rpx; height: 40rpx; }
+.profile-id-skeleton { width: 260rpx; height: 24rpx; }
+.membership-title-skeleton { width: 160rpx; height: 32rpx; }
+.membership-subtitle-skeleton { width: 260rpx; height: 22rpx; margin-top: 14rpx; }
+.wallet-value-skeleton { width: 80rpx; height: 34rpx; margin-top: 8rpx; }
+
+/* 平板、电脑大屏（窗口宽 ≥ 450px，见 utils/screen.js）：和首页一样放宽到 1040px（LARGE_SCREEN_WIDE_COLUMN）。 */
+@media (min-width: 450px) {
+  page { --lg-col: 1040px; }
+}
+
+
+
+@media (min-width:450px) {
+.me-page::before,.me-profile-ambient,.me-content-panel-corner { display:none; }
+.page-shell { padding-left:20px; padding-right:20px; padding-bottom:80px; }
+.tablet-account-summary { position:relative; z-index:2; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; margin-top:14px; }
+.profile { margin:0; padding:18px 14px!important; border-radius:18px; min-width:0; background:#FFF1E6; flex-direction:row; align-items:center; }
+.profile-avatar-wrap,.avatar { width:48px; height:48px; }
+.avatar { border-width:2px; }
+.profile-copy { flex:1; min-width:0; width:auto; margin:0 0 0 10px; }
+.profile-name-row,.profile-id-row { justify-content:flex-start; }
+.profile-name { max-width:100%; font-size:18px; text-align:left; }
+.profile-id-row { margin-top:10px; }
+.profile-id,.profile-id-label { font-size:10px; }
+.profile-id { max-width:100%; }
+.profile-copy-action { margin-left:5px; }
+.membership-card { margin:0; padding:16px; min-height:108px; border-radius:18px; align-items:flex-start; }
+.membership-copy { padding-bottom:22px; }
+.membership-title { font-size:17px; }
+.membership-subtitle { font-size:11px; line-height:1.5; margin-top:7px; }
+.membership-art { width:70px; top:auto; bottom:0; height:50px; }
+.membership-crown { width:68px; height:46px; right:4px; top:0; }
+.membership-ring { display:none; }
+.me-content-panel { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px 14px; margin:20px 0 0; padding:0; background:transparent; }
+.wallet-grid,.tablet-streak-slot,.quick-section,.developer-previews,.me-version-row { grid-column:1/-1; margin:0; min-width:0; }
+.wallet-grid { gap:14px; }
+.wallet-module { border-radius:18px; min-height:80px; padding:12px; }
+.wallet-module-illustration { width:42px; height:42px; transform:none; }
+.wallet-module-copy { margin-left:10px; }
+.wallet-value { font-size:24px; }
+.wallet-label { font-size:12px; }
+.quick-grid { border-radius:18px; padding:16px 6px; }
+.quick-item { min-height:64px; }
+.quick-item-icon-wrap { width:34px; height:34px; }
+.quick-item-icon { width:25px; height:25px; }
+.quick-item-label { font-size:12px; }
+.group { grid-column:1/-1; margin:0; min-width:0; }
+.menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.menu { border-radius:18px; }
+.menu-item { min-height:74px; padding:14px; }
+.service-item-title,.service-item-description { white-space:normal; }
+.service-item-title { font-size:14px; }
+.service-item-description { font-size:11px; line-height:1.5; margin-top:5px; }
+}
+@media (min-width:680px) {
+.page-shell { display:grid; grid-template-columns:210px minmax(0,1fr); gap:24px; align-items:start; }
+.tablet-account-summary { display:flex; flex-direction:column; gap:16px; margin-top:18px; }
+.profile { padding:24px 16px!important; flex-direction:column; }
+.profile-avatar-wrap,.avatar { width:68px; height:68px; }
+.profile-copy { margin:14px 0 0; width:100%; }
+.profile-name-row,.profile-id-row { justify-content:center; }
+.profile-name { text-align:center; }
+.membership-card { min-height:140px; }
+.membership-art { width:94px; height:68px; }
+.membership-crown { width:90px; height:60px; }
+.me-content-panel { margin-top:18px; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

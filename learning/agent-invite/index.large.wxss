@@ -1,0 +1,73 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.live-session-page{height:100vh}
+.live-session-stage{width:100%;height:100%}
+.live-session-back{left:14px;border-radius:50%}
+.live-session-back-icon{width:12px;height:12px;border-bottom:2px solid #53615B;border-left:2px solid #53615B}
+.live-session-placeholder{top:calc(150px + 20px);right:21px;left:21px;flex-direction:column}
+.live-session-placeholder-avatar{width:134px;height:134px}
+.live-session-placeholder-line{width:144px;height:22px;margin-top:14px;border-radius:9px}
+.live-session-placeholder-role{width:84px;height:13px;margin-top:7px}
+.live-session-sk-heading{flex-direction:column}
+.live-session-sk-subtitle{width:132px;height:15px}
+.live-session-sk-title{width:216px;height:26px;margin-top:7px}
+.live-session-sk-info{height:52px;margin-top:21px;border-radius:12px}
+.live-session-sk-status{height:86px;margin-top:30px;border-radius:15px}
+.live-session-sk-attendee{height:62px;margin-top:9px;border-radius:15px}
+.live-session-sk-attendee-first{margin-top:33px}
+.live-session-state{top:50%;right:33px;left:33px;padding:28px 21px;box-sizing:border-box;flex-direction:column;border-radius:19px}
+.live-session-state-title{font-size:19px;font-weight:700;line-height:1.4}
+.live-session-state-copy{margin-top:9px;font-size:14px;line-height:1.6}
+.live-session-state-action{height:50px;margin-top:19px;padding:0 28px;border-radius:599px;font-size:15px;font-weight:700}
+.live-session-identity{top:calc(150px + 20px);right:21px;left:21px;flex-direction:column}
+.live-session-teacher-avatar{width:134px;height:134px;box-sizing:border-box;border:3px solid #FFFFFF;border-radius:50%}
+.live-session-teacher-name{margin-top:7px;font-size:22px;font-weight:750;line-height:1.25}
+.live-session-teacher-role{margin-top:5px;font-size:12px;line-height:1.25}
+.live-session-sheet{right:0;left:0;min-height:288px;padding:10px 21px calc(14px + env(safe-area-inset-bottom));box-sizing:border-box;flex-direction:column;border-radius:28px 28px 0 0;box-shadow:0 -6px 20px rgba(45, 61, 54, .08)}
+.live-session-sheet-drag{flex:0 0 auto}
+.live-session-sheet-body{flex:1;min-height:0}
+.live-session-sheet-handle{width:44px;height:6px;margin:0 auto 16px;border-radius:599px}
+.live-session-sheet-heading{flex-direction:column;min-width:0}
+.live-session-sheet-course-title{font-size:15px;font-weight:550;line-height:1.25}
+.live-session-sheet-title{margin-top:5px;font-size:22px;font-weight:750;line-height:1.25}
+.live-session-info-card{min-height:64px;margin-top:15px;padding:12px 0;box-sizing:border-box}
+.live-session-info-item{min-width:0;flex:1;flex-direction:column}
+.live-session-info-divider{flex:0 0 0.5px;width:0.5px;height:34px}
+.live-session-info-label{font-size:10px;line-height:1.2}
+.live-session-info-value{margin-top:5px;font-size:13px;font-weight:650;line-height:1.2}
+.live-session-status-section{margin-top:20px}
+.live-session-status-heading{font-size:16px;font-weight:650;line-height:1.2}
+.live-session-status-card{width:100%;min-height:86px;margin-top:9px;padding:14px;box-sizing:border-box;flex-direction:column;border:none;border-radius:15px}
+.live-session-status-content{margin:0;flex-direction:column}
+.live-session-status-dot{width:8px;height:8px;margin-right:4px;border-radius:50%}
+.live-session-status-label{font-size:16px;font-weight:700;line-height:1.2}
+.live-session-status-timer{margin-top:6px;font-size:20px;font-weight:750;letter-spacing:1px;line-height:1.2}
+.live-session-status-description{margin-top:6px;font-size:14px;line-height:1.2}
+.live-session-attendee-section{margin-top:33px}
+.live-session-attendee-heading{font-size:16px;font-weight:650;line-height:1.2}
+.live-session-attendee-count{margin-top:4px;font-size:11px;line-height:1.2}
+.live-session-attendee-card{min-height:62px;margin-top:9px;padding:9px 14px;box-sizing:border-box;border:none;border-radius:15px}
+.live-session-attendee-avatar{flex:0 0 43px;width:43px;height:43px;box-sizing:border-box;border:2px solid #FFFFFF;border-radius:50%}
+.live-session-attendee-name{min-width:0;margin-left:10px;font-size:15px;font-weight:650;line-height:1.2}
+.live-session-attendee-status{margin-left:auto;padding-left:10px;font-size:12px;line-height:1.2}
+.live-session-attendee-status-dot{width:6px;height:6px;margin-right:4px;border-radius:50%}
+.live-session-attendee-role{margin-left:auto;padding-left:10px;font-size:12px;line-height:1.2}
+.live-session-sheet-footer-space{height:79px}
+.live-session-primary-action{right:0;bottom:0;left:0;height:79px;padding-bottom:calc(14px + env(safe-area-inset-bottom));box-sizing:border-box}
+.live-session-primary-button{width:auto;min-width:115px;height:57px;margin:0;padding:0 36px;box-sizing:border-box;border-radius:599px;font-size:16px;font-weight:700;line-height:57px}
+.invite-actions.has-reminders{gap:9px;padding-right:19px;padding-left:19px}
+.invite-reminder-button{flex:none;height:57px;padding:0 16px;box-sizing:border-box;border:1px solid #E3E7E4;border-radius:599px;font-size:15px;font-weight:600}
+.invite-reminder-button.is-done{border-color:#FFD9B4}
+.invite-reminder-icon{flex:none;width:19px;height:19px;margin-right:4px}
+.invite-reminder-button.is-calendar{border-color:#BFD8FB}
+.invite-actions.has-reminders .live-session-primary-button{flex:1;min-width:0;padding:0 14px}
+}

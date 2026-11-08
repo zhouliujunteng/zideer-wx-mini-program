@@ -1,5 +1,10 @@
 <view class="generation-page">
-  <view class="generation-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="generation-skeleton" wx:if="{{loading}}">
+    <view class="generation-head"><view class="sk sk-line gen-sk-eyebrow"></view><view class="sk gen-sk-title"></view><view class="sk sk-line sk-short gen-sk-meta"></view></view>
+    <view class="generation-state"><view class="sk sk-round gen-sk-dot"></view><view class="sk gen-sk-state"></view><view class="sk sk-line"></view><view class="sk sk-line sk-mid"></view></view>
+    <view class="generation-info"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view>
+    <view class="generation-actions"><view class="sk gen-sk-button"></view><view class="sk gen-sk-button"></view></view>
+  </view>
   <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">课程进度暂时无法加载</text><text class="state-panel__copy">请确认网络和登录状态后重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
   <view class="state-panel" wx:elif="{{!result}}"><view class="state-panel__mark">!</view><text class="state-panel__title">未找到课程任务</text><text class="state-panel__copy">该任务可能已被重新规划，或当前身份无权查看。</text><button class="state-panel__action pressable" bindtap="goBack">返回学习页</button></view>
   <block wx:else>

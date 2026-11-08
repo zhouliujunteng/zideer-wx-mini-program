@@ -1,0 +1,124 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="promotion-page">
+  <view class="promotion-shell">
+    <view class="promotion-topbar">
+      <view class="promotion-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+        <view class="promotion-back" bindtap="handleBack" aria-label="返回我的" aria-role="button">
+          <view class="promotion-back-icon"></view>
+        </view>
+        <text class="promotion-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">推广伙伴</text>
+      </view>
+    </view>
+
+    <scroll-view class="promotion-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+      <view class="promotion-content">
+        <view class="promotion-state" wx:if="{{loadState === 'failed'}}">
+          <text class="promotion-state-title">推广伙伴暂时无法加载</text>
+          <text class="promotion-state-copy">{{loadError}}</text>
+          <view class="promotion-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+        </view>
+
+        <block wx:else>
+          <view class="promotion-balance-card" aria-label="推广奖励余额">
+            <view class="promotion-balance-card-clip">
+              <view class="promotion-balance-summary">
+                <view class="promotion-balance-metric">
+                  <text class="promotion-balance-metric-label">{{balance.availableLabel}}</text>
+                  <text wx:if="{{loadState === 'ready'}}" class="promotion-balance-metric-value">¥{{balance.availableValue}}</text>
+                  <view wx:else class="sk promotion-sk-amount"></view>
+                </view>
+                <view class="promotion-balance-metric promotion-balance-metric-today">
+                  <text class="promotion-balance-metric-label">{{balance.lockedLabel}}</text>
+                  <text wx:if="{{loadState === 'ready'}}" class="promotion-balance-metric-value">¥{{balance.lockedValue}}</text>
+                  <view wx:else class="sk promotion-sk-amount"></view>
+                  <view class="promotion-balance-metric-hint">
+                    <text wx:for="{{balance.lockedHintLines}}" wx:key="*this" class="promotion-balance-metric-hint-line">{{item}}</text>
+                  </view>
+                </view>
+              </view>
+
+              <view class="promotion-balance-actions" aria-label="推广入口">
+                <view class="promotion-balance-action" data-url="/agent/settlement/index" bindtap="navigate" aria-role="button">
+                  <text>结算中心</text>
+                </view>
+                <view class="promotion-balance-action-divider" aria-hidden="true"></view>
+                <view class="promotion-balance-action" data-url="/agent/my-promotion/index" bindtap="navigate" aria-role="button">
+                  <text>我的推广</text>
+                </view>
+                <view class="promotion-balance-action-divider" aria-hidden="true"></view>
+                <view class="promotion-balance-action" data-url="/agent/share-tools/index" bindtap="navigate" aria-role="button">
+                  <text>我的邀请码</text>
+                </view>
+              </view>
+            </view>
+
+            <view class="promotion-megaphone-clip" aria-hidden="true">
+              <image class="promotion-megaphone-art" src="{{UA.src(ui, '/assets/promotion/megaphone-hand.png')}}" mode="aspectFit"></image>
+            </view>
+          </view>
+
+          <view wx:if="{{loadState === 'ready' && statusNotice.visible}}" class="promotion-status-notice promotion-status-notice-{{statusNotice.tone}}" bindtap="handleStatusNotice" aria-role="button">
+            <view class="promotion-status-notice-icon" aria-hidden="true">!</view>
+            <view class="promotion-status-notice-copy">
+              <text class="promotion-status-notice-title">{{statusNotice.title}}</text>
+              <text class="promotion-status-notice-detail">{{statusNotice.copy}}</text>
+            </view>
+            <view class="promotion-status-notice-arrow" aria-hidden="true"></view>
+          </view>
+
+          <!-- AI 生成专属海报入口（设计仓库 847c572）：整幅圆角 banner，进 AI 海报生成页 -->
+          <view class="promotion-ai-poster-banner" data-url="/agent/ai-poster/index" bindtap="navigate" aria-role="button" aria-label="快来试试AI生成海报">
+            <image class="promotion-ai-poster-banner-image" src="{{UA.src(ui, '/assets/promotion/ai-banner.jpg')}}" mode="aspectFill" aria-hidden="true"></image>
+          </view>
+
+          <view class="promotion-poster-section">
+            <view class="promotion-section-heading promotion-poster-heading">
+              <text class="promotion-section-title">推广海报</text>
+            </view>
+
+            <!-- 首次读到海报前：两列海报卡骨架，不先闪「暂无已发布海报」 -->
+            <view wx:if="{{loadState !== 'ready'}}" class="promotion-poster-grid" aria-label="正在读取推广海报">
+              <view class="promotion-poster-column">
+                <view class="sk promotion-poster-media-ratio-3-4"></view>
+                <view class="sk sk-line promotion-sk-title"></view>
+                <view class="sk promotion-poster-media-ratio-1-1"></view>
+                <view class="sk sk-line promotion-sk-title"></view>
+              </view>
+              <view class="promotion-poster-column">
+                <view class="sk promotion-poster-media-ratio-9-16"></view>
+                <view class="sk sk-line promotion-sk-title"></view>
+              </view>
+            </view>
+
+            <view wx:elif="{{posterState !== 'ready'}}" class="promotion-poster-empty">
+              <text class="promotion-poster-empty-title">{{posterEmptyTitle}}</text>
+              <text class="promotion-poster-empty-copy">{{posterEmptyCopy}}</text>
+            </view>
+
+            <view wx:else class="promotion-poster-grid">
+              <view wx:for="{{posterColumns}}" wx:for-item="column" wx:for-index="columnIndex" wx:key="columnIndex" class="promotion-poster-column">
+                <view wx:for="{{column}}" wx:for-item="item" wx:for-index="itemIndex" wx:key="id" class="promotion-poster-card" bindtap="handlePosterTap" data-id="{{item.id}}" aria-role="button">
+                  <view class="promotion-poster-media promotion-poster-media-{{item.ratioClass}}">
+                    <image wx:if="{{item.coverSrc}}" class="promotion-poster-image" src="{{item.coverSrc}}" mode="aspectFill" aria-label="{{item.label}}" data-column="{{columnIndex}}" data-index="{{itemIndex}}" bindload="handlePosterLoad"></image>
+                    <view wx:else class="promotion-poster-placeholder" aria-hidden="true"></view>
+                  </view>
+                  <view class="promotion-poster-card-body">
+                    <view class="promotion-poster-info-row">
+                      <view class="promotion-poster-copy">
+                        <text class="promotion-poster-title">{{item.label}}</text>
+                      </view>
+                      <view class="promotion-poster-go" aria-hidden="true">
+                        <view class="promotion-poster-forward-icon"></view>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+<dev-reset-fab />

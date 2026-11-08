@@ -1,27 +1,72 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="login-page">
-  <view class="login-brand">
-    <view class="brand-mark">知</view>
-    <text class="brand-name">知鹿私课</text>
+  <image class="login-background" src="{{UA.src(ui, '/assets/login/login-split.svg')}}" mode="scaleToFill" aria-hidden="true"></image>
+
+  <view wx:if="{{canGoBack}}" class="login-back-button" style="top: {{backButtonTop}}px; width: {{backButtonSize}}px; height: {{backButtonSize}}px;" bindtap="goBack" aria-label="返回" aria-role="button">
+    <view class="login-back-arrow" aria-hidden="true"></view>
   </view>
 
-  <view class="login-content">
-    <text class="login-title">开始你的专属学习</text>
-    <text class="login-copy">授权手机号并完成账号验证后，即可同步你的课程与学习记录。</text>
+  <view class="login-brand-wrap" aria-label="知鹿学习">
+    <image class="login-brand-logo" src="{{UA.src(ui, '/assets/home/brand-logo.png')}}" mode="aspectFit"></image>
   </view>
 
-  <view class="login-footer" wx:if="{{!checkingSession}}">
+  <view class="login-actions">
     <text class="login-error" wx:if="{{errorMessage}}">{{errorMessage}}</text>
+    <button wx:if="{{checkingSession}}" class="login-button" disabled>正在确认登录状态</button>
     <button
-      class="phone-button"
+      wx:elif="{{hasAgreed}}"
+      class="login-button"
       open-type="getPhoneNumber"
       bindgetphonenumber="handlePhoneLogin"
       loading="{{authorizing}}"
       disabled="{{authorizing}}"
-    >{{authorizing ? '正在验证手机号…' : '授权手机号并登录'}}</button>
-    <text class="login-notice">手机号用于账号验证与联系。授权取消或绑定失败时，不会进入已登录状态。</text>
-    <text class="privacy-link" bindtap="openPrivacyContract">查看隐私保护指引</text>
+    >{{authorizing ? '正在验证手机号…' : '手机号一键登录'}}</button>
+    <button wx:else class="login-button" bindtap="requestAgreement">手机号一键登录</button>
+    <view class="agreement-row" bindtap="toggleAgreement" aria-role="checkbox" aria-checked="{{hasAgreed}}">
+      <view class="agreement-checkbox {{hasAgreed ? 'is-checked' : ''}}">
+        <text wx:if="{{hasAgreed}}">✓</text>
+      </view>
+      <text class="agreement-copy">阅读并同意</text>
+      <text class="agreement-link" catchtap="openUserAgreement">《知鹿用户协议》</text>
+      <text class="agreement-copy">和</text>
+      <text class="agreement-link" catchtap="openPrivacyContract">《隐私保护指引》</text>
+    </view>
+    <!-- 未登录也能浏览（2026-09-27）：没有返回键时给一个不登录进首页的入口 -->
+    <view wx:if="{{!canGoBack}}" class="login-browse" bindtap="browseAsGuest" aria-role="button">先随便看看</view>
   </view>
 
-  <view class="checking-copy" wx:else>正在确认登录状态</view>
+  <!-- 未勾选协议时点登录：弹窗里的「同意并继续」本身就是手机号授权按钮，同意后一步进入授权，不用再点一次 -->
+  <view wx:if="{{agreementPromptVisible}}" class="agreement-modal-mask" catchtap="closeAgreementPrompt">
+    <view class="agreement-modal agreement-prompt" catchtap="noop">
+      <text class="agreement-prompt-title">请阅读并同意协议</text>
+      <view class="agreement-prompt-copy">
+        <text>继续登录即表示你已阅读并同意</text>
+        <text class="agreement-link" catchtap="openUserAgreement">《知鹿用户协议》</text>
+        <text>和</text>
+        <text class="agreement-link" catchtap="openPrivacyContract">《隐私保护指引》</text>
+      </view>
+      <view class="agreement-prompt-actions">
+        <button class="agreement-prompt-button is-cancel" bindtap="closeAgreementPrompt">暂不</button>
+        <button class="agreement-prompt-button is-confirm" open-type="getPhoneNumber" bindgetphonenumber="handleAgreedPhoneLogin">同意并继续</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{userAgreement}}" class="agreement-modal-mask is-document" catchtap="closeUserAgreement">
+    <view class="agreement-modal" catchtap="noop">
+      <view class="agreement-modal-header">
+        <text class="agreement-modal-title">{{userAgreement.title}}</text>
+        <view class="agreement-modal-close" bindtap="closeUserAgreement" aria-role="button" aria-label="关闭">×</view>
+      </view>
+      <scroll-view class="agreement-modal-content" scroll-y>
+        <text class="agreement-modal-meta">{{userAgreement.meta}}</text>
+        <view wx:for="{{userAgreement.sections}}" wx:for-item="section" wx:key="id" class="agreement-modal-section">
+          <text wx:if="{{section.heading}}" class="agreement-modal-heading">{{section.heading}}</text>
+          <text wx:for="{{section.paragraphs}}" wx:key="*this" class="agreement-modal-paragraph">{{item}}</text>
+        </view>
+      </scroll-view>
+      <view class="agreement-modal-confirm" bindtap="closeUserAgreement" aria-role="button">我知道了</view>
+    </view>
+  </view>
 </view>
 <dev-reset-fab />

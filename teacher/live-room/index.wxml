@@ -1,0 +1,211 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 照学生的诊断室（pages/diagnosis-room 会议模式）画：同一个顶栏、底色、气泡、语音条和输入框，
+     老师看到的就是学生屏幕上的样子；多出来的只有名字旁的「我发的 / AI 代答」和真实的已读。 -->
+<view class="agent-page">
+  <view class="agent-ambient" aria-hidden="true"></view>
+  <view class="agent-topbar">
+    <view class="agent-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="agent-back-button" bindtap="handleBack" aria-role="button" aria-label="返回">
+        <view class="agent-back-icon" aria-hidden="true"></view>
+      </view>
+      <view class="room-topbar-heading" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
+        <text class="room-topbar-title">{{room.title}}</text>
+        <text wx:if="{{loadState === 'ready'}}" class="room-topbar-summary">{{summary}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 目标导图（2026-10-10）：学生按目标测评测出的卡点、补习顺序和已经做过的课，老师陪跑时随手看 -->
+  <view wx:if="{{goalMapEntry}}" class="room-goal-entry" style="top: {{contentTop + 8}}px;" bindtap="openGoalMap" aria-role="button" aria-label="看学生的目标导图">
+    <view class="room-goal-ring" aria-hidden="true"><view class="room-goal-dot"></view></view>
+    <text>目标导图</text>
+  </view>
+
+  <!-- 第一次读到会议记录前：几条对话气泡画骨架 -->
+  <view wx:if="{{loadState === 'loading'}}" class="room-skeleton" style="padding-top: {{contentTop}}px;" aria-hidden="true">
+    <view class="sk room-skeleton-bubble is-teacher"></view>
+    <view class="sk room-skeleton-bubble is-student"></view>
+    <view class="sk room-skeleton-bubble is-teacher is-short"></view>
+  </view>
+
+  <view wx:elif="{{loadState === 'blocked'}}" class="live-room-standby room-blocked" style="padding-top: {{contentTop + 48}}px;">
+    <text class="live-room-standby-title">{{stateTitle}}</text>
+    <text class="room-state-copy">{{stateCopy}}</text>
+  </view>
+
+  <block wx:else>
+    <!-- 只在老师停在最新处时跟着新消息滚；翻上去看前面的对话时不动位置（scroll-top 的用法见 index.js） -->
+    <scroll-view
+      id="room-list"
+      class="diagnosis-room-scroll"
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+      scroll-top="{{scrollTop}}"
+      scroll-with-animation
+      bindscroll="handleListScroll"
+      bindtouchstart="handleListTouchStart"
+      bindtouchend="handleListTouchEnd"
+      bindtouchcancel="handleListTouchEnd"
+      style="padding-top: {{contentTop}}px; padding-bottom: {{listBottomPadding}}px;"
+    >
+      <view class="diagnosis-room-shell">
+        <!-- 还没人说话：和学生等老师上线时同一张卡片 -->
+        <view wx:if="{{!messages.length && room.phase !== 'closed'}}" class="live-room-standby" aria-live="polite">
+          <image wx:if="{{room.teacherAvatarUrl}}" class="live-room-standby-avatar" src="{{room.teacherAvatarUrl}}" mode="aspectFill" aria-label="{{room.teacherName}}头像"></image>
+          <view wx:else class="live-room-standby-avatar" aria-hidden="true"></view>
+          <text class="live-room-standby-title">{{room.standbyTitle}}</text>
+          <text class="live-room-standby-hint">{{room.standbyHint}}</text>
+        </view>
+
+        <view wx:if="{{messages.length}}" class="agent-message agent-message-activity">
+          <view class="agent-activity-notice"><text>{{room.onlineNotice}}</text></view>
+        </view>
+
+        <view wx:for="{{messages}}" wx:key="id" class="agent-message {{item.side === 'left' ? 'agent-message-assistant is-live-stacked' : 'agent-message-user'}}">
+          <!-- 老师方向：小头像 + 名字，名字旁标出这句是谁发的（学生那边没有这个标签） -->
+          <view wx:if="{{item.side === 'left'}}" class="live-msg-sender">
+            <image wx:if="{{room.teacherAvatarUrl}}" class="live-msg-avatar" src="{{room.teacherAvatarUrl}}" mode="aspectFill" aria-hidden="true"></image>
+            <view wx:else class="live-msg-avatar live-msg-avatar-placeholder" aria-hidden="true"></view>
+            <text class="live-msg-name">{{room.teacherName}}</text>
+            <text class="room-sender-tag is-{{item.tone}}">{{item.tag}}</text>
+          </view>
+
+          <view wx:if="{{item.kind === 'voice'}}" class="agent-voice-row">
+            <view class="agent-voice-line">
+              <view class="agent-activity-voice {{item.playing ? 'is-playing' : ''}}" data-id="{{item.id}}" bindtap="handleVoicePlay" aria-role="button" aria-label="课前语音{{item.durationText ? '，' + item.durationText : ''}}{{item.playing ? '，正在播放' : ''}}">
+                <view class="agent-activity-voice-wave" aria-hidden="true">
+                  <view class="agent-activity-voice-bar"></view>
+                  <view class="agent-activity-voice-bar"></view>
+                  <view class="agent-activity-voice-bar"></view>
+                </view>
+                <text wx:if="{{item.durationText}}" class="agent-activity-voice-duration">{{item.durationText}}</text>
+              </view>
+            </view>
+            <view class="live-msg-meta">
+              <text class="live-msg-time">{{item.timeLabel}}</text>
+              <text class="live-msg-read {{item.read ? '' : 'is-unread'}}">{{item.readLabel}}</text>
+            </view>
+          </view>
+
+          <view wx:elif="{{item.kind === 'plan'}}" class="agent-message-column">
+            <view class="agent-activity-plan" aria-label="{{item.label}}：{{item.title}}，{{item.countText}}">
+              <view class="agent-activity-plan-head">
+                <text class="agent-activity-plan-label">{{item.label}}</text>
+                <text class="agent-activity-plan-count">{{item.countText}}</text>
+              </view>
+              <text class="agent-activity-plan-title">{{item.title}}</text>
+              <text wx:if="{{item.summary}}" class="agent-activity-plan-findings">{{item.summary}}</text>
+              <view wx:for="{{item.lessons}}" wx:for-item="lesson" wx:key="key" class="agent-activity-plan-lesson">
+                <view class="agent-activity-plan-lesson-head">
+                  <text class="agent-activity-plan-number">{{lesson.numberText}}</text>
+                  <text class="agent-activity-plan-lesson-title">{{lesson.title}}</text>
+                </view>
+              </view>
+            </view>
+            <view class="live-msg-meta">
+              <text class="live-msg-time">{{item.timeLabel}}</text>
+              <text class="live-msg-read {{item.read ? '' : 'is-unread'}}">{{item.readLabel}}</text>
+            </view>
+          </view>
+
+          <view wx:elif="{{item.kind === 'question'}}" class="agent-message-column">
+            <view class="agent-activity-question is-answered is-readonly" aria-label="{{item.multiSelect ? '多选题' : '提问'}}：{{item.question}}">
+              <text class="agent-activity-question-title">{{item.question}}</text>
+              <view wx:for="{{item.options}}" wx:for-item="option" wx:key="key" class="agent-activity-question-option {{item.multiSelect ? 'is-multi' : 'is-single'}}">
+                <text>{{option.label}}</text>
+              </view>
+              <text class="agent-activity-question-hint">{{item.multiSelect ? '多选题 · ' : ''}}学生的回答见下一条</text>
+            </view>
+            <view class="live-msg-meta">
+              <text class="live-msg-time">{{item.timeLabel}}</text>
+              <text class="live-msg-read {{item.read ? '' : 'is-unread'}}">{{item.readLabel}}</text>
+            </view>
+          </view>
+
+          <view wx:else class="agent-message-column">
+            <view class="agent-message-bubble">
+              <text class="agent-message-text">{{item.text}}</text>
+            </view>
+            <view class="live-msg-meta {{item.side === 'right' ? 'is-right' : ''}}">
+              <text class="live-msg-time">{{item.timeLabel}}</text>
+              <text wx:if="{{item.readLabel}}" class="live-msg-read {{item.read ? '' : 'is-unread'}}">{{item.readLabel}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 会议已结束：和学生那边一样，结尾一句短提示 + 一张写明原因的卡片 -->
+        <block wx:if="{{room.phase === 'closed'}}">
+          <view class="agent-message agent-message-activity">
+            <view class="agent-activity-notice"><text>{{room.closedNotice}}</text></view>
+          </view>
+          <view class="live-room-closed" aria-live="polite">
+            <text class="live-room-closed-title">诊断已结束</text>
+            <text class="live-room-closed-copy">{{room.closedReason}}</text>
+          </view>
+        </block>
+        <view id="room-tail" class="diagnosis-room-bottom"></view>
+      </view>
+    </scroll-view>
+
+    <!-- 翻上去时：回到底部；期间来了新消息就写明几条。圆按钮与对话页同一个 -->
+    <view wx:if="{{showJump}}" class="agent-scroll-bottom-button room-jump {{unseenCount ? 'is-unseen' : ''}}" style="--composer-bottom: {{composerBottomOffset}}px;" bindtap="handleJumpToBottom" aria-role="button" aria-label="{{unseenCount ? unseenCount + ' 条新消息，回到底部' : '回到底部'}}">
+      <text wx:if="{{unseenCount}}" class="room-unseen-text">{{unseenCount}} 条新消息</text>
+      <view class="agent-scroll-bottom-icon" aria-hidden="true"></view>
+    </view>
+
+    <!-- 按住说话时的全屏提示与电平条，与对话页同一个 -->
+    <view wx:if="{{voiceRecognizing}}" class="voice-demo-status {{voiceCancel ? 'is-canceling' : ''}}" aria-live="polite">
+      <text class="voice-demo-label">{{voiceCancel ? '松手取消' : '松手发送，上移取消'}}</text>
+      <view class="voice-demo-wave {{voiceSoundActive ? 'is-speaking' : 'is-silent'}}">
+        <view wx:for="{{voiceBars}}" wx:key="id" class="voice-demo-bar" style="--bar-height: {{item.height}}; opacity: {{item.opacity}};"></view>
+      </view>
+    </view>
+
+    <!-- 输入框与对话页同一套：类名、圆角、留白、语音 / 键盘切换、发送按钮都取自 pages/diagnosis-room。
+         会议结束后和学生那边一样收起输入框，只留下面那行说明。 -->
+    <view wx:if="{{room.phase !== 'closed'}}" class="agent-composer" style="bottom: {{composerBottomOffset}}px;">
+      <view class="agent-composer-bar {{draft ? 'is-input-active' : ''}} {{voiceRecognizing ? 'is-voice-active' : ''}}">
+        <view wx:if="{{voiceMode}}" class="agent-voice-button agent-keyboard-button" catchtap="handleKeyboardButtonTap" aria-role="button" aria-label="切换到键盘输入">
+          <image class="agent-voice-icon" src="{{UA.src(ui, '../../assets/keyboard-icon.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+        </view>
+        <view wx:else class="agent-voice-button {{draft ? 'is-collapsing' : ''}}" catchtap="handleVoiceButtonTap" aria-role="button" aria-label="切换到语音输入">
+          <image class="agent-voice-icon" src="{{UA.src(ui, '../../assets/agent-voice.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+        </view>
+        <view
+          wx:if="{{voiceMode}}"
+          class="agent-voice-speak-button"
+          catchtouchstart="handleSpeakTouchStart"
+          catchtouchmove="handleSpeakTouchMove"
+          catchtouchend="handleSpeakTouchEnd"
+          catchtouchcancel="handleSpeakTouchEnd"
+          aria-role="button"
+          aria-label="按住说话"
+        >
+          <text>按住说话</text>
+        </view>
+        <input
+          wx:else
+          class="agent-input"
+          value="{{draft}}"
+          placeholder="以老师的身份说一句"
+          placeholder-class="agent-input-placeholder"
+          maxlength="300"
+          cursor-spacing="24"
+          show-confirm-bar="{{false}}"
+          confirm-type="send"
+          bindinput="handleInput"
+          bindconfirm="handleSend"
+          disabled="{{sending}}"
+        />
+        <view class="agent-send-button {{draft && !voiceMode ? 'is-enabled' : ''}} {{sending ? 'is-sending' : ''}}" catchtap="handleSend" aria-role="button" aria-label="{{sending ? '正在发送' : '发送'}}">
+          <view wx:if="{{sending}}" class="agent-sending-spinner" aria-hidden="true"></view>
+          <image wx:else class="agent-send-icon" src="{{UA.src(ui, '../../assets/agent-send.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+        </view>
+      </view>
+    </view>
+    <view class="agent-composer-note-background" aria-hidden="true"></view>
+    <text class="agent-composer-note">{{voiceRecognizing ? '松手后录音将上传用于转成文字，识别后不保留录音' : room.composerNote}}</text>
+  </block>
+</view>
+<dev-reset-fab />

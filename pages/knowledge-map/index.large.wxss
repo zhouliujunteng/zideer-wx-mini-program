@@ -1,0 +1,117 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.map-page{height:100vh}
+.map-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
+.map-topbar::after{right:0;bottom:0;left:0;height:0.5px}
+.map-topbar-title{font-size:21px;font-weight:700;letter-spacing:-1px;line-height:1}
+.map-topbar-inner{box-sizing:content-box;padding:0 21px 9px}
+.map-galaxy-button{box-sizing:border-box;border:0.5px solid #e7ebe6;border-radius:50%}
+.map-galaxy-icon{width:21px;height:21px}
+.map-canvas-region{right:0;left:0}
+.map-viewport{width:100%}
+.knowledge-map-canvas{width:100%;height:100%}
+.map-metrics{top:10px;left:14px;flex-direction:column;gap:1px;max-width:246px;padding:7px 9px;border:0.5px solid rgba(253, 124, 2, .22);border-radius:9px;font-size:9px;line-height:1.35}
+.map-gesture-tip{bottom:16px;left:21px;height:32px;padding:0 10px;box-sizing:border-box;border-radius:599px;font-size:11px;line-height:1}
+.map-reset{right:21px;bottom:16px;width:32px;height:32px;padding:0;box-sizing:border-box;border:0.5px solid #e5ebe5;border-radius:50%}
+.map-reset-icon{width:13px;height:13px;box-sizing:border-box;border:1px solid #718077;border-radius:50%}
+.map-reset-icon::before, .map-reset-icon::after{top:50%;left:50%}
+.map-reset-icon::before{width:18px;height:1px}
+.map-reset-icon::after{width:1px;height:18px}
+.map-reset-icon-center{top:50%;left:50%;width:3px;height:3px;border-radius:50%}
+.map-sheet{right:0;left:0;min-height:432px;padding:10px 21px calc(108px + env(safe-area-inset-bottom));box-sizing:border-box;border-radius:28px 28px 0 0;box-shadow:0 -6px 18px rgba(36, 51, 45, .08)}
+.map-sheet-handle{width:44px;height:7px;margin:0 auto 18px;border-radius:599px}
+.map-section-heading{gap:12px}
+.map-section-title{font-size:19px;font-weight:700;line-height:1.2}
+.map-section-scope{font-size:12px;line-height:1.2}
+.map-universe-stats{grid-template-columns:repeat(3, minmax(0, 1fr));height:64px;margin-top:14px;border-top:0.5px solid #e7ebe6;border-bottom:0.5px solid #e7ebe6}
+.map-universe-stat{flex-direction:column;min-width:0}
+.map-universe-stat + .map-universe-stat{border-left:0.5px solid #e7ebe6}
+.map-universe-value{font-size:21px;font-weight:700;line-height:1}
+.map-universe-label{margin-top:6px;font-size:11px;line-height:1}
+.map-course-strip{width:calc(100% + 43px);height:90px;margin:14px 0 0 -22px}
+.map-course-list{min-width:100%;padding:0 21px;box-sizing:border-box;gap:10px}
+.map-course-card{flex:0 0 171px;flex-direction:column;height:76px;padding:12px 13px;box-sizing:border-box;border:1px solid transparent;border-radius:15px;box-shadow:none}
+.map-course-card-active{border-color:#FD7C02}
+.map-course-card-top{line-height:19px}
+.map-course-title{font-size:15px;font-weight:700}
+.map-course-status{font-size:12px;font-weight:500}
+.map-course-meta{margin-top:3px;font-size:11px;font-weight:400;line-height:15px}
+.map-course-track{flex:0 0 auto;width:100%;height:6px;margin-top:6px;border-radius:599px}
+.map-course-bar{height:100%;border-radius:inherit}
+.map-course-stress-meta{gap:4px;margin-top:4px;font-size:10px;line-height:12px}
+.map-course-stress-line{width:21px;height:2px;border-radius:599px}
+.map-legend{flex-wrap:wrap;gap:8px 13px;padding-top:16px}
+.map-legend-item{gap:4px;font-size:12px}
+.map-legend-mark{width:8px;height:8px;box-sizing:border-box;font-size:7px;font-weight:800;line-height:1}
+.map-legend-unknown{border:1px solid #8c918d;border-radius:50%}
+.map-legend-reinforce::after{width:8px;height:1px;border-radius:599px}
+.map-legend-learning{border-radius:50%}
+.map-legend-mastered{width:9px;height:9px}
+.map-learning-summary{margin-top:14px;padding:13px 14px;border-radius:14px;font-size:13px;line-height:1.7}
+.map-note{padding-top:9px;font-size:11px;line-height:1.5}
+.map-metrics-header{gap:7px;min-height:14px}
+.map-metrics-title{font-size:10px;font-weight:600}
+.map-metrics-toggle{width:6px;height:6px;border-right:1px solid #b3652a;border-bottom:1px solid #b3652a}
+.map-metrics-collapsed{width:auto;min-width:55px;padding:5px 8px;border-radius:599px}
+.map-metrics-collapsed .map-metrics-header{gap:6px}
+.map-topic-head{gap:8px}
+.map-topic-back{flex:0 0 auto;width:33px;height:33px;margin-top:2px;border:0.5px solid #e5ebe5;border-radius:50%}
+.map-topic-back-arrow{width:9px;height:9px;margin-left:2px;border-left:1px solid #24332d;border-bottom:1px solid #24332d}
+.map-topic-head-main{flex:1;min-width:0;padding-top:1px}
+.map-topic-title{font-size:18px;font-weight:700;line-height:1.3}
+.map-topic-meta{margin-top:4px;font-size:12px;line-height:15px}
+.map-topic-status{flex:0 0 auto;margin-top:4px;padding:4px 9px;border-radius:599px;font-size:11px;font-weight:600;line-height:1}
+.map-topic-body{height:300px;margin-top:13px}
+.map-topic-block{padding:13px 14px;border-radius:14px}
+.map-topic-block + .map-topic-block{margin-top:9px}
+.map-topic-block-title{font-size:12px;font-weight:700;letter-spacing:0.5px}
+.map-topic-copy{margin-top:7px;font-size:13px;line-height:1.7}
+.map-topic-link{gap:9px;padding:9px 0 8px;border-bottom:0.5px solid #f0f2ef}
+.map-topic-link:last-child{padding-bottom:1px;border-bottom:0}
+.map-topic-link-label{flex:1;min-width:0;font-size:13px;font-weight:600;line-height:1.4}
+.map-topic-link-meta{flex:0 0 auto;font-size:11px}
+.map-sample-banner{right:21px;left:21px;margin-top:10px;gap:8px;height:43px;padding:0 7px 0 8px;box-sizing:border-box;border:0.5px solid rgba(253, 124, 2, .22);border-radius:599px;box-shadow:0 3px 12px rgba(36, 51, 45, .06)}
+.map-sample-tag{flex:0 0 auto;padding:4px 8px;border-radius:599px;font-size:12px;font-weight:700;line-height:1}
+.map-sample-copy{flex:1;min-width:0;font-size:13px;line-height:1.3}
+.map-sample-action{flex:0 0 auto;padding:7px 14px;border-radius:599px;font-size:13px;font-weight:600;line-height:1}
+.map-topic-state{gap:8px;min-height:96px;margin-top:13px;padding:12px;border-radius:14px;font-size:13px}
+.map-topic-state-dot{flex:0 0 auto;width:7px;height:7px;border-radius:50%}
+.map-topic-retry{flex:0 0 auto;padding:7px 20px;border-radius:599px;font-size:13px;font-weight:600}
+.map-scope-skeleton{width:96px;height:13px}
+.map-value-skeleton{width:33px;height:21px}
+.map-skeleton-gap{margin-top:8px}
+.map-topic-skeleton-copy{flex:1}
+.map-load-retry{margin-top:12px}
+.tablet-map .map-sheet{min-height:0;padding:18px;border-radius:20px}
+.tablet-map .map-topic-body{height:auto}
+.tablet-map .map-topic-head{flex-wrap:wrap}
+.tablet-map .map-topic-head-main{flex:1 0 calc(100% - 50px)}
+.tablet-map .map-topic-title{font-size:17px}
+.tablet-map .map-topic-status{margin-left:42px}
+.tablet-map .map-course-strip{height:auto;width:100%;margin:16px 0 0}
+.tablet-map .map-course-list{grid-template-columns:repeat(3,minmax(0,1fr));padding:0;gap:8px}
+.tablet-map .map-course-card{width:100%;min-width:0;height:auto;min-height:68px;padding:10px;border-radius:12px}
+.tablet-map .map-course-card-top{flex-wrap:wrap}
+.tablet-map .map-course-title{font-size:14px}
+.tablet-map .map-course-status{font-size:11px}
+.tablet-map .map-legend{gap:12px}
+.tablet-map .map-section-heading{flex-wrap:wrap;gap:8px}
+.tablet-map .map-universe-stats{margin-top:14px}
+.tablet-map .map-reset{width:40px;height:40px}
+.tablet-map-sidebar .map-course-list{grid-template-columns:minmax(0,1fr)}
+.tablet-map-sidebar .map-gesture-tip{left:12px;font-size:10px}
+.tablet-map-sidebar .map-reset{right:12px}
+.map-topic-detail-link{height:45px;margin:4px 0 14px;border:1px solid rgba(253, 124, 2, .35);border-radius:599px;font-size:14px;font-weight:600}
+.map-topic-detail-arrow{width:7px;height:7px;margin-left:6px;box-sizing:border-box;border-top:1px solid #FD7C02;border-right:1px solid #FD7C02}
+.map-back{width:38px;height:38px;margin:0 3px 0 -11px}
+.map-back-icon{width:10px;height:10px;border-bottom:2px solid #24332d;border-left:2px solid #24332d}
+}

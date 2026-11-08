@@ -1,0 +1,102 @@
+<!-- 碎片商店（成就卡，2026-10-14）：抽到已经有的卡变成碎片，攒够了换 1 次通用抽卡次数（任何系列都能用）。
+     兑换动画与抽卡同一套：碎片飞到中间拼成一张卡背，翻面变成「通用抽卡 +1」，撒纸屑、重震。 -->
+<view class="fs-page">
+  <view class="fs-topbar" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+    <view class="fs-round-button" style="width: {{buttonSize}}px; height: {{buttonSize}}px;" bindtap="handleBack" role="button" aria-label="返回"><view class="fs-back-icon"></view></view>
+    <text class="fs-topbar-title">碎片商店</text>
+  </view>
+
+  <scroll-view class="fs-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+    <view class="fs-shell">
+      <view wx:if="{{!loaded && !loadFailed}}" aria-hidden="true">
+        <view class="sk fs-sk-hero"></view>
+        <view class="sk fs-sk-row"></view>
+        <view class="sk sk-card"></view>
+      </view>
+      <view wx:elif="{{!loaded}}" class="fs-state">
+        <text class="fs-state-title">碎片商店暂时打不开</text>
+        <text class="fs-state-copy">{{loadError}}</text>
+        <view class="fs-state-action" bindtap="reload" role="button">重新加载</view>
+      </view>
+      <block wx:else>
+        <!-- 深色展台：碎片数、攒到下一次的进度、兑换 -->
+        <view class="fs-hero">
+          <view class="fs-hero-glow"></view>
+          <view class="fs-hero-top">
+            <view class="fs-gems" id="fs-gems">
+              <view class="fs-gem fs-gem-a"></view>
+              <view class="fs-gem fs-gem-b"></view>
+              <view class="fs-gem fs-gem-c"></view>
+            </view>
+            <view class="fs-hero-copy">
+              <text class="fs-hero-label">我的碎片</text>
+              <text class="fs-hero-count">{{model.fragments}}</text>
+            </view>
+          </view>
+          <view class="fs-progress">
+            <view class="fs-progress-bar" style="width: {{progress}}%;"></view>
+          </view>
+          <text class="fs-progress-text">{{canExchange ? '够换 ' + exchangeTimes + ' 次抽卡啦' : '再攒 ' + needMore + ' 个，就能换 1 次抽卡'}}</text>
+          <view class="fs-exchange {{canExchange && !busy ? '' : 'fs-exchange-off'}}" bindtap="exchange" role="button">
+            <text>兑换 1 次抽卡</text>
+            <view class="fs-exchange-cost"><view class="fs-mini-gem"></view><text>{{model.exchangeCost}}</text></view>
+          </view>
+        </view>
+
+        <view class="fs-bonus" bindtap="openCards" role="button">
+          <view class="fs-ticket-mini"><text>抽</text></view>
+          <view class="fs-bonus-copy">
+            <text class="fs-bonus-title">通用抽卡次数 {{model.bonusDraws}} 次</text>
+            <text class="fs-bonus-sub">任何系列都能用，先用系列自己的次数</text>
+          </view>
+          <text class="fs-bonus-go">去抽卡 ›</text>
+        </view>
+
+        <view class="fs-howto">
+          <text class="fs-howto-title">碎片怎么来</text>
+          <view class="fs-step">
+            <text class="fs-step-no">1</text>
+            <text class="fs-step-text">完成系列任务（复习、打卡、学完课……）拿到这个系列的抽卡次数</text>
+          </view>
+          <view class="fs-step">
+            <text class="fs-step-no">2</text>
+            <text class="fs-step-text">抽到已经有的那一张，自动变成 {{model.duplicateFragments}} 个碎片</text>
+          </view>
+          <view class="fs-step">
+            <text class="fs-step-no">3</text>
+            <text class="fs-step-text">每 {{model.exchangeCost}} 个碎片换 1 次通用抽卡，任何系列都能抽</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 兑换动画 -->
+  <view wx:if="{{fx}}" class="fs-fx" catchtouchmove="noop" bindtap="closeFx">
+    <view class="fs-fx-mask {{fxMask ? 'fs-fx-mask-on' : ''}}"></view>
+    <view wx:for="{{shards}}" wx:key="id" class="fs-shard" style="{{item.style}}"></view>
+    <view class="fs-fx-card {{fxStage}}" style="left: {{fxLeft}}px; top: {{fxTop}}px; width: {{fxWidth}}px; height: {{fxHeight}}px;">
+      <view class="fs-fx-flip {{fxFlipped ? '' : 'fs-fx-backside'}}">
+        <view class="fs-fx-side fs-fx-front">
+          <view class="fs-ticket">
+            <view class="fs-ticket-frame"></view>
+            <text class="fs-ticket-kicker">通用抽卡</text>
+            <text class="fs-ticket-plus">+1</text>
+            <text class="fs-ticket-sub">任何系列都能用</text>
+          </view>
+        </view>
+        <view class="fs-fx-side cr-back"><include src="../../components/card-reveal/back.wxml" /></view>
+      </view>
+    </view>
+    <view class="fs-fx-info {{fxStage === 'fs-done' ? 'fs-fx-info-on' : ''}}">
+      <text class="fs-fx-title">通用抽卡次数 +1</text>
+      <text class="fs-fx-sub">现在一共 {{model.bonusDraws}} 次 · 还剩 {{model.fragments}} 碎片</text>
+      <view class="fs-fx-actions">
+        <view class="fs-fx-btn fs-fx-btn-ghost" catchtap="closeFx" role="button">继续兑换</view>
+        <view class="fs-fx-btn" catchtap="openCards" role="button">去抽卡</view>
+      </view>
+    </view>
+    <canvas type="2d" id="fs-confetti" class="fs-confetti"></canvas>
+  </view>
+<dev-reset-fab />
+</view>

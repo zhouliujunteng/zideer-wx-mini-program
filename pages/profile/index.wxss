@@ -1,3 +1,4 @@
+@import "../../styles/skeleton.wxss";
 page { background: #FAFAFA; }
 
 .profile-page { height: 100vh; overflow: hidden; background: #FAFAFA; color: #27332d; }
@@ -38,6 +39,9 @@ page { background: #FAFAFA; }
 .profile-row-value-wrap { display: flex; align-items: center; min-width: 0; margin-left: 22rpx; }
 .profile-row-value { max-width: 370rpx; overflow: hidden; color: #7E8A82; font-size: 26rpx; line-height: 1.3; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
 .profile-row-value.is-empty { color: #B8C0B9; }
+/* 实名认证后锁定的行（2026-09-26）：没有箭头，值后面跟「已实名」胶囊（同「身份与登录」的状态胶囊） */
+.profile-row.is-locked:active { background: transparent; }
+.profile-row-verified { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 36rpx; margin-left: 12rpx; padding: 0 12rpx; border-radius: 999rpx; background: rgba(253, 124, 2, .12); color: #FD7C02; font-size: 20rpx; line-height: 1; white-space: nowrap; }
 .profile-chevron { flex: 0 0 auto; width: 14rpx; height: 14rpx; margin-left: 16rpx; border-top: 3rpx solid #C3CAC4; border-right: 3rpx solid #C3CAC4; transform: rotate(45deg); }
 .profile-note { display: flex; align-items: flex-start; margin: 22rpx 8rpx 0; color: #99A39C; font-size: 21rpx; line-height: 1.5; }
 .profile-note-dot { flex: 0 0 auto; width: 8rpx; height: 8rpx; margin: 11rpx 10rpx 0 0; border-radius: 50%; background: #FD7C02; }
@@ -107,3 +111,25 @@ page { background: #FAFAFA; }
   from { transform: translateY(0); }
   to { transform: translateY(100%); }
 }
+
+/* 推荐人：左文右码，只读（没有推荐人时给一个填写入口）。
+   行的左右留白（32rpx）与上方资料行完全一致，否则文字贴左、码贴右。 */
+.profile-promotion-card { margin-top: 24rpx; }
+.profile-promotion-row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 24rpx; min-height: 112rpx; padding: 26rpx 32rpx; box-sizing: border-box; }
+.profile-promotion-row:not(.is-last)::after { position: absolute; right: 28rpx; bottom: 0; left: 28rpx; height: 1rpx; background: #F0F2EF; content: ''; }
+.profile-promotion-main { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 10rpx; }
+.profile-promotion-code { min-width: 0; overflow: hidden; color: #24332D; font-size: 30rpx; font-weight: 700; letter-spacing: 2rpx; text-overflow: ellipsis; white-space: nowrap; }
+.profile-promotion-code.is-empty { color: #B8C0B9; font-size: 26rpx; font-weight: 400; letter-spacing: 0; }
+.profile-promotion-hint { color: #99A39C; font-size: 21rpx; line-height: 1.5; }
+.profile-promotion-side { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; }
+.profile-promotion-bind { padding: 14rpx 26rpx; border-radius: 999rpx; background: #FFF1E3; color: #C25A02; font-size: 23rpx; }
+.profile-promotion-bind:active { opacity: .7; }
+
+/* 首次读取资料时的骨架与失败重试 */
+.profile-avatar-sk { width: 100%; height: 100%; border-radius: 50%; }
+.profile-value-sk { width: 180rpx; }
+.profile-promotion-sk { width: 200rpx; }
+.profile-load-failed { display: flex; align-items: center; justify-content: space-between; padding: 28rpx 32rpx; color: #7E8A82; font-size: 25rpx; }
+.profile-load-retry { color: #FD7C02; font-weight: 600; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

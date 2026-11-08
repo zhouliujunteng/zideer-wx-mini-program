@@ -1,0 +1,43 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.result-page{height:100vh}
+.result-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
+.result-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));box-sizing:border-box}
+.result-topbar-inner{box-sizing:content-box;padding:0 19px 9px}
+.result-back{width:32px;height:32px;border-radius:50%}
+.result-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.result-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.result-scroll{height:100vh;box-sizing:border-box}
+.result-shell{min-height:100%;padding:0 19px calc(120px + env(safe-area-inset-bottom));box-sizing:border-box}
+.result-hero{padding:38px 14px 4px}
+.result-mark{width:86px;height:86px;border-radius:50%}
+.result-check{width:18px;height:33px;margin-top:-9px;box-sizing:border-box;border-right:6px solid #FD7C02;border-bottom:6px solid #FD7C02;border-radius:0 0 3px 0}
+.result-mark-text{font-size:40px;font-weight:700;line-height:1}
+.result-title{margin-top:19px;font-size:21px;font-weight:700;line-height:1.25}
+.result-subtitle{max-width:336px;margin-top:8px;font-size:13px;line-height:1.6}
+.result-retry{margin-top:19px;padding:0 28px;height:43px;border-radius:599px;font-size:15px;font-weight:650;line-height:43px}
+.result-card{margin-top:28px;padding:2px 15px;border-radius:19px}
+.result-row{gap:13px;padding:15px 0;border-bottom:1px solid #F0F3F0;font-size:14px;line-height:1.4}
+.result-row:last-child{border-bottom:0}
+.result-row text:last-child{min-width:0}
+.result-row text.result-amount{font-size:19px;font-weight:700}
+.result-link{margin-top:12px;padding:7px 0;font-size:13px;line-height:1.2}
+.result-link-icon{width:7px;height:7px;margin-left:3px;border-top:1px solid #AAB4AD;border-right:1px solid #AAB4AD}
+.result-bar{right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);gap:12px;padding:10px 19px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -5px 14px rgba(36, 51, 45, .06)}
+.result-button{min-width:0;height:52px;margin:0;padding:0;border:0;border-radius:599px;font-size:16px;font-weight:650;line-height:52px}
+.result-button::after{border:0}
+.result-sk-mark{width:86px;height:86px}
+.result-sk-title{width:180px;height:26px;margin-top:19px}
+.result-sk-subtitle{width:276px;margin-top:10px}
+.result-sk-value{width:108px}
+.result-sk-button{height:52px;border-radius:599px}
+}

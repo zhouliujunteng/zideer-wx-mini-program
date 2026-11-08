@@ -1,0 +1,95 @@
+/* 推广伙伴工作台：样式取自设计仓库 package-promotion/pages/promotion（295f610），
+   只保留本页实际用到的规则；签到、任务、金币插画与状态调试菜单未移植。 */
+@import "../../styles/skeleton.wxss";
+
+page { background: #FAFAFA; }
+
+.promotion-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.promotion-shell { position: absolute; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; background: #FAFAFA; }
+.promotion-topbar { position: fixed; top: 0; right: 0; left: 0; z-index: 20; box-sizing: border-box; background: #FAFAFA; }
+.promotion-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 8rpx; }
+.promotion-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 44rpx; height: 44rpx; margin-right: 10rpx; }
+.promotion-back:active { opacity: .65; }
+.promotion-back-icon { width: 20rpx; height: 20rpx; border-bottom: 3rpx solid #24332D; border-left: 3rpx solid #24332D; transform: rotate(45deg) scale(.72); }
+.promotion-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.promotion-scroll { position: absolute; top: 0; right: 0; bottom: 0; left: 0; box-sizing: border-box; background: #FAFAFA; }
+.promotion-content { padding: 30rpx 36rpx calc(70rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+.promotion-state { padding: 120rpx 24rpx 40rpx; text-align: center; }
+.promotion-state-title { display: block; color: #24332D; font-size: 32rpx; font-weight: 600; }
+.promotion-state-copy { display: block; margin: 22rpx 0 32rpx; color: #7D877F; font-size: 25rpx; line-height: 1.6; }
+.promotion-state-action { display: inline-flex; height: 76rpx; align-items: center; padding: 0 44rpx; border-radius: 20rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; }
+.promotion-state-action:active { opacity: .78; }
+
+.promotion-balance-card { position: relative; height: 284rpx; overflow: visible; box-sizing: border-box; border-radius: 28rpx; background: #FFFFFF; }
+.promotion-balance-card-clip { position: absolute; z-index: 2; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; border-radius: 28rpx; }
+.promotion-balance-summary { position: absolute; z-index: 2; top: 40rpx; left: 32rpx; display: flex; align-items: flex-start; width: 62%; }
+.promotion-balance-metric { display: flex; min-width: 150rpx; flex-direction: column; }
+.promotion-balance-metric-today { margin-left: 38rpx; }
+.promotion-balance-metric-label { color: #4F5A52; font-size: 25rpx; line-height: 1.2; white-space: nowrap; }
+.promotion-balance-metric-value { margin-top: 16rpx; color: #24332D; font-size: 46rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1; }
+/* 「锁定中」下的锁定规则分两行写全（2026-09-26 用户反馈原来一行会被截成省略号）；
+   卡片底部是入口栏，两行的总高度按 40 + 30 + 16 + 46 + 8 + 52 = 192rpx 算，停在入口栏（196rpx）之上。 */
+.promotion-balance-metric-hint { display: flex; margin-top: 8rpx; flex-direction: column; color: #9BA39D; font-size: 20rpx; line-height: 1.3; }
+.promotion-balance-metric-hint-line { display: block; white-space: nowrap; }
+.promotion-megaphone-clip { position: absolute; z-index: 1; top: -50rpx; right: -10px; bottom: 0; width: 368rpx; overflow: hidden; pointer-events: none; }
+.promotion-megaphone-art { display: block; width: 368rpx; height: 368rpx; }
+.promotion-balance-actions { position: absolute; z-index: 3; right: 0; bottom: 0; left: 0; display: flex; height: 88rpx; align-items: center; justify-content: space-around; padding: 0 10rpx; box-sizing: border-box; border: 0; border-top: 6rpx solid rgba(255, 255, 255, .96); background: rgba(255, 255, 255, .70); box-shadow: 0 -8rpx 22rpx rgba(72, 82, 75, .05), 0 8rpx 20rpx rgba(72, 82, 75, .05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.promotion-balance-action { display: flex; flex: 1; height: 64rpx; align-items: center; justify-content: center; color: #5F6B63; font-size: 22rpx; white-space: nowrap; }
+.promotion-balance-action:active { opacity: .65; }
+.promotion-balance-action-divider { width: 1rpx; height: 32rpx; background: rgba(124, 134, 126, .26); }
+
+.promotion-status-notice { display: flex; min-height: 78rpx; margin-top: 18rpx; align-items: center; box-sizing: border-box; padding: 14rpx 18rpx; border: 0; border-radius: 22rpx; background: #FFF8EC; }
+.promotion-status-notice-failed { background: #FFF0EE; }
+.promotion-status-notice-icon { display: flex; width: 32rpx; height: 32rpx; flex: 0 0 auto; align-items: center; justify-content: center; margin-right: 12rpx; border-radius: 50%; background: #F5A53D; color: #FFFFFF; font-size: 22rpx; font-weight: 700; line-height: 1; }
+.promotion-status-notice-failed .promotion-status-notice-icon { background: #E58A7B; }
+.promotion-status-notice-copy { min-width: 0; flex: 1; }
+.promotion-status-notice-title { display: block; overflow: hidden; color: #604934; font-size: 22rpx; font-weight: 700; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.promotion-status-notice-failed .promotion-status-notice-title { color: #994F47; }
+.promotion-status-notice-detail { display: block; margin-top: 5rpx; overflow: hidden; color: #9B8068; font-size: 18rpx; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.promotion-status-notice-failed .promotion-status-notice-detail { color: #B77D76; }
+.promotion-status-notice-arrow { width: 13rpx; height: 13rpx; flex: 0 0 auto; margin-left: 10rpx; border-top: 2rpx solid #B29170; border-right: 2rpx solid #B29170; transform: rotate(45deg); }
+.promotion-status-notice-failed .promotion-status-notice-arrow { border-color: #D39A92; }
+.promotion-status-notice:active { opacity: .72; }
+
+/* AI 海报入口 banner（设计仓库 847c572）：图片 1200×400，按卡片宽度铺满后圆角裁切；图片没到之前露白底 */
+.promotion-ai-poster-banner { display: block; overflow: hidden; width: 100%; height: 224rpx; margin: 22rpx 0 0; border-radius: 26rpx; background: #FFFFFF; }
+.promotion-ai-poster-banner:active { opacity: .72; transform: scale(.99); }
+.promotion-ai-poster-banner-image { display: block; width: 100%; height: 100%; }
+.promotion-poster-section { margin-top: 26rpx; padding-bottom: 20rpx; }
+.promotion-section-heading { display: flex; align-items: flex-start; justify-content: space-between; }
+.promotion-section-title { display: block; color: #3B3228; font-size: 27rpx; font-weight: 750; line-height: 1.2; }
+.promotion-poster-heading { align-items: center; margin: 0 4rpx 18rpx; padding: 0; }
+.promotion-poster-heading .promotion-section-title { color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.3; }
+.promotion-poster-empty { padding: 70rpx 32rpx; border-radius: 28rpx; background: #FFFFFF; text-align: center; }
+.promotion-poster-empty-title { display: block; color: #24332D; font-size: 27rpx; font-weight: 700; }
+.promotion-poster-empty-copy { display: block; margin-top: 16rpx; color: #9BA39D; font-size: 22rpx; line-height: 1.5; }
+.promotion-poster-grid { display: flex; align-items: flex-start; gap: 22rpx; margin-top: 0; }
+.promotion-poster-column { display: flex; min-width: 0; flex: 1 1 0; flex-direction: column; gap: 34rpx; }
+.promotion-poster-card { min-width: 0; }
+.promotion-poster-card:active { opacity: .76; transform: scale(.985); }
+.promotion-poster-media { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; width: 100%; border-radius: 24rpx; background: #E8E8E8; }
+.promotion-poster-media-ratio-3-4 { height: 438rpx; }
+.promotion-poster-media-ratio-9-16 { height: 584rpx; }
+.promotion-poster-media-ratio-1-1 { height: 328rpx; }
+.promotion-poster-media-ratio-16-9 { height: 184rpx; }
+.promotion-poster-image, .promotion-poster-placeholder { display: block; width: 100%; height: 100%; }
+.promotion-poster-placeholder { background: linear-gradient(145deg, #EDEDEC 0%, #E4E6E4 52%, #DCDFDA 100%); }
+/* 骨架：金额块与海报卡（海报块沿用真实卡片的比例高度类） */
+.promotion-sk-amount { width: 150rpx; height: 46rpx; margin-top: 18rpx; }
+.promotion-poster-column > .sk.promotion-poster-media-ratio-3-4,
+.promotion-poster-column > .sk.promotion-poster-media-ratio-9-16,
+.promotion-poster-column > .sk.promotion-poster-media-ratio-1-1 { width: 100%; border-radius: 24rpx; }
+.promotion-poster-column > .sk-line.promotion-sk-title { width: 70%; height: 26rpx; margin-top: -20rpx; }
+.promotion-poster-card-body { min-width: 0; padding: 14rpx 2rpx 0; box-sizing: border-box; }
+.promotion-poster-info-row { display: flex; align-items: center; min-width: 0; }
+.promotion-poster-copy { min-width: 0; flex: 1; }
+.promotion-poster-title { display: -webkit-box; min-width: 0; overflow: hidden; color: #34423B; font-size: 25rpx; font-weight: 700; line-height: 1.35; word-break: break-word; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.promotion-poster-go { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 26rpx; height: 32rpx; margin-left: 12rpx; }
+.promotion-poster-forward-icon { display: block; flex: 0 0 13rpx; width: 13rpx; height: 13rpx; box-sizing: border-box; border-top: 2rpx solid #A6AFA9; border-right: 2rpx solid #A6AFA9; transform: rotate(45deg); }
+
+@media (max-width: 350px) {
+  .promotion-content { padding-right: 28rpx; padding-left: 28rpx; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

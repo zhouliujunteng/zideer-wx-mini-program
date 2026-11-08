@@ -41,6 +41,7 @@ global.wx = {
     if (options.url === `${config.COURSE_PORTAL_ORIGIN}/api/learn/device`) {
       calls.push({ url: options.url, data: options.data, header: options.header })
       if (global.courseHandoffFails) options.fail({ errMsg: 'request:fail timeout' })
+      else if (global.courseHandoffReply) options.success(global.courseHandoffReply)
       else options.success({ statusCode: 200, data: { ticket: 'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT', expiresAt: Date.now() + 60000 } })
       return
     }
@@ -82,13 +83,15 @@ test('credit and growth displays translate runtime codes without changing their 
   assert.equal(credit.ledger[1].businessLabel, '课程积分变动')
   actionResult(config.ACTION_FLOWS.GET_CURRENT_GROWTH_CENTER, {
     status: 'ready', coinLedger: [{ business_type: 'redemption' }],
-    redemptionRecords: [{ status: 'succeeded' }], withdrawals: [{ status: 'processing' }],
+    redemptionRecords: [{ status: 'succeeded' }], withdrawals: [{ status: 'processing', net_amount: '5' }, { status: 'wait_user_confirm' }, { status: 'cancelled' }],
     partner: { invitations: [{ scene_type: 'share', status: 'active' }] }
   })
   const growth = await identity.loadCurrentGrowthCenter()
   assert.equal(growth.redemptionRecords[0].statusLabel, '兑换成功')
   assert.equal(growth.coinLedger[0].businessLabel, '兑换码兑换')
-  assert.equal(growth.withdrawals[0].statusLabel, '处理中')
+  // 金币兑换现金的兑换单用自己的状态说法（2026-09-26）
+  assert.deepEqual(growth.withdrawals.map(item => item.statusLabel), ['到账中', '待确认收款', '已取消，金币已退回'])
+  assert.equal(growth.withdrawals[0].amountLabel, '¥5.00')
   assert.equal(growth.invitations[0].sceneLabel, '分享邀请')
 })
 
@@ -103,13 +106,55 @@ test('only a rejected runtime JWT returns users to login once', async () => {
     (error) => error && error.code === 'AUTH_REQUIRED'
   )
   assert.equal(storageToken, '')
-  assert.deepEqual(navigationCalls, [{ url: '/pages/login/login' }])
+  assert.deepEqual(navigationCalls.map((call) => call.url), ['/pages/login/login'])
 
   await assert.rejects(
     identity.loadCurrentIdentityVerification(),
     (error) => error && error.code === 'AUTH_REQUIRED'
   )
   assert.equal(navigationCalls.length, 1)
+  // 登录页打开后放开：用户点「先随便看看」离开后，再进要登录的页面还能被带去登录
+  navigationCalls[0].complete()
+  await assert.rejects(identity.loadCurrentIdentityVerification(), { code: 'AUTH_REQUIRED' })
+  assert.equal(navigationCalls.length, 2)
+})
+
+test('guests browsing the tab pages are never sent to login and keep any login in progress intact', async () => {
+  reset()
+  identity.signOut()
+  storageToken = ''
+  const pages = global.getCurrentPages
+  try {
+    for (const route of ['pages/home/index', 'pages/learning/index', 'pages/knowledge-universe/index', 'pages/knowledge-map/index', 'pages/me/index', 'learning/library/index', 'pages/splash/index']) {
+      global.getCurrentPages = () => [{ route }]
+      await assert.rejects(identity.loadCurrentIdentityVerification(), { code: 'AUTH_REQUIRED' })
+    }
+    assert.deepEqual(navigationCalls, [])
+    assert.equal(calls.length, 0)
+    // 要登录的页面照旧带去登录
+    global.getCurrentPages = () => [{ route: 'commerce/orders/index' }]
+    await assert.rejects(identity.loadOrders(), { code: 'AUTH_REQUIRED' })
+    assert.deepEqual(navigationCalls.map((call) => call.url), ['/pages/login/login'])
+  } finally {
+    global.getCurrentPages = pages
+    navigationCalls.forEach((call) => call.complete && call.complete())
+  }
+})
+
+test('an expired session on a tab page is dropped quietly so the page can show the guest state', async () => {
+  reset()
+  const pages = global.getCurrentPages
+  global.getCurrentPages = () => [{ route: 'pages/me/index' }]
+  try {
+    storageToken = 'expired-token'
+    actionResult(config.ACTION_FLOWS.GET_CURRENT_IDENTITY_VERIFICATION, new Error('JWT expired'))
+    await assert.rejects(identity.loadCurrentIdentityVerification(), { code: 'AUTH_REQUIRED' })
+    assert.equal(storageToken, '')
+    assert.deepEqual(navigationCalls, [])
+    assert.equal(identity.hasSession(), false)
+  } finally {
+    global.getCurrentPages = pages
+  }
 })
 
 test('a rejected runtime JWT renews through WeChat once and retries the original flow', async () => {
@@ -227,6 +272,23 @@ test('first-user initialization and profile save use authoritative action flows'
   })
 })
 
+// 2026-09-26 用户规则：性别、户籍地选填，没选不提交；实名后生日、性别、户籍地由后端按身份证写入
+test('optional gender is omitted when empty, household region is sent, and locked values confirm the save', async () => {
+  reset()
+  const form = { accountType: 'guardian', nickname: '鹿妈妈', grade: 0, semester: '', regionDetail: '', birthday: '', gender: '', householdRegion: ' 浙江省 温州市 ' }
+  actionResult(config.ACTION_FLOWS.SAVE_CURRENT_LEARNING_PROFILE, 201)
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PROFILE, { id: 201, nickname: '鹿妈妈', account_type: 'guardian', current_grade: 0, semester: '', household_region: '浙江省 温州市', profile_completed_at: '2026-09-05T00:00:00Z' })
+  const saved = await identity.saveCurrentLearningProfile(form)
+  assert.deepEqual({ ...lastCall(config.ACTION_FLOWS.SAVE_CURRENT_LEARNING_PROFILE).variables.args.personal_details }, { account_type: 'guardian', birthday: null, household_region: '浙江省 温州市' })
+  assert.equal(saved.profile.household_region, '浙江省 温州市')
+
+  // 已实名：页面提交的空生日由后端改成身份证上的日期，不能因此判成「保存结果未确认」
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PROFILE, { id: 201, nickname: '鹿妈妈', account_type: 'guardian', current_grade: 0, semester: '', gender: 'female', birthday: '1988-04-09', household_region: '浙江省 温州市', birthday_locked: true, gender_locked: true, household_region_locked: true, profile_completed_at: '2026-09-05T00:00:00Z' })
+  const locked = await identity.saveCurrentLearningProfile({ ...form, gender: 'male' })
+  assert.deepEqual([locked.profile.birthday, locked.profile.gender, locked.profile.birthday_locked, locked.profile.gender_locked, locked.profile.household_region_locked], ['1988-04-09', 'female', true, true, true])
+  await assert.rejects(() => identity.saveCurrentLearningProfile({ ...form, gender: 'unknown' }), /请选择性别/)
+})
+
 test('service contacts only accept complete backend-issued enterprise WeChat chat entries', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.GET_CURRENT_SERVICE_CONTACTS, {
@@ -320,26 +382,43 @@ test('course generation quotes and confirms use distinct idempotency keys', asyn
   })
 })
 
-test('course entry carries a single-use ticket, shared links carry no credential, and acceptance retains its authorized entry', async () => {
+test('course entry carries a single-use ticket, fails loudly without one, and acceptance retains its authorized entry', async () => {
   reset()
 
   const courseUrl = await identity.createCourseLaunchUrl(51)
   assert.equal(courseUrl, `${config.COURSE_PORTAL_ORIGIN}/api/learn/entry?course=51&layout=focus&ticket=TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT`)
   assert.deepEqual(calls[0].data, { operation: 'handoff', courseInstanceId: 51 })
   assert.equal(calls[0].header.authorization, 'Bearer test-runtime-token')
-  assert.equal(identity.courseShareUrl(courseUrl), `${config.COURSE_PORTAL_ORIGIN}/learn?course=51&layout=focus`)
 
   const libraryId = 'a'.repeat(32)
   const libraryUrl = await identity.createLibraryCourseLaunchUrl(libraryId)
   assert.equal(libraryUrl, `${config.COURSE_PORTAL_ORIGIN}/api/learn/entry?library=${libraryId}&layout=focus&ticket=TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT`)
   assert.deepEqual(calls[1].data, { operation: 'handoff', libraryCourseId: libraryId })
 
-  // 换券失败时回落到不含凭证的地址，由课程页走设备确认
+  // 定制课程：课程详情页点了某一页，入口带上这一页（课程服务从这一页开始）；不像页面 id 的值不带
+  const agentUrl = await identity.createAgentCourseLaunchUrl('stage-abc123', 'scene_a1')
+  assert.equal(agentUrl, `${config.COURSE_PORTAL_ORIGIN}/api/learn/entry?agent=stage-abc123&scene=scene_a1&layout=focus&ticket=TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT`)
+  assert.deepEqual(calls[2].data, { operation: 'handoff', agentCourseId: 'stage-abc123' })
+  assert.equal(await identity.createAgentCourseLaunchUrl('stage-abc123', '../x'), `${config.COURSE_PORTAL_ORIGIN}/api/learn/entry?agent=stage-abc123&layout=focus&ticket=TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT`)
+
+  // 换不到入场券就报错，由课程页重试；不再回落到不含凭证的课程地址（学习设备确认已下线，网页没有别的登录方式）
   global.courseHandoffFails = true
   try {
-    assert.equal(await identity.createCourseLaunchUrl(51), `${config.COURSE_PORTAL_ORIGIN}/learn?course=51&layout=focus`)
+    await assert.rejects(identity.createCourseLaunchUrl(51), /课程服务响应超时/)
   } finally {
     global.courseHandoffFails = false
+  }
+  for (const [reply, message] of [
+    [{ statusCode: 403, data: { code: 'MEMBERSHIP_REQUIRED' } }, /暂无会员课程学习权限/],
+    [{ statusCode: 403, data: { code: 'COURSE_ACCESS_DENIED' } }, /暂不可访问这门课程/],
+    [{ statusCode: 200, data: { ticket: 'short' } }, /课程入口暂时不可用/]
+  ]) {
+    global.courseHandoffReply = reply
+    try {
+      await assert.rejects(identity.createLibraryCourseLaunchUrl(libraryId), message)
+    } finally {
+      global.courseHandoffReply = undefined
+    }
   }
   calls.length = 0
 
@@ -460,6 +539,22 @@ test('guardian identity submission keeps the raw card transient and maps server 
   assert.equal(calls.length, 0)
 })
 
+// 2026-09-29 起普通实名一步完成；刷脸只在申请推广伙伴时做，视频以 base64 随请求发出、不经过文件上传
+test('the partner face check sends the video inline and maps each outcome for the page', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.SUBMIT_CURRENT_GUARDIAN_IDENTITY_VERIFICATION, { success: true, duplicate: false, message: '实名认证成功', verify: null })
+  assert.equal('livenessRequired' in (await identity.submitCurrentGuardianIdentityVerification({ name: '测试家长', idCardNumber: '11010519491231002X' })), false)
+  // 已实名的账号填了别人的证：带上错误码，申请页据此提示
+  reset()
+  actionResult(config.ACTION_FLOWS.SUBMIT_CURRENT_GUARDIAN_IDENTITY_VERIFICATION, { success: false, message: '你已完成实名认证，填写的姓名或身份证号与实名记录不一致', verify: 'identity_mismatch' })
+  await assert.rejects(identity.submitCurrentGuardianIdentityVerification({ name: '测试家长', idCardNumber: '11010519491231002X' }),
+    (error) => error.code === 'IDENTITY_MISMATCH' && /不一致/.test(error.message))
+
+  // 2026-10-13 起人脸识别流程整个去掉：小程序不再有刷脸接口
+  assert.equal(identity.submitPartnerLiveness, undefined)
+  assert.equal(config.ACTION_FLOWS.SUBMIT_CURRENT_GUARDIAN_LIVENESS, undefined)
+})
+
 test('promotion assignment and family-facing flows keep identity and idempotency server-side', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.SUBMIT_PROMOTER_ASSIGNMENT_REQUEST, { request: { id: 701, status: 'pending' } })
@@ -485,6 +580,45 @@ test('promotion assignment and family-facing flows keep identity and idempotency
   assert.deepEqual((await identity.loadGuardianDashboard()).children, [])
   assert.deepEqual((await identity.loadGuardianLearningFeed()).children, [])
   assert.equal((await identity.loadAuthorizedTopicLearningReports()).students[0].source, 'self')
+})
+
+test('every bound-student view carries the avatar the backend signs for this load', async () => {
+  reset()
+  const avatar = { url: 'https://fz-zion-static.example/avatar.jpeg' }
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_FAMILY_RELATIONS, {
+    self: { id: 201 },
+    students: [{ id: 801, student_profile: { id: 202, nickname: '小鹿', avatar } }],
+    guardians: []
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_GUARDIAN_DASHBOARD, {
+    status: 'ready', children: [{ id: 801, student_profile: { id: 202, nickname: '小鹿', avatar } }]
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_GUARDIAN_LEARNING_FEED, {
+    status: 'ready', children: [{ id: 801, student_profile: { id: 202, nickname: '小鹿', avatar } }]
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_TEACHER_WORKSPACE, {
+    status: 'ready',
+    teacher: { id: 11, name: '王老师', teacherNo: 'T102938' },
+    students: [{ bindingId: 7, studentProfileId: 202, name: '小鹿', avatarUrl: avatar.url }]
+  })
+
+  assert.equal((await identity.loadCurrentFamilyRelations()).students[0].avatarUrl, avatar.url)
+  assert.equal((await identity.loadGuardianDashboard()).children[0].avatarUrl, avatar.url)
+  assert.equal((await identity.loadGuardianLearningFeed()).children[0].avatarUrl, avatar.url)
+  assert.equal((await identity.loadCurrentTeacherWorkspace()).students[0].avatarUrl, avatar.url)
+})
+
+test('a student without an avatar falls back to an empty string, never undefined', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_FAMILY_RELATIONS, {
+    self: { id: 201 }, students: [{ id: 801, student_profile: { id: 202, nickname: '小鹿' } }], guardians: []
+  })
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_TEACHER_WORKSPACE, {
+    status: 'ready', teacher: { id: 11, name: '王老师' }, students: [{ bindingId: 7, studentProfileId: 202, name: '小鹿' }]
+  })
+
+  assert.equal((await identity.loadCurrentFamilyRelations()).students[0].avatarUrl, '')
+  assert.equal((await identity.loadCurrentTeacherWorkspace()).students[0].avatarUrl, '')
 })
 
 test('promotion invitations and attribution only send a token, safe path, scene and idempotency key', async () => {
@@ -975,6 +1109,7 @@ test('published promotion materials only use the current-user server flow and no
       campaign_key: 'math-plan',
       copy_text: '为孩子制定清晰的学习计划。',
       published_at: '2026-09-05T00:00:00Z',
+      expires_at: '2026-10-01T00:00:00Z',
       cover_image: { id: 81, url: 'https://assets.example/material.png' },
       asset_file: { id: 82, url: 'https://assets.example/material.pdf' },
       scope_rule: { audience: 'all_promoters' }
@@ -989,7 +1124,7 @@ test('published promotion materials only use the current-user server flow and no
     assets: [{
       id: '71', assetNo: 'MAT-001', assetType: 'image', versionNo: 'v1',
       title: '数学学习规划海报', campaignKey: 'math-plan', copyText: '为孩子制定清晰的学习计划。',
-      publishedAt: '2026-09-05T00:00:00Z',
+      publishedAt: '2026-09-05T00:00:00Z', expiresAt: '2026-10-01T00:00:00Z',
       coverImage: { id: '81', url: 'https://assets.example/material.png' },
       assetFile: { id: '82', url: 'https://assets.example/material.pdf' }
     }]
@@ -1023,10 +1158,130 @@ test('daily coin check-in only invokes the current-user server flow and normaliz
   assert.equal((await identity.claimCurrentDailyCoinCheckin()).status, 'already_checked_in')
 })
 
+test('learning check-in reading passes on how many coins the next check-in brings', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_CHECKIN, {
+    status: 'ready', today: '2026-09-27', checkedDates: ['2026-09-26', '2026-09-27'],
+    reward: { enabled: true, coins: 20, nextDay: 'tomorrow', nextCoins: 40 }
+  })
+  assert.deepEqual((await identity.loadCurrentLearningCheckin()).reward, { enabled: true, coins: 20, nextDay: 'tomorrow', nextCoins: 40 })
+
+  // 旧后端没有 nextDay / nextCoins：当成今天、0 金币（页面不提示）
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_LEARNING_CHECKIN, { status: 'ready', today: '2026-09-27', reward: { enabled: true, coins: 20 } })
+  assert.deepEqual((await identity.loadCurrentLearningCheckin()).reward, { enabled: true, coins: 20, nextDay: 'today', nextCoins: 0 })
+})
+
 test('daily coin check-in does not clear a valid session when its rule is not published', async () => {
   reset()
   actionResult(config.ACTION_FLOWS.CLAIM_CURRENT_DAILY_COIN_CHECKIN, { status: 'rule_unavailable' })
   await assert.rejects(identity.claimCurrentDailyCoinCheckin(), /暂未发布/)
   assert.equal(storageToken, 'test-runtime-token')
   assert.equal(navigationCalls.length, 0)
+})
+
+test('credit account can be read for a bound child and labels who spent guardian credits', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT, {
+    studentId: 302, viewerStudentId: 201, student: { id: 302, nickname: '小鹿' },
+    account: { status: 'active', available_credits: '10', frozen_credits: '0', consumed_credits: '0', expired_credits: '0' },
+    batches: [],
+    ledger: [
+      { id: 1, credits: '-4', business_type: 'course_generation_consume', learner_profile_id: 302, beneficiary_profile_id: 302 },
+      { id: 2, credits: '-6', business_type: 'course_generation_consume', learner_profile_id: 201, beneficiary_profile_id: 302, learner_profile: { id: 201, nickname: '鹿爸' } }
+    ],
+    orders: []
+  })
+  const child = await identity.loadCurrentCreditAccount('302')
+  assert.deepEqual(lastCall(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT).variables.args, { studentId: '302' })
+  assert.deepEqual(child.viewer, { studentId: '201', isSelf: false })
+  assert.deepEqual(child.student, { id: '302', name: '小鹿' })
+  assert.equal(child.ledger[0].counterpartyLabel, '')
+  assert.equal(child.ledger[1].counterpartyLabel, '使用鹿爸的积分')
+
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT, {
+    studentId: 201, viewerStudentId: 201, student: { id: 201, nickname: '鹿爸' },
+    account: { status: 'active', available_credits: '90', frozen_credits: '0', consumed_credits: '6', expired_credits: '0' },
+    batches: [],
+    ledger: [{ id: 2, credits: '-6', business_type: 'course_generation_consume', learner_profile_id: 201, beneficiary_profile_id: 302, beneficiary_profile: { id: 302, nickname: '小鹿' } }],
+    orders: []
+  })
+  const own = await identity.loadCurrentCreditAccount()
+  assert.deepEqual(lastCall(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT).variables.args, {})
+  assert.equal(own.viewer.isSelf, true)
+  assert.equal(own.ledger[0].counterpartyLabel, '使用人：小鹿')
+})
+
+// 定制课程按节扣积分（2026-10-05）：每节一条「定制课程扣费」，余额不够的写明本节多少、待补扣多少；补扣另有一条。
+test('custom-course charges show the lesson, what is still owed and the repayment', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT, {
+    studentId: 31, viewerStudentId: 31, student: { id: 31, nickname: '小鹿' },
+    account: { status: 'active', available_credits: '0', frozen_credits: '0', consumed_credits: '2300', expired_credits: '0' },
+    batches: [],
+    ledger: [
+      { id: 3, credits: '-300', entry_type: 'consume', business_type: 'agent_course_debt_repay', business_ref: 'stage-b', learner_profile_id: 31, beneficiary_profile_id: 31 },
+      { id: 2, credits: '0', entry_type: 'consume', business_type: 'agent_course', business_ref: 'stage-b', learner_profile_id: 31, beneficiary_profile_id: 31 },
+      { id: 1, credits: '-2000', entry_type: 'consume', business_type: 'agent_course', business_ref: 'stage-a', learner_profile_id: 31, beneficiary_profile_id: 31 }
+    ],
+    agentCourseCharges: [
+      { stage_id: 'stage-b', title: '第2节 连续退位', status: 'charged', actual_credits: '1500', paid_credits: '0', debt_credits: '1500', repaid_credits: '300', debt_status: 'open' },
+      { stage_id: 'stage-b', title: '第2节 连续退位', status: 'released', actual_credits: '0', paid_credits: '0', debt_credits: '0', repaid_credits: '0', debt_status: 'none' },
+      { stage_id: 'stage-a', title: '第1节 退位减法', status: 'charged', actual_credits: '2000', paid_credits: '2000', debt_credits: '0', repaid_credits: '0', debt_status: 'none' }
+    ],
+    debt: 1200,
+    orders: []
+  })
+  const account = await identity.loadCurrentCreditAccount()
+  assert.equal(account.debt, '1200')
+  assert.deepEqual(account.ledger.map((item) => [item.businessLabel, item.counterpartyLabel]), [
+    ['补扣欠款', '《第2节 连续退位》的欠款'],
+    ['定制课程扣费', '《第2节 连续退位》 · 本节 1500，1200 待补扣'],
+    ['定制课程扣费', '《第1节 退位减法》']
+  ])
+})
+
+test('reading an unrelated student credit account surfaces the authorization error in Chinese', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT, new Error('STUDENT_NOT_AUTHORIZED'))
+  await assert.rejects(identity.loadCurrentCreditAccount('999'), /没有查看该学生课程积分的权限/)
+})
+
+// 老师的头像是后端新加的字段。identity 这层是逐字段挑出来的，漏挑一个前端就永远拿不到——
+// 这条用例盯住整条链路：动作流返回什么，页面就应该拿到什么。
+test('the invite the student opens carries the teacher avatar and voice straight through', async () => {
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_TEACHER_AGENT_INVITE, {
+    status: 'ready',
+    online: true,
+    serverNow: '2026-09-22T11:00:00Z',
+    invite: {
+      inviteId: '5',
+      token: 'tk1',
+      subject: '数学',
+      scheduledOnlineAt: '2026-09-22T11:00:00Z',
+      status: 'scheduled',
+      sessionId: '',
+      teacherName: '周流君騰',
+      teacherAvatarUrl: 'https://cdn.example.com/t.jpg',
+      voiceUrl: 'https://cdn.example.com/v.mp3',
+      voiceDurationMs: 14266
+    }
+  })
+  const result = await identity.loadTeacherAgentInvite('tk1')
+  assert.equal(result.status, 'ready')
+  assert.equal(result.invite.teacherName, '周流君騰')
+  assert.equal(result.invite.teacherAvatarUrl, 'https://cdn.example.com/t.jpg')
+  assert.equal(result.invite.voiceUrl, 'https://cdn.example.com/v.mp3')
+  assert.equal(result.invite.voiceDurationMs, 14266)
+
+  // 老师没设头像时给空串，页面据此退回占位圆，而不是渲染一个坏掉的 image
+  reset()
+  actionResult(config.ACTION_FLOWS.GET_TEACHER_AGENT_INVITE, {
+    status: 'ready', online: false, serverNow: '',
+    invite: { inviteId: '5', token: 'tk1', subject: '数学', scheduledOnlineAt: '2026-09-22T11:00:00Z', status: 'scheduled', teacherName: '王老师' }
+  })
+  const bare = await identity.loadTeacherAgentInvite('tk1')
+  assert.equal(bare.invite.teacherAvatarUrl, '')
+  assert.equal(bare.invite.voiceUrl, '')
 })

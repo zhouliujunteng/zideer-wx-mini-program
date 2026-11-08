@@ -3,6 +3,7 @@ const {
   submitCurrentGuardianIdentityVerification,
   isAuthenticationRequired
 } = require('../../services/identity')
+const { roleLabel } = require('../../utils/business-labels')
 
 const verificationLabels = {
   verified: '已实名核验',
@@ -10,17 +11,6 @@ const verificationLabels = {
   rejected: '实名认证未通过',
   expired: '实名认证已过期',
   not_started: '尚未完成实名认证'
-}
-
-const roleLabels = {
-  USER: '学习用户',
-  GUARDIAN: '家长',
-  PROMOTER: '推广伙伴',
-  TEACHER: '教师',
-  student: '学生',
-  guardian: '家长',
-  promoter: '推广伙伴',
-  teacher: '教师'
 }
 
 function formatDate(value) {
@@ -43,7 +33,7 @@ function buildPageData(data) {
     method: verification && verification.verification_method || '',
     roles: (data.roles || []).map((role) => ({
       id: role.id || `${role.role_code}-${role.granted_at || ''}`,
-      label: roleLabels[role.role_code] || role.role_code || '业务身份',
+      label: roleLabel(role.role_code),
       grantedAt: formatDate(role.granted_at)
     }))
   }
@@ -97,7 +87,8 @@ Page({
     } catch (error) {
       if (!current()) return
       if (isAuthenticationRequired(error)) return
-      this.setData({ failed: true })
+      // 已读到过状态时刷新失败只提示，不把旧状态换成错误页
+      if (!this.data.identity) this.setData({ failed: true })
       wx.showToast({ title: error.message || '实名认证状态加载失败', icon: 'none' })
     } finally {
       if (current()) this.setData({ loading: false })

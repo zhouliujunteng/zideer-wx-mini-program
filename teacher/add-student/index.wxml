@@ -1,0 +1,52 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 添加学生：与老师工作台、「我的学生详情」（E06）同一套样式。蓝色渐变头部写说明，#FAFAFA 面板里输入 6 位用户 ID，添加后显示学生卡片。 -->
+<view class="add-root">
+  <view class="add-ambient" aria-hidden="true"></view>
+  <view class="add-topbar">
+    <view class="add-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="add-back" bindtap="goBack" aria-label="返回上一页" aria-role="button"><view class="add-back-icon"></view></view>
+      <text class="add-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">添加学生</text>
+    </view>
+  </view>
+
+  <view class="add-hero" style="padding-top: {{statusBarHeight + navigationBarHeight}}px;">
+    <text class="add-hero-title">输入学生的用户 ID</text>
+    <text class="add-hero-copy">请学生打开小程序「我的」页，头像下方的 6 位数字就是用户 ID</text>
+  </view>
+
+  <!-- 面板依次是：老师身份核对失败 / 添加结果（添加成功或已在名下后收起表单，「继续添加」回到表单）/ 输入表单 -->
+  <view class="add-panel">
+    <view wx:if="{{checkFailed}}" class="card empty-card">
+      <text class="empty-title">老师身份暂时无法核对</text>
+      <text class="empty-copy">请检查网络后重试。</text>
+      <view class="empty-retry" bindtap="checkTeacher" aria-role="button">重新核对</view>
+    </view>
+    <view wx:elif="{{added}}" class="result">
+      <view class="section-heading"><text>{{added.alreadyBound ? '已在你名下' : '添加成功'}}</text></view>
+      <view class="card result-card">
+        <image class="result-avatar" src="{{UA.avatar(ui, added.avatarUrl)}}" mode="aspectFill"></image>
+        <view class="result-copy">
+          <text class="result-name">{{added.name}}</text>
+          <text class="result-meta">{{added.gradeText}} · ID {{added.publicId}}</text>
+        </view>
+        <text class="result-badge {{added.alreadyBound ? 'is-muted' : ''}}">{{added.alreadyBound ? '已在名下' : '已添加'}}</text>
+      </view>
+      <view class="result-actions">
+        <view class="result-action" bindtap="continueAdding" aria-role="button">继续添加</view>
+        <view wx:if="{{added.studentProfileId}}" class="result-action is-primary" bindtap="openAddedStudent" aria-role="button">查看学生详情</view>
+        <view wx:else class="result-action is-primary" bindtap="goBack" aria-role="button">返回老师工作台</view>
+      </view>
+    </view>
+    <block wx:else>
+      <view class="section-heading"><text>学生用户 ID</text></view>
+      <view class="code-field {{error ? 'is-error' : ''}}">
+        <input class="code-input" type="number" maxlength="6" placeholder="6 位数字" placeholder-class="code-placeholder" value="{{code}}" bindinput="handleInput" confirm-type="done" bindconfirm="submit" />
+        <view wx:if="{{code}}" class="code-clear" bindtap="clearCode" aria-role="button" aria-label="清空">×</view>
+      </view>
+      <text wx:if="{{error}}" class="add-error">{{error}}</text>
+      <button class="add-submit" bindtap="submit" disabled="{{checking || submitting || code.length !== 6}}">{{submitting ? '正在添加…' : '添加到我名下'}}</button>
+      <text class="section-note">添加后学生会出现在老师工作台。平台也会在后台为你分配学生。</text>
+    </block>
+  </view>
+</view>
+<dev-reset-fab />

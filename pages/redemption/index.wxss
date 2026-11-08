@@ -1,3 +1,4 @@
+@import "../../styles/skeleton.wxss";
 page { background: #FAFAFA; }
 
 .redemption-page { height: 100vh; overflow: hidden; background: #FAFAFA; color: #27332D; }
@@ -31,20 +32,25 @@ page { background: #FAFAFA; }
 .redemption-heading-copy { display: flex; min-width: 0; align-items: baseline; }
 .redemption-section-title { display: block; color: #2F3F37; font-size: 27rpx; font-weight: 700; line-height: 1.3; }
 .redemption-section-count { margin-left: 12rpx; color: #9AA7A0; font-size: 20rpx; line-height: 1.3; }
-.redemption-history-link { display: flex; align-items: center; color: #A0AAA3; font-size: 19rpx; line-height: 1; }
-.redemption-history-link-arrow { display: block; width: 10rpx; height: 10rpx; margin-left: 8rpx; box-sizing: border-box; border-top: 2rpx solid #A0AAA3; border-right: 2rpx solid #A0AAA3; transform: rotate(45deg); }
+.redemption-history-link { display: flex; align-items: center; padding: 10rpx 0 10rpx 20rpx; color: #A0AAA3; font-size: 21rpx; line-height: 1; }
+.redemption-history-link:active { opacity: .65; }
+.redemption-history-link-arrow { display: block; width: 10rpx; height: 10rpx; margin-left: 8rpx; box-sizing: border-box; border-top: 2rpx solid #A0AAA3; border-right: 2rpx solid #A0AAA3; transform: rotate(135deg); transition: transform .2s ease; }
+.redemption-history-link.is-expanded .redemption-history-link-arrow { transform: rotate(-45deg); }
 .redemption-history-list { margin-top: 20rpx; }
-.redemption-history-item { display: flex; align-items: center; min-height: 132rpx; margin-top: 14rpx; padding: 24rpx; box-sizing: border-box; border-radius: 40rpx; background: #fff; }
+/* 记录卡：左边权益与兑换码，右边状态与日期；上下行、卡与卡之间都留足间隙（2026-10-06：原来文字挤在一起） */
+.redemption-history-item { display: flex; align-items: center; min-height: 136rpx; margin-top: 18rpx; padding: 28rpx 30rpx; box-sizing: border-box; border-radius: 40rpx; background: #fff; }
 .redemption-history-item:first-child { margin-top: 0; }
 .redemption-history-main { min-width: 0; flex: 1; }
 .redemption-history-title, .redemption-history-description { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.redemption-history-title { color: #39483F; font-size: 23rpx; font-weight: 650; line-height: 1.2; }
-.redemption-history-description { margin-top: 8rpx; color: #9BA6A0; font-size: 18rpx; line-height: 1.2; }
-.redemption-history-meta { display: flex; align-items: center; margin-top: 8rpx; color: #B2BCB5; font-size: 17rpx; line-height: 1.2; }
-.redemption-history-time { margin-left: 14rpx; }
-.redemption-history-result { display: flex; flex: 0 0 auto; align-items: center; margin-left: 10rpx; }
-.redemption-history-result-arrow { width: 12rpx; height: 12rpx; box-sizing: border-box; border-top: 2rpx solid #B1BBB4; border-right: 2rpx solid #B1BBB4; transform: rotate(45deg); }
-.redemption-history-empty { padding: 64rpx 28rpx; border-radius: 40rpx; background: #fff; color: #A5AEA7; font-size: 24rpx; text-align: center; }
+.redemption-history-title { color: #39483F; font-size: 25rpx; font-weight: 650; line-height: 1.35; }
+.redemption-history-description { margin-top: 12rpx; color: #9BA6A0; font-size: 20rpx; line-height: 1.35; }
+.redemption-history-side { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; margin-left: 20rpx; }
+.redemption-history-status { padding: 6rpx 16rpx; border-radius: 999rpx; background: #EEF7F1; color: #3C9A63; font-size: 19rpx; line-height: 1.3; }
+.redemption-history-status.is-pending { background: #FFF0E2; color: #E07006; }
+.redemption-history-status.is-failed { background: #F4F4F4; color: #9AA19C; }
+.redemption-history-time { margin-top: 12rpx; color: #B2BCB5; font-size: 19rpx; line-height: 1.3; }
+.redemption-history-empty { margin-top: 20rpx; padding: 56rpx 28rpx; border-radius: 40rpx; background: #fff; color: #7F8A83; font-size: 25rpx; line-height: 1.4; text-align: center; }
+.redemption-history-empty-hint { margin-top: 12rpx; color: #B0B9B2; font-size: 21rpx; }
 .redemption-notice-trigger { display: flex; align-items: center; justify-content: center; margin-top: 18rpx; color: #A9B2AB; font-size: 21rpx; line-height: 1.3; }
 .redemption-notice-trigger:active { opacity: .65; }
 .redemption-notice-trigger-arrow { width: 9rpx; height: 9rpx; margin-left: 8rpx; border-top: 2rpx solid #B1BBB4; border-right: 2rpx solid #B1BBB4; transform: rotate(45deg); }
@@ -86,3 +92,9 @@ page { background: #FAFAFA; }
 @keyframes redemption-result-down { from { transform: translateY(0); } to { transform: translateY(100%); } }
 @keyframes redemption-result-mark-pop { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
 @keyframes redemption-result-copy-in { from { opacity: 0; transform: translateY(16rpx); } to { opacity: 1; transform: translateY(0); } }
+
+/* 首次读取兑换记录失败时的重试入口 */
+.redemption-history-empty text { display: block; }
+.redemption-history-retry { display: inline-block; margin-top: 20rpx; padding: 12rpx 36rpx; border-radius: 999rpx; background: #FFF0E2; color: #FD7C02; font-size: 24rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

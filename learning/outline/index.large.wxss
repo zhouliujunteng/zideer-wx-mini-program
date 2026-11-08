@@ -1,0 +1,49 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.outline-page{padding:19px 16px calc(24px + env(safe-area-inset-bottom));min-height:100vh}
+.eyebrow{font-size:13px}
+.heading{font-size:26px;font-weight:600;margin:13px 0 8px}
+.hint{font-size:15px;line-height:1.7}
+.chapter{padding:15px;margin:14px 0;border-radius:14px}
+.label{font-size:14px;margin:13px 0 7px}
+.chapter input{font-size:19px;min-height:42px;border-bottom:0.5px solid #edf0f3}
+.chapter textarea{font-size:16px;line-height:1.7;width:100%;min-height:54px;padding:8px;border-radius:7px}
+.chapter-head{font-size:14px;margin-bottom:9px}
+.chapter-tools{gap:4px}
+.chapter-tools button{font-size:13px;padding:0 8px;line-height:38px;min-width:38px}
+.chapter-tools button::after,.mode::after,.cancel::after{border:0}
+.section-title{font-size:19px;font-weight:600;margin:21px 0 12px}
+.mode{border:1px solid #e3e6ed;border-radius:13px;padding:14px;line-height:1.7;margin:9px 0;font-size:18px}
+.mode--selected{border-color:#9875cc}
+.actions{gap:9px;margin-top:16px}
+.actions button{margin:0;font-size:16px}
+.primary-action,.secondary-action{border-radius:10px;min-height:52px;font-size:16px}
+.secondary-action{border:0.5px solid #e1d6f0}
+.error{font-size:15px;line-height:1.7;margin:12px 0}
+.cancel{font-size:15px;margin-top:12px}
+.chapter-config{border-top:0.5px solid #edf0f3;margin-top:15px}
+.config-choice{padding:12px;border-radius:7px;font-size:16px}
+.question-option{min-height:52px;margin-right:12px;font-size:15px}
+.config-switch{font-size:16px;margin-top:14px}
+.outline-sk-eyebrow{width:216px;height:13px}
+.outline-sk-heading{width:60%;height:33px;margin:13px 0 8px}
+.outline-sk-input{height:33px;margin-top:13px}
+.outline-sk-text{height:72px;margin-top:13px}
+}

@@ -3,8 +3,11 @@
   <view class="screen-scroll service-contact">
     <view class="page-head"><text class="page-head__title">真人服务</text><text class="page-head__copy">课程顾问和真人陪跑服务</text></view>
 
-    <view class="state-panel" wx:if="{{loading}}"><text class="state-panel__title">正在读取服务入口</text></view>
-    <view class="state-panel" wx:elif="{{failed}}"><text class="state-panel__title">服务入口暂时无法读取</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+    <!-- 第一次读到服务入口前按服务行的形状画骨架，不显示读取中文案 -->
+    <view class="service-list" wx:if="{{!loaded && !failed}}">
+      <view class="service-row surface" wx:for="{{[1, 2]}}" wx:key="*this"><view class="sk service-row__icon-sk"></view><view class="service-row__copy"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short"></view></view></view>
+    </view>
+    <view class="state-panel" wx:elif="{{!loaded}}"><text class="state-panel__title">服务入口暂时无法读取</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
     <view class="state-panel" wx:elif="{{profileIncomplete}}"><text class="state-panel__title">请先完善学习档案</text><text class="state-panel__copy">完成建档后才能匹配适用的真人服务。</text></view>
     <view class="state-panel" wx:elif="{{!contacts.length}}"><text class="state-panel__title">当前没有可用服务入口</text><text class="state-panel__copy">服务开通或配置生效后，会显示在这里。</text></view>
 

@@ -1,0 +1,47 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="streak-card-section">
+  <text class="streak-card-title">我的学习连胜</text>
+  <view class="streak-card {{streak ? (streak.lit ? 'streak-card-lit' : 'streak-card-idle') : ''}}" bindtap="handleTap" role="button" aria-label="{{streak ? '我的学习连胜，已连续学习' + streak.streakDays + '天，' + streak.stateLabel : '我的学习连胜'}}">
+    <view class="streak-card-head">
+      <view class="streak-card-copy">
+        <text class="streak-card-label">已连续学习</text>
+        <!-- 第一次读到打卡数据前，天数与状态位只画骨架，不显示 0 天。 -->
+        <block wx:if="{{streakStatus === 'loading'}}">
+          <view class="sk streak-card-number-skeleton"></view>
+          <view class="sk sk-line streak-card-state-skeleton"></view>
+        </block>
+        <block wx:elif="{{streakStatus === 'failed'}}">
+          <text class="streak-card-error">学习连胜暂时无法读取</text>
+          <text class="streak-card-retry">点这里重新加载</text>
+        </block>
+        <block wx:elif="{{streakStatus === 'guest' || streakStatus === 'profile'}}">
+          <!-- 未登录、没完善学习资料（2026-09-27 起未登录也能浏览）：没有打卡数据，引导去登录 / 去完善。 -->
+          <text class="streak-card-error">{{streakStatus === 'guest' ? '登录后开始记录' : '完善学习资料后开始记录'}}</text>
+          <text class="streak-card-retry">{{streakStatus === 'guest' ? '去登录' : '去完善'}}</text>
+        </block>
+        <block wx:else>
+          <view class="streak-card-number-row">
+            <text class="streak-card-number">{{streak.streakDays}}</text>
+            <text class="streak-card-unit">天</text>
+          </view>
+          <text class="streak-card-state">{{streak.stateLabel}}</text>
+        </block>
+      </view>
+      <view class="streak-card-art" aria-hidden="true">
+        <view wx:if="{{streakStatus === 'loading'}}" class="sk sk-round streak-card-art-skeleton"></view>
+        <image wx:else class="streak-card-icon" src="{{UA.src(ui, streak && streak.lit ? '/learning/assets/check-in/streak.svg' : '/learning/assets/check-in/streak-gray.svg')}}" mode="aspectFit"></image>
+      </view>
+    </view>
+    <view wx:if="{{streakStatus === 'loading' || streakStatus === 'ready'}}" class="streak-week">
+      <view wx:for="{{weekdayLabels}}" wx:key="*this" class="streak-day">
+        <text class="streak-day-label">{{item}}</text>
+        <view wx:if="{{!streak}}" class="sk sk-round streak-day-mark-skeleton"></view>
+        <view wx:else class="streak-day-mark {{streak.week[index].isChecked ? 'streak-day-mark-checked' : ''}} {{streak.week[index].isFrozen ? 'streak-day-mark-frozen' : ''}} {{streak.week[index].isRevived ? 'streak-day-mark-revived' : ''}} {{streak.week[index].isToday ? 'streak-day-mark-today' : ''}} {{streak.week[index].isFuture ? 'streak-day-mark-future' : ''}}">
+          <text>{{streak.week[index].date}}</text>
+        </view>
+      </view>
+    </view>
+    <!-- 手机上浮在第一行右侧；大屏横排时放在最右端。 -->
+    <view class="streak-card-go" aria-hidden="true"><view class="streak-card-chevron"></view></view>
+  </view>
+</view>

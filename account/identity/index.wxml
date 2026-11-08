@@ -1,8 +1,12 @@
 <view class="identity-status-page">
-  <view class="identity-status-skeleton skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">实名认证状态暂时无法加载</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <view class="identity-status-head"><text class="identity-status-eyebrow">账户</text><text class="identity-status-title">身份与实名认证</text></view>
+  <!-- 第一次读到认证状态前按状态卡、身份列表的形状画骨架；读到过一次后刷新保留旧状态 -->
+  <block wx:if="{{!identity && !failed}}">
+    <view class="identity-status-card surface"><text class="identity-status-card__label">实名认证</text><view class="sk identity-status-sk"></view><view class="sk sk-line sk-mid"></view></view>
+    <view class="identity-status-section"><text class="identity-status-section__title">业务身份</text><view class="identity-role-list surface"><view class="identity-role-row"><view class="sk sk-line identity-role-sk"></view><view class="sk sk-line identity-role-date-sk"></view></view></view></view>
+  </block>
+  <view class="state-panel" wx:elif="{{!identity}}"><view class="state-panel__mark">!</view><text class="state-panel__title">实名认证状态暂时无法加载</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
   <block wx:else>
-    <view class="identity-status-head"><text class="identity-status-eyebrow">账户</text><text class="identity-status-title">身份与实名认证</text></view>
     <view class="identity-status-card surface"><text class="identity-status-card__label">实名认证</text><text class="identity-status-card__status identity-status-card__status--{{identity.statusClass}}">{{identity.statusLabel}}</text><text class="identity-status-card__detail">{{identity.detail}}</text><text class="identity-status-card__expiry" wx:if="{{identity.expiry}}">{{identity.expiry}}</text></view>
     <view class="identity-submit-section" wx:if="{{identity.statusClass !== 'verified'}}">
       <text class="identity-status-section__title">家长实名认证</text>

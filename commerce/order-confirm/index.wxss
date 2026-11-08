@@ -1,1 +1,53 @@
-.confirm-page { min-height:100vh; padding:52rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); }.commerce-skeleton { height:300rpx; }.confirm-head { padding:0 8rpx; }.confirm-eyebrow { display:block; color:var(--accent-deep); font-size:22rpx; font-weight:700; }.confirm-title { display:block; margin-top:12rpx; font-size:38rpx; font-weight:700; overflow-wrap:anywhere; }.confirm-card { margin-top:34rpx; padding:0 26rpx; }.confirm-row { display:flex; justify-content:space-between; gap:22rpx; padding:29rpx 0; border-bottom:1rpx solid var(--line); color:var(--ink-soft); font-size:24rpx; }.confirm-row:last-child { border-bottom:0; }.confirm-row text:last-child { color:var(--ink); text-align:right; overflow-wrap:anywhere; }.confirm-price { color:var(--accent-deep) !important; font-size:31rpx; font-weight:700; }.confirm-notice { display:block; margin:22rpx 8rpx; color:var(--muted); font-size:21rpx; line-height:1.55; }.confirm-button { width:100%; min-height:92rpx; margin-top:26rpx; border-radius:8rpx; background:var(--ink); color:#fff; font-size:28rpx; font-weight:700; }
+@import "../../styles/skeleton.wxss";
+/* 确认订单：与积分包页（commerce/products）同一套——课程积分页的氛围光、白色大圆角卡片、品牌橙价格、底部支付栏。 */
+page { background: #FAFAFA; }
+
+.confirm-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.confirm-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(125% 42% at 100% 0, rgba(201, 232, 255, .72) 0%, rgba(215, 239, 255, .4) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.confirm-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.confirm-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.confirm-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.confirm-back:active { background: #F0F2EF; }
+.confirm-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.confirm-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.confirm-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.confirm-shell { min-height: 100%; padding: 0 32rpx calc(200rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+.confirm-pack { display: flex; align-items: center; justify-content: space-between; gap: 24rpx; margin-top: 12rpx; padding: 30rpx 28rpx; border: 3rpx solid #FD7C02; border-radius: 32rpx; background: #FFF9F2; }
+.confirm-pack-copy { min-width: 0; flex: 1; }
+.confirm-credits { display: flex; align-items: baseline; }
+.confirm-credits-value { color: #24332D; font-size: 56rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1.05; }
+.confirm-credits-unit { margin-left: 8rpx; color: #7E8A82; font-size: 22rpx; }
+.confirm-title { display: block; margin-top: 8rpx; overflow: hidden; color: #8A958D; font-size: 23rpx; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.confirm-pack-price { display: flex; flex: 0 0 auto; align-items: baseline; color: #FD7C02; font-size: 44rpx; font-weight: 700; }
+.confirm-yuan { margin-right: 2rpx; font-size: 24rpx; font-weight: 600; }
+
+.confirm-card { margin-top: 24rpx; padding: 4rpx 26rpx; border-radius: 32rpx; background: #fff; }
+.confirm-row { display: flex; align-items: center; justify-content: space-between; gap: 22rpx; padding: 26rpx 0; border-bottom: 2rpx solid #F0F3F0; color: #7E8A82; font-size: 24rpx; line-height: 1.4; }
+.confirm-row:last-child { border-bottom: 0; }
+.confirm-row text:last-child { color: #24332D; text-align: right; overflow-wrap: anywhere; }
+.confirm-row text.confirm-saved { color: #C0662A; }
+.confirm-row text.confirm-price { color: #FD7C02; font-size: 32rpx; font-weight: 700; }
+.confirm-notice { display: block; margin: 18rpx 6rpx 0; color: #98A39B; font-size: 20rpx; line-height: 1.6; }
+
+.confirm-state { display: flex; flex-direction: column; align-items: center; margin-top: 32rpx; padding: 64rpx 36rpx 56rpx; border-radius: 32rpx; background: #fff; }
+.confirm-state-title { color: #24332D; font-size: 29rpx; font-weight: 650; }
+.confirm-state-action { margin-top: 28rpx; padding: 0 48rpx; height: 72rpx; border-radius: 999rpx; background: #F0F2EF; color: #4A514C; font-size: 25rpx; font-weight: 650; line-height: 72rpx; }
+
+.confirm-bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 18; display: flex; align-items: center; justify-content: space-between; gap: 24rpx; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .96); box-shadow: 0 -8rpx 24rpx rgba(36, 51, 45, .06); }
+.confirm-bar-copy { display: flex; align-items: baseline; min-width: 0; color: #FD7C02; }
+.confirm-bar-label { margin-right: 10rpx; color: #7E8A82; font-size: 22rpx; }
+.confirm-bar-yuan { font-size: 24rpx; font-weight: 600; }
+.confirm-bar-amount { margin-left: 2rpx; font-size: 44rpx; font-weight: 700; line-height: 1.1; }
+.confirm-button { flex: 0 0 auto; height: 88rpx; margin: 0; padding: 0 56rpx; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #fff; font-size: 28rpx; font-weight: 650; line-height: 88rpx; }
+.confirm-button::after { border: 0; }
+.confirm-button[disabled] { background: #F3C9A0 !important; color: #fff !important; }
+
+/* 首次加载骨架 */
+.confirm-sk-credits { width: 200rpx; height: 56rpx; }
+.confirm-sk-title { height: 22rpx; margin-top: 14rpx; }
+.confirm-sk-value { width: 160rpx; }
+.confirm-sk-amount { width: 140rpx; height: 44rpx; }
+.confirm-sk-button { width: 230rpx; height: 88rpx; border-radius: 999rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

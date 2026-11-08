@@ -1,0 +1,76 @@
+/* 目标导图组件。卡片尺寸、字号要和 utils/goal-map.js 的 CARD 一致（那边按这些数字估算折行和高度）。 */
+.tone-pending { --tone-bg: #F4F5F3; --tone-line: #E3E7E3; --tone-dot: #B8C0BA; --tone-ink: #66736A; }
+.tone-testing { --tone-bg: #FFF6EC; --tone-line: #FFC48A; --tone-dot: #FD7C02; --tone-ink: #B95500; }
+.tone-mastered { --tone-bg: #EEF6F0; --tone-line: #CFE5D5; --tone-dot: #4F9A68; --tone-ink: #2F5E3F; }
+.tone-shaky { --tone-bg: #FFF7E3; --tone-line: #F2D99A; --tone-dot: #D99A17; --tone-ink: #8A6210; }
+.tone-gap { --tone-bg: #FFF0EB; --tone-line: #F6C2B1; --tone-dot: #E8643F; --tone-ink: #A8432A; }
+.tone-root { --tone-bg: #FFE4DA; --tone-line: #E8643F; --tone-dot: #D2451F; --tone-ink: #9C2F14; }
+.tone-untested { --tone-bg: #F7F8F6; --tone-line: #D9DEDA; --tone-dot: #C9D0CB; --tone-ink: #8A958D; }
+.tone-goal { --tone-bg: #FD7C02; --tone-line: #FD7C02; --tone-dot: #FFFFFF; --tone-ink: #FFFFFF; }
+
+.gm-map-card { margin-bottom: 14px; padding: 16px 14px 12px; border-radius: 22px; background: #FFF; box-shadow: 0 3px 14px rgba(56,75,64,.025); }
+.gm-map-head { display: flex; align-items: center; justify-content: space-between; margin: 0 4px 10px; }
+.gm-map-title { color: #24332D; font-size: 15px; font-weight: 700; }
+.gm-zoom { display: flex; align-items: center; gap: 4px; padding: 2px; border-radius: 999px; background: #F4F5F3; }
+.gm-zoom-btn { width: 28px; height: 28px; border-radius: 50%; color: #4B5A50; font-size: 16px; line-height: 28px; text-align: center; }
+.gm-zoom-btn:active { background: #E8EBE8; }
+.gm-zoom-text { min-width: 40px; color: #66736A; font-size: 11px; text-align: center; }
+.gm-map-box { width: 100%; overflow: hidden; border-radius: 16px; background-color: #FBFAF8; background-image: radial-gradient(#EDE7E0 1px, transparent 1px); background-size: 16px 16px; }
+.gm-map-view { position: relative; }
+
+/* 曲线：两段四分之一椭圆（只画两条边 + 100% 圆角）拼成 S 形，见 utils/goal-map.js curveSegments */
+.gm-arc { position: absolute; box-sizing: border-box; border: 0 solid #DDD5CB; }
+.gm-arc.is-hot { border-color: #F2A58C; }
+.gm-arc-h { border-top-width: 1.5px; margin-top: -0.75px; }
+.gm-arc-dr1 { border-top-width: 1.5px; border-right-width: 1.5px; border-top-right-radius: 100% 100%; margin-top: -0.75px; }
+.gm-arc-dr2 { border-left-width: 1.5px; border-bottom-width: 1.5px; border-bottom-left-radius: 100% 100%; margin: 0 0 0 -0.75px; transform: translateY(0.75px); }
+.gm-arc-ur1 { border-bottom-width: 1.5px; border-right-width: 1.5px; border-bottom-right-radius: 100% 100%; transform: translateY(0.75px); }
+.gm-arc-ur2 { border-left-width: 1.5px; border-top-width: 1.5px; border-top-left-radius: 100% 100%; margin: -0.75px 0 0 -0.75px; }
+
+.gm-card { position: absolute; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--tone-line); border-radius: 14px; background: var(--tone-bg); color: var(--tone-ink); overflow: hidden; }
+.gm-card:active { opacity: .85; }
+.gm-card-text { display: block; font-size: 12.5px; line-height: 18px; white-space: pre-wrap; word-break: break-all; }
+.gm-card-goal { border-radius: 18px; background: linear-gradient(135deg, #FD7C02 0%, #FF9D45 100%); box-shadow: 0 6px 16px rgba(253,124,2,.25); }
+.gm-card-goal .gm-card-text { font-size: 15px; line-height: 21px; font-weight: 700; }
+.gm-card-condition { background: #FFF; border-width: 1.5px; box-shadow: 0 2px 8px rgba(56,75,64,.05); }
+.gm-card-condition .gm-card-text { font-size: 13px; line-height: 19px; font-weight: 650; color: #24332D; }
+.gm-card.tone-root { border-width: 2px; }
+.gm-card.tone-root .gm-card-text { font-weight: 700; }
+.gm-card.tone-untested { border-style: dashed; }
+.gm-card.is-alias { opacity: .72; border-style: dashed; }
+.gm-card.is-current { box-shadow: 0 0 0 3px rgba(253,124,2,.22); }
+.gm-card-meta { display: flex; align-items: center; gap: 5px; height: 18px; margin-top: 2px; font-size: 10.5px; line-height: 18px; opacity: .92; white-space: nowrap; }
+.gm-card-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--tone-dot); }
+.gm-card-goal .gm-card-meta { color: rgba(255,255,255,.88); }
+.gm-card-courses { color: #FD7C02; font-weight: 650; }
+
+.gm-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 12px 4px 0; }
+.gm-legend-item { display: flex; align-items: center; gap: 5px; color: #8A958D; font-size: 11px; }
+.gm-map-tip { display: block; margin: 8px 4px 0; color: #B3BBB5; font-size: 10.5px; }
+
+.gm-sheet-mask { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 60; display: flex; align-items: flex-end; justify-content: center; background: rgba(24,32,28,.32); }
+.gm-sheet { box-sizing: border-box; width: 100%; max-width: 680px; max-height: 80vh; overflow-y: auto; padding: 10px 22px calc(20px + env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0; background: #FFF; }
+.gm-sheet-handle { width: 36px; height: 4px; margin: 0 auto 14px; border-radius: 2px; background: #E3E7E3; }
+.gm-sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.gm-sheet-title { flex: 1; min-width: 0; color: #24332D; font-size: 17px; font-weight: 700; line-height: 1.5; }
+.gm-sheet-chip { flex: none; display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: var(--tone-bg); color: var(--tone-ink); font-size: 11px; font-weight: 600; }
+.gm-sheet-chip.tone-goal { background: #FFF0E2; color: #FD7C02; }
+.gm-sheet-chip.tone-goal .gm-card-dot { background: #FD7C02; }
+.gm-sheet-meta { display: block; margin-top: 6px; color: #A0A9A2; font-size: 12px; }
+.gm-sheet-note { display: block; margin-top: 12px; color: #4B5A50; font-size: 13px; line-height: 1.75; }
+.gm-sheet-wait { margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: #F6F7F5; }
+.gm-sheet-courses { margin-top: 14px; }
+.gm-course-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 12px; border-radius: 14px; background: #FFF6EC; }
+.gm-course-row:active { opacity: .8; }
+.gm-course-icon { flex: none; width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(145deg, #FFB25E, #FD7C02); position: relative; }
+.gm-course-icon::after { content: ''; position: absolute; left: 10px; top: 8px; border-left: 8px solid #FFF; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+.gm-course-title { flex: 1; min-width: 0; color: #24332D; font-size: 14px; font-weight: 650; }
+.gm-course-go { flex: none; color: #FD7C02; font-size: 12px; }
+.gm-ghost-btn { margin-top: 16px; padding: 9px 22px; border-radius: 999px; background: #FFF0E2; color: #FD7C02; font-size: 13px; font-weight: 600; text-align: center; }
+.gm-ghost-btn:active { opacity: .8; }
+
+@media (min-width: 450px) {
+  .gm-map-box { min-height: 460px; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

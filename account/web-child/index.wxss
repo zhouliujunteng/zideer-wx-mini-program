@@ -1,0 +1,48 @@
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
+
+.wc-page { min-height: 100vh; padding: 48rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); }
+.wc-head { padding: 0 8rpx; }
+.wc-eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }
+.wc-title { display: block; margin-top: 12rpx; font-size: 42rpx; font-weight: 700; }
+.wc-intro { display: block; margin-top: 16rpx; color: var(--muted); font-size: 24rpx; line-height: 1.6; }
+.wc-section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 48rpx 8rpx 0; }
+.wc-section-title { font-size: 28rpx; font-weight: 700; }
+.wc-section-count { color: var(--muted); font-size: 23rpx; }
+.wc-card, .wc-empty, .wc-created, .wc-form, .wc-gate { margin-top: 20rpx; padding: 30rpx; }
+.wc-empty { color: var(--muted); font-size: 24rpx; }
+.wc-sk-gap { margin-top: 20rpx; }
+.wc-card__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12rpx; }
+.wc-card__name { display: flex; align-items: baseline; min-width: 0; }
+.wc-card__nickname { font-size: 30rpx; font-weight: 700; }
+.wc-card__grade { margin-left: 14rpx; color: var(--muted); font-size: 23rpx; }
+.wc-badge { padding: 6rpx 16rpx; border-radius: 999rpx; background: var(--accent-soft); color: var(--accent-deep); font-size: 21rpx; font-weight: 700; }
+.wc-badge--locked { background: #FDECEC; color: #C2410C; }
+.wc-created__title { display: block; margin-bottom: 12rpx; font-size: 30rpx; font-weight: 700; }
+.wc-created__row { display: flex; justify-content: space-between; padding: 12rpx 0; color: var(--muted); font-size: 24rpx; }
+.wc-created__row text:last-child { color: var(--ink-soft); font-weight: 600; }
+.wc-mono { font-family: "SF Mono", Menlo, monospace; letter-spacing: 2rpx; }
+.wc-locked-hint { display: block; margin-top: 8rpx; color: #C2410C; font-size: 23rpx; line-height: 1.6; }
+.wc-card__actions { display: flex; justify-content: flex-end; gap: 36rpx; margin-top: 16rpx; }
+.wc-link { color: var(--accent-deep); font-size: 25rpx; font-weight: 700; }
+.wc-link--muted { color: var(--muted); font-weight: 400; }
+.wc-password { margin-top: 18rpx; }
+.wc-password__actions { display: flex; justify-content: flex-end; gap: 36rpx; margin-top: 16rpx; }
+.wc-form__title { display: block; font-size: 28rpx; font-weight: 700; }
+.wc-form__title--gap { margin-top: 36rpx; }
+.wc-field { display: flex; align-items: center; min-height: 96rpx; border-bottom: 1rpx solid var(--line-strong); font-size: 27rpx; }
+.wc-field--pick { justify-content: space-between; }
+.wc-label { flex: none; width: 190rpx; color: var(--muted); font-size: 25rpx; }
+.wc-input { flex: 1; height: 88rpx; font-size: 27rpx; }
+/* 表单行里输入的内容与提示文字靠右，和「请选择」那几行对齐 */
+.wc-field .wc-input { text-align: right; }
+.wc-password .wc-input { width: 100%; border-bottom: 1rpx solid var(--line-strong); }
+.wc-placeholder { color: #B9BDC3; }
+.wc-note { display: block; margin-top: 24rpx; color: var(--muted); font-size: 22rpx; line-height: 1.6; }
+.wc-gate__title { display: block; font-size: 30rpx; font-weight: 700; }
+.wc-gate__detail { display: block; margin-top: 12rpx; color: var(--muted); font-size: 24rpx; line-height: 1.6; }
+.wc-submit { display: flex; width: 100%; min-height: 88rpx; align-items: center; justify-content: center; margin-top: 30rpx; border-radius: 44rpx; background: var(--accent); color: var(--surface); font-size: 27rpx; font-weight: 700; }
+.wc-submit[disabled] { opacity: .55; }
+.wc-cancel { display: block; margin-top: 24rpx; text-align: center; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -1,0 +1,33 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.intro-page{min-height:100vh;padding:31px 16px calc(env(safe-area-inset-bottom) + 28px)}
+.intro-hero{padding:12px 4px 16px}
+.intro-eyebrow{font-size:13px;font-weight:700}
+.intro-title{margin-top:9px;font-size:26px;font-weight:700;line-height:1.25}
+.intro-copy{margin-top:10px;font-size:14px;line-height:1.65}
+.intro-primary{width:100%;min-height:54px;margin-top:19px;border-radius:4px;font-size:16px;font-weight:700}
+.intro-section{margin-top:25px}
+.intro-section__title{padding:0 4px;font-size:16px;font-weight:700}
+.intro-flow{margin-top:10px;padding:0 15px;border:0.5px solid var(--line);border-radius:4px}
+.intro-flow__item{gap:10px;padding:16px 0;border-bottom:0.5px solid var(--line)}
+.intro-flow__item:last-child{border-bottom:0}
+.intro-flow__number{width:25px;height:25px;border-radius:50%;font-size:12px;font-weight:700}
+.intro-flow__title{font-size:15px;font-weight:700}
+.intro-flow__copy{margin-top:4px;font-size:12px;line-height:1.55}
+.intro-actions{margin-top:10px}
+.intro-action{width:100%;min-height:67px;gap:10px;margin-top:9px;padding:12px 13px}
+.intro-action image{width:27px;height:27px}
+.intro-action view{min-width:0}
+.intro-action text:nth-child(1){font-size:14px;font-weight:700}
+.intro-action text:nth-child(2){margin-top:4px;font-size:12px}
+.intro-action > text:last-child{font-size:19px}
+}

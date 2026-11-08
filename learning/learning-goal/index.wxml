@@ -1,0 +1,85 @@
+<!-- 学习宇宙 › 我的学习目标（2026-10-07）：学生自己定目标，老师定制课程前和学习偏好一起先看。
+     方向目录由课程服务下发，读不到用内置的一份（utils/learning-goal.js）。 -->
+<view class="pref-page">
+  <view class="pref-ambient" aria-hidden="true"></view>
+  <view class="pref-topbar">
+    <view class="pref-topbar-inner" style="padding-top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
+      <view class="pref-back" bindtap="handleBack" aria-role="button" aria-label="返回上一页"><view class="pref-back-icon"></view></view>
+      <text class="pref-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学习目标</text>
+    </view>
+  </view>
+
+  <scroll-view class="pref-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="pref-shell">
+      <view class="pref-heading">
+        <text class="pref-title">定一个学习目标</text>
+        <text class="pref-subtitle">老师给你定制课程前，会先看你的学习目标和学习偏好。目标越具体，课程越对路。</text>
+      </view>
+
+      <block wx:if="{{state === 'ready'}}">
+        <view wx:if="{{readFailed}}" class="pref-read-notice" role="alert">
+          <text class="pref-read-notice-copy">之前定的目标暂时没读到，可以先写好再保存，保存后以这次为准。</text>
+          <view class="pref-read-retry" bindtap="retryRead" aria-role="button" aria-label="重新读取">重新读取</view>
+        </view>
+
+        <view class="pref-card">
+          <view class="pref-group-head">
+            <text class="pref-group-title">目标方向</text>
+            <text class="pref-group-hint">选 1 项</text>
+          </view>
+          <view class="pref-options">
+            <view wx:for="{{directions}}" wx:key="id" class="pref-chip {{item.selected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleDirectionTap" aria-role="radio" aria-checked="{{item.selected}}" aria-label="{{item.label}}">{{item.label}}</view>
+          </view>
+        </view>
+
+        <view class="pref-card">
+          <view class="pref-group-head">
+            <text class="pref-group-title">具体目标</text>
+          </view>
+          <textarea class="pref-note" placeholder="{{goalPlaceholder}}" placeholder-class="pref-note-placeholder" maxlength="{{goalLimit}}" value="{{goal}}" bindinput="handleGoalInput" disabled="{{saving}}" auto-height="{{false}}" cursor-spacing="96" adjust-position="{{true}}" aria-label="具体目标" />
+          <view class="pref-note-count"><text>{{goalLength}} / {{goalLimit}}</text></view>
+        </view>
+
+        <view class="pref-card">
+          <view class="pref-group-head">
+            <text class="pref-group-title">希望完成时间<text class="pref-optional">选填</text></text>
+            <text wx:if="{{deadline}}" class="goal-clear" bindtap="clearDeadline" aria-role="button" aria-label="清除完成时间">清除</text>
+          </view>
+          <picker mode="date" value="{{deadline || deadlineStart}}" start="{{deadlineStart}}" end="{{deadlineEnd}}" bindchange="handleDeadlineChange" disabled="{{saving}}">
+            <view class="goal-date {{deadline ? 'is-set' : ''}}" aria-role="button" aria-label="选择完成时间">
+              <text class="goal-date-value">{{deadline || '选个日期，比如期末考试那天'}}</text>
+              <text wx:if="{{deadlineLeft}}" class="goal-date-left">{{deadlineLeft}}</text>
+              <view class="goal-date-chevron" aria-hidden="true"></view>
+            </view>
+          </picker>
+        </view>
+
+        <view class="pref-card pref-preview">
+          <text class="pref-preview-title">老师会看到</text>
+          <block wx:if="{{preview.length}}">
+            <view wx:for="{{preview}}" wx:key="id" class="pref-preview-line">
+              <text class="pref-preview-label">{{item.title}}</text>
+              <text class="pref-preview-text">{{item.text}}</text>
+            </view>
+          </block>
+          <text wx:else class="pref-preview-empty">还没有写。没定也没关系，老师会在诊断会议里先问问你想达到什么目标。</text>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view wx:for="{{skeletonCards}}" wx:key="*this" class="pref-card">
+          <view class="sk sk-line sk-short"></view>
+          <view class="pref-options pref-options-sk">
+            <view wx:for="{{item}}" wx:key="*this" wx:for-item="width" class="sk pref-chip-sk" style="width: {{width}}px;"></view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{state === 'ready'}}" class="pref-footer">
+    <view wx:if="{{saveError}}" class="pref-save-error" role="alert">{{saveError}}</view>
+    <button class="pref-save" bindtap="save" loading="{{saving}}" disabled="{{saving || !dirty}}">{{saving ? '正在保存' : dirty ? '保存学习目标' : hasSaved ? '已保存' : '写好后保存'}}</button>
+  </view>
+</view>
+<dev-reset-fab />

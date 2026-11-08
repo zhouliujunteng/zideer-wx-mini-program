@@ -1,1 +1,72 @@
-.detail-page { min-height: 100vh; padding: 48rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); }.detail-head { padding: 0 8rpx; }.detail-eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }.detail-title { display: block; margin-top: 12rpx; font-size: 40rpx; font-weight: 700; }.detail-status { display: block; margin-top: 14rpx; color: var(--accent-deep); font-size: 23rpx; }.detail-card { margin-top: 30rpx; padding: 4rpx 28rpx; }.detail-card view { display: flex; min-height: 92rpx; align-items: center; justify-content: space-between; gap: 24rpx; border-bottom: 1rpx solid var(--line); color: var(--muted); font-size: 23rpx; }.detail-card view:last-child { border-bottom: 0; }.detail-card view text:last-child { max-width: 440rpx; color: var(--ink); text-align: right; word-break: break-all; }.detail-section { margin-top: 38rpx; }.detail-section__title { display: block; margin-bottom: -12rpx; padding-left: 8rpx; font-size: 28rpx; font-weight: 700; }.detail-primary { width: 100%; min-height: 92rpx; margin-top: 44rpx; border-radius: 6rpx; background: var(--ink); color: #fff; font-size: 27rpx; }
+@import "../../styles/skeleton.wxss";
+/* 订单详情：课程积分页（M34，commerce/entitlements）的氛围光、顶部大数字 + 右侧插画、30rpx 小节标题、白色大圆角行卡片；
+   积分包 / 确认订单 / 订单状态的顶栏与底部品牌橙渐变胶囊按钮。状态标签配色与订单记录一致。 */
+page { background: #FAFAFA; }
+
+.detail-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.detail-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; background: radial-gradient(125% 52% at 100% 0, rgba(201, 232, 255, .84) 0%, rgba(215, 239, 255, .48) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.detail-ambient-ribbon { position: absolute; top: -140rpx; left: -430rpx; width: 1480rpx; height: 720rpx; box-sizing: border-box; border: 24rpx solid rgba(255, 255, 255, .72); border-top-color: transparent; border-right-color: transparent; border-radius: 50%; opacity: .84; transform: rotate(-18deg); }
+.detail-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.detail-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.detail-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.detail-back:active { background: #F0F2EF; }
+.detail-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.detail-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.detail-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.detail-shell { min-height: 100%; padding: 0 32rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.detail-shell.has-bar { padding-bottom: calc(200rpx + env(safe-area-inset-bottom)); }
+
+/* 顶部概览：订单名、金额大字、状态标签 + 类型，右侧积分星或会员皇冠 */
+.detail-overview { display: flex; align-items: flex-start; justify-content: space-between; padding: 8rpx 8rpx 16rpx; }
+.detail-overview-copy { min-width: 0; flex: 1; }
+.detail-eyebrow { display: block; overflow: hidden; color: #24332D; font-size: 29rpx; font-weight: 700; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.detail-amount { display: flex; align-items: baseline; margin-top: 14rpx; color: #24332D; font-size: 88rpx; font-weight: 500; letter-spacing: -2rpx; line-height: .95; }
+.detail-yuan { margin-right: 4rpx; font-size: 40rpx; font-weight: 600; letter-spacing: 0; }
+.detail-overview-meta { display: flex; align-items: center; margin-top: 20rpx; color: #98A49C; font-size: 21rpx; line-height: 1.2; }
+.detail-kind { margin-left: 14rpx; }
+.detail-icon { display: block; flex: 0 0 auto; width: 176rpx; height: 180rpx; margin: -4rpx 4rpx 0 16rpx; transform: rotate(8deg); }
+
+.detail-status { padding: 6rpx 14rpx; border-radius: 999rpx; background: #F1F3F1; color: #7E8982; font-size: 20rpx; font-weight: 600; }
+.detail-status.pending { background: #FFF0E2; color: #E78435; }
+.detail-status.paid { background: #E8F6EF; color: #2E9A66; }
+.detail-status.refunded { background: #EAF3FF; color: #4C8AD6; }
+
+.detail-section { margin-top: 38rpx; }
+.detail-heading { display: flex; align-items: center; padding: 0 4rpx; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.2; }
+.detail-card { margin-top: 22rpx; padding: 6rpx 24rpx; border-radius: 36rpx; background: #fff; }
+.detail-row { display: flex; align-items: center; justify-content: space-between; gap: 22rpx; padding: 26rpx 0; border-bottom: 2rpx solid #F0F3F0; font-size: 24rpx; line-height: 1.4; }
+.detail-row:last-child { border-bottom: 0; }
+.detail-row-label { flex: 0 0 auto; color: #7E8A82; }
+.detail-row-value { display: flex; min-width: 0; align-items: center; justify-content: flex-end; color: #24332D; text-align: right; overflow-wrap: anywhere; }
+.detail-copy { flex: 0 0 auto; margin-left: 14rpx; padding: 4rpx 14rpx; border-radius: 999rpx; background: #F1F3F1; color: #4A514C; font-size: 20rpx; }
+.detail-copy:active { opacity: .6; }
+.detail-row-value .detail-price { color: #FD7C02; font-size: 30rpx; font-weight: 700; }
+
+.detail-batch { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; padding: 26rpx 0; border-bottom: 2rpx solid #F0F3F0; }
+.detail-batch:last-child { border-bottom: 0; }
+.detail-batch-copy { min-width: 0; flex: 1; }
+.detail-batch-title { display: block; overflow: hidden; color: #24332D; font-size: 25rpx; font-weight: 600; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.detail-batch-meta { display: block; margin-top: 8rpx; color: #98A39B; font-size: 20rpx; line-height: 1.3; }
+.detail-batch-remaining { flex: 0 0 auto; color: #24332D; font-size: 24rpx; font-weight: 650; white-space: nowrap; }
+
+.detail-state { display: flex; align-items: center; flex-direction: column; padding: 120rpx 24rpx 40rpx; text-align: center; }
+.detail-state-title { color: #24332D; font-size: 32rpx; font-weight: 600; }
+.detail-state-copy { margin: 22rpx 0 32rpx; color: #7D877F; font-size: 25rpx; line-height: 1.6; }
+.detail-state-action { display: inline-flex; height: 76rpx; align-items: center; padding: 0 44rpx; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; font-weight: 600; }
+.detail-state-action:active { opacity: .78; }
+
+/* 底部按钮：只在待支付的积分包、会员订单时出现 */
+.detail-bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 18; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .96); box-shadow: 0 -8rpx 24rpx rgba(36, 51, 45, .06); }
+.detail-button { display: block; width: 100%; height: 88rpx; margin: 0; padding: 0; border: 0; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #fff; font-size: 28rpx; font-weight: 650; line-height: 88rpx; }
+.detail-button::after { border: 0; }
+.detail-button:active { opacity: .82; }
+.detail-button[disabled] { background: #F3C9A0 !important; color: #fff !important; }
+
+/* 首次加载骨架 */
+.detail-sk-eyebrow { width: 240rpx; height: 28rpx; }
+.detail-sk-amount { width: 220rpx; height: 80rpx; margin-top: 16rpx; }
+.detail-sk-status { width: 96rpx; height: 32rpx; border-radius: 999rpx; }
+.detail-sk-icon { flex: 0 0 auto; width: 160rpx; height: 160rpx; margin: 0 12rpx 0 16rpx; border-radius: 40rpx; }
+.detail-row .detail-sk-value { width: 200rpx; margin-top: 0; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -1,11 +1,20 @@
 <view class="screen plan-detail">
   <view class="plan-detail__inner">
-    <view class="skeleton plan-detail__skeleton" wx:if="{{loading}}"></view>
-    <view class="state-panel" wx:elif="{{failed}}">
+    <view class="state-panel" wx:if="{{failed && !loaded}}">
       <view class="state-panel__mark">!</view>
       <text class="state-panel__title">计划详情没有加载出来</text>
       <button class="state-panel__action pressable" bindtap="loadPlan">重新加载</button>
     </view>
+    <block wx:elif="{{!loaded}}">
+      <!-- 第一次读到计划前：标题与任务列表画骨架 -->
+      <view class="plan-detail__head"><text class="plan-detail__eyebrow">学习计划</text><view class="sk plan-detail__title-sk"></view></view>
+      <view class="plan-detail__list surface">
+        <view wx:for="{{[1, 2, 3]}}" wx:key="*this" class="plan-detail__item">
+          <view class="sk sk-round plan-detail__seq-sk"></view>
+          <view class="plan-detail__body"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short plan-detail__meta-sk"></view></view>
+        </view>
+      </view>
+    </block>
     <block wx:else>
       <view class="plan-detail__head">
         <text class="plan-detail__eyebrow">学习计划</text>

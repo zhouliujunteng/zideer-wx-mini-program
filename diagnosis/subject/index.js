@@ -8,7 +8,8 @@ function subjectOf(topic) {
 }
 
 Page({
-  data: { loading: true, failed: false, subjectName: '', weakTopics: [], errorTypes: [], domains: [] },
+  // loaded：第一次读到诊断前画骨架；下拉刷新时保留旧数据。
+  data: { loaded: false, failed: false, subjectName: '', weakTopics: [], errorTypes: [], domains: [] },
 
   async onLoad(options) {
     this.subjectKey = decodeURIComponent(options.subjectKey || '')
@@ -19,7 +20,7 @@ Page({
   async onPullDownRefresh() { await this.loadPage(); wx.stopPullDownRefresh() },
 
   async loadPage() {
-    this.setData({ loading: true, failed: false })
+    this.setData({ failed: false })
     try {
       const data = await loadCurrentDiagnosticReports()
       const report = data.reports.find((item) => item.status === 'completed' || item.status === 'ready') || data.reports[0]
@@ -27,12 +28,12 @@ Page({
       const weakTopics = (report && report.weakTopics || []).filter((topic) => !subjectOf(topic) || subjectOf(topic) === this.subjectKey)
       const errorTypes = Array.isArray(summary.error_types) ? summary.error_types : Array.isArray(summary.errorTypes) ? summary.errorTypes : []
       const domains = Array.isArray(summary.domains) ? summary.domains : Array.isArray(summary.domain_distribution) ? summary.domain_distribution : []
-      this.setData({ weakTopics,
+      this.setData({ loaded: true, weakTopics,
         errorTypes: errorTypes.map(item => ({ ...(typeof item === 'object' && item || {}), displayLabel: diagnosisTypeLabel(item && (item.name || item.type) || item) })),
         domains: domains.map(item => ({ ...item, displayLabel: diagnosisTypeLabel(item.name || item.domain) })) })
     } catch (error) {
       this.setData({ failed: true })
       wx.showToast({ title: error.message || '学科诊断加载失败', icon: 'none' })
-    } finally { this.setData({ loading: false }) }
+    }
   }
 })

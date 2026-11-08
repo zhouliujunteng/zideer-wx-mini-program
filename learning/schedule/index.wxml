@@ -1,8 +1,13 @@
 <view class="schedule-page">
-  <view class="schedule-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="schedule-head"><text class="schedule-eyebrow">真人服务</text><text class="schedule-title">陪跑日程</text><text class="schedule-copy">仅展示当前学生已授权参与的场次。</text></view>
+  <view class="schedule-list surface" wx:if="{{loading}}">
+    <view class="session-row" wx:for="{{[0, 1, 2]}}" wx:key="*this">
+      <view class="session-time"><view class="sk sk-line"></view><view class="sk sk-line sk-mid"></view></view>
+      <view class="session-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view>
+    </view>
+  </view>
   <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">真人陪跑日程暂时无法加载</text><text class="state-panel__copy">请确认网络和登录状态后重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
   <block wx:else>
-    <view class="schedule-head"><text class="schedule-eyebrow">真人服务</text><text class="schedule-title">陪跑日程</text><text class="schedule-copy">仅展示当前学生已授权参与的场次。</text></view>
     <view class="schedule-list surface" wx:if="{{sessions.length}}">
       <button class="session-row pressable" wx:for="{{sessions}}" wx:key="id" data-participant-id="{{item.id}}" bindtap="openSession">
         <view class="session-time"><text class="session-time__main">{{item.timeLabel}}</text><text class="session-time__duration">{{item.durationLabel}}</text></view>

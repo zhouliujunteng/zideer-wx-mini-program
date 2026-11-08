@@ -3,6 +3,8 @@
 // 素材键 = 路径中最后一个 "assets/" 之后的部分（me/coins.png），与上传时一致。
 // 网络图片、微信临时文件等非素材路径原样返回；找不到素材时返回空串，不回退到包内文件。
 var MARKER = 'assets/'
+// 用户默认头像（2026-09-23）：用户没授权头像时一律显示知鹿 Logo 头像，素材键 avatar/default.png。
+var DEFAULT_AVATAR = 'avatar/default.png'
 
 function src(ui, value) {
   if (!value) return ''
@@ -14,4 +16,9 @@ function src(ui, value) {
   return (ui && ui[key]) || ''
 }
 
-module.exports = { src: src }
+// 用户头像：有头像按 src 取，没有（或素材缺失）时回退到默认头像。
+function avatar(ui, value) {
+  return src(ui, value) || (ui && ui[DEFAULT_AVATAR]) || ''
+}
+
+module.exports = { src: src, avatar: avatar }

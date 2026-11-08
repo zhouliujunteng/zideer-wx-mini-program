@@ -1,0 +1,142 @@
+@import "../../styles/skeleton.wxss";
+.universe-page { position: relative; width: 100%; height: 100vh; overflow: hidden; background: #fff; color: #24332d; }
+.universe-topbar { position: fixed; top: 0; left: 0; z-index: 30; width: 100%; background: transparent; transition: background-color .18s ease; }
+.universe-topbar-solid { background: #FAFAFA; }
+.universe-topbar-inner { display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 16rpx; }
+.universe-topbar-title { color: #24332d; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1; }
+
+.universe-pixel-field { position: absolute; top: 0; right: 0; left: 0; z-index: 1; height: 100%; overflow: hidden; pointer-events: none; }
+.universe-pixel-module { position: absolute; width: 35rpx; height: 35rpx; border-radius: 5rpx; background: #eaf0ec; }
+.universe-visual { position: absolute; right: 0; left: 0; z-index: 5; overflow: hidden; background: transparent; }
+.universe-globe-canvas { position: absolute; z-index: 2; display: block; }
+.universe-card-anchor { position: absolute; z-index: 13; width: 7px; height: 7px; border: 1px solid #fff; border-radius: 50%; background: #FD7C02; transform: translate(-50%, -50%); box-shadow: 0 0 0 3px rgba(253, 124, 2, .17); }
+.universe-knowledge-card { position: absolute; z-index: 14; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; gap: 2rpx; min-width: 184rpx; max-width: 224rpx; min-height: 0; padding: 16rpx; box-sizing: border-box; border: 1px solid #e7ebe8; border-radius: 18rpx; background: rgba(255, 255, 255, .98); white-space: nowrap; }
+.universe-card-inactive { pointer-events: none; }
+.universe-card-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-width: 0; }
+.universe-card-name { max-width: 190rpx; color: #303732; font-size: 25rpx; font-weight: 650; line-height: 1.25; white-space: normal; word-break: break-all; }
+.universe-card-subject { flex: 0 0 auto; margin-top: 10rpx; color: #97a39b; font-size: 17rpx; line-height: 1.2; }
+.universe-card-status { display: flex; flex-direction: row; align-items: center; margin-top: 18rpx; font-size: 17rpx; line-height: 1.2; }
+.universe-status-dot { flex: 0 0 auto; width: 9rpx; height: 9rpx; border-radius: 50%; }
+.universe-status-label { margin-left: 16rpx; }
+.universe-status-mastered { color: #43a96e; }.universe-status-mastered .universe-status-dot { background: #43a96e; }
+.universe-status-learning { color: #fd7c02; }.universe-status-learning .universe-status-dot { background: #fd7c02; }
+.universe-status-pending { color: #8b9fc0; }.universe-status-pending .universe-status-dot { background: #8b9fc0; }
+
+.universe-sheet { position: absolute; right: 0; bottom: 0; left: 0; z-index: 15; min-height: 530rpx; padding: 0 36rpx calc(116rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 46rpx 46rpx 0 0; background: #FAFAFA; box-shadow: 0 -12rpx 38rpx rgba(32, 54, 46, .08); transition: top .22s cubic-bezier(.2, .7, .3, 1); }
+.universe-sheet-handle-zone { display: flex; align-items: center; justify-content: center; width: 100%; height: 50rpx; margin-bottom: 12rpx; }
+.universe-sheet-handle { width: 76rpx; height: 11rpx; border-radius: 99rpx; background: #d9dfda; }
+.universe-profile-card { display: flex; align-items: center; min-height: 140rpx; padding: 26rpx 30rpx 26rpx 28rpx; box-sizing: border-box; border: 0; border-radius: 40rpx; background: #fff; }
+.universe-profile-avatar { flex: 0 0 84rpx; width: 84rpx; height: 84rpx; border: 4rpx solid #f4f6f3; border-radius: 50%; box-sizing: border-box; background: #e8eee9; }
+.universe-profile-avatar-placeholder { display: flex; align-items: center; justify-content: center; background: linear-gradient(145deg, #fbdfc4, #f4a26c); color: #fff; font-size: 36rpx; font-weight: 700; }
+.universe-profile-copy { display: flex; flex: 1; flex-direction: column; min-width: 0; margin-left: 22rpx; }
+.universe-profile-name { overflow: hidden; color: #24332d; font-size: 29rpx; font-weight: 700; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.universe-profile-subtitle { margin-top: 7rpx; color: #929d95; font-size: 20rpx; line-height: 1.3; }
+
+/* 老师备课先看：学习目标 + 学习偏好。暖色渐变卡（同「我的」会员卡），橙色图标与按钮突出这是要学生自己填的 */
+.universe-plan-card { position: relative; margin-top: 20rpx; padding: 24rpx 26rpx 6rpx; box-sizing: border-box; overflow: hidden; border: 2rpx solid #fff; border-radius: 40rpx; background: linear-gradient(105deg, #fff 0%, #FFF8EF 46%, #FFE7C7 100%); box-shadow: 0 10rpx 30rpx rgba(253, 124, 2, .08); }
+.universe-plan-card::after { position: absolute; top: -78rpx; right: -64rpx; width: 220rpx; height: 220rpx; box-sizing: border-box; border: 26rpx solid rgba(253, 124, 2, .07); border-radius: 50%; content: ''; pointer-events: none; }
+.universe-plan-head { position: relative; z-index: 1; display: flex; align-items: center; }
+.universe-plan-badge { display: flex; flex: 0 0 auto; align-items: center; padding: 6rpx 16rpx; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43, #FD7C02); color: #fff; font-size: 20rpx; font-weight: 700; line-height: 1.4; }
+.universe-plan-badge-dot { width: 8rpx; height: 8rpx; margin-right: 8rpx; border-radius: 50%; background: #fff; }
+.universe-plan-tip { min-width: 0; margin-left: 14rpx; overflow: hidden; color: #B4834F; font-size: 20rpx; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.universe-plan-rows { position: relative; z-index: 1; }
+.universe-plan-row { display: flex; align-items: center; min-height: 116rpx; padding: 18rpx 0; box-sizing: border-box; }
+.universe-plan-row:active { opacity: .78; }
+.universe-plan-icon { display: flex; flex: 0 0 72rpx; flex-direction: column; align-items: center; justify-content: center; width: 72rpx; height: 72rpx; border-radius: 22rpx; background: linear-gradient(145deg, #FFB25E, #FD7C02); box-shadow: 0 6rpx 14rpx rgba(253, 124, 2, .24); }
+.universe-goal-ring { display: flex; align-items: center; justify-content: center; width: 34rpx; height: 34rpx; box-sizing: border-box; border: 4rpx solid #fff; border-radius: 50%; }
+.universe-goal-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: #fff; }
+.universe-slider { position: relative; width: 34rpx; height: 4rpx; border-radius: 4rpx; background: rgba(255, 255, 255, .7); }
+.universe-slider + .universe-slider { margin-top: 9rpx; }
+.universe-slider-knob { position: absolute; top: -4rpx; width: 12rpx; height: 12rpx; border-radius: 50%; background: #fff; }
+.universe-slider-knob-1 { left: 4rpx; }
+.universe-slider-knob-2 { left: 20rpx; }
+.universe-slider-knob-3 { left: 10rpx; }
+.universe-plan-copy { display: flex; flex: 1; flex-direction: column; min-width: 0; margin-left: 20rpx; }
+.universe-plan-title { color: #24332d; font-size: 27rpx; font-weight: 700; line-height: 1.35; }
+.universe-plan-title-row { display: flex; align-items: center; min-width: 0; }
+.universe-plan-deadline { flex: 0 0 auto; margin-left: 12rpx; padding: 2rpx 12rpx; border: 1rpx solid rgba(253, 124, 2, .35); border-radius: 999rpx; background: rgba(255, 255, 255, .8); color: #E06F00; font-size: 19rpx; font-weight: 600; line-height: 1.5; }
+.universe-plan-summary { margin-top: 6rpx; overflow: hidden; color: #6B5A48; font-size: 22rpx; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.universe-plan-summary.is-empty { color: #A8927C; }
+.universe-plan-tags { display: flex; flex-wrap: nowrap; margin-top: 8rpx; overflow: hidden; }
+.universe-plan-tag { flex: 0 0 auto; margin-right: 8rpx; padding: 3rpx 14rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .9); color: #E06F00; font-size: 20rpx; line-height: 1.5; white-space: nowrap; }
+.universe-plan-tag.is-more { color: #A8927C; }
+.universe-plan-sk { width: 300rpx; margin-top: 10rpx; }
+.universe-plan-action { flex: 0 0 auto; margin-left: 16rpx; padding: 10rpx 24rpx; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43, #FD7C02); box-shadow: 0 4rpx 10rpx rgba(253, 124, 2, .22); color: #fff; font-size: 22rpx; font-weight: 600; line-height: 1.4; }
+.universe-plan-chevron { flex: 0 0 auto; width: 13rpx; height: 13rpx; margin: 0 8rpx 0 20rpx; border-top: 3rpx solid #D3A67A; border-right: 3rpx solid #D3A67A; transform: rotate(45deg); }
+.universe-plan-divider { height: 1rpx; margin-left: 92rpx; background: rgba(214, 160, 105, .24); }
+/* 目标导图图标：一个根节点分出两支 */
+.universe-tree { position: relative; width: 36rpx; height: 30rpx; }
+.universe-tree-node { position: absolute; width: 10rpx; height: 10rpx; border-radius: 50%; background: #fff; }
+.universe-tree-root { left: 0; top: 10rpx; }
+.universe-tree-leaf-1 { right: 0; top: 0; }
+.universe-tree-leaf-2 { right: 0; bottom: 0; }
+.universe-tree-stem { position: absolute; left: 8rpx; top: 4rpx; width: 20rpx; height: 20rpx; box-sizing: border-box; border: 3rpx solid rgba(255, 255, 255, .85); border-right: 0; border-radius: 6rpx 0 0 6rpx; }
+
+.universe-overview-section { margin-top: 30rpx; }
+.universe-overview-title { display: block; margin: 0 0 18rpx; color: #6f7972; font-size: 24rpx; line-height: 1.3; }
+.universe-overview-module { display: flex; min-height: 132rpx; padding: 18rpx 0; box-sizing: border-box; border-radius: 40rpx; background: #fff; }
+.universe-overview-item { position: relative; display: flex; flex: 1 1 0; flex-direction: column; align-items: center; justify-content: center; min-width: 0; }
+.universe-overview-value { color: #24332d; font-size: 38rpx; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.universe-overview-label { margin-top: 9rpx; color: #8b958e; font-size: 21rpx; line-height: 1.25; white-space: nowrap; }
+.universe-overview-divider { position: absolute; top: 7rpx; right: 0; bottom: 7rpx; width: 1rpx; background: #edf0ed; }
+
+.universe-recent-section { margin-top: 30rpx; }
+.universe-recent-title { display: block; margin: 0 0 18rpx; color: #6f7972; font-size: 24rpx; line-height: 1.3; }
+.universe-recent-module { margin: 0; padding: 26rpx 30rpx 26rpx 28rpx; box-sizing: border-box; border-radius: 40rpx; background: #fff; }
+.universe-recent-row { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 54rpx; }
+.universe-recent-row + .universe-recent-row { margin-top: 12rpx; }
+.universe-recent-copy { display: flex; flex-direction: column; min-width: 0; }
+.universe-recent-name { max-width: 430rpx; color: #303732; font-size: 24rpx; line-height: 1.35; white-space: normal; word-break: break-all; }
+.universe-recent-subject { margin-top: 4rpx; color: #97a39b; font-size: 19rpx; line-height: 1.2; }
+.universe-recent-status { display: flex; flex: 0 0 auto; align-items: center; margin-left: 16rpx; font-size: 19rpx; line-height: 1.2; }
+
+.universe-profile-avatar-skeleton { flex: 0 0 84rpx; width: 84rpx; height: 84rpx; }
+.universe-skeleton-gap { margin-top: 12rpx; }
+.universe-overview-value-skeleton { width: 56rpx; height: 44rpx; border-radius: 10rpx; }
+.universe-recent-skeleton { flex: 1; }
+.universe-recent-empty { display: block; color: #97a39b; font-size: 22rpx; line-height: 1.5; }
+.universe-error-card { display: flex; flex-direction: column; align-items: flex-start; padding: 30rpx; border-radius: 40rpx; background: #fff; }
+.universe-error-title { color: #24332d; font-size: 28rpx; font-weight: 700; }
+.universe-error-copy { margin-top: 10rpx; color: #8b958e; font-size: 22rpx; line-height: 1.5; }
+.universe-error-retry { margin-top: 22rpx; padding: 12rpx 36rpx; border-radius: 999rpx; background: #FD7C02; color: #fff; font-size: 24rpx; }
+.universe-stress-tag { margin-left: 16rpx; padding: 4rpx 12rpx; border-radius: 8rpx; background: #fff1e3; color: #FD7C02; font-size: 20rpx; line-height: 1.4; }
+
+
+/* 球体下方统计行（高 34px，与 index.js 的 STAT_STRIP 一致） */
+.universe-stat { position: absolute; right: 0; left: 0; z-index: 15; display: flex; align-items: center; justify-content: center; height: 34px; pointer-events: none; transition: top .22s cubic-bezier(.2, .7, .3, 1); }
+.universe-stat-text { padding: 6rpx 22rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .86); color: #6f7972; font-size: 22rpx; line-height: 1.5; }
+.universe-stat-sk { width: 320rpx; height: 36rpx; border-radius: 999rpx; }
+
+/* 平板、电脑大屏（窗口宽 ≥ 450px，见 utils/screen.js）：和首页一样放宽到 1040px。
+   球体居中、知识卡避让按同一栏宽算（index.js 里的 LARGE_SCREEN_WIDE_COLUMN），两处要一起改。 */
+@media (min-width: 450px) {
+  page { --lg-col: 1040px; }
+}
+
+
+
+
+.tablet-universe .universe-sheet { min-height:0; padding:16px; border-radius:20px; overflow:hidden; box-shadow:0 2px 20px rgba(32,54,46,.06); }
+.tablet-universe .universe-sheet-handle-zone { display:none; }
+.tablet-universe .tablet-universe-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; padding-bottom:16px; }
+.tablet-universe .universe-profile-card { min-height:100px; padding:14px; border-radius:14px; }
+.tablet-universe .universe-profile-avatar { width:40px; height:40px; flex-basis:40px; }
+.tablet-universe .universe-overview-section { margin:0; }
+.tablet-universe .universe-overview-module { min-height:72px; border-radius:14px; }
+.tablet-universe .universe-overview-title { margin-bottom:10px; }
+.tablet-universe .universe-overview-label { font-size:10px; white-space:normal; text-align:center; }
+.tablet-universe .universe-recent-section,.tablet-universe .universe-error-card { grid-column:1/-1; margin:0; }
+/* 平板两栏：第一行资料卡 | 学习概览，「老师备课先看」占满第二行（目标、偏好左右并排），最近探索在最后 */
+.tablet-universe .universe-plan-card { grid-column:1/-1; order:2; margin:0; padding:14px 16px 4px; border-radius:14px; }
+.tablet-universe .universe-plan-rows { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); column-gap:24px; }
+.tablet-universe .universe-plan-divider { display:none; }
+.tablet-universe-sidebar .universe-plan-rows { grid-template-columns:minmax(0,1fr); }
+.tablet-universe .universe-recent-section { order:3; }
+.tablet-universe .universe-recent-module,.tablet-universe .universe-error-card { border-radius:14px; padding:16px; }
+.tablet-universe .universe-recent-row { min-height:48px; }
+.tablet-universe-sidebar .tablet-universe-summary { grid-template-columns:minmax(0,1fr); }
+.tablet-universe-sidebar .universe-profile-card { flex-direction:column; align-items:flex-start; gap:12px; }
+.tablet-universe-sidebar .universe-profile-copy { margin:0; }
+.tablet-universe-sidebar .universe-recent-status { margin-left:8px; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

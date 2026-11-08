@@ -72,7 +72,7 @@ function navigateNotification(item) {
     wx.showModal({ title: item.title, content: item.preview, showCancel: false })
     return
   }
-  const tabs = ['/pages/home/index', '/pages/learning/index', '/pages/knowledge-map/index', '/pages/me/index']
+  const tabs = ['/pages/home/index', '/pages/learning/index', '/pages/knowledge-universe/index', '/pages/goal/index', '/pages/me/index']
   if (tabs.includes(route.split('?')[0])) wx.switchTab({ url: route.split('?')[0] })
   else wx.navigateTo({ url: route, fail: () => wx.showToast({ title: '消息对应内容暂时无法打开', icon: 'none' }) })
 }

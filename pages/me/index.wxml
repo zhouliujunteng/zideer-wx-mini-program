@@ -5,7 +5,7 @@
       <text class="me-topbar-title">我的</text>
     </view>
     <view
-      class="me-edit-profile-pill {{showEditProfile ? '' : 'is-hidden'}}"
+      class="me-edit-profile-pill {{showEditProfile && model.access !== 'guest' ? '' : 'is-hidden'}}"
       style="top: {{editProfileTop}}px; right: {{editProfileRight}}px; height: {{menuButtonHeight}}px;"
       bindtap="editProfile"
       aria-label="编辑资料"
@@ -16,32 +16,45 @@
   <view class="page-shell" style="padding-top: {{contentTop}}px;">
     <!-- 顶部氛围色必须随内容滚动，不能放在页面根层，否则底部回弹会透出淡橙色（设计仓库 4cde86d）。 -->
     <view class="me-profile-ambient" aria-hidden="true"></view>
+    <view class="tablet-account-summary">
     <view class="profile" style="padding-top: {{profilePaddingTop}}px;" bindtap="editProfile">
       <view class="profile-avatar-wrap">
-        <image wx:if="{{model.profile.avatarSrc}}" class="avatar avatar-image" src="{{UA.src(ui, model.profile.avatarSrc)}}" mode="aspectFill"></image>
+        <image wx:if="{{model.profile.avatarSrc || profileLoaded}}" class="avatar avatar-image" src="{{UA.avatar(ui, model.profile.avatarSrc)}}" mode="aspectFill"></image>
         <view wx:else class="avatar"></view>
       </view>
       <view class="profile-copy">
         <view class="profile-name-row">
-          <text class="profile-name">{{model.profile.name}}</text>
+          <view wx:if="{{!profileLoaded && !profileFailed}}" class="sk profile-name-skeleton"></view>
+          <text wx:elif="{{model.access === 'guest'}}" class="profile-name">登录 / 注册</text>
+          <text wx:else class="profile-name">{{model.profile.name}}</text>
         </view>
-        <view class="profile-id-row">
+        <view wx:if="{{!profileLoaded}}" class="profile-id-row"><view wx:if="{{!profileFailed}}" class="sk profile-id-skeleton"></view></view>
+        <view wx:elif="{{model.profile.id}}" class="profile-id-row">
           <text class="profile-id-label">ID：</text>
           <text class="profile-id">{{model.profile.id}}</text>
           <view class="profile-action profile-copy-action" aria-label="复制用户 ID" catchtap="copyProfileId"><view class="profile-copy-icon"></view></view>
         </view>
+        <!-- 未登录、没完善学习资料（2026-09-27 起未登录也能浏览）：点资料区去登录 / 去完善 -->
+        <view wx:if="{{profileLoaded && (model.access === 'guest' || model.access === 'profile')}}" class="profile-id-row profile-access-row">
+          <text class="profile-access-hint">{{model.access === 'guest' ? '登录后查看学习资料和账户' : '学习资料未完善，点这里去完善'}}</text>
+        </view>
       </view>
     </view>
-    <view class="membership-card" bindtap="openMembership" aria-label="查看知鹿会员权益">
+    <!-- 支付开关关着时整张会员卡不显示（2026-09-30 用户规则） -->
+    <view wx:if="{{paymentOpen}}" class="membership-card {{member.active ? '' : 'membership-card-plain'}}" bindtap="openMembership" aria-label="查看知鹿会员权益">
       <view class="membership-copy">
-        <text class="membership-title">{{model.membershipCard.title}}</text>
+        <block wx:if="{{!membershipLoaded}}"><view class="sk membership-title-skeleton"></view><view class="sk membership-subtitle-skeleton"></view></block>
+        <block wx:else>
+        <text class="membership-title">{{member.active ? model.membershipCard.title : '知鹿用户'}}</text>
         <text class="membership-subtitle">{{member.active ? member.tierLabel + ' · ' + member.validityText : model.membershipCard.subtitle}}</text>
+        </block>
       </view>
       <view class="membership-art" aria-hidden="true">
         <view class="membership-ring membership-ring-back"></view>
         <view class="membership-ring membership-ring-front"></view>
-        <image class="membership-crown" src="{{UA.src(ui, model.membershipCard.crownIcon)}}" mode="aspectFit"></image>
+        <image class="membership-crown" src="{{UA.src(ui, member.active ? model.membershipCard.crownIcon : '/assets/me/membership-crown-gray.png')}}" mode="aspectFit"></image>
       </view>
+    </view>
     </view>
     <view class="me-content-panel">
       <view class="me-content-panel-corner me-content-panel-corner-left" aria-hidden="true"></view>
@@ -51,11 +64,14 @@
           <image class="wallet-module-illustration" src="{{UA.src(ui, item.icon)}}" mode="aspectFit"></image>
           <view class="wallet-module-copy">
             <text class="wallet-label">{{item.label}}</text>
-            <text class="wallet-value">{{item.value}}</text>
+            <view wx:if="{{!profileLoaded && !profileFailed}}" class="sk wallet-value-skeleton"></view>
+            <text wx:else class="wallet-value" style="{{walletValueSizes[index] ? 'font-size: ' + walletValueSizes[index] + 'px;' : ''}}">{{profileLoaded ? item.value : '—'}}</text>
           </view>
           <view class="wallet-module-go" aria-hidden="true"><view class="wallet-module-chevron"></view></view>
         </view>
       </view>
+      <!-- 学习连胜：与四个 tab 页顶栏的火苗入口同一份打卡状态，点进学习连胜页。 -->
+      <view class="tablet-streak-slot"><streak-card /></view>
       <view class="quick-section">
         <text class="quick-section-title">常用入口</text>
         <view class="quick-grid">
@@ -68,30 +84,34 @@
           </view>
         </view>
       </view>
-      <view wx:for="{{model.serviceGroups}}" wx:for-item="serviceGroup" wx:key="title" class="group">
-        <text class="group-title">{{serviceGroup.title}}</text>
-        <view wx:if="{{serviceGroup.enterpriseService}}" class="enterprise-service-card" bindtap="openEnterpriseService">
-          <image class="enterprise-service-avatar" src="{{UA.src(ui, serviceGroup.enterpriseService.avatar)}}" mode="aspectFill"></image>
-          <view class="enterprise-service-copy">
-            <text class="enterprise-service-title">{{serviceGroup.enterpriseService.title}}</text>
-            <text class="enterprise-service-description">{{serviceGroup.enterpriseService.description}}</text>
-          </view>
-          <view class="enterprise-service-action">
-            <text class="enterprise-service-hours">{{serviceGroup.enterpriseService.hours}}</text>
-            <view class="enterprise-service-go"><text class="menu-arrow">›</text></view>
+      <view wx:if="{{teacherEntry}}" class="group">
+        <text class="group-title">老师专区</text>
+        <view class="menu">
+          <view class="menu-item" bindtap="openTeacherWorkspace" aria-label="打开老师工作台">
+            <view class="service-item-copy">
+              <text class="service-item-title">老师工作台</text>
+              <text class="service-item-description">{{teacherEntry.name}} · {{teacherEntry.description}}</text>
+            </view>
+            <text class="menu-arrow">›</text>
           </view>
         </view>
+      </view>
+      <view wx:for="{{model.serviceGroups}}" wx:for-item="serviceGroup" wx:key="title" class="group">
+        <text class="group-title">{{serviceGroup.title}}</text>
         <view class="menu">
           <view wx:for="{{serviceGroup.items}}" wx:for-item="serviceItem" wx:key="title" class="menu-item" data-name="{{serviceItem.title}}" bindtap="handleItem">
             <view class="service-item-copy">
-              <text class="service-item-title">{{serviceItem.title}}</text>
+              <view class="service-item-title-row">
+                <text class="service-item-title">{{serviceItem.title}}</text>
+                <text wx:if="{{serviceItem.tag}}" class="service-item-tag">{{serviceItem.tag}}</text>
+              </view>
               <text class="service-item-description">{{serviceItem.description}}</text>
             </view>
             <text class="menu-arrow">›</text>
           </view>
         </view>
       </view>
-      <view class="developer-previews">
+      <view wx:if="{{model.developerPreviews && model.developerPreviews.length}}" class="developer-previews">
         <view
           wx:for="{{model.developerPreviews}}"
           wx:key="id"
@@ -106,6 +126,7 @@
           <text class="developer-entry-arrow">›</text>
         </view>
       </view>
+      <view wx:if="{{versionText}}" class="me-version-row"><text class="me-version">{{versionText}}</text></view>
     </view>
   </view>
 </scroll-view>

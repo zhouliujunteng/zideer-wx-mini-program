@@ -1,2 +1,203 @@
-<growth-page id="growth-page" mode="ai-poster" />
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="ai-poster-page">
+  <view class="ai-poster-topbar">
+    <view class="ai-poster-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="ai-poster-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="ai-poster-back-icon"></view></view>
+      <text class="ai-poster-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{resultVisible ? '海报详情' : 'AI海报生成'}}</text>
+    </view>
+    <view wx:if="{{!resultVisible}}" class="ai-poster-history-button" style="top: {{historyTop}}px; right: {{historyRight}}px; width: {{historyButtonSize}}px; height: {{historyButtonSize}}px;" bindtap="openHistory" aria-role="button" aria-label="海报历史">
+      <image class="ai-poster-history-icon" src="{{UA.src(ui, '/assets/promotion/history.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+    </view>
+  </view>
+
+  <scroll-view wx:if="{{!resultVisible}}" class="ai-poster-scroll" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="ai-poster-content">
+      <view class="ai-poster-search">
+        <image class="ai-poster-search-icon" src="{{UA.src(ui, '/assets/course-library/search.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+        <input class="ai-poster-search-input" value="{{activitySearch}}" placeholder="搜索推广活动" placeholder-class="ai-poster-search-placeholder" bindinput="handleActivitySearch" confirm-type="search" />
+      </view>
+      <view class="ai-poster-section-heading">
+        <text class="ai-poster-section-title">选择推广活动</text>
+      </view>
+
+      <!-- 首次读到活动清单前：两列活动卡骨架，不先闪「暂无活动」 -->
+      <view wx:if="{{loadState === 'loading'}}" class="ai-poster-activity-grid" aria-label="正在读取推广活动">
+        <view wx:for="{{[1, 2, 3, 4]}}" wx:key="*this" class="ai-poster-activity-card">
+          <view class="sk ai-poster-activity-media" style="height: {{activityMediaHeight}}px;"></view>
+          <view class="ai-poster-activity-card-body">
+            <view class="ai-poster-activity-copy">
+              <view class="sk sk-line ai-poster-sk-name"></view>
+              <view class="sk sk-line sk-mid ai-poster-sk-detail"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:elif="{{loadState === 'failed'}}" class="ai-poster-state">
+        <text class="ai-poster-state-title">推广活动暂时无法读取</text>
+        <text class="ai-poster-state-copy">{{loadError}}</text>
+        <view class="ai-poster-state-action" bindtap="loadCatalog" aria-role="button">重新加载</view>
+      </view>
+
+      <view wx:elif="{{!posterEnabled}}" class="ai-poster-state">
+        <text class="ai-poster-state-title">AI 海报暂未开放</text>
+        <text class="ai-poster-state-copy">开放后可以在这里生成带你专属小程序码的推广海报。</text>
+      </view>
+
+      <view wx:elif="{{!activities.length}}" class="ai-poster-state">
+        <text class="ai-poster-state-title">暂无可生成的推广活动</text>
+        <text class="ai-poster-state-copy">平台上架推广活动后会显示在这里。</text>
+      </view>
+
+      <block wx:else>
+        <view class="ai-poster-activity-grid">
+          <view wx:for="{{visibleActivities}}" wx:key="id" class="ai-poster-activity-card {{item.id === selectedActivityId ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleActivityPick" aria-role="button" aria-label="{{item.label}}">
+            <view class="ai-poster-activity-media" style="height: {{activityMediaHeight}}px;">
+              <image wx:if="{{item.coverUrl}}" class="ai-poster-activity-image" src="{{item.coverUrl}}" mode="aspectFill" aria-hidden="true"></image>
+            </view>
+            <view class="ai-poster-activity-card-body">
+              <view class="ai-poster-activity-copy">
+                <text class="ai-poster-activity-name">{{item.label}}</text>
+                <text class="ai-poster-activity-detail">{{item.detail}}</text>
+              </view>
+              <view class="ai-poster-activity-select-mark"><view class="ai-poster-activity-select-check"></view></view>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{!visibleActivities.length}}" class="ai-poster-search-empty">没有找到相关活动</view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{!resultVisible}}" class="ai-poster-bottom-fade" aria-hidden="true"></view>
+
+  <view wx:if="{{!resultVisible}}" class="ai-poster-settings-dock">
+    <view class="ai-poster-settings-card" bindtap="openSizeSelector" aria-role="button" aria-label="选择海报尺寸">
+      <view class="ai-poster-settings-size">
+        <text class="ai-poster-settings-label">尺寸</text>
+        <text class="ai-poster-settings-value">{{selectedTemplate.ratio}} · {{selectedTemplate.label}}</text>
+      </view>
+      <view class="ai-poster-settings-more">
+        <view class="ai-poster-settings-chevron"></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!resultVisible && sizeVisible}}" class="poster-size-layer {{sizeClosing ? 'is-closing' : ''}}" catchtap="closeSizeSelector">
+    <view class="poster-size-sheet {{sizeClosing ? 'is-closing' : ''}}" catchtap="noop" aria-modal="true" aria-label="选择海报尺寸">
+      <view class="poster-size-handle"></view>
+      <view class="poster-size-header">
+        <text class="poster-size-title">选择海报尺寸</text>
+        <view class="poster-history-close" bindtap="closeSizeSelector" aria-label="关闭">×</view>
+      </view>
+      <view class="poster-size-options">
+        <view wx:for="{{templates}}" wx:key="id" class="poster-size-option {{item.id === selectedTemplate.id ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleTemplatePick" aria-role="button">
+          <view class="poster-size-option-copy">
+            <text class="poster-size-option-ratio">{{item.ratio}}</text>
+            <text class="poster-size-option-label">{{item.label}}</text>
+          </view>
+          <view class="poster-size-option-radio"><view></view></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!resultVisible && historyVisible}}" class="poster-history-layer" catchtap="closeHistory">
+    <view class="poster-history-sheet" catchtap="noop" aria-modal="true" aria-label="海报历史">
+      <view class="poster-history-handle"></view>
+      <view class="poster-history-header">
+        <text class="poster-history-title">海报历史</text>
+        <view class="poster-history-close" bindtap="closeHistory" aria-label="关闭">×</view>
+      </view>
+      <scroll-view class="poster-history-list" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view wx:if="{{loadState === 'loading'}}">
+          <view wx:for="{{[1, 2, 3]}}" wx:key="*this" class="poster-history-item">
+            <view class="sk poster-history-art"></view>
+            <view class="poster-history-copy">
+              <view class="sk sk-line sk-mid"></view>
+              <view class="sk sk-line sk-short"></view>
+            </view>
+          </view>
+        </view>
+        <view wx:elif="{{loadState === 'failed'}}" class="poster-history-empty">海报历史暂时无法读取，请稍后重试。</view>
+        <view wx:elif="{{history.length}}">
+          <view wx:for="{{history}}" wx:key="id" class="poster-history-item {{item.id === currentPosterId ? 'is-active' : ''}}" data-id="{{item.id}}" bindtap="handleHistoryPick" aria-role="button">
+            <view class="poster-history-art">
+              <image wx:if="{{item.imageUrl}}" class="poster-history-art-image" src="{{item.imageUrl}}" mode="aspectFill" aria-hidden="true"></image>
+            </view>
+            <view class="poster-history-copy">
+              <view class="poster-history-heading">
+                <view class="poster-history-title-copy">
+                  <text class="poster-history-activity">{{item.activityLabel}}</text>
+                </view>
+                <text class="poster-history-time">{{item.createdAtLabel}}</text>
+              </view>
+              <view class="poster-history-params">
+                <text class="poster-history-param">{{item.templateLabel}}</text>
+                <text class="poster-history-param-divider">·</text>
+                <text class="poster-history-param">{{item.ratioLabel}}</text>
+              </view>
+              <text wx:if="{{item.status !== 'ready'}}" class="poster-history-status poster-history-status-{{item.status}}">{{item.status === 'generating' ? '生成中' : '未生成成功'}}</text>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="poster-history-empty">暂无海报记录</view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view wx:if="{{!resultVisible}}" class="ai-poster-actionbar">
+    <view class="ai-poster-generate-button {{canGenerate ? '' : 'is-disabled'}}" bindtap="handleGenerate" aria-role="button" aria-disabled="{{!canGenerate}}">{{generateLabel}}</view>
+  </view>
+
+  <view wx:if="{{resultVisible}}" class="poster-result-page">
+    <view class="poster-result-stage" style="padding-top: {{contentTop}}px;">
+      <view class="poster-result-card" style="{{resultPosterStyle}}" aria-label="{{result.activityLabel}} 海报">
+        <image wx:if="{{result.status === 'ready' && result.imageUrl}}" class="poster-result-image" src="{{result.imageUrl}}" mode="aspectFill" aria-hidden="true"></image>
+        <view wx:elif="{{result.status === 'generating'}}" class="sk poster-result-pending">
+          <text class="poster-result-pending-title">正在生成海报…</text>
+          <text class="poster-result-pending-copy">大约需要 1 分钟，可以先离开，稍后在「海报历史」里查看</text>
+        </view>
+        <view wx:else class="poster-result-failed">
+          <text class="poster-result-failed-title">暂时没有生成成功</text>
+          <text class="poster-result-failed-copy">可以稍后重试，已选择的活动和尺寸会为你保留。</text>
+        </view>
+      </view>
+    </view>
+    <view class="poster-result-actionbar">
+      <view wx:if="{{result.status === 'ready'}}" class="poster-result-share-button" bindtap="openShare" aria-role="button">分享海报</view>
+      <view wx:elif="{{result.status === 'generating'}}" class="poster-result-share-button is-disabled" aria-disabled="true">生成中，请稍候</view>
+      <view wx:else class="poster-result-share-button" bindtap="handleRegenerate" aria-role="button">重新生成</view>
+    </view>
+  </view>
+
+  <!-- 离屏画布：海报 + 我的小程序码合成成一张图再存相册（不能 display:none，否则拿不到节点） -->
+  <canvas type="2d" id="ai-poster-canvas" class="poster-share-canvas" aria-hidden="true"></canvas>
+
+  <view wx:if="{{resultVisible && shareVisible}}" class="poster-result-share-mask {{shareClosing ? 'is-closing' : ''}}" catchtap="closeShare">
+    <!-- 海报在顶栏以下的区域里居中，不压到右上角胶囊 -->
+    <view class="poster-result-share-stage" style="padding-top: {{statusBarHeight + navigationBarHeight}}px;">
+      <view class="poster-result-share-card" style="{{sharePosterStyle}}" catchtap="noop" aria-label="{{result.activityLabel}} 海报">
+        <image wx:if="{{shareImageSrc}}" class="poster-result-image" src="{{shareImageSrc}}" mode="aspectFill" aria-hidden="true"></image>
+        <view wx:if="{{composingPoster}}" class="poster-result-share-pending">正在生成我的小程序码…</view>
+        <view wx:elif="{{composeFailed}}" class="poster-result-share-pending">小程序码暂不可用，保存的是原图</view>
+      </view>
+    </view>
+    <view class="poster-result-share-sheet" catchtap="noop">
+      <view class="poster-result-share-header"><text class="poster-result-share-title">分享海报</text></view>
+      <view class="poster-result-share-actions">
+        <view class="poster-result-share-action" bindtap="handleSavePoster" aria-role="button">
+          <view class="poster-result-share-action-icon"><image src="{{UA.src(ui, '/assets/promotion/share-download.svg')}}" mode="aspectFit"></image></view>
+          <text>{{savingPoster ? '保存中' : '保存海报'}}</text>
+        </view>
+        <view class="poster-result-share-action" bindtap="handleOpenShareLink" aria-role="button">
+          <view class="poster-result-share-action-icon"><view class="poster-result-link-glyph"></view></view>
+          <text>复制链接</text>
+        </view>
+      </view>
+      <view class="poster-result-share-note">保存海报让好友扫码，或复制带邀请码的小程序链接发出去</view>
+      <view class="poster-result-share-cancel" bindtap="closeShare">取消</view>
+    </view>
+  </view>
+</view>
 <dev-reset-fab />

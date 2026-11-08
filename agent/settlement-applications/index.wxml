@@ -1,0 +1,62 @@
+<view class="applications-page">
+  <view class="applications-topbar">
+    <view class="applications-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="applications-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="applications-back-icon"></view></view>
+      <text class="applications-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">我的结算记录</text>
+    </view>
+  </view>
+
+  <view class="applications-shell" style="padding-top: {{contentTop}}px;">
+    <view class="applications-state" wx:if="{{loadState === 'failed'}}">
+      <text class="applications-state-title">结算记录暂时无法加载</text>
+      <text class="applications-state-copy">{{loadError}}</text>
+      <view class="applications-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+    </view>
+
+    <view wx:else class="applications-module">
+      <view class="applications-tabs" aria-label="结算记录筛选">
+        <view wx:for="{{tabs}}" wx:key="id" class="applications-tab {{item.isSelected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleTab" aria-role="button">{{item.label}}</view>
+      </view>
+
+      <!-- 首次读到记录前：记录行骨架，不先闪「暂无结算记录」 -->
+      <view wx:if="{{loadState !== 'ready'}}" class="applications-sk-card" aria-label="正在读取结算记录">
+        <view wx:for="{{[0, 1, 2, 3]}}" wx:key="*this" class="applications-item">
+          <view class="applications-item-copy">
+            <view class="applications-item-left">
+              <view class="sk sk-line sk-mid"></view>
+              <view class="sk sk-line sk-short applications-sk-date"></view>
+            </view>
+            <view class="sk applications-sk-amount"></view>
+          </view>
+        </view>
+      </view>
+
+      <scroll-view wx:else class="applications-list-card" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" style="height: {{listHeight}}px; max-height: {{listHeight}}px;">
+        <view wx:if="{{items.length}}">
+          <view wx:for="{{items}}" wx:key="id" class="applications-item" data-id="{{item.id}}" bindtap="handleOpen" aria-role="button" aria-label="{{item.title}} {{item.statusLabel}}">
+            <view class="applications-item-copy">
+              <view class="applications-item-left">
+                <view class="applications-item-title-row">
+                  <text class="applications-item-title">{{item.title}}</text>
+                  <text class="applications-status applications-status-{{item.statusTone}}">{{item.statusLabel}}</text>
+                </view>
+                <text class="applications-item-meta">{{item.dateText}} · {{item.requestNo}}</text>
+              </view>
+              <view class="applications-item-right">
+                <text class="applications-item-amount">{{item.amountText}}</text>
+                <text class="applications-item-sub">{{item.subText}}</text>
+              </view>
+              <view class="applications-arrow" aria-hidden="true"></view>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="applications-empty">
+          <text>暂无结算记录</text>
+          <text>在结算中心点「整笔转现金」，可以提现到银行卡或兑换课程积分。</text>
+          <view class="applications-empty-action" bindtap="handleWithdraw" aria-role="button">去结算</view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>
+<dev-reset-fab />

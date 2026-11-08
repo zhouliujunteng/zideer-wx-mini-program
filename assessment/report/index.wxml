@@ -1,0 +1,257 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<wxs module="QF" src="../../utils/question-figure.wxs" />
+<view class="report-page">
+  <view class="report-ambient" aria-hidden="true"></view>
+  <view class="report-topbar">
+    <view class="report-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="report-back" bindtap="handleBack" aria-role="button" aria-label="返回上一页"><view class="back-chevron"></view></view>
+      <text class="report-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">测评报告</text>
+    </view>
+    <view wx:if="{{model}}" class="report-share-button" style="top: {{shareButtonTop}}px; right: {{shareButtonRight}}px; width: {{shareButtonSize}}px; height: {{shareButtonSize}}px;" bindtap="openShare" aria-role="button" aria-label="分享测评报告">
+      <image src="{{UA.src(ui, '/assets/assessment-report/share.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+    </view>
+  </view>
+
+  <scroll-view class="report-scroll" scroll-y show-scrollbar="{{false}}" enhanced="{{true}}" style="padding-top: {{contentTop}}px;">
+    <view class="report-shell">
+      <view wx:if="{{failed && !model}}" class="report-state-card">
+        <text class="report-state-title">报告没有加载出来</text>
+        <text class="report-state-copy">{{error || '网络恢复后可以重新读取。'}}</text>
+        <view class="report-state-action" bindtap="retryLoad" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:elif="{{!model}}">
+        <!-- 第一次读到报告前只画骨架，形状对应头像行、成绩卡和两张模块卡 -->
+        <view class="report-student-row"><view class="sk sk-round report-student-avatar"></view><view class="sk sk-line report-name-sk"></view></view>
+        <view class="report-cover report-cover-sk">
+          <view class="cover-main-row">
+            <view class="cover-score-column"><view class="sk sk-line sk-short"></view><view class="sk report-score-sk"></view><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-mid"></view></view>
+            <view class="cover-radar-column"><view class="sk sk-round report-radar-sk"></view></view>
+          </view>
+          <view class="sk cover-meta-sk"></view>
+        </view>
+        <view class="report-card-shell"><view class="report-section-heading"><view class="sk report-pill-sk"></view></view><view class="sk sk-card report-card-sk"></view></view>
+        <view class="report-card-shell"><view class="report-section-heading"><view class="sk report-pill-sk"></view></view><view class="sk sk-card report-card-sk tall"></view></view>
+      </block>
+
+      <block wx:else>
+        <view class="report-student-row">
+          <image class="report-student-avatar" src="{{UA.avatar(ui, model.student.avatarUrl)}}" mode="aspectFill" aria-label="学生头像"></image>
+          <text class="report-student-name">{{model.student.name}}</text>
+        </view>
+        <view class="report-cover-stack">
+          <view class="report-cover">
+            <view class="cover-main-row {{model.radar.length ? '' : 'no-radar'}}">
+              <view class="cover-score-column">
+                <text class="cover-score-label">综合掌握度</text>
+                <view class="cover-score-wrap"><text class="cover-score {{model.cover.score === null ? 'is-empty' : ''}}">{{model.cover.scoreText}}</text><text class="cover-score-slash">/</text><text class="cover-score-total">{{model.cover.totalScore}}</text></view>
+                <view wx:if="{{model.cover.insightPills.length}}" class="cover-insight-list"><view wx:for="{{model.cover.insightPills}}" wx:key="id" class="cover-insight-pill {{item.tone}}"><text class="cover-insight-copy">{{item.text}}</text></view></view>
+              </view>
+              <view wx:if="{{model.radar.length}}" class="cover-radar-column">
+                <image wx:if="{{radarImage}}" class="cover-radar-canvas" src="{{radarImage}}" mode="aspectFit" aria-label="{{model.radarLabel}}"></image>
+                <canvas wx:elif="{{!shareVisible}}" class="cover-radar-canvas" id="masteryRadar" type="2d"></canvas>
+                <view wx:else class="cover-radar-canvas"></view>
+                <view class="radar-accessible-data"><text wx:for="{{model.radar}}" wx:key="id">{{item.name}} {{item.value}}%</text></view>
+              </view>
+            </view>
+            <view class="cover-meta-pill"><text class="cover-meta-copy">{{model.context}} · {{model.period}}</text></view>
+          </view>
+          <view class="cover-advice"><text class="cover-advice-label">本轮小建议</text><text class="cover-advice-copy">{{model.advice}}</text></view>
+        </view>
+
+        <!-- 和上次比 / 历次成绩：同一范围做完过两次以上才有，读到后才出现（读不到不画占位） -->
+        <view wx:if="{{compare.change}}" class="report-card-shell">
+          <view class="report-section-heading"><view class="section-title-pill"><text class="section-title">和上次比</text></view></view>
+          <view class="report-white-card compare-card">
+            <view class="compare-score-row">
+              <view class="compare-score-cell">
+                <text class="compare-caption">上次 · 第 {{compare.change.previousNumber}} 次</text>
+                <text class="compare-score is-previous">{{compare.change.previousScoreText}}</text>
+              </view>
+              <view class="compare-arrow" aria-hidden="true"></view>
+              <view class="compare-score-cell">
+                <text class="compare-caption">本次</text>
+                <text class="compare-score">{{compare.change.currentScoreText}}</text>
+              </view>
+              <text wx:if="{{compare.change.scoreDeltaLabel}}" class="compare-delta {{compare.change.scoreTone}}">{{compare.change.scoreDeltaLabel}}</text>
+            </view>
+            <view class="compare-line">
+              <text class="compare-line-label">档位</text>
+              <view class="compare-band-flow">
+                <block wx:if="{{compare.change.bandChanged}}">
+                  <text class="compare-band {{compare.change.previousBandTone}}">{{compare.change.previousBand}}</text>
+                  <text class="compare-band-arrow {{compare.change.bandDirection}}">→</text>
+                </block>
+                <text class="compare-band {{compare.change.currentBandTone}}">{{compare.change.currentBand}}</text>
+                <text wx:if="{{!compare.change.bandChanged}}" class="compare-band-same">没有变化</text>
+              </view>
+            </view>
+            <block wx:if="{{compare.change.topics}}">
+              <view class="compare-line compare-topic-head">
+                <text class="compare-line-label">知识点</text>
+                <text class="compare-topic-summary">{{compare.change.topics.summary}}</text>
+              </view>
+              <view wx:for="{{compare.change.topics.items}}" wx:key="topicId" class="compare-topic" data-id="{{item.topicId}}" bindtap="openTopic" aria-role="button">
+                <text class="compare-topic-name">{{item.name}}</text>
+                <text class="compare-topic-state {{item.tone}}">{{item.fromLabel}} → {{item.toLabel}}</text>
+              </view>
+              <text wx:if="{{compare.change.topics.more}}" class="compare-more">另有 {{compare.change.topics.more}} 个知识点有变化，可在知识图谱里查看。</text>
+            </block>
+            <text class="compare-note">两次是不同的题（再测时优先出没做过的题），分数看整体走向；知识点只比两次都给出判定的。</text>
+          </view>
+        </view>
+
+        <view wx:if="{{compare.history.length > 1}}" class="report-card-shell">
+          <view class="report-section-heading"><view class="section-title-pill"><text class="section-title">历次成绩</text></view></view>
+          <view class="report-white-card compare-history-card">
+            <view wx:for="{{compare.history}}" wx:key="attemptId" class="compare-history-row {{item.isCurrent ? 'is-current' : ''}}" data-attempt-id="{{item.attemptId}}" bindtap="openHistoryReport" aria-role="{{item.isCurrent ? 'text' : 'button'}}">
+              <view class="compare-history-copy">
+                <text class="compare-history-title">第 {{item.number}} 次{{item.isCurrent ? ' · 本次' : ''}}</text>
+                <text wx:if="{{item.dateLabel}}" class="compare-history-date">{{item.dateLabel}}</text>
+              </view>
+              <text class="compare-history-score">{{item.scoreLabel}}</text>
+              <text class="compare-band {{item.bandTone}}">{{item.bandLabel}}</text>
+              <view class="compare-history-chevron {{item.isCurrent ? 'is-hidden' : ''}}" aria-hidden="true"></view>
+            </view>
+          </view>
+        </view>
+
+        <view class="report-card-shell mastery-shell">
+          <view class="report-section-heading"><image class="section-title-icon mastery-heading-icon" src="{{UA.src(ui, '/assets/assessment-report/mastery.png')}}" mode="aspectFit" aria-hidden="true"></image><view class="section-title-pill"><text class="section-title">掌握情况</text></view></view>
+          <view class="report-white-card mastery-card">
+            <view class="mastery-summary">
+              <block wx:for="{{model.summary}}" wx:key="id">
+                <view class="summary-cell"><text class="summary-value" style="color: {{item.color}};">{{item.value}}</text><text class="summary-label" style="color: {{item.color}};">{{item.label}}</text></view>
+                <view wx:if="{{index < model.summary.length - 1}}" class="summary-cell-divider" aria-hidden="true"></view>
+              </block>
+            </view>
+          </view>
+        </view>
+
+        <view class="report-card-shell">
+          <view class="report-section-heading"><image class="section-title-icon weak-heading-icon" src="{{UA.src(ui, '/assets/assessment-report/weak-points.png')}}" mode="aspectFit" aria-hidden="true"></image><view class="section-title-pill"><text class="section-title weak-section-title">知识薄弱点</text></view></view>
+          <view class="report-white-card weak-card">
+            <view wx:if="{{model.weakPoints.length}}" class="weak-list">
+              <view wx:for="{{model.weakPoints}}" wx:key="id" class="weak-item" data-id="{{item.topicId}}" bindtap="openTopic" aria-role="button">
+                <view class="weak-title-row"><text class="weak-title">{{item.title}}</text><text class="weak-category">{{item.category}}</text></view>
+                <text class="weak-reason">{{item.reason}}</text>
+              </view>
+            </view>
+            <text wx:if="{{model.weakMore}}" class="weak-more">另有 {{model.weakMore}} 个知识点待提升，可在知识图谱里查看。</text>
+            <text wx:if="{{!model.weakPoints.length}}" class="weak-empty">{{model.pendingCount ? '已判定的知识点里没有薄弱项。' : '这次判定的知识点都已掌握。'}}</text>
+            <view wx:if="{{model.pendingCount}}" class="pending-box">
+              <view class="pending-top"><view class="pending-mark"></view><text>待补齐证据 · {{model.pendingCount}} 个知识点</text></view>
+              <text class="pending-description">以下知识点尚未完成测评，不按薄弱或未掌握处理。</text>
+              <view class="pending-tags"><text wx:for="{{model.pendingPoints}}" wx:key="*this" class="pending-tag">{{item}}</text><text wx:if="{{model.pendingCount > model.pendingPoints.length}}" class="pending-tag is-more">等 {{model.pendingCount}} 个</text></view>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{model.pathStages.length}}" class="report-card-shell">
+          <view class="report-section-heading"><image class="section-title-icon path-heading-icon" src="{{UA.src(ui, '/assets/assessment-report/learning-path.png')}}" mode="aspectFit" aria-hidden="true"></image><view class="section-title-pill"><text class="section-title">提升路径</text></view></view>
+          <view class="report-white-card path-card">
+            <view class="path-estimate"><text class="estimate-label">待提升</text><text class="estimate-value">{{model.pathEstimate}}</text></view>
+            <view class="path-timeline">
+              <view wx:for="{{model.pathStages}}" wx:key="id" class="path-stage">
+                <view class="stage-rail"><view class="stage-index">{{item.number}}</view><view wx:if="{{index < model.pathStages.length - 1}}" class="stage-line"></view></view>
+                <view class="stage-copy"><view class="stage-heading"><text class="stage-phase">{{item.phase}}</text><text class="stage-duration">{{item.duration}}</text></view><text class="stage-focus">{{item.focus}}</text><text class="stage-detail">{{item.detail}}</text></view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{model.questionTimings.length}}" class="report-card-shell">
+          <view class="report-section-heading"><view class="section-title-pill"><text class="section-title">逐题用时 · 已完成轮次</text></view></view>
+          <view class="report-white-card review-card">
+            <view class="timing-row" wx:for="{{model.questionTimings}}" wx:key="index">
+              <view class="timing-row-head"><text>第{{item.round || 1}}轮 · 第{{item.number}}题 · {{item.resultLabel}}</text><text class="timing-value">{{item.timingLabel}}</text></view>
+              <text class="timing-caption">{{item.prompt}}</text>
+              <text wx:if="{{item.timingNote || item.previousTimingLabel}}" class="timing-caption">{{item.timingNote}} {{item.previousTimingLabel}}</text>
+            </view>
+            <text class="timing-notice">{{model.timingNotice}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{model.review.length}}" class="report-card-shell">
+          <view class="report-section-heading"><view class="section-title-pill"><text class="section-title">本轮题目与解析</text></view></view>
+          <view class="report-white-card review-card">
+            <view class="review-item" wx:for="{{model.review}}" wx:key="questionId">
+              <view class="review-head" data-index="{{index}}" bindtap="toggleReview" aria-role="button">
+                <text class="review-title">{{item.number}}. {{item.prompt}}</text>
+                <text class="review-result {{item.resultTone}}">{{item.resultLabel}}</text>
+              </view>
+              <text class="timing-caption">用时 {{item.timingLabel}} {{item.timingNote}}</text>
+              <view wx:if="{{openReview === index}}" class="review-body">
+                <view wx:for="{{item.figures}}" wx:for-item="figure" wx:key="url" class="review-figure" style="{{QF.box(figure, 1)}}">
+                  <view wx:if="{{QF.failed(failedFigures, figure.url)}}" class="review-figure-failed" bindtap="retryFigures" aria-role="button" aria-label="配图没加载出来，点这里重新加载"><text>配图没加载出来，点这里重新加载</text></view>
+                  <image wx:else class="review-figure-image" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" data-group="{{item.questionId}}" bindtap="previewFigure" binderror="figureFailed" aria-label="{{figure.alt || '题目配图'}}"></image>
+                </view>
+                <view wx:for="{{item.options}}" wx:for-item="option" wx:key="value" class="review-option {{option.tone}}">
+                  <text>{{option.value}}、{{option.label}}</text>
+                  <view wx:for="{{option.figures}}" wx:for-item="figure" wx:key="url" class="review-figure review-option-figure" style="{{QF.box(figure, 0.5)}}">
+                    <view wx:if="{{QF.failed(failedFigures, figure.url)}}" class="review-figure-failed" bindtap="retryFigures" aria-role="button" aria-label="配图没加载出来，点这里重新加载"><text>配图没加载出来，点这里重新加载</text></view>
+                    <image wx:else class="review-figure-image" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" data-group="{{item.questionId}}" bindtap="previewFigure" binderror="figureFailed" aria-label="{{figure.alt || '选项' + option.value + '配图'}}"></image>
+                  </view>
+                </view>
+                <text class="review-line">你的答案：{{item.selectedLabel}} · 正确答案：{{item.answer}}</text>
+                <text wx:if="{{item.explanation}}" class="review-line"><text class="review-key">解析</text> {{item.explanation}}</text>
+                <view wx:for="{{item.explanationFigures}}" wx:for-item="figure" wx:key="url" class="review-figure" style="{{QF.box(figure, 1)}}">
+                  <view wx:if="{{QF.failed(failedFigures, figure.url)}}" class="review-figure-failed" bindtap="retryFigures" aria-role="button" aria-label="配图没加载出来，点这里重新加载"><text>配图没加载出来，点这里重新加载</text></view>
+                  <image wx:else class="review-figure-image" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" data-group="{{item.questionId}}" bindtap="previewFigure" binderror="figureFailed" aria-label="{{figure.alt || '解析配图'}}"></image>
+                </view>
+                <text wx:if="{{item.misconception}}" class="review-line"><text class="review-key">易错点</text> {{item.misconception}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="report-knowledge-link" bindtap="openKnowledgeMap" aria-role="button"><text>查看知识图谱</text><view class="link-chevron"></view></view>
+        <text class="report-method-note">{{model.methodNote}}</text>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{model}}" class="report-actionbar">
+    <view class="report-action-row">
+      <view wx:if="{{!model.nextRound && retakeLabel}}" class="report-action action-later {{busy ? 'is-busy' : ''}}" bindtap="retake" aria-role="button">{{busy ? '正在准备…' : retakeLabel}}</view>
+      <view wx:else class="report-action action-later" bindtap="handleBack" aria-role="button">{{model.nextRound ? '稍后再测' : '返回'}}</view>
+      <view wx:if="{{model.nextRound}}" class="report-action action-continue {{busy ? 'is-busy' : ''}}" bindtap="startNextRound" aria-role="button">{{busy ? '正在准备…' : '开始第 ' + model.nextRound + ' 轮'}}</view>
+      <view wx:else class="report-action action-continue" bindtap="openAssessmentCenter" aria-role="button">继续测评</view>
+    </view>
+  </view>
+
+  <view wx:if="{{shareVisible}}" class="report-share-mask" catchtap="closeShare">
+    <view class="report-share-preview-stage" style="bottom: {{sharePreviewBottom - sharePreviewOverlap}}px;" catchtap="noop">
+      <scroll-view class="report-share-preview-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view wx:if="{{shareImageLoading}}" class="report-share-loading">正在生成报告长图…</view>
+        <image wx:for="{{shareImagePaths}}" wx:key="index" class="report-share-long-image" src="{{item}}" mode="widthFix" show-menu-by-longpress="{{true}}" aria-label="完整学科测评报告长图，可上下滚动查看"></image>
+        <view wx:if="{{shareImagePath}}" class="report-share-preview-end" style="height: {{sharePreviewOverlap}}px;"></view>
+      </scroll-view>
+    </view>
+    <view class="report-share-sheet" catchtap="noop">
+      <view class="report-share-sheet-header"><text class="report-share-sheet-title">分享测评报告</text></view>
+      <view class="report-share-actions">
+        <view class="report-share-action report-share-action-save {{shareImageLoading ? 'is-disabled' : ''}}" data-action="save" bindtap="handleShareAction" aria-role="button">
+          <view class="report-share-action-icon"><image src="{{UA.src(ui, '/assets/check-in/share-download.svg')}}" mode="aspectFit"></image></view>
+          <text>{{shareImagePaths.length > 1 ? '保存全部' + shareImagePaths.length + '张' : '保存长图'}}</text>
+        </view>
+        <view wx:if="{{!shareImageLoading}}" class="report-share-action report-share-action-friend">
+          <button class="report-share-native-button" open-type="share" bindtap="closeShare" aria-label="分享给好友"></button>
+          <view class="report-share-action-icon"><image src="{{UA.src(ui, '/assets/promotion/share-wechat.svg')}}" mode="aspectFit"></image></view>
+          <text>分享好友</text>
+        </view>
+        <view wx:else class="report-share-action report-share-action-friend is-disabled" data-action="friend" bindtap="handleShareAction">
+          <view class="report-share-action-icon"><image src="{{UA.src(ui, '/assets/promotion/share-wechat.svg')}}" mode="aspectFit"></image></view>
+          <text>分享好友</text>
+        </view>
+        <view class="report-share-action report-share-action-timeline {{shareImageLoading ? 'is-disabled' : ''}}" data-action="timeline" bindtap="handleShareAction" aria-role="button">
+          <view class="report-share-action-icon"><image src="{{UA.src(ui, '/assets/check-in/share-moments.svg')}}" mode="aspectFit"></image></view>
+          <text>朋友圈</text>
+        </view>
+      </view>
+      <view class="report-share-cancel" bindtap="closeShare">取消</view>
+    </view>
+  </view>
+  <canvas canvas-id="reportShareCanvas" class="report-share-export-canvas" width="{{shareCanvasWidth}}" height="{{shareCanvasHeight}}" style="width: {{shareCanvasWidth}}px; height: {{shareCanvasHeight}}px;"></canvas>
+</view>
+<dev-reset-fab />

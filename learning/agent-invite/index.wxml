@@ -1,0 +1,114 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="live-session-page">
+  <view class="live-session-stage">
+    <view class="live-session-back" style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;" bindtap="handleBack" aria-label="返回上一页" aria-role="button">
+      <view class="live-session-back-icon"></view>
+    </view>
+
+    <!-- 第一次读到场次前：老师头像、姓名与会议详情弹层只显示骨架。 -->
+    <block wx:if="{{loadState === 'loading'}}">
+      <view class="live-session-placeholder">
+        <view class="sk sk-round live-session-placeholder-avatar"></view>
+        <view class="sk live-session-placeholder-line"></view>
+        <view class="sk live-session-placeholder-role"></view>
+      </view>
+      <view class="live-session-sheet" style="top: {{sheetTopPx}}px; bottom: 0;">
+        <view class="live-session-sheet-handle"></view>
+        <view class="live-session-sk-heading"><view class="sk live-session-sk-subtitle"></view><view class="sk live-session-sk-title"></view></view>
+        <view class="sk live-session-sk-info"></view>
+        <view class="sk live-session-sk-status"></view>
+        <view class="sk live-session-sk-attendee live-session-sk-attendee-first"></view>
+        <view class="sk live-session-sk-attendee"></view>
+      </view>
+    </block>
+
+    <view class="live-session-state" wx:elif="{{loadState !== 'ready'}}">
+      <text class="live-session-state-title">{{stateTitle}}</text>
+      <text class="live-session-state-copy">{{stateCopy}}</text>
+      <view wx:if="{{loadState === 'failed'}}" class="live-session-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+      <view wx:else class="live-session-state-action" bindtap="openLearning" aria-role="button">继续自主学习</view>
+    </view>
+
+    <block wx:else>
+      <view class="live-session-identity">
+        <image wx:if="{{model.teacher.avatarSrc}}" class="live-session-teacher-avatar" src="{{model.teacher.avatarSrc}}" mode="aspectFill" aria-label="{{model.teacher.name}}头像"></image>
+        <view wx:else class="live-session-teacher-avatar" aria-label="老师头像占位"></view>
+        <text class="live-session-teacher-name">{{model.teacher.name}}</text>
+        <text class="live-session-teacher-role">{{model.teacher.roleLabel}}</text>
+      </view>
+
+      <view class="live-session-sheet {{sheetTransition ? 'is-transitioning' : ''}}" style="top: {{sheetTopPx}}px; bottom: 0;">
+        <view class="live-session-sheet-drag" catchtouchstart="handleSheetTouchStart" catchtouchmove="handleSheetTouchMove" catchtouchend="handleSheetTouchEnd" catchtouchcancel="handleSheetTouchEnd">
+          <view class="live-session-sheet-handle" aria-label="拖动会议详情弹窗" aria-role="button"></view>
+          <view class="live-session-sheet-heading">
+            <text class="live-session-sheet-course-title">{{model.subtitle}}</text>
+            <text class="live-session-sheet-title">{{model.title}}</text>
+          </view>
+        </view>
+
+        <scroll-view class="live-session-sheet-body" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+          <view class="live-session-info-card">
+            <view class="live-session-info-item">
+              <text class="live-session-info-label">上线日期</text>
+              <text class="live-session-info-value">{{model.schedule.dateLabel}}</text>
+            </view>
+            <view class="live-session-info-divider"></view>
+            <view class="live-session-info-item">
+              <text class="live-session-info-label">上线时间</text>
+              <text class="live-session-info-value">{{model.schedule.startTime}}</text>
+            </view>
+            <view class="live-session-info-divider"></view>
+            <view class="live-session-info-item">
+              <text class="live-session-info-label">学科</text>
+              <text class="live-session-info-value">{{model.schedule.subjectLabel}}</text>
+            </view>
+          </view>
+
+          <view class="live-session-status-section">
+            <text class="live-session-status-heading">会议状态</text>
+            <view class="live-session-status-card" aria-label="会议状态">
+              <view class="live-session-status-content">
+                <view class="live-session-status-line">
+                  <view class="live-session-status-dot live-session-status-dot-{{model.statusTone}}"></view>
+                  <text class="live-session-status-label">{{model.statusLabel}}</text>
+                </view>
+                <text class="live-session-status-description">{{model.statusDescription}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="live-session-attendee-section">
+            <text class="live-session-attendee-heading">参会者</text>
+            <text class="live-session-attendee-count">{{model.participantCountLabel}}</text>
+            <view wx:for="{{model.participants}}" wx:for-item="participant" wx:key="id" class="live-session-attendee-card">
+              <image class="live-session-attendee-avatar live-session-attendee-avatar-image" src="{{UA.avatar(ui, participant.avatarSrc)}}" mode="aspectFill" aria-label="参会者头像"></image>
+              <text class="live-session-attendee-name">{{participant.name}}</text>
+              <view class="live-session-attendee-status {{participant.online ? 'is-online' : ''}}">
+                <view class="live-session-attendee-status-dot" aria-hidden="true"></view>
+                <text>{{participant.statusLabel}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="live-session-sheet-footer-space"></view>
+        </scroll-view>
+
+        <view class="live-session-primary-action invite-actions {{model.showReminders ? 'has-reminders' : ''}}">
+          <!-- 还没开始时，「进入诊断室」左边给两个提醒：订阅通知（要模板与后端都就位才出现）、加到手机日历 -->
+          <view wx:if="{{model.showReminders && canSubscribe}}" class="invite-reminder-button {{subscribed ? 'is-done' : ''}}" bindtap="handleSubscribe" aria-role="button" aria-label="{{subscribed ? '已订阅开课提醒' : '订阅开课提醒'}}">
+            <image class="invite-reminder-icon" src="{{UA.src(ui, subscribed ? '/assets/live-meeting/check-orange.svg' : '/assets/live-meeting/bell.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+            <text>{{subscribed ? '已订阅' : '订阅通知'}}</text>
+          </view>
+          <view wx:if="{{model.showReminders}}" class="invite-reminder-button is-calendar" bindtap="handleAddCalendar" aria-role="button" aria-label="{{calendarAdded ? '已添加到手机日历' : '添加到手机日历'}}">
+            <image class="invite-reminder-icon" src="{{UA.src(ui, calendarAdded ? '/assets/live-meeting/check-blue.svg' : '/assets/live-meeting/calendar-add.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+            <text>{{calendarAdded ? '已添加' : '添加到日历'}}</text>
+          </view>
+          <view class="live-session-primary-button {{model.action.canEnter ? '' : 'is-disabled'}}" bindtap="handleEnter" aria-role="button" aria-label="{{model.action.label}}">{{model.action.label}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>
+<!-- 画转发卡片封面的离屏画布（services/share-cover.js） -->
+<canvas type="2d" id="share-cover-canvas" class="share-cover-canvas" aria-hidden="true"></canvas>
+<dev-reset-fab />

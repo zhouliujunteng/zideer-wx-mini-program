@@ -1,0 +1,80 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 定制课程介绍（没登录、不是会员时点会员课程进来）。没有设计稿，按商城一系已重做的页面：
+     自定义顶栏、右上淡蓝氛围光、白色大圆角卡片、主题橙渐变胶囊按钮；会员提示用会员中心的暖金色。 -->
+<view class="custom-intro-page">
+  <view class="custom-intro-ambient" aria-hidden="true"><view class="custom-intro-ambient-ribbon"></view></view>
+  <view class="custom-intro-topbar {{topbarSolid ? 'is-solid' : ''}}">
+    <view class="custom-intro-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="custom-intro-back" bindtap="handleBack" role="button" aria-label="返回"><view class="custom-intro-back-icon"></view></view>
+      <text class="custom-intro-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">定制课程</text>
+    </view>
+  </view>
+
+  <scroll-view class="custom-intro-scroll" scroll-y show-scrollbar="{{false}}" bindscroll="handleScroll" style="padding-top: {{contentTop}}px;">
+    <view class="custom-intro-shell">
+      <view class="custom-intro-hero">
+        <text class="custom-intro-eyebrow">知鹿学习 · 定制课程</text>
+        <text class="custom-intro-title">一节课，按你的基础来讲</text>
+        <text class="custom-intro-lead">老师先了解你的学习情况，再为你定制课程：会的不重复讲，缺的先补上。学完讲给 AI 听，老师核验通过才算学会。</text>
+      </view>
+
+      <!-- 点进来的那门会员课程：说明为什么还不能学、下一步做什么 -->
+      <view wx:if="{{courseTitle}}" class="custom-intro-course">
+        <image class="custom-intro-course-crown" src="{{UA.src(ui, '/assets/me/membership-crown-matte.png')}}" mode="aspectFit" aria-hidden="true"></image>
+        <view class="custom-intro-course-copy">
+          <text class="custom-intro-course-title">《{{courseTitle}}》是会员课程</text>
+          <view wx:if="{{!cta}}" class="sk sk-line sk-mid custom-intro-course-sk"></view>
+          <text wx:else class="custom-intro-course-sub">{{cta === 'guest' ? '登录并开通会员后就能学' : cta === 'profile' ? '完善学习资料、开通会员后就能学' : cta === 'member' ? '你已是会员，可以直接开始学习' : paymentOpen ? '开通会员后就能学' : '会员功能准备中，敬请期待'}}</text>
+        </view>
+      </view>
+
+      <view class="custom-intro-heading"><text>定制课程有什么不同</text></view>
+      <view class="custom-intro-card">
+        <view wx:for="{{features}}" wx:key="id" class="custom-intro-feature">
+          <text class="custom-intro-feature-index">{{item.index}}</text>
+          <view class="custom-intro-feature-copy">
+            <text class="custom-intro-feature-title">{{item.title}}</text>
+            <text class="custom-intro-feature-text">{{item.copy}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="custom-intro-heading"><text>怎么开始</text></view>
+      <view class="custom-intro-card">
+        <view wx:for="{{steps}}" wx:key="id" class="custom-intro-step">
+          <view class="custom-intro-step-rail">
+            <view class="custom-intro-step-dot">{{index + 1}}</view>
+            <view wx:if="{{index < steps.length - 1}}" class="custom-intro-step-line"></view>
+          </view>
+          <view class="custom-intro-step-copy">
+            <text class="custom-intro-step-title">{{item.title}}</text>
+            <text class="custom-intro-step-text">{{item.copy}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 支付开关关着时不介绍开通会员 -->
+      <view wx:if="{{cta !== 'member' && paymentOpen}}" class="custom-intro-member">
+        <text class="custom-intro-member-title">开通会员</text>
+        <text class="custom-intro-member-text">会员课程库里的课程都能学，还会获赠课程积分，用来生成你的定制课程。等级与权益以会员中心为准。</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部按钮：访问状态判断出来之前是骨架 -->
+  <view class="custom-intro-bar">
+    <!-- 支付开关关着时不给「开通会员」，只留「咨询老师」 -->
+    <block wx:if="{{cta === 'join' && !paymentOpen}}">
+      <view class="custom-intro-primary" bindtap="openServiceContact" role="button" aria-label="咨询老师">咨询老师</view>
+    </block>
+    <block wx:elif="{{cta}}">
+      <view class="custom-intro-secondary" bindtap="openServiceContact" role="button" aria-label="咨询老师">咨询老师</view>
+      <view class="custom-intro-primary" bindtap="handlePrimary" role="button">{{cta === 'guest' ? '登录 / 注册' : cta === 'profile' ? '完善学习资料' : cta === 'member' ? '开始学习' : '开通会员'}}</view>
+    </block>
+    <block wx:else>
+      <view class="sk custom-intro-secondary-sk"></view>
+      <view class="sk custom-intro-primary-sk"></view>
+    </block>
+  </view>
+</view>
+<dev-reset-fab />

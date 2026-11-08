@@ -1,2 +1,90 @@
-<view class="detail-page"><view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view><view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">订单详情暂时无法加载</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view><block wx:elif="{{order}}"><view class="detail-head"><text class="detail-eyebrow">订单详情</text><text class="detail-title">{{order.title}}</text><text class="detail-status">{{order.statusLabel}}</text></view><view class="detail-card surface"><view><text>订单编号</text><text>{{order.order_no || order.id}}</text></view><view><text>受益学生</text><text>{{order.beneficiaryName}}</text></view><view><text>订单金额</text><text>¥{{order.amountDisplay}}</text></view><view><text>创建时间</text><text>{{order.createdAtLabel}}</text></view><view wx:if="{{order.fulfilledAtLabel}}"><text>支付完成</text><text>{{order.fulfilledAtLabel}}</text></view></view><view class="detail-section" wx:if="{{order.batches.length}}"><text class="detail-section__title">课程积分发放</text><view class="detail-card surface" wx:for="{{order.batches}}" wx:key="id"><view><text>发放积分</text><text>{{item.original_credits}}</text></view><view><text>剩余积分</text><text>{{item.remaining_credits}}</text></view></view></view><view class="detail-section" wx:if="{{order.payment}}"><text class="detail-section__title">支付信息</text><view class="detail-card surface"><view><text>支付状态</text><text>{{order.payment.statusLabel}}</text></view><view><text>实付金额</text><text>¥{{order.payment.grand_total_value}}</text></view></view></view><button class="detail-primary pressable" wx:if="{{order.order_kind === 'library_membership'}}" bindtap="goMembership">查看会员与支付状态</button><button class="detail-primary pressable" wx:elif="{{order.status === '已支付'}}" bindtap="goCredits">查看课程积分</button><button class="detail-primary pressable" wx:else bindtap="goProducts">返回商城</button></block></view>
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 订单详情：课程积分页（M34）的概览与行卡片 + 积分包 / 确认订单的顶栏与底部按钮；见 index.js。 -->
+<view class="detail-page">
+  <view class="detail-ambient" aria-hidden="true"><view class="detail-ambient-ribbon"></view></view>
+  <view class="detail-topbar">
+    <view class="detail-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="detail-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="detail-back-icon"></view></view>
+      <text class="detail-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">订单详情</text>
+    </view>
+  </view>
+
+  <scroll-view class="detail-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="detail-shell {{view.action && paymentOpen ? 'has-bar' : ''}}">
+      <view class="detail-state" wx:if="{{failed && !loaded}}">
+        <text class="detail-state-title">订单详情暂时无法加载</text>
+        <text class="detail-state-copy">请检查网络后重新加载。</text>
+        <view class="detail-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:elif="{{loaded}}">
+        <view class="detail-overview">
+          <view class="detail-overview-copy">
+            <text class="detail-eyebrow">{{view.title}}</text>
+            <view class="detail-amount"><text class="detail-yuan">¥</text><text>{{view.amount}}</text></view>
+            <view class="detail-overview-meta"><text class="detail-status {{view.tone}}">{{view.statusLabel}}</text><text class="detail-kind">{{view.kindLabel}}</text></view>
+          </view>
+          <image class="detail-icon" src="{{UA.src(ui, view.icon)}}" mode="aspectFit" aria-hidden="true"></image>
+        </view>
+
+        <view class="detail-section">
+          <view class="detail-heading">订单信息</view>
+          <view class="detail-card">
+            <view wx:for="{{view.rows}}" wx:key="label" class="detail-row">
+              <text class="detail-row-label">{{item.label}}</text>
+              <view class="detail-row-value">
+                <text>{{item.value}}</text>
+                <text wx:if="{{item.copyable}}" class="detail-copy" bindtap="copyOrderNo" aria-role="button">复制</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{view.batches.length}}" class="detail-section">
+          <view class="detail-heading">积分发放</view>
+          <view class="detail-card">
+            <view wx:for="{{view.batches}}" wx:key="id" class="detail-batch">
+              <view class="detail-batch-copy"><text class="detail-batch-title">{{item.title}}</text><text class="detail-batch-meta">{{item.meta}}</text></view>
+              <text class="detail-batch-remaining">{{item.remaining}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{view.payment.length}}" class="detail-section">
+          <view class="detail-heading">支付信息</view>
+          <view class="detail-card">
+            <view wx:for="{{view.payment}}" wx:key="label" class="detail-row">
+              <text class="detail-row-label">{{item.label}}</text>
+              <view class="detail-row-value"><text class="{{item.tone === 'price' ? 'detail-price' : ''}}">{{item.value}}</text></view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="detail-overview">
+          <view class="detail-overview-copy">
+            <view class="sk sk-line detail-sk-eyebrow"></view>
+            <view class="sk detail-sk-amount"></view>
+            <view class="detail-overview-meta"><view class="sk detail-sk-status"></view></view>
+          </view>
+          <view class="sk detail-sk-icon"></view>
+        </view>
+        <view class="detail-section">
+          <view class="detail-heading">订单信息</view>
+          <view class="detail-card">
+            <view wx:for="{{['订单编号', '订单类型', '受益学生', '下单时间']}}" wx:key="*this" class="detail-row">
+              <text class="detail-row-label">{{item}}</text>
+              <view class="sk sk-line detail-sk-value"></view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{loaded && view.action && paymentOpen}}" class="detail-bar">
+    <button class="detail-button" loading="{{paying}}" disabled="{{paying}}" bindtap="handleAction">{{paying ? '正在发起支付' : view.action.label}}</button>
+  </view>
+</view>
 <dev-reset-fab />

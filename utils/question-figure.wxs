@@ -1,0 +1,26 @@
+// 测评题目配图（题干、选项、解析）的展示尺寸。配图存在后端表 k12_question_figure，由测评动作流随题下发：
+// { url, alt, width, height }，url 是约两天有效的签名链接。
+// 按原图宽高比先占好位置（加载前就是一块同尺寸的浅灰底，加载完不跳动）；
+// 竖长图收窄宽度，保证高度不超过 maxRatio × 容器宽。尺寸只用百分比，手机和大屏栏宽都适用。
+var FALLBACK_RATIO = 0.62
+
+function round2(n) {
+  return Math.round(n * 100) / 100
+}
+
+function box(figure, maxRatio) {
+  // WXS 不支持调用 Number()，用 parseFloat；缺值得到 NaN，比较都为假，走默认比例
+  var width = parseFloat(figure && figure.width)
+  var height = parseFloat(figure && figure.height)
+  var ratio = width > 0 && height > 0 ? height / width : FALLBACK_RATIO
+  var limit = parseFloat(maxRatio) > 0 ? parseFloat(maxRatio) : 1
+  var percent = ratio > limit ? limit / ratio * 100 : 100
+  return 'width: ' + round2(percent) + '%; padding-top: ' + round2(percent * ratio) + '%;'
+}
+
+// 加载失败的图（签名过期、网络断开）换成「点这里重新加载」。
+function failed(list, url) {
+  return !!(list && url && list.indexOf(url) >= 0)
+}
+
+module.exports = { box: box, failed: failed }

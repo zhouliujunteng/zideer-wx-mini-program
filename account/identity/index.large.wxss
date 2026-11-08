@@ -1,0 +1,50 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.identity-status-page{min-height:100vh;padding:28px 16px calc(env(safe-area-inset-bottom) + 28px)}
+.identity-status-head{padding:0 4px}
+.identity-status-eyebrow{font-size:13px;font-weight:700}
+.identity-status-title{margin-top:7px;font-size:25px;font-weight:700}
+.identity-status-card{margin-top:32px;padding:19px}
+.identity-status-card__label{font-size:13px}
+.identity-status-card__status{margin-top:10px;font-size:18px;font-weight:700}
+.identity-status-card__detail{margin-top:8px;font-size:14px;line-height:1.55}
+.identity-status-card__expiry{margin-top:6px;font-size:13px}
+.identity-status-section, .identity-submit-section{margin-top:25px}
+.identity-status-section__title{margin:0 4px 9px;font-size:13px;font-weight:700}
+.identity-role-row, .identity-login-entry{min-height:57px;padding:12px 14px}
+.identity-role-row + .identity-role-row{border-top:0.5px solid var(--line)}
+.identity-role-row text:first-child{font-size:15px;font-weight:700}
+.identity-role-row text:last-child{font-size:12px}
+.identity-status-empty{padding:16px;font-size:13px}
+.identity-submit-form{padding:15px 16px}
+.identity-submit-form__label{font-size:13px}
+.identity-submit-form__label--next{margin-top:16px}
+.identity-submit-form__input{width:100%;height:49px;margin-top:4px;border-bottom:0.5px solid var(--line-strong);font-size:16px}
+.identity-submit-result{margin-top:9px;padding:13px 15px;font-size:13px}
+.identity-submit-button{width:100%;min-height:52px;margin-top:12px;border-radius:26px;font-size:16px;font-weight:700}
+.identity-login-entry{width:100%;margin-top:14px}
+.identity-login-entry__label{font-size:12px}
+.identity-login-entry__title{margin-top:4px;font-size:15px;font-weight:700}
+.identity-login-entry > text{font-size:19px}
+.identity-submit-error{margin-top:12px;font-size:14px;line-height:1.6}
+.identity-status-sk{width:168px;height:24px;margin:9px 0 10px}
+.identity-role-sk{width:96px}
+.identity-role-date-sk{width:72px;margin-top:0 !important}
+}

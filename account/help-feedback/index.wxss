@@ -1,0 +1,89 @@
+/* 与账号与登录、关于知鹿一致：自定义顶栏、#FAFAFA 页面、白色圆角卡、#FD7C02 胶囊按钮。
+   用固定逻辑 px 控制阅读密度，避免平板随 rpx 整体放大。 */
+page { background: #FAFAFA; }
+.support-page { position: relative; height: 100vh; overflow: hidden; color: #24332D; background: #FAFAFA; font-size: 14px; line-height: 1.5; }
+.support-ambient { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #FFF5EC 0, #FAFAFA 300px); }
+.support-topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; background: #FFF5EC; }
+.support-topbar-inner { position: relative; box-sizing: content-box; display: flex; align-items: center; padding-right: 16px; padding-left: 12px; }
+.support-back { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.support-back:active { opacity: .6; }
+.support-back-icon { width: 9px; height: 9px; border-bottom: 1.8px solid #24332D; border-left: 1.8px solid #24332D; transform: rotate(45deg); }
+.support-topbar-title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: 700; letter-spacing: -.5px; white-space: nowrap; }
+.support-scroll { position: relative; height: 100vh; box-sizing: border-box; }
+.support-shell { box-sizing: border-box; max-width: 680px; margin: 0 auto; padding: 26px 18px calc(32px + env(safe-area-inset-bottom)); }
+.section-heading { margin: 0 2px 16px; }
+.section-title { display: block; font-size: 17px; font-weight: 700; line-height: 1.35; }
+.section-subtitle { display: block; margin-top: 7px; color: #8A958D; font-size: 12px; }
+.feedback-card { padding: 23px 20px 18px; border-radius: 22px; background: #FFF; box-shadow: 0 3px 14px rgba(56,75,64,.025); }
+.field-label { display: block; color: #34423A; font-size: 14px; font-weight: 650; line-height: 1.4; }
+.category-options { display: flex; gap: 8px; margin-top: 14px; }
+.category-chip { flex: 1; min-width: 0; margin: 0; padding: 0 5px; height: 44px; border-radius: 999px; background: #F6F7F5; color: #7B877F; font-size: 12px; font-weight: 500; line-height: 44px; }
+.category-chip.is-selected { background: #FFF0E2; color: #FD7C02; font-weight: 650; }
+.category-chip[disabled] { opacity: .55; }
+.category-chip::after, .submit::after { border: none; }
+.description-heading { margin-top: 26px; }
+.optional { margin-left: 8px; color: #A0A9A2; font-size: 11px; font-weight: 400; }
+.feedback-input { box-sizing: border-box; width: 100%; height: 126px; margin-top: 13px; padding: 0; color: #34423A; font-size: 14px; line-height: 1.8; }
+.feedback-placeholder { color: #AAB2AC; font-size: 12px; line-height: 1.9; }
+.description-count { display: flex; justify-content: flex-end; color: #ADB5AF; font-size: 11px; padding-bottom: 19px; }
+.diagnostics-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 76px; border-top: 1px solid #F1F3F0; }
+.diagnostics-copy { min-width: 0; }
+.field-hint { display: block; margin-top: 5px; color: #9CA59F; font-size: 11px; }
+.diagnostics-switch { flex: none; transform: scale(.78); transform-origin: right center; }
+.device-row { display: flex; gap: 14px; align-items: flex-start; padding-top: 3px; font-size: 11px; line-height: 1.6; }
+.device-label { flex: none; color: #A0A9A2; }
+.device-value { min-width: 0; color: #89958D; overflow-wrap: anywhere; }
+.privacy-note { display: flex; gap: 7px; margin: 16px 9px 20px; color: #99A39C; font-size: 11px; line-height: 1.75; }
+.privacy-dot { flex: none; width: 5px; height: 5px; margin-top: 6px; border: 1px solid #B9C2BB; border-radius: 50%; }
+.submit { width: 100%; min-height: 48px; margin: 0; padding: 0 20px; border-radius: 999px; background: #FD7C02; color: #FFF; font-size: 15px; font-weight: 650; line-height: 48px; }
+.submit:active { opacity: .82; }
+.submit[disabled] { background: #FD7C02; color: #FFF; opacity: .5; }
+.submit-caption { display: block; margin-top: 11px; color: #A0A9A2; font-size: 11px; text-align: center; }
+.feedback-error { padding: 12px 15px; margin-bottom: 16px; border-radius: 14px; background: #FFF0E9; color: #C16445; font-size: 12px; line-height: 1.65; }
+.help-column { margin-top: 34px; }
+.help-heading { margin-bottom: 15px; }
+.help-card { background: #FFF; border-radius: 22px; }
+.help-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 94px; padding: 18px 22px; box-sizing: border-box; }
+.help-kicker { display: block; margin-bottom: 6px; color: #FD7C02; font-size: 11px; }
+.help-question { color: #34423A; font-size: 14px; font-weight: 650; }
+.chevron { flex: none; width: 7px; height: 7px; border-top: 1.5px solid #AFB8B1; border-right: 1.5px solid #AFB8B1; transform: rotate(45deg); margin-right: 2px; }
+.chevron.is-open { transform: rotate(135deg); }
+.help-body { padding: 0 22px 22px; }
+.help-step { display: flex; gap: 12px; padding-top: 18px; }
+.help-step:first-child { border-top: 1px solid #F1F3F0; }
+.step-number { flex: none; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #FFF0E2; color: #FD7C02; font-size: 11px; }
+.step-title { display: block; color: #516057; font-size: 12px; font-weight: 650; }
+.step-copy { display: block; margin-top: 5px; color: #8A958D; font-size: 12px; line-height: 1.7; }
+.oppo-note { padding: 14px; margin-top: 18px; border-radius: 14px; background: #F8F9F7; color: #839087; font-size: 11px; line-height: 1.8; }
+.oppo-note text { display: block; }
+.oppo-title { font-weight: 650; color: #647369; margin-bottom: 7px; }
+.oppo-caution { margin-top: 8px; color: #A0A9A2; }
+.help-footer { padding: 21px 12px 0; color: #A0A9A2; font-size: 11px; line-height: 1.8; }
+.help-footer text { display: block; margin-bottom: 6px; }
+.help-footer .help-footer-title { color: #89958D; font-size: 12px; font-weight: 500; margin-bottom: 10px; }
+.success-card { padding: 34px 24px 26px; border-radius: 24px; background: #FFF; text-align: center; }
+.success-mark { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; margin: 0 auto 21px; border-radius: 50%; background: #FFF0E2; }
+.success-check { width: 22px; height: 12px; border-left: 3px solid #FD7C02; border-bottom: 3px solid #FD7C02; transform: translateY(-3px) rotate(-45deg); }
+.success-title { display: block; color: #24332D; font-size: 21px; font-weight: 700; }
+.success-description { display: block; margin-top: 12px; color: #8A958D; font-size: 12px; line-height: 1.9; }
+.receipt-box { margin: 25px 0; padding: 16px; border-radius: 16px; background: #F8F9F7; text-align: left; }
+.receipt-label { display: block; color: #A0A9A2; font-size: 11px; margin-bottom: 7px; }
+.receipt { display: block; color: #65746A; font-size: 12px; word-break: break-all; line-height: 1.8; }
+@media (min-width: 760px) {
+  .support-shell { display: flex; align-items: flex-start; gap: 32px; max-width: 1000px; padding: 36px 32px calc(40px + env(safe-area-inset-bottom)); }
+  .feedback-column { flex: 1; min-width: 0; }
+  .help-column { width: 290px; flex: none; margin-top: 0; }
+  .feedback-card { padding: 26px; }
+  .feedback-input { height: 172px; }
+  .section-subtitle { font-size: 13px; }
+  .category-chip { font-size: 13px; }
+  .help-heading { padding-top: 2px; margin-bottom: 43px; }
+}
+@media (max-width: 350px) {
+  .support-shell { padding-left: 14px; padding-right: 14px; }
+  .feedback-card { padding-left: 16px; padding-right: 16px; }
+  .category-options { gap: 5px; }
+  .category-chip { font-size: 11px; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

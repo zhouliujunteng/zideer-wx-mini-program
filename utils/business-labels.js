@@ -19,7 +19,9 @@ const sources = {
   teacher_refund: '老师审核返还', conversion: '奖励兑换', invite: '邀请加入',
   invitation: '邀请加入', share: '分享邀请', qrcode: '扫码加入', qr_code: '扫码加入',
   poster: '海报邀请', link: '链接邀请',
-  assignment: '平台分配', manual_assignment: '平台分配'
+  assignment: '平台分配', manual_assignment: '平台分配',
+  invite_code: '通过绑定邀请码获得（限时活动）', invite_referrer: '好友填写你的邀请码获得（限时活动）',
+  code: '填写邀请码'
 }
 const businesses = {
   ...sources, grant: '积分发放', freeze: '积分冻结', consume: '积分使用',
@@ -28,8 +30,26 @@ const businesses = {
   course_generation_consume: '课程生成扣费', course_generation_return: '课程结算退差',
   course_generation_failure_release: '生成失败退回', course_generation_limit_release: '课程超额退回',
   course_generation_cancel_release: '课程取消退回', course_generation_cancelled_release: '课程取消退回',
+  // 定制课程（诊断会议里老师建的课）每节扣费；余额不够记的欠款，之后获得积分时自动补扣（2026-10-05）
+  agent_course: '定制课程扣费', agent_course_debt_repay: '补扣欠款',
   daily_checkin: '每日签到奖励', knowledge_mastery: '知识点掌握奖励',
-  topic_learning_report: '学习报告奖励', withdrawal: '提现', withdrawal_return: '提现退回'
+  topic_learning_report: '学习报告奖励', withdrawal: '提现', withdrawal_return: '提现退回',
+  learning_checkin: '学习打卡奖励',
+  // 金币兑换现金（业务类型 coin_exchange 不在这里，按流水类型区分）
+  withdraw_freeze: '兑换现金', withdraw_release: '兑换未到账退回', withdraw_paid: '兑换到账'
+}
+// 金币兑换现金的兑换单（coin_withdrawal.status）
+const withdrawalStatuses = {
+  pending: '到账中', processing: '到账中', wait_user_confirm: '待确认收款',
+  paid: '已到账', failed: '未到账，金币已退回', cancelled: '已取消，金币已退回'
+}
+const roles = {
+  guardian: '家长', parent: '家长',
+  teacher: '服务老师', tutor: '服务老师',
+  promoter: '推广伙伴', partner: '推广伙伴',
+  student: '学生', learner: '学生',
+  user: '学习用户', member: '学习用户',
+  admin: '平台管理员', operator: '平台运营'
 }
 function label(dictionary, value, fallback) {
   const raw = String(value || '').trim()
@@ -38,6 +58,7 @@ function label(dictionary, value, fallback) {
 function statusLabel(value, context) {
   if (context === 'redemption' && value === 'succeeded') return '兑换成功'
   if (context === 'redemption' && value === 'failed') return '兑换失败'
+  if (context === 'withdrawal' && withdrawalStatuses[value]) return withdrawalStatuses[value]
   return label(statuses, value, '状态待确认')
 }
 function sourceLabel(value) { return label(sources, value, '其他来源') }
@@ -49,6 +70,7 @@ function businessLabel(value, entryType, kind = 'credit') {
   return kind === 'coin' ? entry.replace(/积分/g, '金币') : entry
 }
 function sceneLabel(value) { return label(sources, value, '推广邀请') }
+function roleLabel(value) { return label(roles, value, '业务身份') }
 function diagnosisTypeLabel(value) {
   return label({ concept: '概念理解', conceptual: '概念理解', concept_error: '概念理解错误',
     calculation: '计算', calculation_error: '计算错误', careless: '疏忽失误', careless_error: '疏忽失误',
@@ -62,4 +84,4 @@ function dateTimeLabel(value) {
   const pad = n => String(n).padStart(2, '0')
   return `${date.getFullYear()}年${pad(date.getMonth() + 1)}月${pad(date.getDate())}日 ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
-module.exports = { statusLabel, sourceLabel, businessLabel, sceneLabel, dateTimeLabel, diagnosisTypeLabel }
+module.exports = { statusLabel, sourceLabel, businessLabel, sceneLabel, roleLabel, dateTimeLabel, diagnosisTypeLabel }

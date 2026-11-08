@@ -3,13 +3,14 @@
 <view class="home-viewport home-flat-viewport member-mode">
   <view class="topbar topbar-solid home-flat-topbar">
     <view class="topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;"><image class="brand-logo" src="{{UA.src(ui, '/assets/home/brand-logo.png')}}" mode="aspectFit" aria-label="知鹿学习 iDeer"></image></view>
-    <view class="notice-button" style="top: {{notificationTop}}px; right: {{notificationRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="showNotifications" role="button" aria-label="打开消息"><image class="message-icon" src="{{UA.src(ui, '/assets/topbar/message.png')}}" mode="aspectFit"></image><view wx:if="{{model.notifications.count > 0}}" class="notice-badge">{{model.notifications.count}}</view></view>
+    <streak-entry top="{{streakEntryTop}}" right="{{streakEntryRight}}" size="{{menuButtonHeight}}" />
   </view>
 
   <scroll-view class="home-flat-scroll" scroll-y="true" show-scrollbar="false" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" refresher-default-style="white" refresher-background="#FAFAFA" bindrefresherrefresh="handleRefresh">
     <view class="home-flat-content" style="padding-top: {{contentTop}}px;">
+      <view class="tablet-tools-panel">
       <view class="home-priority-tools" aria-label="重点 AI 提分工具">
-        <view wx:for="{{primaryTools}}" wx:key="id" class="home-priority-tool home-priority-tool-{{item.tone}}" data-label="{{item.label}}" bindtap="handleScoreToolTap" role="button" aria-label="{{item.label}}">
+        <view wx:for="{{primaryTools}}" wx:key="id" class="home-priority-tool home-priority-tool-{{item.tone}}" data-id="{{item.id}}" data-label="{{item.label}}" bindtap="handleScoreToolTap" role="button" aria-label="{{item.label}}">
           <view class="home-priority-tool-copy"><text class="home-priority-tool-label">{{item.label}}</text><text class="home-priority-tool-hint">{{item.hint}}</text></view>
           <view class="home-priority-tool-icon"><image class="score-tool-icon-image" src="{{UA.src(ui, '/assets/home/score-tools/' + (item.id) + '.png')}}" mode="aspectFit" aria-hidden="true"></image></view>
         </view>
@@ -17,7 +18,7 @@
       <swiper class="home-secondary-swiper" duration="260" circular="{{false}}" indicator-dots="{{false}}" bindchange="handleSecondaryToolsChange" aria-label="更多 AI 提分工具">
         <swiper-item class="home-secondary-swiper-item" wx:for="{{secondaryToolPages}}" wx:for-item="page" wx:for-index="pageIndex" wx:key="pageIndex">
           <view class="home-secondary-tools">
-            <view wx:for="{{page}}" wx:for-item="tool" wx:key="id" class="home-secondary-tool" data-label="{{tool.label}}" bindtap="handleScoreToolTap" role="button" aria-label="{{tool.label}}">
+            <view wx:for="{{page}}" wx:for-item="tool" wx:key="id" class="home-secondary-tool" data-id="{{tool.id}}" data-label="{{tool.label}}" bindtap="handleScoreToolTap" role="button" aria-label="{{tool.label}}">
               <view class="learning-tool-icon learning-tool-icon-{{tool.tone}}"><image class="score-tool-icon-image score-tool-icon-image-small" src="{{UA.src(ui, '/assets/home/score-tools/' + (tool.id) + '.png')}}" mode="aspectFit" aria-hidden="true"></image></view><text class="learning-tool-label">{{tool.label}}</text>
             </view>
           </view>
@@ -27,12 +28,28 @@
         <view wx:for="{{secondaryToolPages}}" wx:for-index="pageIndex" wx:key="pageIndex" class="home-secondary-indicator-segment {{secondaryPage === pageIndex ? 'is-active' : ''}}"></view>
       </view>
 
+      </view>
+      <!-- 物理实验室（2026-10-08）：版式照上面三张提分工具卡（渐变底、白字、斜光条、右下角倾斜拟物图标）；图标是后端素材 home/score-tools/physics-lab.png -->
+      <view class="home-lab-entry" bindtap="openPhysicsLab" role="button" aria-label="打开物理实验室">
+        <view class="home-lab-copy">
+          <text class="home-lab-title">物理实验室</text>
+          <text class="home-lab-hint">76 个初高中实验，动手调参数看现象</text>
+        </view>
+        <view class="home-lab-icon"><image class="home-lab-icon-image" src="{{UA.src(ui, '/assets/home/score-tools/physics-lab.png')}}" mode="aspectFit" aria-hidden="true"></image></view>
+      </view>
       <view class="home-flat-course-section">
         <view class="section-heading"><text class="section-title">会员课程</text><view class="task-all-link" bindtap="openMembershipCatalog" role="button" aria-label="查看全部会员课程"><text>查看全部</text><view class="task-all-icon" aria-hidden="true"></view></view></view>
-        <view wx:if="{{model.moreCourses && model.moreCourses.length}}" class="more-courses-grid home-flat-course-grid">
+        <view wx:if="{{!loaded && loadFailed}}" class="home-course-empty"><view class="home-course-empty-copy"><text class="home-course-empty-title">课程暂时没有读到</text><text class="home-course-empty-subtitle">请检查网络后重试，或下拉刷新。</text></view><view class="home-course-empty-action" bindtap="retryLoad" role="button" aria-label="重新加载课程">重试 ›</view></view>
+        <view wx:elif="{{!loaded}}" class="more-courses-grid home-flat-course-grid" aria-label="课程加载中">
+          <view wx:for="{{skeletonCourses}}" wx:key="*this" class="more-course-card">
+            <view class="more-course-cover sk"></view>
+            <view class="more-course-info"><view class="more-course-copy home-course-skeleton-copy"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short home-course-skeleton-sub"></view></view></view>
+          </view>
+        </view>
+        <view wx:elif="{{model.moreCourses && model.moreCourses.length}}" class="more-courses-grid home-flat-course-grid">
           <view wx:for="{{model.moreCourses}}" wx:key="id" class="more-course-card" data-id="{{item.id}}" bindtap="openLibraryCourse" role="button" aria-label="打开课程 {{item.title}}">
-            <view class="more-course-cover"></view>
-            <view class="more-course-info"><view class="more-course-copy"><text class="more-course-title">{{item.title}}</text><text class="more-course-subtitle">{{item.subtitle}}</text></view><text wx:if="{{!item.isMember}}" class="more-course-tag">会员</text></view>
+            <view class="more-course-cover more-course-cover-{{item.tone}}"><image wx:if="{{item.coverUrl}}" class="more-course-cover-image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load="true"></image><text wx:else class="more-course-cover-mark">知鹿</text><text wx:if="{{!item.isMember}}" class="more-course-tag">会员</text></view>
+            <view class="more-course-info"><view class="more-course-copy"><text class="more-course-title">{{item.title}}</text><text class="more-course-subtitle">{{item.subtitle}}</text></view></view>
           </view>
         </view>
         <view wx:else class="home-course-empty"><view class="home-course-empty-copy"><text class="home-course-empty-title">课程正在上架</text><text class="home-course-empty-subtitle">已发布的公共课程会出现在这里。</text></view><view class="home-course-empty-action" bindtap="openLibraryList" role="button" aria-label="进入课程库">去课程库 ›</view></view>
@@ -41,4 +58,6 @@
     </view>
   </scroll-view>
 </view>
+<!-- 首次进首页：「设为星标 / 添加到桌面」引导，可选不再提醒 -->
+<favorite-guide />
 <dev-reset-fab />

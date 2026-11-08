@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
+require('./helpers/allow-diagnosis-room-entry')
 
 const { summarizeTopic, thinkingSummary } = require('../utils/course-agent-fold')
 
@@ -22,7 +23,7 @@ test('thinking summary follows the phase of the run', () => {
   assert.equal(thinkingSummary(ask, 'failed'), '这次没有完成，可以重新发送试试')
 })
 
-const pagePath = require.resolve('../pages/agent-chat/index.js')
+const pagePath = require.resolve('../pages/diagnosis-room/index.js')
 
 function loadPage() {
   delete require.cache[pagePath]

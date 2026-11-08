@@ -1,1 +1,7 @@
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
 .gate-page { min-height: 100vh; padding: 48rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); }.gate-head { padding: 0 8rpx; }.gate-eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }.gate-title { display: block; margin-top: 12rpx; font-size: 42rpx; font-weight: 700; }.gate-card { margin-top: 34rpx; padding: 30rpx; }.gate-card__label, .gate-card__title, .gate-card__copy { display: block; }.gate-card__label { color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }.gate-card__title { margin-top: 12rpx; font-size: 32rpx; font-weight: 700; }.gate-card__copy { margin-top: 16rpx; color: var(--ink-soft); font-size: 24rpx; line-height: 1.7; }.gate-fact { display: flex; justify-content: space-between; gap: 20rpx; margin-top: 28rpx; padding-top: 22rpx; border-top: 1rpx solid var(--line); color: var(--muted); font-size: 22rpx; }.gate-primary { width: 100%; min-height: 88rpx; margin-top: 32rpx; border-radius: 6rpx; background: var(--ink); color: #fff; font-size: 27rpx; }
+/* 首次加载骨架 */
+.gate-sk-title { width: 48%; height: 40rpx; margin: 16rpx 0 24rpx; }.gate-sk-button { height: 88rpx; margin-top: 32rpx; border-radius: 6rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

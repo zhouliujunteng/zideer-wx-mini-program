@@ -1,15 +1,21 @@
-const { loadCurrentLearningCheckin, loadMeDashboard } = require('../../services/identity')
-const { buildCheckInModel } = require('../../services/checkin-model')
+const { loadCurrentLearningCheckin, loadMeDashboard, useCurrentStreakCard } = require('../../services/identity')
+const { buildCheckInModel, dateRange } = require('../../services/checkin-model')
+const { publishCheckin } = require('../../services/learning-streak')
 const { attachUiAssets, getUiAssets } = require('../../services/ui-assets')
+const { rpxToPx, columnWidth } = require('../../utils/screen')
 
 // 每日学习打卡页：界面取自 UI 设计仓库 JiahaoTang-Alvin/zhilu-miniprogram 提交 b5cc5ab（E05，2026-09-19 同步）。
-// 打卡规则由后端动作流决定（当天有效课程学习满 5 分钟算一天），本页只读、不提交打卡。
+// 打卡规则由后端决定（2026-09-25 起：当天学完一节课或费曼验收通过算一天），本页不提交打卡。
+// 冻结卡、复活卡在本页使用（AF48）；用完重新读一次打卡，日历上当场显示冻结 / 补回的日子。
 // 未移植：设计稿的「开发调试」面板与模拟今天日期。
 
 const CELEBRATED_KEY = 'learning_checkin_celebrated_day'
 const CALENDAR_TRANSITION_MS = 360
 const SHARE_SHEET_CLOSE_MS = 280
 const POSTER_LOGO_KEY = 'home/brand-logo.png'
+const CARD_SHEET_CLOSE_MS = 260
+const CARD_EFFECT_MS = 1600
+const WEEKDAY_SHORT = ['日', '一', '二', '三', '四', '五', '六']
 
 Page({
   data: {
@@ -22,6 +28,10 @@ Page({
     showSuccessSheet: false,
     showShareSheet: false,
     shareSheetClosing: false,
+    cardSheet: null,
+    cardSheetClosing: false,
+    usingCard: false,
+    cardEffect: '',
     statusBarHeight: 20,
     navigationBarHeight: 44,
     contentTop: 80,
@@ -45,14 +55,14 @@ Page({
       : { left: windowWidth - 92, top: (windowInfo.statusBarHeight || 20) + 6, width: 87, height: 32 }
     const statusBarHeight = windowInfo.statusBarHeight || 20
     const navigationBarHeight = menuButton.height + (menuButton.top - statusBarHeight) * 2
-    const sharePosterWidth = Math.min(windowWidth - 40 * windowWidth / 750, 660 * windowWidth / 750)
+    const sharePosterWidth = Math.min(columnWidth(windowWidth) - rpxToPx(40, windowWidth), rpxToPx(660, windowWidth))
     const sharePosterHeight = sharePosterWidth * (4 / 3)
-    const contentTop = statusBarHeight + navigationBarHeight + 16 * windowWidth / 750
+    const contentTop = statusBarHeight + navigationBarHeight + rpxToPx(16, windowWidth)
     this.setData({
       statusBarHeight,
       navigationBarHeight,
       contentTop,
-      heroStageHeight: contentTop + 326 * windowWidth / 750,
+      heroStageHeight: contentTop + rpxToPx(326, windowWidth),
       shareTop: menuButton.top,
       shareRight: windowWidth - menuButton.left + 8,
       shareSize: menuButton.height,
@@ -64,7 +74,7 @@ Page({
     if (wx.showShareMenu) wx.showShareMenu({ withShareTicket: false, menus: ['shareAppMessage', 'shareTimeline'] })
   },
 
-  // 每次回到本页都重新读取：从学习页学完回来，今天可能刚满 5 分钟。
+  // 每次回到本页都重新读取：从学习页学完一节课回来，今天可能刚点亮。
   onShow() {
     return this.loadCheckIn()
   },
@@ -75,7 +85,8 @@ Page({
     if (this.data.loadState !== 'ready') this.setData({ loadState: 'loading', loadError: '' })
     try {
       const [checkin, me] = await Promise.all([
-        loadCurrentLearningCheckin(),
+        // 一读到就同步给顶栏火苗入口与「我的」页连胜卡片（不等昵称）：这里刚点亮，返回时外面也是点亮的。
+        loadCurrentLearningCheckin().then((value) => { publishCheckin(value); return value }),
         loadMeDashboard().catch(() => null)
       ])
       if (requestId !== this._loadRequestId) return
@@ -99,13 +110,16 @@ Page({
   },
 
   buildModel(year, month) {
-    return buildCheckInModel({
-      today: this._checkin.today,
-      checkedDates: this._checkin.checkedDates,
+    const model = buildCheckInModel({
+      ...this._checkin,
       viewedYear: year,
       viewedMonth: month,
       nickname: this._nickname
     })
+    // 刚用完道具卡：新保护的日子在日历上弹一下。
+    const fresh = this._freshProtected
+    if (fresh && fresh.size) model.calendar.days.forEach((day) => { day.isFresh = fresh.has(day.id) })
+    return model
   },
 
   readCelebratedDay() {
@@ -140,11 +154,68 @@ Page({
     const days = this.data.model.calendar && this.data.model.calendar.days
     const day = days ? days[Number(e.currentTarget.dataset.index)] : null
     if (!day || !day.isInMonth) return
-    if (day.isFuture) return wx.showToast({ title: '未来日期还不能打卡', icon: 'none' })
     if (day.isChecked) return wx.showToast({ title: '这一天已经点亮啦', icon: 'none' })
-    if (day.isToday) return wx.showToast({ title: '今天学满 5 分钟就能点亮', icon: 'none' })
+    if (day.isFrozen) return wx.showToast({ title: day.isFuture ? '这一天已冻结，不打卡也不断连胜' : '这一天用冻结卡保住了连胜', icon: 'none' })
+    if (day.isRevived) return wx.showToast({ title: '这一天用复活卡补回来了', icon: 'none' })
+    if (day.isFuture) return wx.showToast({ title: '未来日期还不能打卡', icon: 'none' })
+    if (day.isToday) return wx.showToast({ title: '学完一节课、通过验收或完成一次复习就能点亮', icon: 'none' })
     wx.showToast({ title: '历史日期仅供查看', icon: 'none' })
   },
+
+  // ---- 道具卡 ----
+  handleCardTap(e) {
+    const card = (this.data.model.cards || []).find((item) => item.type === e.currentTarget.dataset.type)
+    if (!card) return
+    if (this._cardSheetCloseTimer) {
+      clearTimeout(this._cardSheetCloseTimer)
+      this._cardSheetCloseTimer = null
+    }
+    // 每次打开弹层换一个幂等键：确认后网络重试不会扣两张卡，关掉再开是新的一次使用。
+    this._cardUseKey = `streak-card-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
+    const days = card.plan ? card.plan.dates.map((key) => {
+      const date = new Date(`${key}T00:00:00Z`)
+      return { id: key, label: `${date.getUTCMonth() + 1}/${date.getUTCDate()}`, weekday: `周${WEEKDAY_SHORT[date.getUTCDay()]}` }
+    }) : []
+    this.setData({ cardSheet: { ...card, days }, cardSheetClosing: false })
+  },
+
+  handleCloseCardSheet() {
+    if (!this.data.cardSheet || this.data.cardSheetClosing || this.data.usingCard) return
+    this.setData({ cardSheetClosing: true })
+    this._cardSheetCloseTimer = setTimeout(() => {
+      this._cardSheetCloseTimer = null
+      this.setData({ cardSheet: null, cardSheetClosing: false })
+    }, CARD_SHEET_CLOSE_MS)
+  },
+
+  async handleConfirmUseCard() {
+    const sheet = this.data.cardSheet
+    if (!sheet || !sheet.usable || this.data.usingCard) return
+    this.setData({ usingCard: true })
+    let result
+    try {
+      result = await useCurrentStreakCard(sheet.type, this._cardUseKey)
+    } catch (error) {
+      this.setData({ usingCard: false })
+      wx.showToast({ title: error.message || '道具卡暂时无法使用', icon: 'none' })
+      return
+    }
+    this._freshProtected = new Set(result.dates)
+    // 复活卡补的日子可能在上个月：日历翻到补回的那个月，让学生看得见。
+    const first = result.dates[0]
+    const calendar = first ? { calendarYear: Number(first.slice(0, 4)), calendarMonth: Number(first.slice(5, 7)) } : {}
+    this.setData({ usingCard: false, cardSheet: null, cardSheetClosing: false, cardEffect: sheet.type, ...calendar })
+    wx.showToast({ title: sheet.type === 'freeze' ? `已冻结 ${dateRange(result.dates)}` : `已补回 ${dateRange(result.dates)}`, icon: 'none' })
+    if (this._cardEffectTimer) clearTimeout(this._cardEffectTimer)
+    this._cardEffectTimer = setTimeout(() => {
+      this._cardEffectTimer = null
+      this._freshProtected = null
+      this.setData({ cardEffect: '' })
+    }, CARD_EFFECT_MS)
+    await this.loadCheckIn()
+  },
+
+
 
   handleBack() {
     if (getCurrentPages().length > 1) {
@@ -159,6 +230,12 @@ Page({
       this.handleShare()
       return
     }
+    wx.switchTab({ url: '/pages/learning/index' })
+  },
+
+  // 今日打卡两行任务：没完成时点一行去学习页（学课、费曼验收都从学习页的课程进去）。
+  handleTaskTap() {
+    if (this.data.model.checkedToday) return
     wx.switchTab({ url: '/pages/learning/index' })
   },
 
@@ -333,15 +410,10 @@ Page({
         wx.showToast({ title: '已保存到相册', icon: 'success' })
       },
       fail: (error) => {
-        const message = String(error && error.errMsg || '')
-        if (/cancel/i.test(message)) return
-        // 用户曾拒绝相册授权时，引导去设置页重新打开。
-        wx.showModal({
-          title: '需要相册权限',
-          content: '保存海报需要允许访问相册，请在设置中打开「保存到相册」。',
-          confirmText: '去设置',
-          success: (result) => { if (result.confirm && wx.openSetting) wx.openSetting() }
-        })
+        // 取消不提示；没同意隐私指引、手机系统没给微信相册权限、设置里关了相册，各自说明（utils/permission-guide.js，2026-10-06）
+        const { guideOnFailure } = require('../../utils/permission-guide')
+        guideOnFailure(error, { scope: 'scope.writePhotosAlbum', content: '保存海报需要允许访问相册，请在设置里打开相册权限后再试。' })
+          .then((kind) => { if (kind === 'other') wx.showToast({ title: '保存失败，请重试', icon: 'none' }) })
       }
     })
   },
@@ -351,5 +423,7 @@ Page({
   onUnload() {
     if (this._calendarTransitionTimer) clearTimeout(this._calendarTransitionTimer)
     if (this._shareSheetCloseTimer) clearTimeout(this._shareSheetCloseTimer)
+    if (this._cardSheetCloseTimer) clearTimeout(this._cardSheetCloseTimer)
+    if (this._cardEffectTimer) clearTimeout(this._cardEffectTimer)
   }
 })

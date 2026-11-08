@@ -1,0 +1,9 @@
+@import "../../styles/skeleton.wxss";
+
+.streak-entry { position: fixed; z-index: 31; display: flex; align-items: center; justify-content: center; overflow: hidden; box-sizing: border-box; border: 1rpx solid #e7ebe6; border-radius: 50%; background: #fff; }
+.streak-entry:active { opacity: .76; }
+/* 图标画布 800×800，火苗约占宽 42%、高 55%，中心在 45% 高处：铺成按钮的 110%，火苗正好居中、高约按钮的六成。 */
+.streak-entry-icon { position: absolute; top: 0; left: -5%; display: block; width: 110%; height: 110%; }
+.streak-entry-skeleton { width: 50%; height: 50%; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

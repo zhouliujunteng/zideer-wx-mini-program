@@ -1,0 +1,120 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+page{height:100%}
+.agent-page{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:auto;box-shadow:0 0 0 100vmax #F9FAFF}
+.agent-ambient{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2)}
+.agent-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));box-sizing:border-box}
+.agent-topbar-inner{box-sizing:content-box;padding:0 21px 9px}
+.agent-back-button{width:26px;height:26px;margin-right:6px}
+.agent-back-icon{width:12px;height:12px;border-bottom:1px solid #24332D;border-left:1px solid #24332D;transform:rotate(45deg) scale(.72)}
+.room-topbar-heading{left:50%;max-width:56%;transform:translateX(-50%)}
+.room-topbar-title{max-width:100%;font-size:21px;font-weight:700;letter-spacing:-1px;line-height:1.2;text-overflow:ellipsis}
+.room-topbar-summary{max-width:100%;margin-top:1px;font-size:12px;line-height:1.3;text-overflow:ellipsis}
+.diagnosis-room-scroll{top:0;right:0;bottom:0;left:0;width:auto;height:auto;box-sizing:border-box}
+.diagnosis-room-shell{padding:15px 18px 0;box-sizing:border-box}
+.agent-message{width:100%;margin-bottom:16px}
+.agent-message-column{min-width:0;max-width:88%}
+.agent-message-user .agent-message-column{max-width:84%}
+.agent-message-bubble{padding:10px 14px;box-sizing:border-box;border-radius:15px 15px 15px 4px}
+.agent-message-assistant .agent-message-bubble{min-height:38px}
+.agent-message-user .agent-message-bubble{padding:9px 14px;border-radius:16px 16px 4px 16px}
+.agent-message-text{font-size:16px;line-height:1.62}
+.diagnosis-room-bottom{height:9px}
+@keyframes agent-card-enter{from{opacity:0;transform:translate3d(0, 10px, 0) scale(.985)}to{opacity:1;transform:translate3d(0, 0, 0) scale(1)}}
+.agent-activity-notice{width:100%}
+.agent-activity-notice text{padding:4px 13px;border-radius:599px;font-size:12px}
+.agent-voice-row{width:100%}
+.agent-voice-line{max-width:100%}
+.agent-activity-voice{min-width:120px;max-width:252px;padding:14px 16px;box-sizing:border-box;border-radius:15px 15px 15px 4px;box-shadow:0 4px 14px rgba(31, 36, 32, .06)}
+.agent-activity-voice-wave{height:19px;margin-right:10px}
+.agent-activity-voice-bar{width:3px;margin-right:3px;border-radius:1px}
+.agent-activity-voice-bar:nth-child(1){height:8px}
+.agent-activity-voice-bar:nth-child(2){height:14px}
+.agent-activity-voice-bar:nth-child(3){height:19px;margin-right:0}
+.agent-activity-voice-duration{font-size:15px}
+.live-room-standby{padding:57px 28px 24px;text-align:center}
+.live-room-standby-avatar{width:79px;height:79px;margin-bottom:19px;border-radius:50%}
+.live-room-standby-avatar::after{top:50%;left:50%;width:79px;height:79px;margin:-40px 0 0 -40px;border-radius:50%;border:1px solid rgba(253, 124, 2, .32)}
+.live-room-standby-title{font-size:20px;font-weight:700}
+.live-room-standby-hint{margin-top:8px;font-size:15px;font-weight:650}
+.live-msg-sender{margin-bottom:6px;padding-left:2px}
+.live-msg-avatar{width:24px;height:24px;margin-right:7px;border-radius:50%}
+.live-msg-name{font-size:13px}
+.live-msg-meta{margin-top:6px;padding-left:4px}
+.live-msg-time{font-size:12px}
+.live-msg-read{margin-left:7px;font-size:12px}
+.live-room-closed{margin:14px auto;padding:14px 16px;max-width:336px;box-sizing:border-box;border-radius:14px;text-align:center}
+.live-room-closed-title{font-size:16px;font-weight:700}
+.live-room-closed-copy{margin-top:6px;font-size:13px;line-height:1.6}
+.room-sender-tag{margin-left:6px;padding:1px 7px;border-radius:599px;font-size:11px;line-height:1.5}
+.live-msg-meta.is-right{padding-right:4px;padding-left:0}
+.room-state-copy{margin-top:8px;font-size:15px;line-height:1.6}
+.agent-composer{right:max(0px, 50% - var(--lg-col) / 2);bottom:52px;left:max(0px, 50% - var(--lg-col) / 2);padding:9px 16px 10px;box-sizing:border-box}
+.agent-composer::after{right:0;bottom:-4px;left:0;height:4px}
+.agent-composer-bar{min-height:62px;padding:3px 10px;box-sizing:border-box;border:0.5px solid #ECEFEC;border-radius:18px;box-shadow:0 4px 14px rgba(39, 52, 43, .06)}
+.agent-composer-bar.is-input-active{border-color:#E4E8E4;box-shadow:0 4px 14px rgba(39, 52, 43, .09)}
+.agent-composer-bar.is-voice-active{border-color:rgba(253, 124, 2, .52)}
+.agent-input{min-width:0;height:50px;margin:0 8px;font-size:17px;line-height:50px}
+.agent-voice-button, .agent-send-button{width:37px;height:37px;border-radius:50%}
+.agent-voice-button.is-collapsing{width:0;margin-left:0;margin-right:0;transform:translateX(-15px)}
+.agent-voice-icon{width:30px;height:30px}
+.agent-voice-speak-button{height:50px;margin:0 8px;font-size:17px;font-weight:600;line-height:1}
+.agent-send-icon{width:19px;height:19px}
+.agent-sending-spinner{width:15px;height:15px;box-sizing:border-box;border:2px solid rgba(255, 255, 255, .45);border-top-color:#FFF;border-radius:50%}
+.agent-composer-note-background{right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);min-height:48px;padding-bottom:env(safe-area-inset-bottom);box-sizing:border-box}
+.agent-composer-note{right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);min-height:48px;padding:9px 16px calc(6px + env(safe-area-inset-bottom));box-sizing:border-box;font-size:10px;line-height:18px;text-align:center;transform:translateY(5px)}
+.voice-demo-status{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);box-sizing:border-box;padding:0 20px calc(67px + env(safe-area-inset-bottom))}
+.voice-demo-label{font-size:16px;font-weight:500;line-height:1.4;text-shadow:0 1px 4px rgba(20, 102, 190, .16)}
+.voice-demo-status.is-canceling .voice-demo-label{text-shadow:none}
+.voice-demo-wave{width:82%;height:45px;margin-top:34px}
+.voice-demo-bar{min-width:1px;max-width:4px;height:calc(var(--bar-height, 4) * 600px / 1000);margin:0 1px;border-radius:599px;box-shadow:0 0 4px rgba(255, 255, 255, .14)}
+.voice-demo-status.is-canceling .voice-demo-bar{box-shadow:0 0 4px rgba(255, 65, 65, .12)}
+.agent-scroll-bottom-button{left:50%;width:38px;height:38px;border:0.5px solid #E5EAE5;border-radius:50%;box-shadow:0 4px 13px rgba(39, 52, 43, .11);transform:translateX(-50%)}
+.agent-scroll-bottom-button:active{transform:translateX(-50%) scale(.94)}
+.agent-scroll-bottom-icon{width:9px;height:9px;border-right:1px solid #7B877E;border-bottom:1px solid #7B877E;transform:rotate(45deg) translate(-2px, -2px)}
+@keyframes agent-scroll-bottom-enter{from{opacity:0;transform:translate(-50%, 4px)}to{opacity:1;transform:translate(-50%, 0)}}
+.room-jump{bottom:calc(var(--composer-bottom) + 96px)}
+.room-jump.is-unseen{width:auto;padding:0 15px 0 18px;border-color:#FFD9B4;border-radius:19px}
+.room-jump.is-unseen .agent-scroll-bottom-icon{border-color:#FD7C02}
+.room-unseen-text{margin-right:9px;font-size:14px;font-weight:600}
+.room-skeleton{padding-right:18px;padding-left:18px;box-sizing:border-box}
+.room-skeleton-bubble{width:64%;height:67px;margin-top:16px;border-radius:15px}
+.room-skeleton-bubble.is-student{width:42%;height:43px}
+.room-skeleton-bubble.is-short{width:50%;height:52px}
+.agent-activity-question{width:100%;box-sizing:border-box;padding:9px;border-radius:21px;box-shadow:0 6px 15px rgba(253, 124, 2, .22)}
+.agent-activity-question-title{padding:4px 6px 9px;font-size:16px;font-weight:600;line-height:1.55}
+.agent-activity-question-option{box-sizing:border-box;width:100%;min-height:45px;margin-top:7px;padding:8px 13px;border:0.5px solid rgba(255, 255, 255, .42);border-radius:12px}
+.agent-activity-question-title + .agent-activity-question-option{margin-top:0}
+.agent-activity-question-option text{font-size:15px;font-weight:500;line-height:1.45;text-shadow:0 0.5px 1px rgba(160, 70, 0, .18)}
+.agent-activity-question-option.is-confirm text{font-weight:700}
+.agent-activity-question-hint{padding:8px 6px 2px;font-size:12px;line-height:1.5}
+.agent-activity-question.is-answered{border:0.5px solid #F6DDBF;box-shadow:none}
+.agent-activity-question.is-answered .agent-activity-question-title{padding-bottom:7px;font-weight:500}
+.agent-activity-question.is-answered .agent-activity-question-option{min-height:38px;border-color:#F3CFA3}
+.agent-activity-question.is-answered .agent-activity-question-option text{font-weight:600}
+.agent-activity-plan{width:100%;box-sizing:border-box;padding:15px 14px 8px;border-radius:21px;box-shadow:0 4px 14px rgba(36, 51, 45, .06)}
+.agent-activity-plan-label{padding:2px 8px;border-radius:599px;font-size:12px;font-weight:600}
+.agent-activity-plan-count{font-size:12px}
+.agent-activity-plan-title{margin-top:8px;font-size:17px;font-weight:700;line-height:1.4}
+.agent-activity-plan-findings{margin-top:6px;font-size:13px;line-height:1.6}
+.agent-activity-plan-lesson{margin-top:6px;padding:9px 12px;border-radius:13px}
+.agent-activity-plan-lesson:last-child{margin-bottom:6px}
+.agent-activity-plan-number{margin-right:7px;font-size:13px;font-weight:700}
+.agent-activity-plan-lesson-title{min-width:0;font-size:15px;font-weight:600;line-height:1.45}
+.agent-activity-plan-point{margin-top:4px;font-size:13px;line-height:1.5}
+.agent-activity-plan-outline{margin-top:3px;font-size:13px;line-height:1.6}
+.agent-activity-plan-pre{margin-top:3px;font-size:12px;line-height:1.5}
+.agent-message-column > .agent-activity-plan + .live-msg-meta, .agent-message-column > .agent-activity-question + .live-msg-meta{margin-top:4px}
+.room-goal-entry{right:calc(max(0px, 50% - var(--lg-col) / 2) + 16px);padding:6px 12px;border-radius:999px;box-shadow:0 4px 14px rgba(36, 51, 45, .1);font-size:12px;font-weight:650}
+.room-goal-ring{width:14px;height:14px;box-sizing:border-box;border:2px solid #FD7C02;border-radius:50%}
+.room-goal-dot{width:4px;height:4px;border-radius:50%}
+}

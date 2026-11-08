@@ -1,0 +1,36 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.plans-page{min-height:100vh;padding:0 16px calc(env(safe-area-inset-bottom) + 26px)}
+.plans-page__inner{padding-top:32px}
+.plans-page__head{padding:0 4px}
+.plans-page__eyebrow{font-size:13px;font-weight:700}
+.plans-page__title-row{gap:13px;margin-top:7px}
+.plans-page__title{min-width:0;font-size:25px;font-weight:700}
+.plans-page__create{min-height:37px;padding:0 12px;border-radius:4px;font-size:13px;font-weight:700}
+.plans-empty{margin-top:25px;padding:18px 15px}
+.plans-empty__title{font-size:16px;font-weight:700}
+.plans-empty__copy{margin-top:7px;font-size:13px;line-height:1.6}
+.plans-empty__action{width:100%;min-height:46px;margin-top:15px;border-radius:4px;font-size:15px;font-weight:700}
+.plan-card{width:100%;min-height:75px;margin-top:10px;padding:0 15px}
+.plan-card__name{font-size:16px;font-weight:700}
+.plan-card__meta{margin-top:5px;font-size:12px}
+.plan-card__side{gap:8px;font-size:13px}
+.plan-card__meta-sk{height:12px}
+}

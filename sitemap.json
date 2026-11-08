@@ -1,6 +1,10 @@
 {
-  "desc": "知鹿私课站点地图",
+  "desc": "知鹿学习站点地图",
   "rules": [
+    {
+      "action": "disallow",
+      "page": "pages/diagnosis-room/index"
+    },
     {
       "action": "allow",
       "page": "*"

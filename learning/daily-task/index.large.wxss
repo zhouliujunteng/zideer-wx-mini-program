@@ -1,0 +1,37 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.daily-page{min-height:100vh;padding:31px 16px calc(env(safe-area-inset-bottom) + 28px)}
+.daily-head{padding:0 4px}
+.daily-eyebrow{font-size:13px;font-weight:700}
+.daily-title{margin-top:7px;max-width:100%;font-size:23px;font-weight:700;line-height:1.32}
+.daily-plan-link{min-height:34px;margin-top:9px;font-size:13px}
+.daily-empty{margin-top:20px;padding:18px;font-size:13px;line-height:1.55}
+.daily-list{margin-top:18px;padding:0 14px}
+.daily-task{gap:10px;padding:16px 0;border-bottom:0.5px solid var(--line)}
+.daily-task:last-child{border-bottom:0}
+.daily-task__sequence{width:25px;height:25px;border-radius:50%;font-size:12px;font-weight:700}
+.daily-task__copy{min-width:0}
+.daily-task__title{font-size:15px;font-weight:700;line-height:1.35}
+.daily-task__meta{margin-top:5px;font-size:12px;line-height:1.5}
+.daily-note{margin:14px 4px;font-size:12px;line-height:1.55}
+.daily-sk-eyebrow{width:72px;height:13px}
+.daily-sk-title{width:70%;height:28px;margin-top:8px}
+.daily-sk-seq{width:25px;height:25px}
+}

@@ -1,0 +1,39 @@
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
+.ar-page { min-height: 100vh; padding: 40rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); box-sizing: border-box; }
+.ar-head { padding: 36rpx 32rpx; border-radius: 24rpx; background: var(--accent-soft); }
+.ar-sk-title { width: 70%; height: 48rpx; margin-top: 16rpx; }
+.ar-eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }
+.ar-title { display: block; margin-top: 12rpx; color: var(--ink); font-size: 34rpx; font-weight: 700; line-height: 1.4; }
+.ar-title-sm { display: block; color: var(--ink); font-size: 28rpx; font-weight: 650; }
+.ar-meta { display: block; margin-top: 10rpx; color: var(--ink-soft); font-size: 23rpx; }
+.ar-notice { display: block; margin-top: 10rpx; color: var(--muted); font-size: 22rpx; line-height: 1.6; }
+.ar-card { margin-top: 20rpx; padding: 28rpx; }
+.ar-label { display: block; color: var(--muted); font-size: 22rpx; }
+.ar-score-row { display: flex; align-items: baseline; margin-top: 8rpx; }
+.ar-score { color: var(--ink); font-size: 48rpx; font-weight: 700; }
+.ar-band { margin-left: 16rpx; font-size: 26rpx; font-weight: 600; }
+.ar-copy { display: block; margin-top: 10rpx; color: var(--ink-soft); font-size: 24rpx; line-height: 1.6; }
+.ar-section { display: block; margin-bottom: 8rpx; color: var(--ink); font-size: 27rpx; font-weight: 650; }
+.ar-row { display: flex; justify-content: space-between; padding: 16rpx 0; border-bottom: 1rpx solid var(--line); }
+.ar-row:last-child { border-bottom: 0; }
+.ar-row-label { flex: 1; min-width: 0; color: var(--ink); font-size: 25rpx; }
+.ar-tier { color: var(--muted); font-size: 21rpx; }
+.ar-row-value { flex: none; margin-left: 16rpx; color: var(--muted); font-size: 23rpx; }
+.ar-review { border-bottom: 1rpx solid var(--line); }
+.ar-review:last-child { border-bottom: 0; }
+.ar-review-head { display: flex; justify-content: space-between; padding: 18rpx 0; }
+.ar-review-title { flex: 1; min-width: 0; color: var(--ink); font-size: 25rpx; line-height: 1.5; }
+.ar-review-body { padding: 0 0 20rpx; }
+.ar-option { display: block; margin-top: 8rpx; padding: 12rpx 16rpx; border-radius: 12rpx; background: #F6F7F5; color: var(--ink); font-size: 24rpx; }
+.ar-line { display: block; margin-top: 12rpx; color: var(--ink-soft); font-size: 24rpx; line-height: 1.6; }
+.ar-key { color: var(--accent-deep); font-weight: 600; }
+/* 语义色：与学生端报告同一套 tone（services/assessment.js bandTone / topicTone / 选项 tone） */
+.ar-solid { color: #2F7A4F; }
+.ar-steady { color: #B25A00; }
+.ar-weak, .ar-rebuild { color: #C2410C; }
+.ar-pending { color: var(--muted); }
+.ar-option-is-answer { background: #E8F5EC; color: #2F7A4F; }
+.ar-option-is-wrong { background: #FDECE6; color: #C2410C; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

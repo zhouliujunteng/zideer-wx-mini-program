@@ -1,65 +1,161 @@
-.agent-course-page {
-  --brand: #FD7C02;
-  --brand-soft: #FFF0DF;
-  --ink: #2F3B33;
-  --muted: #7A847D;
-  --line: #E9EEE9;
-  min-height: 100vh;
-  box-sizing: border-box;
-  padding: 40rpx 32rpx calc(env(safe-area-inset-bottom) + 48rpx);
-  background: #F7F9F7;
-  color: var(--ink);
-}
-.agent-course-skeleton { height: 520rpx; border-radius: 28rpx; background: #E9EEE9; }
-.agent-course-head { padding: 0 8rpx; }
-.agent-course-eyebrow { display: block; color: #B25A00; font-size: 22rpx; font-weight: 600; }
-.agent-course-title { display: block; margin-top: 10rpx; font-size: 40rpx; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
+/* 课程详情：顶栏、课程卡、底部按钮取自设计仓库 ui-ref（M37，package-learning/pages/learning/generation，提交 7489f22）。
+   设计稿之外的部分（骨架、课程内容、验收状态、错误页）按同一套颜色与圆角补齐；封面由竖图改为横版通栏。
+   2026-10-04 用户反馈「复述验收、课程内容好丑，绿色元素不搭」：两块重做，本页只用主题橙 + 暖灰，不再用绿色。 */
+page { background: #FAFAFA; }
 
-.agent-course-progress { display: flex; align-items: center; margin-top: 32rpx; padding: 32rpx 28rpx; border: 1rpx solid var(--line); border-radius: 28rpx; background: #FFFFFF; }
-.agent-course-ring { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 168rpx; height: 168rpx; border-radius: 50%; transition: background 0.4s ease; }
-.agent-course-ring__inner { display: flex; align-items: center; justify-content: center; width: 132rpx; height: 132rpx; border-radius: 50%; background: #FFFFFF; }
-.agent-course-ring__value { font-size: 40rpx; font-weight: 700; }
-.agent-course-ring__unit { margin-left: 2rpx; font-size: 22rpx; font-weight: 600; }
-.agent-course-progress__copy { flex: 1; min-width: 0; margin-left: 28rpx; }
-.agent-course-status { display: flex; align-items: center; font-size: 28rpx; font-weight: 700; }
-.agent-course-status__dot { width: 14rpx; height: 14rpx; margin-right: 12rpx; border-radius: 50%; background: #3F9A64; }
-.agent-course-progress--generating .agent-course-status__dot { background: var(--brand); }
-.agent-course-progress--partial .agent-course-status__dot { background: #E0A000; }
-.agent-course-progress--failed .agent-course-status__dot { background: #D6574B; }
-.agent-course-status__dot.is-live { animation: agent-course-pulse 1.4s ease-in-out infinite; }
-.agent-course-summary { display: block; margin-top: 10rpx; font-size: 25rpx; line-height: 1.6; }
-.agent-course-note { display: block; margin-top: 10rpx; color: var(--muted); font-size: 22rpx; line-height: 1.6; }
+.course-display-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.course-display-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: #FAFAFA; }
+.course-display-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.course-display-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 34rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.course-display-back { display: flex; flex: 0 0 auto; width: 54rpx; height: 54rpx; align-items: center; justify-content: center; border-radius: 50%; }
+.course-display-back:active { background: #F0F2EF; }
+.course-display-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.course-refresh-loading { position: fixed; left: 50%; z-index: 19; display: flex; padding: 12rpx 18rpx; box-sizing: border-box; align-items: center; border-radius: 999rpx; background: rgba(255, 255, 255, .96); color: #7E8A82; font-size: 18rpx; line-height: 1; transform: translateX(-50%); }
+.course-refresh-spinner { width: 20rpx; height: 20rpx; margin-right: 8rpx; box-sizing: border-box; border: 3rpx solid #FFE4C4; border-top-color: #FD7C02; border-radius: 50%; animation: course-refresh-spin .7s linear infinite; }
+@keyframes course-refresh-spin { to { transform: rotate(360deg); } }
+.course-display-scroll { position: relative; z-index: 1; width: 100%; height: 100vh; box-sizing: border-box; }
+.course-display-shell { min-height: 100%; padding: 0 32rpx 230rpx; box-sizing: border-box; }
 
-.agent-course-pages { margin-top: 24rpx; border: 1rpx solid var(--line); border-radius: 28rpx; background: #FFFFFF; overflow: hidden; }
-.agent-course-page-row { display: flex; align-items: center; padding: 24rpx 28rpx; border-top: 1rpx solid var(--line); }
-.agent-course-page-row:first-child { border-top: 0; }
-.agent-course-page-row__index { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 48rpx; height: 48rpx; border-radius: 50%; background: #F1F4F1; color: var(--muted); font-size: 22rpx; font-weight: 600; }
-.agent-course-page-row.is-done .agent-course-page-row__index { background: #E3F3E9; color: #2F7A4F; }
-.agent-course-page-row.is-generating .agent-course-page-row__index { background: var(--brand-soft); color: #B25A00; }
-.agent-course-page-row.is-failed .agent-course-page-row__index { background: #FBE7E5; color: #B43D35; }
-.agent-course-page-row__body { flex: 1; min-width: 0; margin-left: 20rpx; }
-.agent-course-page-row__title { display: block; overflow: hidden; font-size: 26rpx; white-space: nowrap; text-overflow: ellipsis; }
-.agent-course-page-row__type { display: block; margin-top: 4rpx; color: var(--muted); font-size: 21rpx; }
-.agent-course-page-row__state { display: flex; flex: 0 0 auto; align-items: center; margin-left: 16rpx; color: var(--muted); font-size: 22rpx; }
-.agent-course-page-row.is-done .agent-course-page-row__state { color: #2F7A4F; }
-.agent-course-page-row.is-generating .agent-course-page-row__state { color: #B25A00; }
-.agent-course-page-row.is-failed .agent-course-page-row__state { color: #B43D35; }
-.agent-course-spinner { width: 22rpx; height: 22rpx; margin-right: 10rpx; border: 3rpx solid rgba(253, 124, 2, 0.25); border-top-color: var(--brand); border-radius: 50%; animation: agent-course-spin 0.9s linear infinite; }
+/* 封面横版通栏（设计稿是左侧 200×267rpx 竖图）：课程封面是 4:3 横图，「我的课程」卡片横着显示，
+   这里用和卡片同样的宽高比（332:210），进来看到的是同一张图、同一种裁法（2026-09-24 用户反馈） */
+.course-overview-card { display: flex; min-width: 0; margin-top: 20rpx; padding: 20rpx 22rpx 24rpx; box-sizing: border-box; flex-direction: column; border-radius: 28rpx; background: #FFFFFF; }
+.course-cover-thumb { display: block; width: 100%; height: 406rpx; border-radius: 20rpx; background: #EEF1EF; }
+.course-overview-copy { display: flex; min-width: 0; margin-top: 22rpx; padding: 0 2rpx; box-sizing: border-box; flex-direction: column; }
+/* 设计稿标题单行；定制课程的名字是对话里起的，常常更长，放宽到两行 */
+.course-title { display: -webkit-box; overflow: hidden; color: #24332D; font-size: 30rpx; font-weight: 750; letter-spacing: -.5rpx; line-height: 1.25; word-break: break-all; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.course-subtitle { display: block; margin-top: 8rpx; overflow: hidden; color: #849087; font-size: 20rpx; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.course-pill-row { display: flex; min-width: 0; margin-top: 14rpx; gap: 8rpx; }
+.course-pill { max-width: 32%; overflow: hidden; padding: 7rpx 12rpx; border-radius: 999rpx; font-size: 17rpx; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.course-pill-warm { background: #FFF0E4; color: #F07A22; }
+.course-pill-green { background: #F2F1EE; color: #5E6A62; }
+.course-pill-blue { background: #EAF2FA; color: #4B83B5; }
+.course-pill-red { background: #FBE7E5; color: #B43D35; }
+.course-mini-progress { width: auto; max-width: 100%; margin-top: 22rpx; }
+.course-mini-progress-head { display: flex; align-items: center; justify-content: space-between; color: #7E8A82; font-size: 17rpx; line-height: 1.25; }
+.course-mini-progress-head text:last-child { color: #24332D; font-weight: 700; }
+.course-mini-progress-track { height: 18rpx; margin-top: 8rpx; overflow: hidden; border-radius: 999rpx; background: #F1EEEA; }
+.course-mini-progress-fill { height: 100%; border-radius: inherit; background: #FD7C02; transition: width .4s ease; }
 
-.agent-course-stale { display: block; margin-top: 20rpx; color: var(--muted); font-size: 22rpx; text-align: center; }
-.agent-course-actions { display: flex; flex-direction: column; gap: 18rpx; margin-top: 36rpx; }
+.course-review-section, .course-pages-section { margin-top: 32rpx; }
+.course-section-head { display: flex; align-items: baseline; justify-content: space-between; padding: 0 4rpx; }
+.course-section-title { display: block; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.3; }
+.course-section-meta { color: #8E9991; font-size: 21rpx; }
+
+/* 复述验收：左边圆角图标块（CSS 画的锁 / 对话 / 时钟 / 对勾），右边学习进度环或按钮 */
+.course-review-card { display: flex; min-height: 148rpx; margin-top: 16rpx; padding: 24rpx; box-sizing: border-box; align-items: center; border-radius: 28rpx; background: #FFFFFF; }
+.course-review-card.is-available { background: linear-gradient(135deg, #FFF3E6 0%, #FFFFFF 64%); }
+.course-review-card.is-available:active { opacity: .8; }
+.course-review-tile { display: flex; flex: 0 0 88rpx; width: 88rpx; height: 88rpx; align-items: center; justify-content: center; border-radius: 26rpx; background: #F5F3F0; }
+.course-review-card.is-talk .course-review-tile,
+.course-review-card.is-passed .course-review-tile { background: linear-gradient(135deg, #FFB061 0%, #FD7C02 100%); box-shadow: 0 10rpx 24rpx rgba(253, 124, 2, .26); }
+.course-review-card.is-waiting .course-review-tile { background: #FFF0E0; }
+.course-review-copy { min-width: 0; flex: 1; margin-left: 22rpx; }
+.course-review-title { display: block; overflow: hidden; color: #24332D; font-size: 27rpx; font-weight: 700; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.course-review-text { display: -webkit-box; margin-top: 8rpx; overflow: hidden; color: #7E8A82; font-size: 21rpx; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.course-review-ring { display: flex; flex: 0 0 auto; width: 80rpx; height: 80rpx; margin-left: 18rpx; align-items: center; justify-content: center; border-radius: 50%; }
+.course-review-ring__inner { display: flex; width: 62rpx; height: 62rpx; align-items: center; justify-content: center; border-radius: 50%; background: #FFFFFF; }
+.course-review-ring__inner text { color: #24332D; font-size: 19rpx; font-weight: 700; }
+.course-review-cta { flex: 0 0 auto; margin-left: 18rpx; padding: 0 26rpx; border-radius: 999rpx; background: rgba(253, 124, 2, .12); color: #FD7C02; font-size: 24rpx; font-weight: 650; line-height: 60rpx; white-space: nowrap; }
+.course-review-cta.is-primary { background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); box-shadow: 0 8rpx 18rpx rgba(253, 124, 2, .24); color: #FFFFFF; }
+
+/* 图标：锁（灰）、对话气泡（白底橙点）、时钟（橙）、对勾（白）——对勾只在老师确认通过后出现 */
+.review-glyph { position: relative; box-sizing: border-box; }
+.review-glyph--lock { display: flex; flex-direction: column; align-items: center; }
+.review-glyph__shackle { width: 26rpx; height: 18rpx; box-sizing: border-box; border: 5rpx solid #B4AEA5; border-bottom: 0; border-radius: 14rpx 14rpx 0 0; }
+.review-glyph__body { position: relative; width: 38rpx; height: 28rpx; border-radius: 8rpx; background: #B4AEA5; }
+.review-glyph__body::after { position: absolute; top: 9rpx; left: 16rpx; width: 6rpx; height: 10rpx; border-radius: 3rpx; background: #F5F3F0; content: ''; }
+.review-glyph--talk { display: flex; width: 46rpx; height: 34rpx; align-items: center; justify-content: center; border-radius: 14rpx; background: #FFFFFF; }
+.review-glyph--talk::after { position: absolute; bottom: -8rpx; left: 8rpx; width: 0; height: 0; border-top: 10rpx solid #FFFFFF; border-right: 10rpx solid transparent; content: ''; }
+.review-glyph__dot { width: 6rpx; height: 6rpx; margin: 0 3rpx; border-radius: 50%; background: #FD7C02; }
+.review-glyph--clock { width: 42rpx; height: 42rpx; border: 5rpx solid #FD7C02; border-radius: 50%; }
+.review-glyph--clock::before { position: absolute; bottom: 50%; left: 50%; width: 4rpx; height: 12rpx; margin-left: -2rpx; border-radius: 2rpx; background: #FD7C02; content: ''; }
+.review-glyph--clock::after { position: absolute; top: 50%; left: 50%; width: 10rpx; height: 4rpx; margin-top: -2rpx; margin-left: -2rpx; border-radius: 2rpx; background: #FD7C02; content: ''; }
+.review-glyph--check { width: 34rpx; height: 18rpx; margin-top: -8rpx; border-bottom: 6rpx solid #FFFFFF; border-left: 6rpx solid #FFFFFF; border-radius: 2rpx; transform: rotate(-45deg); }
+
+/* 测试快捷方式「标记学完，去验收」：虚线框与「测试」标签，和正式入口一眼区分开 */
+.course-test-finish { display: flex; min-height: 88rpx; margin-top: 16rpx; padding: 0 24rpx; box-sizing: border-box; align-items: center; justify-content: center; border: 2rpx dashed rgba(253, 124, 2, .55); border-radius: 28rpx; background: rgba(253, 124, 2, .06); }
+.course-test-finish:active { opacity: .72; }
+.course-test-finish.is-busy { opacity: .5; }
+.course-test-finish__tag { margin-right: 12rpx; padding: 6rpx 12rpx; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 20rpx; font-weight: 650; line-height: 1; }
+.course-test-finish__label { color: #FD7C02; font-size: 26rpx; font-weight: 650; }
+
+/* 课程内容：竖向步骤条。左侧节点用线连起来（学完的打橙色勾、接下来该学的一页橙色描边），
+   右侧是这一页学没学，文案由 utils/agent-course-view.js agentCoursePageRows 决定；能点的页带箭头，点了从这一页开始学 */
+.course-steps { margin-top: 16rpx; padding: 6rpx 24rpx; border-radius: 28rpx; background: #FFFFFF; }
+.course-step { display: flex; align-items: stretch; }
+.course-step.is-openable:active { opacity: .7; }
+.course-step__rail { display: flex; flex: 0 0 48rpx; flex-direction: column; align-items: center; }
+.course-step__line { flex: 1; width: 3rpx; min-height: 12rpx; border-radius: 3rpx; background: #F0ECE6; }
+.course-step__line--top { flex: 0 0 24rpx; min-height: 0; }
+.course-step__line.is-hidden { visibility: hidden; }
+.course-step.learn-completed .course-step__line,
+.course-step.learn-completed + .course-step .course-step__line--top { background: rgba(253, 124, 2, .32); }
+.course-step.learn-completed .course-step__line--top { background: #F0ECE6; }
+.course-step__node { display: flex; flex: 0 0 auto; width: 48rpx; height: 48rpx; box-sizing: border-box; align-items: center; justify-content: center; border-radius: 50%; background: #F4F2EE; color: #8E9991; font-size: 21rpx; font-weight: 700; }
+/* 制作中：做好的页浅橙；做好后按学没学（下面几条选择器更具体，盖过制作状态） */
+.course-step.is-done .course-step__node,
+.course-step.is-generating .course-step__node { background: #FFF1E3; color: #E27100; }
+.course-step.is-failed .course-step__node { background: #FBEDEB; color: #C0554B; }
+.course-steps.is-ready .course-step.is-done .course-step__node { background: #F4F2EE; color: #8E9991; }
+.course-steps.is-ready .course-step.learn-completed .course-step__node { background: linear-gradient(135deg, #FFB061 0%, #FD7C02 100%); }
+.course-steps.is-ready .course-step.learn-in_progress .course-step__node,
+.course-steps.is-ready .course-step.is-next .course-step__node { border: 4rpx solid #FD7C02; background: #FFF6EC; color: #FD7C02; }
+.course-step__check { width: 18rpx; height: 9rpx; margin-top: -4rpx; border-bottom: 4rpx solid #FFFFFF; border-left: 4rpx solid #FFFFFF; transform: rotate(-45deg); }
+.course-step__main { display: flex; flex: 1; min-width: 0; margin-left: 20rpx; }
+.course-step + .course-step .course-step__main { border-top: 1rpx solid #F3F1EE; }
+.course-step__body { flex: 1; min-width: 0; padding: 26rpx 0 24rpx; }
+.course-step__title { display: -webkit-box; overflow: hidden; color: #24332D; font-size: 26rpx; font-weight: 650; line-height: 1.4; word-break: break-all; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.course-step.learn-completed .course-step__title { color: #5E6A62; }
+.course-step__meta { display: flex; margin-top: 10rpx; }
+.course-step__type { padding: 4rpx 12rpx; border-radius: 8rpx; background: #F4F2EE; color: #7E8A82; font-size: 19rpx; line-height: 1.4; }
+.course-step__type.type-interactive { background: #FFF1E3; color: #E27100; }
+.course-step__type.type-quiz { background: #EEF2FB; color: #4B6FB5; }
+.course-step__type.type-pbl { background: #F1EEFA; color: #7A68B8; }
+.course-step__state { display: flex; flex: 0 0 auto; align-items: center; align-self: flex-start; min-height: 48rpx; margin-top: 24rpx; margin-left: 16rpx; }
+.course-step__label { color: #A3ABA5; font-size: 21rpx; white-space: nowrap; }
+.course-step.learn-in_progress .course-step__label { padding: 6rpx 14rpx; border-radius: 999rpx; background: rgba(253, 124, 2, .12); color: #FD7C02; font-weight: 650; }
+.course-step.is-next.learn-not_started .course-step__label { color: #FD7C02; font-weight: 650; }
+.course-step.is-generating .course-step__label { color: #E27100; }
+.course-step.is-failed .course-step__label { color: #C0554B; }
+.course-step__chevron { width: 12rpx; height: 12rpx; margin-left: 10rpx; border-top: 3rpx solid #C4C9C5; border-right: 3rpx solid #C4C9C5; transform: rotate(45deg); }
+.course-page-spinner { width: 20rpx; height: 20rpx; box-sizing: border-box; border: 3rpx solid #FFE0BF; border-top-color: #FD7C02; border-radius: 50%; animation: course-refresh-spin .7s linear infinite; }
+.course-pages-note { display: block; margin: 14rpx 4rpx 0; color: #7E8A82; font-size: 20rpx; line-height: 1.5; }
+.course-stale { display: block; margin-top: 20rpx; color: #7E8A82; font-size: 20rpx; text-align: center; }
+
+.course-bottom-bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 18; padding: 18rpx 28rpx calc(22rpx + env(safe-area-inset-bottom)); background: rgba(250, 250, 250, .96); }
+.course-bottom-inner { display: flex; align-items: center; justify-content: center; width: 100%; }
+.course-primary-button { display: flex; flex: 0 0 52%; height: 96rpx; box-sizing: border-box; align-items: center; justify-content: center; border: 0; border-radius: 999rpx; background: rgba(253, 124, 2, .14); color: #FD7C02; font-size: 28rpx; font-weight: 650; line-height: 96rpx; white-space: nowrap; }
+.course-primary-button:active { opacity: .78; }
+.course-primary-button.is-disabled { background: #F0F2EF; color: #8E9991; }
+.course-primary-button.is-disabled:active { opacity: 1; }
+
+/* 首次加载骨架（styles/skeleton.wxss）；封面、按钮沿用各自的尺寸与圆角 */
+.cd-sk-title { width: 80%; height: 36rpx; }
+.cd-sk-subtitle { width: 40%; height: 22rpx; margin-top: 12rpx; }
+.cd-sk-pill { width: 96rpx; height: 32rpx; border-radius: 999rpx; }
+.cd-sk-track { height: 18rpx; margin-top: 10rpx; border-radius: 999rpx; }
+.cd-sk-gap { margin-top: 12rpx; }
+/* 封面、按钮、图标块、节点自己的底色会盖住流光，这里放回来 */
+.course-cover-thumb.sk, .course-primary-button.sk, .course-review-tile.sk, .course-step__node.sk { background: linear-gradient(90deg, #ECEEEB 25%, #F5F6F4 37%, #ECEEEB 63%); background-size: 400% 100%; }
+.course-cover-thumb.sk { border-radius: 20rpx; }
+.course-primary-button.sk { border-radius: 999rpx; }
+.course-mini-progress .sk-line { height: 20rpx; }
+
+/* 第一次就读取失败 */
+.state-panel__mark { color: #B43D35; }
 .primary-action, .secondary-action { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 88rpx; margin: 0; border-radius: 999rpx; font-size: 28rpx; }
 .primary-action::after, .secondary-action::after { border: 0; }
-.primary-action { background: var(--brand); color: #FFFFFF; font-weight: 600; }
-.primary-action--disabled, .primary-action[disabled] { background: #E4E8E4 !important; color: #8A938C !important; }
-.secondary-action { border: 1rpx solid var(--line); background: #FFFFFF; color: var(--ink); }
+.primary-action { background: #FD7C02; color: #FFFFFF; font-weight: 600; }
+.secondary-action { margin-top: 18rpx; border: 1rpx solid #E9EEE9; background: #FFFFFF; color: #2F3F37; }
 
-.state-panel { padding: 80rpx 16rpx; text-align: center; }
-.state-panel__mark { margin-bottom: 24rpx; color: #B43D35; font-size: 40rpx; font-weight: 700; }
-.state-panel__title, .state-panel__copy { display: block; }
-.state-panel__title { font-size: 32rpx; font-weight: 600; }
-.state-panel__copy { margin: 20rpx 0 36rpx; color: var(--muted); font-size: 26rpx; line-height: 1.7; }
-.state-panel .secondary-action { margin-top: 18rpx; }
+@media (max-width: 350px) {
+  .course-display-shell { padding-right: 24rpx; padding-left: 24rpx; }
+  .course-display-topbar-inner { padding-right: 24rpx; padding-left: 24rpx; }
+  .course-title { font-size: 27rpx; }
+  .course-pill { padding-right: 9rpx; padding-left: 9rpx; font-size: 16rpx; }
+  .course-bottom-bar { padding-right: 24rpx; padding-left: 24rpx; }
+}
 
-@keyframes agent-course-spin { to { transform: rotate(360deg); } }
-@keyframes agent-course-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

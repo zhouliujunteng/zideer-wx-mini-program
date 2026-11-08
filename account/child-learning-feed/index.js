@@ -1,4 +1,5 @@
 const { loadGuardianLearningFeed } = require('../../services/identity')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 const stateLabels = {
   idle: '暂未开始学习',
@@ -54,7 +55,10 @@ function buildChild(item) {
 }
 
 Page({
-  data: { loading: true, failed: false, children: [], currentIndex: 0, current: null },
+  // 第一次读到数据前显示骨架；之后回到页面保留旧数据，后台静默刷新
+  data: { loading: true, loaded: false, failed: false, children: [], currentIndex: 0, current: null },
+
+  onLoad() { attachUiAssets(this) },
 
   onShow() { this.loadPage() },
 
@@ -69,9 +73,9 @@ Page({
       const data = await loadGuardianLearningFeed()
       const children = data.children.map(buildChild)
       const currentIndex = Math.min(this.data.currentIndex, Math.max(children.length - 1, 0))
-      this.setData({ children, currentIndex, current: children[currentIndex] || null })
+      this.setData({ loaded: true, children, currentIndex, current: children[currentIndex] || null })
     } catch (error) {
-      this.setData({ failed: true })
+      if (!this.data.loaded) this.setData({ failed: true })
       wx.showToast({ title: error.message || '学习动态加载失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })

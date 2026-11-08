@@ -1,5 +1,9 @@
 <view class="remediation-page">
-  <view class="remediation-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="remediation-skeleton" wx:if="{{loading}}">
+    <view class="remediation-head"><view class="sk sk-line rem-sk-eyebrow"></view><view class="sk rem-sk-title"></view><view class="sk sk-line sk-short rem-sk-meta"></view></view>
+    <view class="remediation-status surface"><view class="sk sk-line sk-short"></view><view class="sk rem-sk-value"></view><view class="sk sk-line sk-mid"></view></view>
+    <view class="remediation-section" wx:for="{{[0, 1]}}" wx:key="*this"><view class="sk sk-line rem-sk-section"></view><view class="sk sk-card"></view></view>
+  </view>
   <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">补学方案暂时无法加载</text><text class="state-panel__copy">请确认网络与登录状态后重试。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
   <view class="state-panel" wx:elif="{{!task}}"><view class="state-panel__mark">!</view><text class="state-panel__title">老师尚未提交补学方案</text><text class="state-panel__copy">补学方案提交后会自动显示在这里。</text><button class="state-panel__action pressable" bindtap="goBack">返回</button></view>
   <block wx:else>

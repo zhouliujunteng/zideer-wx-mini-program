@@ -1,7 +1,8 @@
 const tabs = [
   '/pages/home/index',
   '/pages/learning/index',
-  '/pages/knowledge-map/index',
+  '/pages/knowledge-universe/index',
+  '/pages/goal/index',
   '/pages/me/index'
 ]
 

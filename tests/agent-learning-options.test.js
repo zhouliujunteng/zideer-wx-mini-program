@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
+require('./helpers/allow-diagnosis-room-entry')
 require('./helpers/stub-ui-assets')
 
 const {
@@ -101,7 +102,7 @@ test('learner baseline summary groups mastery per subject and infers subject ten
 
 // ---------- 页面：选项附录 + 摸底问答续用同一会话 + 确认按钮 ----------
 
-const pagePath = require.resolve('../pages/agent-chat/index.js')
+const pagePath = require.resolve('../pages/diagnosis-room/index.js')
 
 function loadPage(requests) {
   delete require.cache[pagePath]
@@ -156,9 +157,10 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-const posts = (requests) => requests.filter((request) => request.method === 'POST')
+// 只看智能体会话接口：建会话后诊断室还会登记会话属于哪个学生（/api/learn/agent-session/learner，定制课程扣积分用）
+const posts = (requests) => requests.filter((request) => request.method === 'POST' && /\/api\/agent\//.test(request.url))
 
-test('agent-chat attaches baseline once and keeps answering ask_user in the same session', async () => {
+test('diagnosis-room attaches baseline once and keeps answering ask_user in the same session', async () => {
   const requests = []
   const page = instantiate(loadPage(requests))
   page.onLoad({ universe: '1', mode: 'deep-interactive' })

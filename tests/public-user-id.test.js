@@ -60,7 +60,7 @@ test('unauthenticated user cannot allocate an ID', () => {
 test('My account displays the public ID instead of a database primary key', async () => {
   const module = { exports: {} }
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../services/live-tab-service.js'), 'utf8'), {
-    module, require: name => name === './mock-service' ? { getMeModel: () => ({ profile: {}, accountSummary: [{}, {}] }) } : {
+    module, require: name => name === './mock-service' ? { getMeModel: () => ({ profile: {}, accountSummary: [{}, {}] }) } : name === '../utils/account-role' ? require('../utils/account-role') : {
       loadMeDashboard: async () => ({ profile: { id: 7, publicId: '234567' } }),
       loadCurrentGrowthCenter: async () => null,
     },

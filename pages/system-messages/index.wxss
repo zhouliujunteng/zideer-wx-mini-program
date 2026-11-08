@@ -1,3 +1,4 @@
+@import "../../styles/skeleton.wxss";
 page { background: #FAFAFA; }
 
 .system-messages-page { height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332d; }
@@ -31,3 +32,8 @@ page { background: #FAFAFA; }
 .message-state button { margin-top: 24rpx; border-radius: 999rpx; background: #fff0e2; color: #FD7C02; font-size: 26rpx; }
 .message-state button::after { border: 0; }
 .system-messages-shell { padding-bottom: calc(80rpx + env(safe-area-inset-bottom)); }
+
+/* 首次加载骨架里的时间位 */
+.system-time-skeleton { width: 64rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

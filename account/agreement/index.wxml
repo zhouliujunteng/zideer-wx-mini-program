@@ -1,0 +1,23 @@
+<!-- 《知鹿用户协议》全文页（「关于知鹿」进入），正文与登录页弹窗同一份 pages/login/user-agreement.js。 -->
+<view class="doc-page">
+  <view class="doc-topbar">
+    <view class="doc-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="doc-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="doc-back-icon"></view></view>
+      <text class="doc-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">用户协议</text>
+    </view>
+  </view>
+
+  <scroll-view class="doc-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="doc-shell">
+      <text class="doc-title">{{agreement.title}}</text>
+      <text class="doc-meta">{{agreement.meta}}</text>
+      <view class="doc-card">
+        <view wx:for="{{agreement.sections}}" wx:for-item="section" wx:key="id" class="doc-section">
+          <text wx:if="{{section.heading}}" class="doc-heading">{{section.heading}}</text>
+          <text wx:for="{{section.paragraphs}}" wx:key="*this" class="doc-paragraph" user-select="true">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

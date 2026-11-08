@@ -13,6 +13,8 @@ function countdownText(seconds) {
 Page({
   data: {
     loading: true,
+    // 第一次拿到绑定码前显示骨架；之后 onShow 换新码时保留旧码，不再回到骨架
+    loaded: false,
     refreshing: false,
     failed: false,
     code: '',
@@ -34,19 +36,22 @@ Page({
 
   async loadCode(forceRefresh = false) {
     this.stopTimer()
-    this.setData({ loading: !forceRefresh, refreshing: forceRefresh, failed: false, expired: false })
+    this.setData({ loading: !this.data.loaded, refreshing: forceRefresh, failed: false })
     try {
       const data = await createCurrentStudentBindingCode()
       const seconds = remainingSeconds(data.expiresAt)
       this.expiresAt = data.expiresAt
       this.setData({
+        loaded: true,
         code: data.code,
         countdown: countdownText(seconds),
         expired: seconds === 0
       })
       if (seconds > 0) this.startTimer()
     } catch (error) {
-      this.setData({ failed: true })
+      // 已有绑定码时刷新失败只提示，旧码按原倒计时继续
+      if (this.data.loaded) { if (!this.data.expired && this.expiresAt) this.startTimer() }
+      else this.setData({ failed: true })
       wx.showToast({ title: error.message || '绑定码生成失败', icon: 'none' })
     } finally {
       this.setData({ loading: false, refreshing: false })

@@ -1,0 +1,153 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+page{height:100%}
+.dashboard-page{width:100%;height:100vh}
+.dashboard-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:372px}
+.dashboard-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
+.dashboard-topbar.is-sticky::after{top:100%;right:0;left:0;height:18px}
+.dashboard-topbar-inner{padding:0 19px 9px}
+.topbar-back-hit{flex:0 0 auto;width:32px;height:32px;border-radius:50%}
+.back-chevron{width:13px;height:13px;border-bottom:2px solid #fff;border-left:2px solid #fff}
+.topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.dashboard-topbar.is-sticky .back-chevron{border-color:#4B5650}
+.dashboard-scroll{height:100vh}
+.student-hero{padding:15px 21px 34px}
+.student-summary{min-height:87px}
+.student-avatar{width:55px;height:55px;margin-right:14px;flex:0 0 55px;border:2px solid rgba(255, 255, 255, .78);border-radius:50%}
+.student-avatar image{width:100%;height:100%;border-radius:50%}
+.student-copy{min-width:0;flex:1;flex-direction:column}
+.student-name{min-width:0;font-size:21px;font-weight:500;line-height:1.25;text-overflow:ellipsis}
+.student-grade{margin-top:5px;font-size:13px;line-height:1.4}
+.student-switch-trigger{width:34px;height:34px;margin-left:10px;flex:0 0 34px;border-radius:50%}
+.student-down-chevron{width:8px;height:8px;margin-top:-5px;border-right:1px solid #fff;border-bottom:1px solid #fff}
+.dashboard-panel{min-height:58vh;margin-top:-15px;padding-bottom:calc(24px + env(safe-area-inset-bottom));border-radius:15px 15px 0 0}
+.dashboard-tabs{width:100%;height:49px;border-radius:15px 15px 0 0}
+.dashboard-tab{height:44px;flex:1;border-radius:15px 15px 0 0;font-size:13px;line-height:1;text-align:center}
+.dashboard-tab.is-selected{height:58px;font-size:16px;font-weight:700}
+.dashboard-tab::before, .dashboard-tab::after{bottom:0;width:19px;height:19px}
+.dashboard-tab::before{left:-20px}
+.dashboard-tab::after{right:-20px}
+.sticky-dashboard-tabs{right:max(0px, 50% - var(--lg-col) / 2);left:max(0px, 50% - var(--lg-col) / 2);height:52px;padding:0 16px;border-bottom:0.5px solid #EDF0EE}
+.sticky-dashboard-tab{min-width:0;flex:1;font-size:13px;line-height:1}
+.sticky-dashboard-tab.is-selected{font-size:15px;font-weight:650}
+.sticky-dashboard-tab.is-selected::after{right:50%;bottom:0;width:25px;height:3px;border-radius:599px}
+.tab-content{min-height:264px;padding:16px 16px 2px}
+@keyframes dashboard-tab-enter-right{from{opacity:.72;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes dashboard-tab-enter-left{from{opacity:.72;transform:translateX(-21px)}to{opacity:1;transform:translateX(0)}}
+.section-heading{margin:0 2px 12px;font-size:16px;font-weight:700;line-height:1.25}
+.diagnosis-heading{margin-top:0;margin-bottom:10px}
+.learning-subsection-heading{margin-top:19px;margin-bottom:9px}
+.diagnosis-date-picker{flex:0 0 auto}
+.diagnosis-date-pill{min-height:33px;padding:0 10px;gap:7px;border-radius:599px;font-size:12px;font-weight:500;line-height:1}
+.date-pill-chevron{width:6px;height:6px;margin-top:-4px;border-right:1px solid #8B9690;border-bottom:1px solid #8B9690}
+.diagnosis-sections{flex-direction:column;gap:14px}
+.diagnosis-section-heading{min-height:51px;padding:8px 15px;border-radius:9px}
+.diagnosis-section-heading-copy{min-width:0;flex-direction:column}
+.diagnosis-section-title{font-size:16px;font-weight:700;line-height:1.3}
+.diagnosis-section-summary{margin-top:1px;font-size:11px;line-height:1.3}
+.diagnosis-section-more{flex:0 0 auto;margin-left:7px;font-size:13px;line-height:1.2}
+.diagnosis-section-heading::after{bottom:-10px;left:16px;width:0;height:0;border-top:12px solid transparent;border-right:9px solid transparent;border-left:9px solid transparent}
+.diagnosis-heading-blue::after{border-top-color:#E5F1FF}
+.diagnosis-heading-orange::after{border-top-color:#FFF0E4}
+.diagnosis-heading-green::after{border-top-color:#F0F7DC}
+.diagnosis-heading-purple::after{border-top-color:#F1EBFF}
+.diagnosis-list{margin-top:19px;padding:0 15px;border-radius:14px}
+.diagnosis-list-acceptance{padding-bottom:15px}
+.diagnosis-row{min-height:52px;padding:10px 0;border-bottom:0.5px solid #F0F2F1}
+.diagnosis-row:last-of-type{border-bottom:0}
+.diagnosis-row-acceptance{padding-bottom:2px;border-bottom:0}
+.diagnosis-row-number{width:21px;flex:0 0 21px;margin-right:6px;font-size:12px;font-weight:650;line-height:1.2}
+.diagnosis-number-orange{text-decoration:underline;text-decoration-color:#E98857;text-decoration-thickness:1px;text-underline-offset:3px}
+.diagnosis-row-copy{min-width:0;flex:1;flex-direction:column}
+.diagnosis-row-title{font-size:14px;font-weight:550;line-height:1.4;text-overflow:ellipsis}
+.diagnosis-row-detail{margin-top:2px;font-size:10px;line-height:1.35}
+.diagnosis-row-status{flex:0 0 auto;margin-left:6px;font-size:10px;line-height:1.2}
+.diagnosis-row-chevron{flex:0 0 auto;margin-left:5px;font-size:19px;font-weight:300;line-height:.8}
+.diagnosis-empty{padding:16px 0;font-size:12px;text-align:center}
+.diagnosis-audio-action{min-height:39px;margin:8px 0 0;padding:0 12px;border-radius:599px}
+.plan-card{margin-top:9px;padding:13px;border-radius:24px}
+.plan-copy{flex:1;flex-direction:column}
+.plan-status{font-size:16px;font-weight:600;line-height:1.35}
+.plan-detail{margin-top:4px;font-size:12px;line-height:1.4}
+.plan-arrow{font-size:23px;font-weight:300;line-height:.8}
+.learning-stats{gap:10px;margin-top:10px}
+.learning-stat-card{min-width:0;flex:1;flex-direction:column;padding:15px;border-radius:24px}
+.stat-card-header{min-height:26px;padding-right:28px}
+.stat-label{font-size:14px;font-weight:600;line-height:1.35}
+.stat-icon{top:50%;right:0;width:25px;height:25px;font-size:20px;font-weight:700;line-height:1}
+.stat-card-value-area{margin-top:6px}
+.stat-value{font-size:22px;font-weight:650;line-height:1.15}
+.stat-unit{margin-left:4px;font-size:12px;line-height:1.2}
+.stat-value-suffix{margin-left:1px}
+.subject-list{flex-direction:column;gap:8px}
+.subject-card{padding:10px;border-radius:24px}
+.subject-main{min-width:0;flex:1}
+.subject-dot{width:8px;height:8px;flex:0 0 8px;margin-right:7px;border-radius:50%}
+.subject-name{font-size:15px;font-weight:650;line-height:1.3}
+.subject-actions{flex:0 0 auto;gap:6px;margin-left:9px}
+.subject-status{padding:4px 8px;border-radius:599px;font-size:11px;line-height:1.1}
+.subject-card-body{min-width:0;margin-top:3px;padding-left:16px}
+.subject-topic{min-width:0;flex:1;font-size:13px;line-height:1.35;text-overflow:ellipsis}
+.audio-action{min-height:41px;font-size:13px}
+.recording-icon{width:16px;height:18px;flex:0 0 16px;gap:2px}
+.recording-icon-bar{width:2px;border-radius:599px}
+.recording-icon-bar-short{height:7px}
+.recording-icon-bar-tall{height:13px}
+.recording-icon-bar-middle{height:10px}
+.recording-info{gap:7px}
+.audio-duration{font-size:12px;font-weight:550;line-height:1.2}
+.audio-label{flex:0 0 auto;margin-left:auto;font-size:12px;font-weight:550}
+.schedule-card{margin-top:10px;padding:12px;border-radius:24px}
+.schedule-copy{min-width:0;flex:1;flex-direction:column}
+.schedule-title{font-size:16px;font-weight:600;line-height:1.35}
+.schedule-detail{margin-top:4px;font-size:12px;line-height:1.4}
+.quick-card{margin-top:9px;padding:0 16px;border-radius:24px}
+.quick-row{min-height:67px;border-bottom:0.5px solid #F0F1F0}
+.quick-row:last-child{border-bottom:0}
+.quick-copy{flex:1;flex-direction:column}
+.quick-title{font-size:14px;font-weight:550;line-height:1.35}
+.quick-hint{margin-top:2px;font-size:11px;line-height:1.25}
+.switcher-layer{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2)}
+.switcher-mask{inset:0}
+.switcher-sheet{right:0;bottom:0;left:0;padding:9px 20px 0;border-radius:24px 24px 0 0}
+.sheet-handle{width:40px;height:4px;margin:0 auto 15px;border-radius:59px}
+.sheet-title{font-size:19px;font-weight:650}
+.sheet-close{width:33px;height:33px;border-radius:50%;font-size:25px;font-weight:300;line-height:28px;text-align:center}
+.sheet-subtitle{margin-top:4px;margin-bottom:13px;font-size:13px}
+.children-list{max-height:56vh}
+.child-search{height:45px;margin-bottom:12px;padding:0 16px;border-radius:22px;font-size:15px}
+.child-search__empty{padding:24px 0;font-size:14px;text-align:center}
+.child-option{min-height:67px;margin-bottom:12px;padding:9px 16px;border:0;border-radius:21px}
+.child-option:last-child{margin-bottom:0}
+.option-avatar{width:48px;height:48px;flex:0 0 48px;border-radius:50%}
+.option-avatar image{width:100%;height:100%;border-radius:50%}
+.option-copy{flex:1;flex-direction:column;margin-left:12px}
+.option-name{font-size:15px;font-weight:600;line-height:1.35}
+.option-grade{margin-top:4px;font-size:12px;line-height:1.3}
+.current-pill{padding:5px 9px;border-radius:599px;font-size:11px;line-height:1.1}
+.option-radio{width:18px;height:18px;border:1px solid #D7DCd8;border-radius:50%}
+.sheet-safe-space{height:calc(21px + env(safe-area-inset-bottom))}
+@keyframes sheet-out{from{transform:translateY(0);opacity:1}to{transform:translateY(26px);opacity:.8}}
+.student-avatar-sk{border-color:rgba(255, 255, 255, .5)}
+.sk-hero{height:15px;border-radius:599px}
+.sk-hero-name{width:108px;height:20px}
+.sk-hero-grade{width:78px;margin-top:8px}
+.stat-value-sk{width:57px;height:24px;margin-top:9px;border-radius:7px}
+.diagnosis-list-sk{margin-top:0;padding:16px 15px}
+.plain-empty{padding:19px 0;font-size:13px;text-align:center}
+.dashboard-state{flex-direction:column;padding:52px 33px 38px;text-align:center}
+.dashboard-state-title{font-size:18px;font-weight:700;line-height:1.35}
+.dashboard-state-copy{margin-top:8px;font-size:13px;line-height:1.6}
+.dashboard-state-action{margin-top:21px;padding:12px 28px;border-radius:599px;font-size:15px;font-weight:600;line-height:1.2}
+.diagnosis-summary-sk{width:108px;height:12px;margin-top:3px}
+.diagnosis-retry{width:120px;margin:-5px auto 14px;border-radius:599px;font-size:13px;line-height:36px;text-align:center}
+}

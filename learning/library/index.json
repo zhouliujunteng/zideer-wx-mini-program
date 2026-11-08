@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "会员课程库" }
+{
+  "navigationStyle": "custom",
+  "usingComponents": {}
+}

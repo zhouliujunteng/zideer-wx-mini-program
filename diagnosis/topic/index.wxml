@@ -1,16 +1,124 @@
-<view class="screen topic-page"><view class="topic-page__inner">
-  <view class="skeleton topic-page__skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">知识点详情没有加载出来</text><text class="state-panel__copy">请返回知识图谱重新选择知识点。</text></view>
-  <block wx:else>
-    <view class="topic-page__section surface"><text class="topic-page__section-title">诊断掌握状态</text><text class="topic-page__copy" wx:if="{{assessmentError}}">测评数据暂时无法读取，请重新进入此页重试。</text><block wx:else><text class="topic-page__copy">最近测评：{{assessmentStatus}}</text><text class="topic-page__copy" wx:if="{{!states.length}}">尚未测到此知识点。</text><view wx:for="{{states}}" wx:key="attemptId"><text class="topic-page__copy">{{item.scopeName || '诊断记录'}} · {{item.dateLabel}}</text><text class="topic-page__copy">{{item.stateLabel}} · 答对 {{item.rateLabel}}</text></view></block></view>
-    <view class="topic-page__head"><text class="topic-page__eyebrow">{{topic.gradeLabel}} · {{topic.subjectName}}</text><text class="topic-page__title">{{topic.label}}</text><text class="topic-page__status">{{topic.volume}} · {{topic.unit}}</text></view>
-    <view class="topic-page__section surface"><text class="topic-page__section-title">知识说明</text><text class="topic-page__copy">{{topic.description || '来源暂未提供说明'}}</text></view>
-    <view class="topic-page__section surface"><text class="topic-page__section-title">掌握标准</text><text class="topic-page__copy">{{topic.masteryStandard || '来源暂未提供掌握标准'}}</text></view>
-    <view class="topic-page__section surface"><text class="topic-page__section-title">前置知识</text><text class="topic-page__copy" wx:if="{{!topic.prerequisiteLinks.length}}">来源未列出前置知识</text><view wx:for="{{topic.prerequisiteLinks}}" wx:key="id" class="topic-page__link" data-id="{{item.id}}" bindtap="openRelatedTopic"><text>{{item.label}} · {{item.gradeLabel}} ›</text><text class="topic-page__link-reason">{{item.reason}}</text></view></view>
-    <view class="topic-page__section surface"><text class="topic-page__section-title">后续知识</text><text class="topic-page__copy" wx:if="{{!topic.successorLinks.length}}">来源未列出后续知识</text><view wx:for="{{topic.successorLinks}}" wx:key="id" class="topic-page__link" data-id="{{item.id}}" bindtap="openRelatedTopic"><text>{{item.label}} · {{item.gradeLabel}} ›</text><text class="topic-page__link-reason">{{item.reason}}</text></view></view>
-    <view class="topic-page__section surface" wx:if="{{topic.relatedLinks.length}}"><text class="topic-page__section-title">相关知识</text><view wx:for="{{topic.relatedLinks}}" wx:key="id" class="topic-page__link" data-id="{{item.id}}" bindtap="openRelatedTopic"><text>{{item.label}} · {{item.gradeLabel}} ›</text><text class="topic-page__link-reason">{{item.reason}}</text></view></view>
-    <view class="topic-page__section surface"><text class="topic-page__section-title">我的掌握证据</text><text class="topic-page__copy">{{topic.evidence}}</text><view wx:for="{{topic.evidenceRecords}}" wx:key="id" class="topic-page__copy"><text>{{item.summary}}</text></view></view>
-    <view class="topic-page__candidate"><text class="topic-page__candidate-copy" wx:if="{{candidateStatus === 'profile_incomplete'}}">完善学习档案后，可将知识点加入候选。</text><text class="topic-page__candidate-copy" wx:elif="{{candidateStatus === 'unavailable'}}">候选状态暂时无法读取，请稍后重试。</text><button class="topic-page__candidate-action pressable" loading="{{candidateSubmitting}}" disabled="{{candidateStatus === 'loading' || candidateStatus === 'unavailable'}}" bindtap="toggleCandidate">{{candidateActive ? '移出候选' : '加入候选'}}</button></view>
-  </block>
-</view></view>
+<!-- 知识点详情（M20）：设计仓库没有这一页，按订单详情 / 课程积分页那一系重做——自定义顶栏、右上淡蓝氛围光、
+     顶部知识点名大字 + 测评状态标签、小节标题 + 白色大圆角卡片、底部品牌橙渐变胶囊按钮。见 index.js。 -->
+<view class="topic-page">
+  <view class="topic-ambient" aria-hidden="true"><view class="topic-ambient-ribbon"></view></view>
+  <view class="topic-topbar">
+    <view class="topic-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="topic-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="topic-back-icon"></view></view>
+      <text class="topic-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">知识点详情</text>
+    </view>
+  </view>
+
+  <scroll-view class="topic-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="topic-shell {{loaded ? 'has-bar' : ''}}">
+      <view class="topic-state-panel" wx:if="{{failed && !loaded}}">
+        <text class="topic-state-title">知识点详情没有加载出来</text>
+        <text class="topic-state-copy">可以重新读取，或返回知识图谱重新选择知识点。</text>
+        <view class="topic-state-action" bindtap="retryLoad" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:elif="{{!loaded}}">
+        <!-- 第一次读完前：分节标题照常显示，内容画骨架 -->
+        <view class="topic-hero">
+          <view class="topic-hero-copy">
+            <view class="sk sk-line topic-sk-eyebrow"></view>
+            <view class="sk topic-sk-title"></view>
+            <view class="topic-hero-meta"><view class="sk topic-sk-state"></view></view>
+          </view>
+          <view class="topic-art" aria-hidden="true"><view class="topic-art-orbit"></view><view class="topic-art-core"></view></view>
+        </view>
+        <view class="topic-section">
+          <view class="topic-heading">测评记录</view>
+          <view class="topic-card"><view class="topic-row"><view class="sk sk-line sk-mid topic-sk-line"></view></view></view>
+        </view>
+        <view wx:for="{{['知识说明', '掌握标准', '前置知识', '后续知识', '我的掌握证据']}}" wx:key="*this" class="topic-section">
+          <view class="topic-heading">{{item}}</view>
+          <view class="topic-card topic-card-text"><view class="sk sk-line topic-sk-line"></view><view class="sk sk-line sk-mid"></view></view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="topic-hero">
+          <view class="topic-hero-copy">
+            <text wx:if="{{view.eyebrow}}" class="topic-eyebrow">{{view.eyebrow}}</text>
+            <text class="topic-title">{{topic.label}}</text>
+            <view class="topic-hero-meta">
+              <text class="topic-tag {{assessmentError ? 'pending' : assessmentTone}}">{{assessmentError ? '测评暂不可读' : assessmentStatus}}</text>
+              <text wx:if="{{view.source}}" class="topic-source">{{view.source}}</text>
+            </view>
+          </view>
+          <view class="topic-art" aria-hidden="true"><view class="topic-art-orbit"></view><view class="topic-art-core"></view><view class="topic-art-dot topic-art-dot-a"></view><view class="topic-art-dot topic-art-dot-b"></view></view>
+        </view>
+
+        <view class="topic-section">
+          <view class="topic-heading">测评记录</view>
+          <view class="topic-card">
+            <view wx:if="{{assessmentError}}" class="topic-row"><text class="topic-muted">测评数据暂时无法读取，请重新进入此页重试。</text></view>
+            <view wx:elif="{{!states.length}}" class="topic-row"><text class="topic-muted">还没有测到这个知识点。</text></view>
+            <view wx:for="{{states}}" wx:key="attemptId" class="topic-row">
+              <view class="topic-row-copy"><text class="topic-row-title">{{item.scopeName || '诊断记录'}}</text><text wx:if="{{item.dateLabel}}" class="topic-row-meta">{{item.dateLabel}}</text></view>
+              <view class="topic-row-side"><text class="topic-rate">答对 {{item.rateLabel}}</text><text class="topic-tag {{item.tone}}">{{item.stateLabel}}</text></view>
+            </view>
+          </view>
+        </view>
+
+        <view class="topic-section">
+          <view class="topic-heading">知识说明</view>
+          <view class="topic-card topic-card-text"><text class="topic-copy {{topic.description ? '' : 'topic-muted'}}">{{topic.description || '来源暂未提供说明'}}</text></view>
+        </view>
+        <view class="topic-section">
+          <view class="topic-heading">掌握标准</view>
+          <view class="topic-card topic-card-text"><text class="topic-copy {{topic.masteryStandard ? '' : 'topic-muted'}}">{{topic.masteryStandard || '来源暂未提供掌握标准'}}</text></view>
+        </view>
+
+        <view class="topic-section">
+          <view class="topic-heading">前置知识</view>
+          <view class="topic-card">
+            <view wx:if="{{!topic.prerequisiteLinks.length}}" class="topic-row"><text class="topic-muted">来源未列出前置知识</text></view>
+            <view wx:for="{{topic.prerequisiteLinks}}" wx:key="id" class="topic-link" data-id="{{item.id}}" bindtap="openRelatedTopic" aria-role="button" aria-label="查看前置知识 {{item.label}}">
+              <view class="topic-link-copy"><view class="topic-link-head"><text class="topic-link-title">{{item.label}}</text><text class="topic-link-grade">{{item.gradeLabel}}</text></view><text wx:if="{{item.reason}}" class="topic-link-reason">{{item.reason}}</text></view>
+              <view class="topic-link-arrow"></view>
+            </view>
+          </view>
+        </view>
+        <view class="topic-section">
+          <view class="topic-heading">后续知识</view>
+          <view class="topic-card">
+            <view wx:if="{{!topic.successorLinks.length}}" class="topic-row"><text class="topic-muted">来源未列出后续知识</text></view>
+            <view wx:for="{{topic.successorLinks}}" wx:key="id" class="topic-link" data-id="{{item.id}}" bindtap="openRelatedTopic" aria-role="button" aria-label="查看后续知识 {{item.label}}">
+              <view class="topic-link-copy"><view class="topic-link-head"><text class="topic-link-title">{{item.label}}</text><text class="topic-link-grade">{{item.gradeLabel}}</text></view><text wx:if="{{item.reason}}" class="topic-link-reason">{{item.reason}}</text></view>
+              <view class="topic-link-arrow"></view>
+            </view>
+          </view>
+        </view>
+        <view class="topic-section" wx:if="{{topic.relatedLinks.length}}">
+          <view class="topic-heading">相关知识</view>
+          <view class="topic-card">
+            <view wx:for="{{topic.relatedLinks}}" wx:key="id" class="topic-link" data-id="{{item.id}}" bindtap="openRelatedTopic" aria-role="button" aria-label="查看相关知识 {{item.label}}">
+              <view class="topic-link-copy"><view class="topic-link-head"><text class="topic-link-title">{{item.label}}</text><text class="topic-link-grade">{{item.gradeLabel}}</text></view><text wx:if="{{item.reason}}" class="topic-link-reason">{{item.reason}}</text></view>
+              <view class="topic-link-arrow"></view>
+            </view>
+          </view>
+        </view>
+
+        <view class="topic-section">
+          <view class="topic-heading">我的掌握证据<text wx:if="{{view.evidence.length}}" class="topic-heading-count">{{view.evidence.length}} 条</text></view>
+          <view class="topic-card">
+            <view wx:if="{{!view.evidence.length}}" class="topic-row"><text class="topic-muted">还没有测评或老师核验的证据。</text></view>
+            <view wx:for="{{view.evidence}}" wx:key="id" class="topic-row">
+              <view class="topic-row-copy"><text class="topic-row-title">{{item.title}}</text><text wx:if="{{item.dateLabel}}" class="topic-row-meta">{{item.dateLabel}}</text></view>
+              <text wx:if="{{item.typeLabel}}" class="topic-tag {{item.tone}}">{{item.typeLabel}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{loaded}}" class="topic-bar">
+    <text wx:if="{{candidateStatus === 'profile_incomplete'}}" class="topic-bar-note">完善学习档案后，可将知识点加入候选。</text>
+    <text wx:elif="{{candidateStatus === 'unavailable'}}" class="topic-bar-note">候选状态暂时无法读取，请稍后重试。</text>
+    <button class="topic-button {{candidateActive ? 'is-active' : ''}}" loading="{{candidateSubmitting}}" disabled="{{candidateStatus === 'loading' || candidateStatus === 'unavailable'}}" bindtap="toggleCandidate">{{candidateActive ? '移出候选' : '加入候选'}}</button>
+  </view>
+</view>
 <dev-reset-fab />

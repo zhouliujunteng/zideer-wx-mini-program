@@ -68,32 +68,10 @@ test('graph opens the matching subject diagnosis and resumes its existing report
   assert.equal(navigations.length,2);
 });
 
-test('view switch initializes the graph only when it becomes visible and releases it on return to universe', () => {
-  const { instance } = loadPage()
-  let canvasInitializations = 0
-  instance._pageReady = true
-  instance.initializeCanvas = () => { canvasInitializations += 1 }
-  instance.setData = function (values, callback) { Object.assign(this.data, values); if (callback) callback() }
-
-  instance.switchMapView({ currentTarget: { dataset: { view: 'graph' } } })
-  assert.equal(instance.data.activeView, 'graph')
-  assert.equal(canvasInitializations, 1)
-
-  instance.cancelSelectionFlowAnimation = () => {}
-  instance.cancelGraphDraw = () => {}
-  instance.stopMetricsPanel = () => {}
-  instance._canvas = { id: 'graph' }
-  instance._graphScene = { cards: [] }
-  instance._graphView = { scale: 1 }
-  instance.switchMapView({ currentTarget: { dataset: { view: 'universe' } } })
-  assert.equal(instance.data.activeView, 'universe')
-  assert.equal(instance._canvas, null)
-  assert.equal(instance._graphScene, null)
-})
-
-for (const [width,height] of [[320,568],[390,762]]) test(`sheet drags to the bottom and back up at ${width} x ${height}`, () => {
+// 2026-10-10 起知识图谱不是 tab 页（从「我的 › 知鹿服务」进），底部只让开安全区。
+for (const [width,height,safeBottom] of [[320,568,0],[390,844,34]]) test(`sheet drags to the bottom and back up at ${width} x ${height}`, () => {
   const {instance} = loadPage()
-  global.wx.getWindowInfo = () => ({windowWidth:width,windowHeight:height,statusBarHeight:20})
+  global.wx.getWindowInfo = () => ({windowWidth:width,windowHeight:height,screenHeight:height,statusBarHeight:20,safeArea:{top:20,bottom:height-safeBottom}})
   instance.onLoad()
   const initialHeight=instance.data.canvasClipHeight
   instance.handleMapSheetTouchStart({touches:[{clientX:120,clientY:400}]})
@@ -101,8 +79,11 @@ for (const [width,height] of [[320,568],[390,762]]) test(`sheet drags to the bot
   instance.handleMapSheetTouchEnd()
   assert.ok(instance.data.sheetVisualOffset < 0, 'downward movement must pass the initial sheet position')
   assert.equal(instance.data.sheetVisualOffset,instance.data.sheetMinOffset)
-  const peek=height-(instance.data.sheetStart*width/750-instance.data.sheetVisualOffset)
-  assert.ok(peek>=44 && peek<=60, 'keep a reachable handle above the tab bar')
+  const sheetTopOnScreen=instance.data.sheetTop+instance.data.sheetTranslateY
+  const peek=height-safeBottom-sheetTopOnScreen
+  assert.ok(peek>=44 && peek<=60, 'keep a reachable handle above the bottom safe area')
+  // 画布可见区域的下沿就是面板上沿：拖到底的知识点不会压在面板下面
+  assert.ok(Math.abs(instance.data.contentTop+instance.data.canvasClipHeight-sheetTopOnScreen)<0.1)
   assert.ok(instance.data.canvasClipHeight>initialHeight)
   assert.equal(instance.data.canvasClipHeight,instance.data.canvasHeight)
   assert.equal(instance.data.canvasControlOffset,0)
@@ -310,6 +291,14 @@ test('knowledge map starts the assessment flow for the active subject', () => {
   assert.deepEqual(navigations, [{ url: '/assessment/short/index?subjectKey=Mathematics' }])
 })
 
+test('the top bar galaxy button opens the knowledge galaxy page', () => {
+  const { definition, instance, navigations } = loadPage()
+
+  definition.openGalaxy.call(instance)
+
+  assert.deepEqual(navigations, [{ url: '/pages/galaxy/index' }])
+})
+
 test('tapping selects without navigating and tapping blank space clears selection', () => {
   const { definition, instance, navigations } = loadPage()
   prepareLiveLoader(instance)
@@ -394,4 +383,75 @@ for (const scenario of [
   assert.equal(instance.data.selectedNode, selected)
   assert.equal(instance._mapGesture, null)
   assert.deepEqual(navigations, [])
+})
+
+test('lifting one finger after a pinch keeps panning with the other finger', () => {
+  const { definition, instance, navigations } = loadPage()
+  prepareLiveLoader(instance)
+  instance._canvas = {}
+  instance.requestGraphDraw = () => {}
+  instance.getCanvasTouch = touch => ({ x: touch.clientX, y: touch.clientY })
+  instance.clampGraphView = (scale, x, y) => ({ scale, x, y })
+  instance.findNodeAt = () => ({ id: 'unintended' })
+  instance._metrics.increment = () => {}
+  instance._graphView = { scale: 1.6, x: 10, y: 20 }
+  instance._mapGesture = { type: 'pinch' }
+  instance._mapDidMove = true
+  definition.handleMapTouchEnd.call(instance, { type: 'touchend', touches: [{ clientX: 100, clientY: 300 }], changedTouches: [{ clientX: 180, clientY: 300 }] })
+  assert.equal(instance._mapGesture.type, 'pan')
+  instance.handleMapTouchMove({ touches: [{ clientX: 100, clientY: 180 }] })
+  assert.deepEqual(instance._graphView, { scale: 1.6, x: 10, y: -100 })
+  // 剩下那根手指松开：是拖动，不当成点了知识点
+  definition.handleMapTouchEnd.call(instance, { type: 'touchend', touches: [], changedTouches: [{ clientX: 100, clientY: 180 }] })
+  assert.equal(instance._mapGesture, null)
+  assert.equal(instance._selectedNodeId, undefined)
+  assert.deepEqual(navigations, [])
+})
+
+// 面板往下收时位移是正数：模板里不能再写「-{{负数}}px」（拼成「--200px」，transform 整条失效）。
+test('sheet and map controls use precomputed offsets that stay valid CSS when the sheet collapses', () => {
+  const { readFileSync } = require('node:fs')
+  const wxml = readFileSync(require.resolve('../pages/knowledge-map/index.wxml'), 'utf8')
+  // 平板分栏时同一个 style 后面再拼面板位置（tabletLayout），所以只锁前半段
+  assert.match(wxml, /class="map-sheet[^"]*" style="top: \{\{sheetTop\}\}px; transform: translate3d\(0, \{\{sheetTranslateY\}\}px, 0\);[^"]*"/)
+  assert.doesNotMatch(wxml, /-\{\{sheetVisualOffset\}\}/)
+  assert.equal((wxml.match(/translate3d\(0, -\{\{canvasControlOffset\}\}px, 0\)/g) || []).length, 2)
+  const { instance } = loadPage()
+  global.wx.getWindowInfo = () => ({ windowWidth: 390, windowHeight: 844, screenHeight: 844, statusBarHeight: 47, safeArea: { top: 47, bottom: 810 } })
+  instance.onLoad()
+  assert.ok(instance.data.canvasControlOffset > 0, 'controls sit above the sheet, not at the bottom of the hidden canvas')
+  instance.updateMapSheetPosition(instance.data.sheetMinOffset)
+  assert.ok(instance.data.sheetTranslateY > 0)
+  assert.equal(instance.data.canvasControlOffset, 0)
+  instance.updateMapSheetPosition(instance.data.sheetTrigger)
+  assert.equal(instance.data.sheetTranslateY, -instance.data.sheetTrigger)
+  assert.ok(instance.data.canvasControlOffset >= 0)
+})
+
+// 2026-10-06：面板停稳后按新的可见区域重新收边界。
+// 面板拉高（可见区变矮）后能接着往上拖，直到最底下的节点露在面板上方；
+// 面板放下（可见区变高）后，原来拖到底的位置会在图下面空出一大块，停稳时收回来。
+test('the graph bottom stays reachable above the sheet, and lowering the sheet leaves no blank below', () => {
+  const {instance} = loadPage()
+  let draws = 0
+  instance.requestGraphDraw = () => { draws += 1 }
+  instance._canvas = {width:320,height:520}
+  instance._graphScene = {cards:Array(8).fill({}),bounds:{x:-200,y:-600,width:400,height:1200}}
+  instance.data.canvasFollowOffset = 0
+  // 面板拉高：可见区只有 300，照样能拖到最底
+  instance.data.canvasClipHeight = 300
+  instance._graphView = instance.clampGraphView(1, 160, -10000)
+  assert.ok(instance._graphView.y + 600 <= 300, '最底下的节点能拖到面板上方')
+  // 面板放下：可见区变成 520，停稳时收边界，图的下沿不再离可见区下沿一大截
+  instance.data.canvasClipHeight = 520
+  instance.reclampGraphView()
+  assert.equal(draws, 1)
+  assert.ok(520 - (instance._graphView.y + 600) <= 28, '下面只留边距，不留大块空白')
+  instance.reclampGraphView()
+  assert.equal(draws, 1, '已经在边界里就不重画')
+})
+
+test('the topic panel links to the full topic page, except on the sample map', () => {
+  const wxml = require('fs').readFileSync(require('path').join(__dirname, '../pages/knowledge-map/index.wxml'), 'utf8')
+  assert.match(wxml, /wx:if="\{\{!sampleMode\}\}" class="map-topic-detail-link" bindtap="openTopicDetail"/)
 })

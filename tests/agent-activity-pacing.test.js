@@ -1,7 +1,8 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
+require('./helpers/allow-diagnosis-room-entry')
 
-const pagePath = require.resolve('../pages/agent-chat/index.js')
+const pagePath = require.resolve('../pages/diagnosis-room/index.js')
 
 function loadPage() {
   delete require.cache[pagePath]

@@ -1,0 +1,385 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="st-page">
+  <view class="st-topbar">
+    <view class="st-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="st-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="st-back-icon"></view></view>
+      <text class="st-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{page.title || 'AI 提分工具'}}</text>
+    </view>
+    <view class="st-history-button" style="top: {{historyTop}}px; left: {{historyLeft}}px; width: {{historyButtonSize}}px; height: {{historyButtonSize}}px;" bindtap="openHistory" aria-role="button" aria-label="提分记录">
+      <image class="st-history-icon" src="{{UA.src(ui, '/assets/promotion/history.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+    </view>
+  </view>
+
+  <view class="st-content" style="padding-top: {{contentTop}}px;">
+
+    <block wx:if="{{step === 'capture'}}">
+      <!-- ① 拍题 -->
+      <view class="st-intro">
+        <text class="st-intro-title">{{page.title}}</text>
+        <text class="st-intro-copy">{{page.intro}}</text>
+      </view>
+
+      <view wx:if="{{question && question.status === 'failed'}}" class="st-notice st-notice-warn">
+        <text class="st-notice-title">这次没有识别出题目</text>
+        <text class="st-notice-copy">{{question.failureText}}</text>
+      </view>
+
+      <view class="st-card">
+        <view class="st-card-head">
+          <text class="st-card-title">拍下题目</text>
+          <text class="st-card-sub">最多 3 张</text>
+        </view>
+        <view class="st-photo-grid">
+          <view wx:for="{{photos}}" wx:key="path" class="st-photo" data-index="{{index}}" bindtap="previewPhoto">
+            <image class="st-photo-image" src="{{item.path}}" mode="aspectFill"></image>
+            <view class="st-photo-remove" data-index="{{index}}" catchtap="removePhoto" aria-label="删除这张照片" aria-role="button">×</view>
+          </view>
+          <view wx:if="{{photos.length < 3}}" class="st-photo-add" bindtap="choosePhotos" aria-role="button" aria-label="拍照或从相册选择">
+            <view class="st-photo-add-plus"></view>
+            <text class="st-photo-add-label">拍照 / 相册</text>
+          </view>
+        </view>
+        <view class="st-tips">
+          <text class="st-tip">· 一次拍一道题，题目长可以分 2～3 张拍</text>
+          <text class="st-tip">· 拍正、拍清楚，光线亮一点识别更准</text>
+          <text wx:if="{{page.needsAnswer}}" class="st-tip">· 要拍到你自己写的作答过程</text>
+        </view>
+      </view>
+    </block>
+
+    <block wx:elif="{{step === 'recognizing'}}">
+      <!-- ② 识别中 -->
+      <view class="st-card">
+        <view class="st-card-head"><text class="st-card-title">正在识别题目…</text></view>
+        <text class="st-card-sub st-block">大约 10～30 秒，识别好后可以改正看错的字</text>
+        <view class="st-sk-block">
+          <view class="sk sk-line"></view>
+          <view class="sk sk-line"></view>
+          <view class="sk sk-line sk-mid"></view>
+          <view class="sk sk-line sk-short"></view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:elif="{{step === 'confirm'}}">
+      <!-- ③ 确认题目 -->
+      <view wx:if="{{question.message}}" class="st-notice st-notice-warn">
+        <text class="st-notice-title">识别提醒</text>
+        <text class="st-notice-copy">{{question.message}}</text>
+      </view>
+
+      <view wx:if="{{question.questions.length > 1}}" class="st-card">
+        <view class="st-card-head">
+          <text class="st-card-title">照片里有 {{question.questions.length}} 道题，选一道</text>
+        </view>
+        <view wx:for="{{question.questions}}" wx:key="index" class="st-choice {{index === selectedIndex ? 'is-selected' : ''}}" data-index="{{index}}" bindtap="pickQuestion" aria-role="button">
+          <view class="st-choice-radio"><view></view></view>
+          <view class="st-choice-copy">
+            <text class="st-choice-label">{{item.label}}</text>
+            <text class="st-choice-stem">{{item.stem}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="st-card">
+        <view class="st-card-head">
+          <text class="st-card-title">题目</text>
+          <text class="st-card-sub">看错的字可以直接改</text>
+        </view>
+        <textarea class="st-textarea st-textarea-fit" style="--h: {{stemHeight}};" value="{{stem}}" maxlength="4000" auto-height="{{false}}" disable-default-padding="{{true}}" bindinput="handleStemInput" placeholder="题目文字" placeholder-class="st-placeholder" />
+      </view>
+
+      <view wx:if="{{page.needsAnswer || page.answerOptional}}" class="st-card">
+        <view class="st-card-head">
+          <text class="st-card-title">我的作答</text>
+          <text class="st-card-sub">{{page.needsAnswer ? '照原样，写错的也别改' : '选填，有作答出的易错题更对路'}}</text>
+        </view>
+        <textarea class="st-textarea st-textarea-fit" style="--h: {{answerHeight}};" value="{{studentAnswer}}" maxlength="4000" auto-height="{{false}}" disable-default-padding="{{true}}" bindinput="handleAnswerInput" placeholder="没识别出来的话，把你的作答过程打在这里" placeholder-class="st-placeholder" />
+      </view>
+
+      <view wx:for="{{page.inputs}}" wx:key="key" class="st-card">
+        <view class="st-card-head"><text class="st-card-title">{{item.label}}</text></view>
+        <textarea class="st-textarea st-textarea-short" value="{{inputValues[item.key]}}" maxlength="{{item.maxlength}}" auto-height="{{true}}" disable-default-padding="{{true}}" data-key="{{item.key}}" bindinput="handleExtraInput" placeholder="{{item.placeholder}}" placeholder-class="st-placeholder" />
+      </view>
+    </block>
+
+    <block wx:elif="{{step === 'running'}}">
+      <!-- ④ 分析中 -->
+      <view class="st-card">
+        <view class="st-card-head"><text class="st-card-title">正在{{page.title}}…</text></view>
+        <text class="st-card-sub st-block">AI 会先把题自己做一遍再分析，大约 1～2 分钟，可以先离开，稍后在右上角「提分记录」里查看</text>
+        <view class="st-sk-block">
+          <view class="sk sk-line"></view>
+          <view class="sk sk-line sk-mid"></view>
+        </view>
+      </view>
+      <view wx:for="{{[1, 2, 3]}}" wx:key="*this" class="st-card">
+        <view class="sk sk-line sk-short"></view>
+        <view class="sk sk-line"></view>
+        <view class="sk sk-line sk-mid"></view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <!-- ⑤ 结果 -->
+      <view wx:if="{{loadingRun}}">
+        <view wx:for="{{[1, 2, 3]}}" wx:key="*this" class="st-card">
+          <view class="sk sk-line sk-short"></view>
+          <view class="sk sk-line"></view>
+          <view class="sk sk-line sk-mid"></view>
+        </view>
+      </view>
+
+      <view wx:elif="{{loadFailed}}" class="st-state">
+        <text class="st-state-title">记录暂时读不到</text>
+        <text class="st-state-copy">{{loadFailed}}</text>
+        <view class="st-state-action" bindtap="retryOpenRun" aria-role="button">重新加载</view>
+      </view>
+
+      <view wx:elif="{{run.status === 'failed'}}" class="st-state">
+        <text class="st-state-title">这次没有分析好</text>
+        <text class="st-state-copy">{{run.failureText}} 没分析好的这次不算次数，也不扣积分。</text>
+        <view wx:if="{{question}}" class="st-state-action" bindtap="retryRun" aria-role="button">重新分析</view>
+      </view>
+
+      <block wx:elif="{{view && view.kind === 'review'}}">
+        <view wx:if="{{view.clarification}}" class="st-notice st-notice-warn">
+          <text class="st-notice-title">这道题需要你确认</text>
+          <text class="st-notice-copy">{{view.clarification}}</text>
+        </view>
+        <block wx:for="{{view.questions}}" wx:for-item="q" wx:key="label">
+          <view class="st-card">
+            <view class="st-card-head">
+              <text class="st-card-title">{{q.label}} · 原题标注</text>
+              <text wx:if="{{q.type}}" class="st-card-sub">{{q.type}}</text>
+            </view>
+            <view class="st-stem">
+              <view wx:for="{{q.lines}}" wx:for-item="line" wx:key="index" class="st-stem-line"><text user-select="{{true}}"><text wx:for="{{line.parts}}" wx:for-item="seg" wx:key="index" class="{{seg.key ? 'rv-mark rv-' + seg.key : ''}}">{{seg.text}}</text></text></view>
+            </view>
+            <view class="st-legend">
+              <view wx:for="{{view.legend}}" wx:key="key" class="st-legend-item"><view class="st-legend-dot rv-dot-{{item.key}}"></view><text>{{item.label}}</text></view>
+            </view>
+          </view>
+
+          <view wx:if="{{q.warnings.length}}" class="st-notice st-notice-warn">
+            <text class="st-notice-title">容易读漏的地方</text>
+            <text wx:for="{{q.warnings}}" wx:key="*this" class="st-notice-copy">· {{item}}</text>
+          </view>
+
+          <view wx:for="{{q.sections}}" wx:for-item="section" wx:key="key" class="st-card">
+            <view class="st-section-head">
+              <text class="st-section-number rv-text-{{section.key}}">{{section.number}}</text>
+              <text class="st-card-title">{{section.label}}</text>
+              <text class="st-section-hint">{{section.hint}}</text>
+            </view>
+            <view wx:if="{{section.items.length}}">
+              <view wx:for="{{section.items}}" wx:key="index" class="st-quote-item">
+                <text class="st-quote rv-mark rv-{{section.key}}">{{item.quote}}</text>
+                <text class="st-quote-copy">{{item.interpretation}}</text>
+              </view>
+            </view>
+            <text wx:else class="st-empty-reason">{{section.emptyReason}}</text>
+          </view>
+
+          <view class="st-card st-card-accent">
+            <text class="st-card-title">题意复述</text>
+            <text class="st-body st-block">{{q.restatement}}</text>
+          </view>
+        </block>
+        <view class="st-relay" data-tool="error-diagnosis" bindtap="switchTool" aria-role="button">
+          <text class="st-relay-title">做错了？用「错因诊断」看这道题</text>
+          <view class="st-relay-chevron"></view>
+        </view>
+      </block>
+
+      <block wx:elif="{{view && view.kind === 'diagnosis'}}">
+        <view wx:if="{{view.status === 'needs_clarification'}}" class="st-notice st-notice-warn">
+          <text class="st-notice-title">需要你补充一下</text>
+          <text class="st-notice-copy">{{view.message}}</text>
+        </view>
+        <block wx:else>
+          <view class="st-card st-summary {{view.status === 'correct' ? 'is-correct' : ''}}">
+            <text wx:if="{{view.causeLabel}}" class="st-cause">{{view.causeLabel}}</text>
+            <text wx:elif="{{view.status === 'correct'}}" class="st-cause st-cause-ok">做对了</text>
+            <text class="st-summary-copy">{{view.summary}}</text>
+          </view>
+
+          <view wx:if="{{view.firstError}}" class="st-card">
+            <view class="st-card-head">
+              <text class="st-card-title">第一个出错的地方</text>
+              <text class="st-card-sub">{{view.firstError.stepLabel}}</text>
+            </view>
+            <text class="st-quote st-quote-error" user-select="{{true}}">{{view.firstError.quote}}</text>
+            <text class="st-body st-block">{{view.firstError.explanation}}</text>
+            <view wx:if="{{view.firstError.correction}}" class="st-correction">
+              <text class="st-correction-label">这一步应该写成</text>
+              <text class="st-correction-copy" user-select="{{true}}">{{view.firstError.correction}}</text>
+            </view>
+            <view wx:if="{{view.chain.length}}" class="st-chain">
+              <text class="st-chain-title">后面跟着错的</text>
+              <text wx:for="{{view.chain}}" wx:key="*this" class="st-chain-item">· {{item}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{view.causes.length}}" class="st-card">
+            <view class="st-card-head">
+              <text class="st-card-title">为什么会错</text>
+              <text class="st-card-sub">按可能性排序</text>
+            </view>
+            <view wx:for="{{view.causes}}" wx:key="index" class="st-reason">
+              <view class="st-reason-head">
+                <text class="st-reason-label">{{item.label}}</text>
+                <text class="st-reason-level st-reason-{{item.likelihood}}">{{item.likelihoodLabel}}</text>
+              </view>
+              <text wx:if="{{item.evidence}}" class="st-reason-evidence">{{item.evidence}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{view.fixes.length}}" class="st-card st-card-accent">
+            <view class="st-card-head"><text class="st-card-title">接下来怎么练</text></view>
+            <view wx:for="{{view.fixes}}" wx:key="index" class="st-fix">
+              <text class="st-fix-index">{{index + 1}}</text>
+              <view class="st-fix-copy">
+                <text wx:if="{{item.kindLabel}}" class="st-fix-kind">{{item.kindLabel}}</text>
+                <text class="st-body st-block">{{item.text}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view wx:if="{{view.status === 'diagnosed'}}" class="st-relay st-relay-main" data-tool="error-variation" data-relay="1" bindtap="switchTool" aria-role="button">
+            <view class="st-relay-copy">
+              <text class="st-relay-title">马上练 3 道同类题</text>
+              <text class="st-relay-sub">举一反三 · 专门对着这次的错因出题，做完就判</text>
+            </view>
+            <view class="st-relay-chevron st-relay-chevron-light"></view>
+          </view>
+
+          <view wx:if="{{view.selfCheck.length}}" class="st-card">
+            <view class="st-card-head"><text class="st-card-title">下次做同类题，先问自己</text></view>
+            <text wx:for="{{view.selfCheck}}" wx:key="*this" class="st-check-item">{{item}}</text>
+          </view>
+
+          <view class="st-card">
+            <view class="st-card-head"><text class="st-card-title">四步检查</text></view>
+            <view wx:for="{{view.steps}}" wx:key="key" class="st-step">
+              <view class="st-step-dot st-step-{{item.status}}"></view>
+              <view class="st-step-copy">
+                <view class="st-step-head"><text class="st-step-label">{{item.label}}</text><text class="st-step-status st-step-text-{{item.status}}">{{item.statusText}}</text></view>
+                <text wx:if="{{item.note}}" class="st-step-note">{{item.note}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view wx:if="{{view.reference}}" class="st-card">
+            <view class="st-card-head">
+              <text class="st-card-title">正确做法</text>
+              <text class="st-card-sub" bindtap="toggleReference" aria-role="button">{{referenceOpen ? '收起' : '展开看看'}}</text>
+            </view>
+            <block wx:if="{{referenceOpen}}">
+              <view wx:if="{{view.reference.uncertainNote}}" class="st-uncertain">需要核对：{{view.reference.uncertainNote}}</view>
+              <view wx:for="{{view.reference.steps}}" wx:key="*this" class="st-ref-step"><text class="st-ref-index">{{index + 1}}</text><text class="st-body" user-select="{{true}}">{{item}}</text></view>
+              <view class="st-ref-answer"><text class="st-ref-answer-label">答案</text><text class="st-ref-answer-copy" user-select="{{true}}">{{view.reference.finalAnswer}}</text></view>
+            </block>
+            <text wx:else class="st-body st-block st-muted">自己先按上面的提示改一遍，再展开对答案。</text>
+          </view>
+
+          <view wx:if="{{view.compare}}" class="st-card">
+            <view class="st-card-head">
+              <text class="st-card-title">你的判断 vs AI 的判断</text>
+              <text wx:if="{{view.compare.agree === 'yes'}}" class="st-card-sub st-agree">一致</text>
+              <text wx:elif="{{view.compare.agree === 'no'}}" class="st-card-sub st-disagree">不一致</text>
+            </view>
+            <text class="st-compare-label">你</text>
+            <text class="st-body st-block">{{view.compare.student}}</text>
+            <text class="st-compare-label">AI</text>
+            <text class="st-body st-block">{{view.compare.ai}}</text>
+          </view>
+
+          <view wx:if="{{view.knowledgePoints.length}}" class="st-card">
+            <view class="st-card-head"><text class="st-card-title">相关知识点</text></view>
+            <view class="st-chips"><text wx:for="{{view.knowledgePoints}}" wx:key="*this" class="st-chip">{{item}}</text></view>
+          </view>
+        </block>
+        <view class="st-relay" data-tool="question-review" bindtap="switchTool" aria-role="button">
+          <text class="st-relay-title">用「审题拆解」把这道题再读一遍</text>
+          <view class="st-relay-chevron"></view>
+        </view>
+      </block>
+
+      <block wx:elif="{{view && view.kind === 'practice'}}">
+        <view class="st-card st-practice-head">
+          <text class="st-card-title">从这道题练会一类题</text>
+          <text wx:if="{{view.finished}}" class="st-practice-score">做对 {{view.correctCount}} / {{view.total}} 道</text>
+          <text wx:else class="st-card-sub">已做 {{view.answeredCount}} / {{view.total}}，交了就能看解析</text>
+        </view>
+
+        <view wx:for="{{view.questions}}" wx:for-item="q" wx:key="index" class="st-card st-practice">
+          <view class="st-practice-top">
+            <text class="st-level st-level-{{q.tone}}">{{q.number}} · {{q.levelLabel}}</text>
+            <text wx:if="{{q.answered && q.correct}}" class="st-verdict st-verdict-right">答对了</text>
+            <text wx:elif="{{q.answered}}" class="st-verdict st-verdict-wrong">答错了</text>
+          </view>
+          <text wx:if="{{q.design}}" class="st-practice-design">{{q.design}}</text>
+          <view class="st-practice-stem">
+            <text wx:for="{{q.stemLines}}" wx:for-item="line" wx:key="index" class="st-practice-line" user-select="{{true}}">{{line}}</text>
+          </view>
+
+          <block wx:if="{{q.type === 'choice'}}">
+            <view wx:for="{{q.options}}" wx:for-item="option" wx:key="letter" class="st-option {{option.state ? 'is-' + option.state : ''}} {{!q.answered && practiceDraft[q.index] === option.letter ? 'is-picked' : ''}}" data-index="{{q.index}}" data-letter="{{option.letter}}" bindtap="pickOption" aria-role="button">
+              <text class="st-option-letter">{{option.letter}}</text>
+              <text class="st-option-text">{{option.text}}</text>
+            </view>
+          </block>
+          <block wx:else>
+            <input wx:if="{{!q.answered}}" class="st-fill" value="{{practiceDraft[q.index]}}" maxlength="60" placeholder="填上你的答案" placeholder-class="st-placeholder" data-index="{{q.index}}" bindinput="handleFillInput" confirm-type="done" />
+            <view wx:else class="st-fill-result">
+              <text class="st-fill-label">你的答案</text>
+              <text class="st-fill-value {{q.correct ? 'is-right' : 'is-wrong'}}">{{q.yourAnswer}}</text>
+            </view>
+          </block>
+
+          <view wx:if="{{!q.answered}}" class="st-practice-submit {{practiceBusy === q.index ? 'is-disabled' : ''}}" data-index="{{q.index}}" bindtap="submitPractice" aria-role="button">{{practiceBusy === q.index ? '正在判…' : '交这道题'}}</view>
+          <view wx:else class="st-explain">
+            <view class="st-explain-head">
+              <text class="st-explain-title">解析</text>
+              <text class="st-explain-answer">正确答案：{{q.answer}}</text>
+            </view>
+            <text class="st-body st-block" user-select="{{true}}">{{q.explanation}}</text>
+            <text wx:if="{{q.point}}" class="st-explain-point">考查：{{q.point}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{view.finished}}" class="st-relay st-relay-main" data-tool="error-variation" bindtap="switchTool" aria-role="button">
+          <view class="st-relay-copy">
+            <text class="st-relay-title">再来 3 道</text>
+            <text class="st-relay-sub">同一道题换一批练习</text>
+          </view>
+          <view class="st-relay-chevron st-relay-chevron-light"></view>
+        </view>
+        <view class="st-relay" data-tool="error-diagnosis" bindtap="switchTool" aria-role="button">
+          <text class="st-relay-title">用「错因诊断」看看原题错在哪</text>
+          <view class="st-relay-chevron"></view>
+        </view>
+      </block>
+
+      <text wx:if="{{view}}" class="st-ai-note">内容由 AI 生成，仅供参考</text>
+    </block>
+  </view>
+
+  <!-- 底部操作 -->
+  <view wx:if="{{step !== 'recognizing' && !(step === 'result' && (loadingRun || loadFailed))}}" class="st-actionbar">
+    <view wx:if="{{(step === 'capture' || step === 'confirm') && tool}}" class="st-quota">
+      <view wx:if="{{!quotaLoaded}}" class="sk sk-line st-quota-sk"></view>
+      <text wx:elif="{{quota.freeRemaining > 0}}">今天还能免费用 {{quota.freeRemaining}} 次</text>
+      <text wx:elif="{{quota.freeRemaining === 0}}">今天 {{quota.freeDaily}} 次免费已用完 · 会员每次 {{quota.price}} 积分</text>
+    </view>
+    <view wx:if="{{step === 'capture'}}" class="st-button {{photos.length && !busy ? '' : 'is-disabled'}}" bindtap="recognize" aria-role="button">{{busy ? '正在上传…' : '识别题目'}}</view>
+    <view wx:elif="{{step === 'confirm'}}" class="st-actions">
+      <view class="st-button st-button-ghost" bindtap="retake" aria-role="button">重新拍</view>
+      <view class="st-button st-button-main {{busy ? 'is-disabled' : ''}}" bindtap="submitRun" aria-role="button">{{busy ? '正在提交…' : '开始' + page.title}}</view>
+    </view>
+    <view wx:elif="{{step === 'running'}}" class="st-button is-disabled" aria-disabled="true">分析中，请稍候</view>
+    <view wx:else class="st-button" bindtap="retake" aria-role="button">再拍一题</view>
+  </view>
+</view>
+<dev-reset-fab />

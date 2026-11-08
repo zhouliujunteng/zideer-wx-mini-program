@@ -1,2 +1,22 @@
-<view class="bind-student-page"><view class="bind-student-head"><text class="bind-student-eyebrow">家庭关系</text><text class="bind-student-title">绑定学生</text></view><view class="bind-form surface"><text class="bind-form__label">学生动态码</text><input class="bind-form__input" type="number" maxlength="8" value="{{code}}" placeholder="输入 8 位数字" placeholder-class="bind-form__placeholder" bindinput="onCodeInput"/><view class="bind-form__identity"><text>绑定身份</text><text>监护人</text></view></view><button class="bind-submit pressable" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">确认绑定</button></view>
+<view class="bind-student-page">
+  <view class="bind-student-head"><text class="bind-student-eyebrow">家庭关系</text><text class="bind-student-title">绑定学生</text></view>
+  <!-- 家长绑定学生前必须先完成实名认证：第一次读到实名状态前画表单骨架，未认证只显示认证提示 -->
+  <view wx:if="{{!verificationLoaded && !verificationFailed}}" class="bind-form surface"><view class="sk sk-line sk-short"></view><view class="sk bind-form__input-sk"></view><view class="sk sk-line sk-mid bind-form__identity-sk"></view></view>
+  <view wx:elif="{{!verificationLoaded}}" class="state-panel"><view class="state-panel__mark">!</view><text class="state-panel__title">实名认证状态暂时无法读取</text><text class="state-panel__copy">网络恢复后可以重新读取。</text><button class="state-panel__action pressable" bindtap="loadVerification">重新加载</button></view>
+  <view wx:elif="{{gate}}" class="bind-gate surface">
+    <text class="bind-gate__title">{{gate.title}}</text>
+    <text class="bind-gate__detail">{{gate.detail}}</text>
+    <button wx:if="{{gate.actionLabel}}" class="bind-submit pressable" bindtap="openVerification">{{gate.actionLabel}}</button>
+  </view>
+  <block wx:else>
+    <view wx:if="{{provider}}" class="bind-provider surface"><text class="bind-provider__title">服务商账号</text><text class="bind-provider__count">已绑定 {{provider.used}} / {{provider.limit}} 个孩子</text></view>
+    <view class="bind-form surface"><text class="bind-form__label">学生动态码</text><input class="bind-form__input" type="number" maxlength="8" value="{{code}}" placeholder="输入 8 位数字" placeholder-class="bind-form__placeholder" bindinput="onCodeInput"/><view class="bind-form__identity"><text>绑定身份</text><text>{{provider ? '服务商' : '监护人'}}</text></view></view>
+    <button class="bind-submit pressable" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">确认绑定</button>
+    <!-- 孩子没有手机 / 微信时（2026-10-09）：家长给孩子建网页端账号，孩子用电脑或平板在网页端学习 -->
+    <view class="bind-web-child surface pressable" bindtap="openWebChild" aria-role="button" aria-label="我的孩子没有微信，帮孩子创建网页端账号">
+      <view class="bind-web-child__text"><text class="bind-web-child__title">我的孩子没有微信</text><text class="bind-web-child__hint">帮孩子创建网页端账号，用电脑或平板学习</text></view>
+      <text class="bind-web-child__arrow">›</text>
+    </view>
+  </block>
+</view>
 <dev-reset-fab />

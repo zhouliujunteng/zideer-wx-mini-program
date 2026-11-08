@@ -8,7 +8,8 @@ function formatDate(value) {
 }
 
 Page({
-  data: { loading: true, failed: false, report: null, predictions: [] },
+  // loaded：第一次读到报告前画骨架；之后回到页面保留旧报告，后台静默刷新。
+  data: { loaded: false, failed: false, report: null, predictions: [] },
 
   onShow() { this.loadPage() },
 
@@ -18,19 +19,18 @@ Page({
   },
 
   async loadPage() {
-    this.setData({ loading: true, failed: false })
+    this.setData({ failed: false })
     try {
       const data = await loadCurrentDiagnosticReports()
       const report = data.reports.find((item) => item.status === 'completed' || item.status === 'ready') || data.reports[0] || null
       this.setData({
         report: report ? { ...report, generatedLabel: formatDate(report.generatedAt) } : null,
-        predictions: data.predictions || []
+        predictions: data.predictions || [],
+        loaded: true
       })
     } catch (error) {
       this.setData({ failed: true })
       wx.showToast({ title: error.message || '诊断报告加载失败', icon: 'none' })
-    } finally {
-      this.setData({ loading: false })
     }
   },
 

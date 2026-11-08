@@ -1,2 +1,70 @@
-<view class="result-page"><view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view><block wx:else><view class="result-icon">{{order && order.status === '已支付' ? '✓' : '!'}}</view><text class="result-title">{{order && order.status === '已支付' ? '支付已完成' : '订单正在等待支付结果'}}</text><text class="result-copy">{{order && order.status === '已支付' ? '课程积分已由服务端支付回调发放。' : '支付回调可能需要一点时间，刷新后会读取服务端最新订单状态。'}}</text><view class="result-card surface"><view wx:if="{{orderNo}}"><text>订单编号</text><text>{{orderNo}}</text></view><view><text>订单金额</text><text>¥{{amount}}</text></view><view wx:if="{{order}}"><text>当前状态</text><text>{{order.statusLabel}}</text></view></view><button class="result-primary pressable" wx:if="{{order && order.status !== '已支付'}}" loading="{{paying}}" disabled="{{paying}}" bindtap="continuePayment">{{paying ? '正在发起支付' : '继续支付'}}</button><button class="result-primary pressable" bindtap="goOrder">查看订单详情</button><button class="result-secondary pressable" bindtap="goCredits">查看课程积分</button><button class="result-secondary pressable" bindtap="goProducts">返回商城</button></block></view>
+<!-- 订单状态：与积分包、确认订单同一套样式；结果图标与标题照设计稿兑换结果弹层（ui-ref package-commerce/pages/redemption）。 -->
+<view class="result-page">
+  <view class="result-ambient" aria-hidden="true"></view>
+  <view class="result-topbar">
+    <view class="result-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="result-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="result-back-icon"></view></view>
+      <text class="result-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">订单状态</text>
+    </view>
+  </view>
+
+  <scroll-view class="result-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="result-shell">
+      <view class="result-hero" wx:if="{{failed && !loaded}}">
+        <view class="result-mark"><text class="result-mark-text">!</text></view>
+        <text class="result-title">订单状态暂时无法读取</text>
+        <text class="result-subtitle">如已付款，请勿重复支付，稍后重新读取即可。</text>
+        <view class="result-retry" bindtap="loadPage" aria-role="button">重新读取</view>
+      </view>
+      <block wx:elif="{{loaded}}">
+        <view class="result-hero">
+          <view class="result-mark {{view.kind === 'paid' ? 'is-paid' : ''}}">
+            <view wx:if="{{view.kind === 'paid'}}" class="result-check" aria-hidden="true"></view>
+            <text wx:else class="result-mark-text">!</text>
+          </view>
+          <text class="result-title">{{view.title}}</text>
+          <text class="result-subtitle">{{view.subtitle}}</text>
+        </view>
+        <view class="result-card">
+          <view wx:if="{{order.title}}" class="result-row"><text>积分包</text><text>{{order.title}}</text></view>
+          <view wx:if="{{orderNo}}" class="result-row"><text>订单编号</text><text>{{orderNo}}</text></view>
+          <view class="result-row"><text>订单金额</text><text class="result-amount">¥{{amount}}</text></view>
+          <view wx:if="{{order}}" class="result-row"><text>当前状态</text><text>{{order.statusLabel}}</text></view>
+        </view>
+        <view wx:if="{{orderId}}" class="result-link" bindtap="goOrder" aria-role="button"><text>查看订单详情</text><view class="result-link-icon"></view></view>
+      </block>
+      <block wx:else>
+        <view class="result-hero">
+          <view class="sk sk-round result-sk-mark"></view>
+          <view class="sk result-sk-title"></view>
+          <view class="sk sk-line result-sk-subtitle"></view>
+        </view>
+        <view class="result-card">
+          <view class="result-row"><text>订单编号</text><view class="sk sk-line result-sk-value"></view></view>
+          <view class="result-row"><text>订单金额</text><view class="sk sk-line result-sk-value"></view></view>
+          <view class="result-row"><text>当前状态</text><view class="sk sk-line result-sk-value"></view></view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view class="result-bar">
+    <block wx:if="{{failed && !loaded}}">
+      <button class="result-button is-primary" bindtap="goHome">返回首页</button>
+    </block>
+    <block wx:elif="{{!loaded}}">
+      <view class="sk result-sk-button"></view>
+      <view class="sk result-sk-button"></view>
+    </block>
+    <block wx:elif="{{view.kind === 'closed' && paymentOpen}}">
+      <button class="result-button is-secondary" bindtap="goHome">返回首页</button>
+      <button class="result-button is-primary" bindtap="goProducts">重新购买</button>
+    </block>
+    <block wx:elif="{{order && view.kind === 'pending' && paymentOpen}}">
+      <button class="result-button is-secondary" bindtap="goHome">返回首页</button>
+      <button class="result-button is-primary" loading="{{paying}}" disabled="{{paying}}" bindtap="continuePayment">{{paying ? '正在发起支付' : '继续支付'}}</button>
+    </block>
+    <button wx:else class="result-button is-primary" bindtap="goHome">返回首页</button>
+  </view>
+</view>
 <dev-reset-fab />

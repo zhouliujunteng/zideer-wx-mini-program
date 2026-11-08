@@ -1,0 +1,45 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.streak-card-section{margin-top:20px}
+.streak-card-title{margin-bottom:9px;font-size:14px}
+.streak-card{padding:15px 16px 14px;border-radius:24px}
+.streak-card-head{min-height:76px;padding-right:18px}
+.streak-card-copy{flex:1;min-width:0}
+.streak-card-label{font-size:13px;font-weight:600;line-height:1.2}
+.streak-card-number-row{margin-top:6px}
+.streak-card-number{font-family:"Arial Rounded MT Bold", "SF Pro Rounded", "Avenir Next Rounded", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;font-size:40px;font-weight:900;letter-spacing:-2px;line-height:.9;font-variant-numeric:tabular-nums}
+.streak-card-unit{margin:0 0 3px 4px;font-size:14px;font-weight:700}
+.streak-card-state{margin-top:7px;font-size:14px;font-weight:600;line-height:1.25}
+.streak-card-error{margin-top:9px;font-size:16px;font-weight:700;line-height:1.25}
+.streak-card-retry{margin-top:6px;font-size:13px;line-height:1.25}
+.streak-card-number-skeleton{width:66px;height:34px;margin-top:7px}
+.streak-card-state-skeleton{width:120px;height:14px;margin-top:9px}
+.streak-card-art{flex:0 0 auto;width:67px;height:67px;margin-left:9px}
+.streak-card-icon{top:-8px;left:-12px;width:91px;height:91px}
+.streak-card-art-skeleton{top:9px;left:9px;width:48px;height:48px}
+.streak-card-go{top:44px;right:13px;width:15px;height:19px}
+.streak-card-chevron{width:7px;height:7px;border-top:1px solid #C3CAC4;border-right:1px solid #C3CAC4}
+.streak-week{margin-top:13px;padding-top:12px;border-top:0.5px solid #F0F2EF}
+.streak-day{flex:1;flex-direction:column;min-width:0}
+.streak-day-label{font-size:12px;line-height:1.2}
+.streak-day-mark{width:33px;height:33px;margin-top:6px;border-radius:50%;font-size:13px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.streak-day-mark-checked{font-weight:700}
+.streak-day-mark-frozen{font-weight:700}
+.streak-day-mark-revived{font-weight:700}
+.streak-day-mark-skeleton{width:33px;height:33px;margin-top:6px}
+.streak-card{flex-wrap:wrap;column-gap:19px;row-gap:13px}
+.streak-card-head{flex:1 1 264px;min-width:0}
+.streak-week{flex:1 1 235px;min-width:235px;margin:0;padding:0;border:0}
+.streak-day{flex:1 0 33px}
+.streak-card-section{margin-top:0}
+.streak-card{border-radius:18px}
+}

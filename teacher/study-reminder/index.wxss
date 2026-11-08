@@ -1,0 +1,54 @@
+@import "../../styles/skeleton.wxss";
+/* 与「学习安排」同一套：蓝色渐变头部、#FAFAFA 面板、白色大圆角卡片、主题橙主按钮。 */
+page { height: 100%; background: #FAFAFA; color: #24332D; }
+.sr-root { position: relative; width: 100%; height: 100vh; overflow: hidden; background: #FAFAFA; }
+.sr-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 520rpx; pointer-events: none; background: linear-gradient(180deg, #1E87FD 0%, #4BA5FF 74%, rgba(250, 250, 250, 0) 100%); }
+.sr-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.sr-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.sr-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.sr-back:active { background: rgba(255, 255, 255, .16); }
+.sr-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #FFFFFF; border-left: 4rpx solid #FFFFFF; transform: rotate(45deg) scale(.7); }
+.sr-topbar-title { position: absolute; left: 50%; display: block; color: #FFFFFF; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.sr-page { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.sr-hero { padding: 22rpx 40rpx 58rpx; }
+.sr-hero-name { display: block; color: #FFFFFF; font-size: 38rpx; font-weight: 600; line-height: 1.3; }
+.sr-hero-meta { display: block; margin-top: 10rpx; color: rgba(255, 255, 255, .86); font-size: 23rpx; line-height: 1.4; }
+.sr-hero-meta-sk { width: 300rpx; height: 26rpx; margin-top: 14rpx; border-radius: 10rpx; opacity: .5; }
+.sr-panel { position: relative; min-height: 70vh; margin-top: -24rpx; padding: 32rpx 28rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 26rpx 26rpx 0 0; background: #FAFAFA; }
+
+.section-heading { display: flex; align-items: center; justify-content: space-between; margin: 0 4rpx 20rpx; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.25; }
+.section-gap { margin-top: 44rpx; }
+.section-caption { color: #9AA59E; font-size: 20rpx; font-weight: 400; }
+.section-note { display: block; margin: 18rpx 4rpx 0; color: #939C96; font-size: 20rpx; line-height: 1.6; }
+.heading-action { padding: 8rpx 22rpx; border-radius: 999rpx; background: #EAF3FF; color: #1E87FD; font-size: 22rpx; font-weight: 600; }
+.heading-action:active { opacity: .72; }
+
+.card { box-sizing: border-box; border-radius: 28rpx; background: #FFFFFF; }
+.empty-card { display: flex; padding: 44rpx 28rpx; flex-direction: column; align-items: center; text-align: center; }
+.empty-title { color: #24332D; font-size: 25rpx; font-weight: 600; }
+.empty-copy { margin-top: 8rpx; color: #89938C; font-size: 22rpx; line-height: 1.6; }
+.empty-retry { margin-top: 20rpx; padding: 12rpx 32rpx; border-radius: 999rpx; background: #EAF3FF; color: #1E87FD; font-size: 23rpx; font-weight: 600; }
+.empty-retry:active { opacity: .72; }
+
+/* 没学完的任务 */
+.task-card { margin-bottom: 16rpx; padding: 24rpx 26rpx; }
+.task-heading { display: flex; align-items: baseline; justify-content: space-between; }
+.task-title { min-width: 0; flex: 1; overflow: hidden; color: #27332C; font-size: 27rpx; font-weight: 600; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.task-day { flex: none; margin-left: 16rpx; padding: 4rpx 14rpx; border-radius: 999rpx; background: #FFF4EA; color: #D86A00; font-size: 20rpx; }
+.task-meta { display: block; margin-top: 8rpx; color: #929B95; font-size: 21rpx; line-height: 1.5; }
+.task-sk { margin-top: 16rpx; }
+.notice { margin-top: 4rpx; padding: 20rpx 24rpx; border-radius: 22rpx; background: #FFF4EA; color: #B25A00; font-size: 22rpx; line-height: 1.6; }
+
+/* 发给学生的话 */
+.note-card { padding: 28rpx 28rpx 24rpx; }
+.note-card:active { background: #F7FAFE; }
+.note-text { display: block; color: #24332D; font-size: 27rpx; line-height: 1.75; }
+.note-meta { display: block; margin-top: 16rpx; color: #9AA59E; font-size: 20rpx; line-height: 1.5; }
+.note-card .sk-line { margin-bottom: 18rpx; }
+
+.primary-button { display: flex; height: 92rpx; margin-top: 26rpx; align-items: center; justify-content: center; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #FFFFFF; font-size: 29rpx; font-weight: 650; }
+.primary-button:active { opacity: .82; }
+.link-row { margin-top: 36rpx; padding: 12rpx; color: #1E87FD; font-size: 24rpx; text-align: center; }
+.link-row:active { opacity: .7; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

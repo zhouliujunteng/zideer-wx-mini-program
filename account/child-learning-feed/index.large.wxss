@@ -1,0 +1,49 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.feed-page{min-height:100vh;padding:28px 16px calc(env(safe-area-inset-bottom) + 28px)}
+.feed-head{padding:0 4px}
+.feed-eyebrow{font-size:13px;font-weight:700}
+.feed-title{margin-top:7px;font-size:25px;font-weight:700}
+.feed-student{width:100%;min-height:72px;margin-top:22px;padding:12px 13px}
+.feed-avatar{width:38px;height:38px;border-radius:19px;font-size:15px;font-weight:700}
+.feed-avatar__photo{width:100%;height:100%;border-radius:19px}
+.feed-student__copy{min-width:0;margin-left:10px}
+.feed-student__label{font-size:12px}
+.feed-student__name{margin-top:4px;font-size:15px;font-weight:700}
+.feed-student__action{margin-left:7px;font-size:12px}
+.feed-state{margin-top:10px;padding:16px 15px}
+.feed-state__label, .feed-state__meta{font-size:12px}
+.feed-state__value{margin-top:7px;font-size:18px;font-weight:700}
+.feed-state__meta{margin-top:7px}
+.feed-section{margin-top:24px}
+.feed-section__title{margin:0 4px 9px;font-size:13px;font-weight:700}
+.feed-metrics{grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px}
+.feed-metric{min-width:0;min-height:82px;padding:13px 10px}
+.feed-metric text:first-child{font-size:12px}
+.feed-metric text:last-child{margin-top:9px;font-size:14px;font-weight:700}
+.feed-empty{margin-top:20px;padding:18px 15px}
+.feed-empty__title{font-size:16px;font-weight:700}
+.feed-empty__copy{margin-top:7px;font-size:13px;line-height:1.6}
+.feed-report{width:100%;min-height:67px;margin-top:10px;padding:13px 15px}
+.feed-report__title{font-size:15px;font-weight:700}
+.feed-report__copy{margin-top:4px;font-size:12px}
+.feed-report__arrow{font-size:21px}
+.feed-avatar-sk{width:38px;height:38px}
+}

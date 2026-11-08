@@ -1,0 +1,19 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.cc-mask{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);padding:19px;box-sizing:border-box;box-shadow:0 0 0 100vmax rgba(24, 28, 26, .46)}
+.cc-card{width:100%;max-width:360px;max-height:100%;padding:28px 24px 20px;box-sizing:border-box;border-radius:28px;box-shadow:0 24px 60px rgba(40, 26, 10, .25)}
+.cc-close{top:10px;right:13px;padding:4px 8px;font-size:26px;line-height:1}
+.cc-glow{width:108px;height:108px;margin:0 auto 7px;border-radius:50%}
+.cc-flame{width:108px;height:108px}
+.cc-title{font-size:24px;font-weight:800;letter-spacing:-1px}
+.cc-subtitle{margin-top:6px;font-size:15px;line-height:1.45}
+.cc-rewards{gap:8px;margin-top:18px}
+.cc-reward{gap:3px;padding:7px 13px;border-radius:599px;font-size:14px}
+.cc-reward-value{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.cc-reward-icon{width:19px;height:19px}
+.cc-pending{margin-top:15px;font-size:14px}
+.cc-primary{height:52px;margin-top:22px;border-radius:599px;font-size:16px;font-weight:700}
+.cc-secondary{height:50px;margin-top:9px;border-radius:599px;font-size:16px;font-weight:700}
+@keyframes cc-pop{from{opacity:0;transform:scale(.86) translateY(9px)}to{opacity:1;transform:scale(1) translateY(0)}}
+}

@@ -1,22 +1,16 @@
-<wxs module="UA" src="../utils/ui-asset.wxs" />
-<view class="tabbar-wrap">
-  <view class="tabbar">
-    <button
-      class="tabbar__item {{selected === index ? 'tabbar__item--active' : ''}}"
-      wx:for="{{tabs}}"
-      wx:key="path"
-      data-index="{{index}}"
-      bindtap="handleTap"
-      aria-label="{{item.text}}"
-    >
-      <view class="tabbar__icon-shell">
-        <image
-          class="tabbar__icon"
-          src="{{UA.src(ui, '/assets/icons/' + (item.icon) + (selected === index ? '-active' : '') + '.svg')}}"
-          mode="aspectFit"
-        />
-      </view>
-      <text class="tabbar__label">{{item.text}}</text>
-    </button>
+<!-- 与原生底栏同样的尺寸、颜色与图标；家长账号不显示「图谱」（见 index.js） -->
+<view wx:if="{{!hidden}}" class="tabbar" role="tablist">
+  <view
+    wx:for="{{tabs}}"
+    wx:key="route"
+    class="tabbar-item {{selected === item.route ? 'is-active' : ''}}"
+    data-route="{{item.route}}"
+    bindtap="handleTap"
+    role="tab"
+    aria-selected="{{selected === item.route}}"
+    aria-label="{{item.text}}"
+  >
+    <image class="tabbar-icon" src="{{selected === item.route ? item.activeIcon : item.icon}}" mode="aspectFit" aria-hidden="true"></image>
+    <text class="tabbar-label">{{item.text}}</text>
   </view>
 </view>

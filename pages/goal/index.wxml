@@ -1,0 +1,144 @@
+<!-- 「目标」Tab（2026-10-10）：学习目标 + 目标导图 + 卡点对应的定制课程。原来的知识图谱在「我的 › 知鹿服务」。 -->
+<view class="goal-page">
+  <view class="goal-topbar">
+    <view class="goal-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <text class="goal-topbar-title">目标</text>
+    </view>
+    <streak-entry top="{{streakEntryTop}}" right="{{streakEntryRight}}" size="{{menuButtonHeight}}" />
+  </view>
+
+  <scroll-view class="goal-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="goal-shell">
+
+      <block wx:if="{{view === 'loading'}}">
+        <view class="goal-card"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid goal-sk-gap"></view><view class="sk sk-line sk-short goal-sk-gap"></view></view>
+        <view class="goal-card"><view class="sk goal-sk-map"></view></view>
+      </block>
+
+      <view wx:elif="{{view === 'failed'}}" class="goal-card goal-state">
+        <text class="goal-state-title">目标没有读到</text>
+        <text class="goal-state-copy">{{loadError}}</text>
+        <view class="goal-ghost-btn" bindtap="retryLoad" aria-role="button">重新读取</view>
+      </view>
+
+      <block wx:else>
+        <view wx:if="{{view === 'sample'}}" class="goal-sample-banner" bindtap="openAccessStep" aria-role="button" aria-label="{{access === 'guest' ? '这是示例导图，去登录' : '这是示例导图，去完善学习资料'}}">
+          <text class="goal-sample-tag">示例</text>
+          <text class="goal-sample-copy">{{access === 'guest' ? '登录后定一个你自己的学习目标' : '完善学习资料后定你自己的学习目标'}}</text>
+          <text class="goal-sample-action">{{access === 'guest' ? '去登录' : '去完善'}}</text>
+        </view>
+
+        <!-- 目标卡 -->
+        <view wx:if="{{goal}}" class="goal-card goal-goal-card">
+          <view class="goal-goal-head">
+            <view class="goal-goal-badge"><view class="goal-ring"><view class="goal-ring-dot"></view></view><text>{{view === 'sample' ? '示例目标' : '我的学习目标'}}</text></view>
+            <text wx:if="{{view !== 'sample'}}" class="goal-history-link" bindtap="openHistory" aria-role="button">历史目标</text>
+          </view>
+          <text class="goal-goal-text">{{goal.text}}</text>
+          <view class="goal-goal-tags">
+            <text wx:if="{{diagnosis && diagnosis.subjectName}}" class="goal-tag">{{diagnosis.subjectName}}</text>
+            <text wx:if="{{goal.direction}}" class="goal-tag">{{goal.direction}}</text>
+            <text wx:if="{{goal.deadline}}" class="goal-tag">{{goal.deadline}} 前</text>
+            <text wx:if="{{stateText && view === 'result'}}" class="goal-tag goal-tag-state">{{stateText}}</text>
+            <text wx:if="{{view !== 'sample'}}" class="goal-tag-link" bindtap="openGoal" aria-role="button">改目标</text>
+          </view>
+        </view>
+
+        <!-- 还没定目标 -->
+        <view wx:if="{{view === 'no_goal'}}" class="goal-card goal-state">
+          <view class="goal-ring is-big"><view class="goal-ring-dot"></view></view>
+          <text class="goal-state-title">先定一个学习目标</text>
+          <text class="goal-state-copy">围绕目标测一轮，找出卡在哪里；老师按目标导图给你定制课程，课会挂在每个卡点下面。</text>
+          <view class="goal-primary" bindtap="openGoal" aria-role="button">去定目标</view>
+          <view class="goal-ghost-link" bindtap="openHistory" aria-role="button">看历史目标</view>
+        </view>
+
+        <view wx:elif="{{view === 'start'}}" class="goal-card">
+          <text class="goal-card-title">{{goalChanged ? '目标改过了，按新目标测一轮' : '围绕你的目标，做一轮测评'}}</text>
+          <view class="goal-steps">
+            <view wx:for="{{steps}}" wx:key="no" class="goal-step"><view class="goal-step-no">{{item.no}}</view><view class="goal-step-copy"><text class="goal-step-title">{{item.title}}</text><text class="goal-step-desc">{{item.desc}}</text></view></view>
+          </view>
+          <view class="goal-primary goal-primary-wide" bindtap="startDiagnosis" aria-role="button">开始测评</view>
+          <text class="goal-foot">不用一次做完，随时可以先停下，下次接着测。</text>
+        </view>
+
+        <block wx:elif="{{view === 'testing'}}">
+          <view class="goal-card goal-testing">
+            <view class="bean-loader is-small goal-beans" aria-hidden="true"><view></view><view></view><view></view></view>
+            <view class="goal-testing-copy">
+              <text class="goal-card-title">测评进行中</text>
+              <text class="goal-state-copy">{{progress && progress.total ? '已探明 ' + progress.settled + ' / ' + progress.total + ' 个条件' : '正在拆解你的目标'}}</text>
+            </view>
+            <view class="goal-primary" bindtap="continueDiagnosis" aria-role="button">继续测评</view>
+          </view>
+          <goal-map wx:if="{{nodes.length}}" nodes="{{nodes}}" bind:course="openCourse" bind:sheet="handleSheet" />
+        </block>
+
+        <block wx:elif="{{view === 'result' || view === 'sample'}}">
+          <view wx:if="{{view === 'result'}}" class="goal-summary">
+            <view class="goal-summary-item tone-mastered"><text class="goal-summary-num">{{summary.mastered}}</text><text class="goal-summary-label">已掌握的知识点</text></view>
+            <view class="goal-summary-item tone-gap"><text class="goal-summary-num">{{summary.gaps}}</text><text class="goal-summary-label">卡点</text></view>
+            <view class="goal-summary-item tone-root"><text class="goal-summary-num">{{summary.roots.length}}</text><text class="goal-summary-label">根源卡点</text></view>
+          </view>
+          <text wx:if="{{summary.scopeText}}" class="goal-scope">{{summary.scopeText}}</text>
+          <text wx:if="{{summary.untestedText}}" class="goal-scope">{{summary.untestedText}}</text>
+
+          <goal-map nodes="{{nodes}}" sample="{{view === 'sample'}}" height="{{440}}" bind:course="openCourse" bind:sheet="handleSheet" />
+
+          <view wx:if="{{summary.path.length}}" class="goal-card goal-path-card">
+            <text class="goal-card-title">卡点与课程</text>
+            <text class="goal-card-sub">从最底下的基础补起；老师按卡点定制的课会出现在对应的卡点下面</text>
+            <view wx:for="{{summary.path}}" wx:key="id" class="goal-path-item">
+              <view class="goal-path-head">
+                <view class="goal-path-no {{item.root ? 'is-root' : ''}}">{{item.step}}</view>
+                <text class="goal-path-label">{{item.label}}</text>
+                <text wx:if="{{item.root}}" class="goal-root-tag">根源卡点</text>
+                <text wx:elif="{{item.gradeLabel}}" class="goal-grade">{{item.gradeLabel}}</text>
+              </view>
+              <view wx:if="{{item.courses.length}}" class="goal-path-courses">
+                <view wx:for="{{item.courses}}" wx:key="stageId" wx:for-item="course" class="goal-course" data-stage="{{course.stageId}}" data-state="{{course.state}}" bindtap="openCourse" aria-role="button" aria-label="{{course.title}}">
+                  <view class="goal-course-icon" aria-hidden="true"></view>
+                  <text class="goal-course-title">{{course.title}}</text>
+                  <text class="goal-course-go">查看课程</text>
+                </view>
+              </view>
+              <text wx:elif="{{view === 'result'}}" class="goal-path-wait">等老师定制课程</text>
+            </view>
+          </view>
+
+          <view wx:if="{{view === 'result' && !summary.path.length && diagnosis.status === 'finished'}}" class="goal-card goal-state">
+            <text class="goal-state-title">这一轮没有发现卡点</text>
+            <text class="goal-state-copy">围绕这个目标的条件都掌握得不错，可以把目标定得更高一点，再测一轮。</text>
+          </view>
+
+          <view wx:if="{{view === 'result'}}" class="goal-actions">
+            <view wx:if="{{diagnosis.status === 'paused'}}" class="goal-primary goal-primary-wide" bindtap="resumeDiagnosis" aria-role="button">继续测评</view>
+            <view class="goal-ghost-btn goal-primary-wide" bindtap="restartDiagnosis" aria-role="button">重新测一次</view>
+          </view>
+        </block>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 历史目标 -->
+  <view wx:if="{{historyOpen}}" class="goal-sheet-mask" bindtap="closeHistory">
+    <view class="goal-sheet" catchtap="noop">
+      <view class="goal-sheet-handle"></view>
+      <text class="goal-card-title">历史目标</text>
+      <text class="goal-card-sub">换过目标也不会丢，点开看当时的目标导图</text>
+      <view wx:if="{{historyState === 'loading'}}"><view class="sk goal-sk-row"></view><view class="sk goal-sk-row"></view></view>
+      <text wx:elif="{{historyState === 'failed'}}" class="goal-card-sub goal-history-empty">暂时没读到，稍后再试。</text>
+      <text wx:elif="{{!historyItems.length}}" class="goal-card-sub goal-history-empty">还没有测过。</text>
+      <scroll-view wx:else scroll-y class="goal-history-list">
+        <view wx:for="{{historyItems}}" wx:key="id" class="goal-history-item {{item.current ? 'is-current' : ''}}" data-id="{{item.id}}" bindtap="openPast" aria-role="button" aria-label="{{item.text}}">
+          <view class="goal-history-main">
+            <text class="goal-history-title">{{item.text}}</text>
+            <text class="goal-history-meta">{{item.subjectName}} · {{item.day}} · {{item.statusText}}{{item.rootGaps ? ' · ' + item.rootGaps + ' 个根源卡点' : ''}}</text>
+          </view>
+          <view class="goal-chevron" aria-hidden="true"></view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>
+<dev-reset-fab />

@@ -3,14 +3,29 @@
   <view class="profile-setup-topbar">
     <view class="profile-setup-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
       <view class="profile-setup-back" bindtap="handleBack" aria-label="返回上一页"><view class="profile-setup-back-icon"></view></view>
-      <text class="profile-setup-title">{{editing ? '个人资料' : '完善学习档案'}}</text>
-      <text class="profile-setup-progress">{{stepIndex + 1}} / {{activeSteps.length}}</text>
+      <text class="profile-setup-title">{{switchTitle || (editing ? '个人资料' : '完善学习档案')}}</text>
+      <text wx:if="{{!loading && !loadFailed}}" class="profile-setup-progress">{{stepIndex + 1}} / {{activeSteps.length}}</text>
     </view>
   </view>
 
   <scroll-view class="profile-setup-scroll" scroll-y style="padding-top: {{contentTop}}px;">
     <view class="profile-setup-shell">
-      <view wx:if="{{loading}}" class="profile-load-state">正在读取学习档案…</view>
+      <!-- 读到档案前：第一步的固定标题照常显示，身份卡位画骨架；步数随年级变化，读到后再显示。
+           切换身份时第一步要看缺哪些资料，读到前只画说明条和输入框的骨架 -->
+      <block wx:if="{{loading && switching}}">
+        <view class="profile-setup-hero">
+          <text class="profile-setup-hero-title">{{switchTitle}}</text>
+        </view>
+        <view class="sk profile-switch-notice-sk"></view>
+        <view class="profile-setup-fields"><view wx:for="{{[1, 2]}}" wx:key="*this" class="profile-setup-field"><view class="sk sk-line sk-short"></view><view class="sk profile-switch-field-sk"></view></view></view>
+      </block>
+      <block wx:elif="{{loading}}">
+        <view class="profile-setup-hero">
+          <text class="profile-setup-hero-title">{{steps[0].title}}</text>
+          <text class="profile-setup-hero-subtitle">{{steps[0].subtitle}}</text>
+        </view>
+        <view class="profile-role-picker"><view class="sk profile-role-pair-sk"></view></view>
+      </block>
       <view wx:elif="{{loadFailed}}" class="profile-load-state"><text>学习档案暂时无法读取</text><button bindtap="loadProfile">重新加载</button></view>
       <block wx:else>
       <view class="profile-setup-stepbar">
@@ -22,7 +37,11 @@
         <text class="profile-setup-hero-subtitle">{{activeSteps[stepIndex].subtitle}}</text>
       </view>
 
-      <view wx:if="{{stepIndex === 0}}" class="profile-role-picker">
+      <!-- 从「身份与登录」切换身份：说明保留了什么、还要补什么 -->
+      <view wx:if="{{switching && stepIndex === 0}}" class="profile-switch-notice"><text>{{switchNotice}}</text></view>
+
+      <!-- 按步骤 id 显示：切换身份时会跳过身份步（和已填全的基本信息步），下标不对应固定步骤 -->
+      <view wx:if="{{activeSteps[stepIndex].id === 'identity'}}" class="profile-role-picker">
         <view class="profile-role-pair">
           <image class="profile-role-pair-surface" src="{{UA.src(ui, rolePairSources.none)}}" mode="scaleToFill" aria-hidden="true"></image>
           <image class="profile-role-pair-surface profile-role-pair-surface-active {{form.accountType === 'student' ? 'is-visible' : ''}}" src="{{UA.src(ui, rolePairSources.student)}}" mode="scaleToFill" aria-hidden="true"></image>
@@ -41,14 +60,14 @@
             <text class="profile-role-notice-text">需后续完成实名认证后，方可绑定学生。</text>
           </view>
         </view>
-        <view class="profile-setup-error-wrap {{errors.accountType ? 'is-visible' : ''}}" style="padding-left: 8rpx;"><text class="profile-setup-error">{{errors.accountType}}</text></view>
+        <view class="profile-setup-error-wrap profile-setup-error-wrap-inset {{errors.accountType ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.accountType}}</text></view>
       </view>
 
-      <view wx:if="{{stepIndex === 1}}" class="profile-setup-fields">
+      <view wx:if="{{activeSteps[stepIndex].id === 'basic'}}" class="profile-setup-fields">
         <view class="profile-setup-field">
           <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">头像</text><text class="profile-setup-optional">选填</text></view>
           <button class="profile-personal-avatar-row" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{saving}}" aria-label="{{editing ? '更换头像' : '授权微信头像'}}">
-            <text>{{editing ? '更换头像' : '授权微信头像'}}</text><view class="profile-personal-avatar"><image wx:if="{{form.avatarPath || form.avatarUrl}}" src="{{UA.src(ui, form.avatarPath || form.avatarUrl)}}" mode="aspectFill"/><text wx:else>鹿</text></view>
+            <text>{{editing ? '更换头像' : '授权微信头像'}}</text><view class="profile-personal-avatar"><image src="{{UA.avatar(ui, form.avatarPath || form.avatarUrl)}}" mode="aspectFill"/></view>
           </button>
           <text class="profile-setup-input-hint">可跳过；未授权时将展示默认头像</text>
         </view>
@@ -60,38 +79,51 @@
           <view class="profile-setup-error-wrap {{errors.name ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.name}}</text></view>
         </view>
         <view class="profile-setup-field">
-          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">性别</text><text class="profile-setup-required">*</text></view>
-          <view class="profile-gender-options">
-            <view class="profile-gender-option {{form.gender === 'male' ? 'is-selected' : ''}}" data-value="male" bindtap="handleGenderPick" aria-label="男" aria-role="button" aria-checked="{{form.gender === 'male'}}">男</view>
-            <view class="profile-gender-option {{form.gender === 'female' ? 'is-selected' : ''}}" data-value="female" bindtap="handleGenderPick" aria-label="女" aria-role="button" aria-checked="{{form.gender === 'female'}}">女</view>
+          <!-- 性别选填；实名认证后按身份证锁定（2026-09-26 用户规则） -->
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">性别</text><text wx:if="{{locks.gender}}" class="profile-setup-verified">已实名</text><text wx:else class="profile-setup-optional">选填</text></view>
+          <view class="profile-gender-options {{locks.gender ? 'is-locked' : ''}}">
+            <view class="profile-gender-option {{form.gender === 'male' ? 'is-selected' : ''}}" data-value="male" bindtap="handleGenderPick" aria-label="男" aria-role="button" aria-checked="{{form.gender === 'male'}}" aria-disabled="{{locks.gender}}">男</view>
+            <view class="profile-gender-option {{form.gender === 'female' ? 'is-selected' : ''}}" data-value="female" bindtap="handleGenderPick" aria-label="女" aria-role="button" aria-checked="{{form.gender === 'female'}}" aria-disabled="{{locks.gender}}">女</view>
           </view>
+          <text wx:if="{{locks.gender}}" class="profile-setup-input-hint">已按实名认证信息填写，不能修改</text>
           <view class="profile-setup-error-wrap {{errors.gender ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.gender}}</text></view>
         </view>
         <view class="profile-setup-field">
-          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">所在地区</text><text class="profile-setup-required">*</text></view>
+          <!-- 所在城市：用户自己填的现居地，只选到城市；和实名带出的户籍地是两回事。家长选填（2026-09-26） -->
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">所在城市</text><text wx:if="{{form.accountType === 'guardian'}}" class="profile-setup-optional">选填</text><text wx:else class="profile-setup-required">*</text></view>
           <view class="profile-setup-region-row">
-            <picker class="profile-setup-region-picker" mode="region" level="region" value="{{regionPickerValue}}" disabled="{{saving}}" bindchange="handleRegionChange">
-              <view class="profile-setup-pill-picker {{errors.region ? 'profile-setup-control-error' : ''}}"><text class="{{form.regionDetail ? 'profile-setup-value' : 'profile-setup-placeholder'}}">{{form.regionDetail || '请选择所在地区'}}</text><view class="profile-setup-chevron"></view></view>
+            <picker class="profile-setup-region-picker" mode="region" level="city" value="{{regionPickerValue}}" disabled="{{saving}}" bindchange="handleRegionChange">
+              <view class="profile-setup-pill-picker {{errors.region ? 'profile-setup-control-error' : ''}}"><text class="{{form.regionDetail ? 'profile-setup-value' : 'profile-setup-placeholder'}}">{{form.regionDetail || '请选择所在城市'}}</text><view class="profile-setup-chevron"></view></view>
             </picker>
-            <picker mode="region" value="{{regionPickerValue}}" disabled="{{saving}}" bindchange="handleRegionChange"><view class="profile-setup-location-button" aria-label="选择所在地区"><image class="profile-setup-location-image" src="{{UA.src(ui, '../../assets/me/location.svg')}}" mode="aspectFit"></image><text>选择</text></view></picker>
+            <picker mode="region" level="city" value="{{regionPickerValue}}" disabled="{{saving}}" bindchange="handleRegionChange"><view class="profile-setup-location-button" aria-label="选择所在城市"><image class="profile-setup-location-image" src="{{UA.src(ui, '../../assets/me/location.svg')}}" mode="aspectFit"></image><text>选择</text></view></picker>
           </view>
           <view class="profile-setup-error-wrap {{errors.region ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.region}}</text></view>
         </view>
         <view class="profile-setup-field">
-          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">生日</text><text class="profile-setup-required">*</text></view>
+          <!-- 生日：实名认证后按身份证锁定；家长选填，实名后自动填写（2026-09-26 用户规则） -->
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">生日</text><text wx:if="{{locks.birthday}}" class="profile-setup-verified">已实名</text><text wx:elif="{{form.accountType === 'guardian'}}" class="profile-setup-optional">选填</text><text wx:else class="profile-setup-required">*</text></view>
           <view class="profile-birthday-row">
-            <picker mode="date" start="1900-01-01" end="{{maxBirthday}}" value="{{form.birthday || maxBirthday}}" bindchange="chooseBirthday" disabled="{{saving}}">
+            <view wx:if="{{locks.birthday}}" class="profile-setup-pill-picker is-locked"><text class="profile-setup-value">{{form.birthday}}</text></view>
+            <picker wx:else mode="date" start="1900-01-01" end="{{maxBirthday}}" value="{{form.birthday || maxBirthday}}" bindchange="chooseBirthday" disabled="{{saving}}">
               <view class="profile-setup-pill-picker"><text class="{{form.birthday ? 'profile-setup-value' : 'profile-setup-placeholder'}}">{{form.birthday || '请选择出生日期'}}</text><view class="profile-setup-chevron"></view></view>
             </picker>
           </view>
           <text wx:if="{{ageLabel}}" class="profile-setup-input-hint">当前 {{ageLabel}}</text>
-          <text wx:if="{{birthdayChangeUsed}}" class="profile-setup-input-hint">生日修改机会已用完，无法再次修改</text>
+          <text wx:if="{{locks.birthday}}" class="profile-setup-input-hint">已按实名认证信息填写，不能修改</text>
+          <text wx:elif="{{birthdayChangeUsed}}" class="profile-setup-input-hint">生日修改机会已用完，无法再次修改</text>
           <text wx:elif="{{originalBirthday}}" class="profile-setup-input-hint">生日设置后仅能修改一次，请谨慎选择</text>
+          <text wx:elif="{{form.accountType === 'guardian'}}" class="profile-setup-input-hint">完成实名认证后会按身份证自动填写</text>
           <view class="profile-setup-error-wrap {{errors.birthday ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.birthday}}</text></view>
+        </view>
+        <!-- 邀请码放在基本信息步最下面：家长两步就建完档，走不到后面的学校、教材步 -->
+        <view wx:if="{{!editing && !switching}}" class="profile-setup-field">
+          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">邀请码</text><text class="profile-setup-optional">选填</text></view>
+          <input class="profile-setup-pill-input" type="text" value="{{form.promotionCode}}" placeholder="填写邀请人的邀请码" placeholder-class="profile-setup-placeholder" maxlength="16" disabled="{{saving}}" data-key="promotionCode" bindinput="updateTextField" />
+          <text class="profile-setup-input-hint">填了就绑定推荐人，只能绑一次；没有可以留空</text>
         </view>
       </view>
 
-      <view wx:if="{{stepIndex === 2}}" class="profile-setup-fields">
+      <view wx:if="{{activeSteps[stepIndex].id === 'school'}}" class="profile-setup-fields">
         <view class="profile-setup-field">
           <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">所在学校</text><text class="profile-setup-required">*</text></view>
           <input class="profile-setup-pill-input" value="{{form.schoolName}}" placeholder="请输入学校名称" placeholder-class="profile-setup-placeholder" maxlength="60" disabled="{{saving}}" data-key="schoolName" bindinput="updateTextField" />
@@ -105,7 +137,7 @@
         </view>
       </view>
 
-      <view wx:if="{{stepIndex === 3}}" class="profile-setup-fields">
+      <view wx:if="{{activeSteps[stepIndex].id === 'textbook'}}" class="profile-setup-fields">
         <view class="profile-setup-field">
           <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">教材版本</text><text class="profile-setup-required">*</text></view>
           <view class="profile-textbook-grid {{errors.textbook ? 'profile-textbook-grid-error' : ''}}">
@@ -130,7 +162,7 @@
   <view wx:if="{{!loading && !loadFailed}}" class="profile-setup-actionbar">
     <view class="profile-setup-actions {{stepIndex > 0 ? 'profile-setup-actions-with-back' : ''}}">
       <view class="profile-setup-back-slot"><view class="profile-setup-back-action" bindtap="handleBack" aria-label="返回上一步">上一步</view></view>
-      <view class="profile-setup-next-slot"><button class="profile-setup-next" bindtap="handleNext" loading="{{saving}}" disabled="{{saving}}">{{saving ? '正在保存…' : (stepIndex === activeSteps.length - 1 && editing ? '保存修改' : activeSteps[stepIndex].actionLabel)}}</button></view>
+      <view class="profile-setup-next-slot"><button class="profile-setup-next" bindtap="handleNext" loading="{{saving}}" disabled="{{saving}}">{{saving ? '正在保存…' : (stepIndex === activeSteps.length - 1 && editing && !switching ? '保存修改' : activeSteps[stepIndex].actionLabel)}}</button></view>
     </view>
   </view>
 
@@ -158,11 +190,13 @@
       <view class="profile-success-sheet-handle"></view>
       <view class="profile-success-content">
         <view class="profile-success-mark"><view class="profile-success-check"></view></view>
-        <text class="profile-success-title">{{editing ? '个人资料已保存' : '学习档案完成'}}</text>
-        <text class="profile-success-subtitle">接下来，我们会为你安排更合适的学习内容。</text>
+        <text class="profile-success-title">{{switching ? '已' + switchTitle : (editing ? '个人资料已保存' : '学习档案完成')}}</text>
+        <text wx:if="{{switching === 'guardian'}}" class="profile-success-subtitle">绑定学生前，请先在「身份与登录」完成实名认证。</text>
+        <text wx:else class="profile-success-subtitle">接下来，我们会为你安排更合适的学习内容。</text>
+        <text wx:if="{{rewardCredits > 0}}" class="profile-success-reward">邀请码已生效，{{rewardCredits}} 积分已到账</text>
       </view>
       <view class="profile-success-actionbar">
-        <button class="profile-success-button" bindtap="handleSuccessContinue">{{editing ? '返回我的' : '继续学习'}}</button>
+        <button class="profile-success-button" bindtap="handleSuccessContinue">{{switching ? '返回' : (editing ? '返回我的' : '继续学习')}}</button>
       </view>
     </view>
   </view>

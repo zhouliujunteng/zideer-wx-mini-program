@@ -1,0 +1,63 @@
+<view class="wc-page">
+  <view class="wc-head"><text class="wc-eyebrow">家庭关系</text><text class="wc-title">孩子的网页端账号</text>
+    <text class="wc-intro">孩子没有手机或微信时，可以用电脑、平板打开 {{webUrl}} 学习：做测评、定制课程、按老师的安排学习、参加诊断会议，和小程序里一样。</text>
+  </view>
+
+  <!-- 刚创建好的账号 -->
+  <view wx:if="{{created}}" class="wc-created surface">
+    <text class="wc-created__title">账号已创建</text>
+    <view class="wc-created__row"><text>网址</text><text class="wc-mono">{{webUrl}}</text></view>
+    <view class="wc-created__row"><text>登录账号</text><text class="wc-mono">{{created.publicId}}</text></view>
+    <view class="wc-created__row"><text>密码</text><text>你刚才设置的密码</text></view>
+    <button class="wc-submit pressable" bindtap="copyLogin" data-id="{{created.publicId}}">复制登录信息</button>
+  </view>
+
+  <view class="wc-section-head"><text class="wc-section-title">我创建的孩子账号</text><text wx:if="{{loaded && provider}}" class="wc-section-count">共绑定 {{provider.used}}/{{provider.limit}}</text><text wx:elif="{{loaded}}" class="wc-section-count">{{children.length}}/{{max}}</text></view>
+  <view wx:if="{{!loaded && !failed}}" class="wc-card surface"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short wc-sk-gap"></view><view class="sk sk-line wc-sk-gap"></view></view>
+  <view wx:elif="{{!loaded}}" class="state-panel"><view class="state-panel__mark">!</view><text class="state-panel__title">孩子的网页端账号暂时读不到</text><text class="state-panel__copy">网络恢复后可以重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:else>
+    <view wx:if="{{!children.length}}" class="wc-empty surface"><text>还没有给孩子创建网页端账号。</text></view>
+    <view wx:for="{{children}}" wx:key="studentProfileId" class="wc-card surface">
+      <view class="wc-card__top">
+        <view class="wc-card__name"><text class="wc-card__nickname">{{item.nickname}}</text><text class="wc-card__grade">{{item.gradeText}}</text></view>
+        <text class="wc-badge {{item.locked ? 'wc-badge--locked' : ''}}">{{item.statusText}}</text>
+      </view>
+      <view class="wc-created__row"><text>登录账号</text><text class="wc-mono">{{item.publicId}}</text></view>
+      <view class="wc-created__row"><text>今年登录过</text><text>{{item.deviceText}}</text></view>
+      <text wx:if="{{item.locked}}" class="wc-locked-hint">一年内登录的设备超过 3 台，账号已锁定。请联系客服核实后解除。</text>
+      <view class="wc-card__actions">
+        <text class="wc-link" bindtap="copyLogin" data-id="{{item.publicId}}" aria-role="button">复制登录信息</text>
+        <text wx:if="{{item.ready}}" class="wc-link" bindtap="openPassword" data-id="{{item.studentProfileId}}" aria-role="button">改密码</text>
+      </view>
+      <view wx:if="{{passwordFor === item.studentProfileId}}" class="wc-password">
+        <input class="wc-input" password value="{{newPassword}}" placeholder="新密码（8～64 位，字母加数字）" placeholder-class="wc-placeholder" bindinput="onNewPassword" />
+        <view class="wc-password__actions"><text class="wc-link wc-link--muted" bindtap="closePassword">取消</text><text class="wc-link" bindtap="savePassword">{{savingPassword ? '保存中…' : '保存'}}</text></view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:if="{{gate}}" class="wc-gate surface">
+    <text class="wc-gate__title">{{gate.title}}</text>
+    <text class="wc-gate__detail">{{gate.detail}}</text>
+    <button wx:if="{{gate.actionLabel}}" class="wc-submit pressable" bindtap="openVerification">{{gate.actionLabel}}</button>
+  </view>
+
+  <button wx:if="{{!formOpen && loaded}}" class="wc-submit pressable" bindtap="openForm">给孩子创建网页端账号</button>
+
+  <view wx:if="{{formOpen}}" class="wc-form surface">
+    <text class="wc-form__title">孩子的资料</text>
+    <view class="wc-field"><text class="wc-label">称呼</text><input class="wc-input" maxlength="20" value="{{form.nickname}}" placeholder="比如：小明" placeholder-class="wc-placeholder" data-key="nickname" bindinput="onField" /></view>
+    <picker range="{{gradeLabels}}" value="{{form.gradeIndex}}" data-key="gradeIndex" bindchange="onPick"><view class="wc-field wc-field--pick"><text class="wc-label">年级</text><text class="{{form.gradeIndex < 0 ? 'wc-placeholder' : ''}}">{{form.gradeIndex < 0 ? '请选择' : gradeLabels[form.gradeIndex]}}</text></view></picker>
+    <picker range="{{semesterOptions}}" value="{{form.semesterIndex}}" data-key="semesterIndex" bindchange="onPick"><view class="wc-field wc-field--pick"><text class="wc-label">学期</text><text class="{{form.semesterIndex < 0 ? 'wc-placeholder' : ''}}">{{form.semesterIndex < 0 ? '请选择' : semesterOptions[form.semesterIndex]}}</text></view></picker>
+    <picker range="{{textbookOptions}}" value="{{form.textbookIndex}}" data-key="textbookIndex" bindchange="onPick"><view class="wc-field wc-field--pick"><text class="wc-label">教材</text><text class="{{form.textbookIndex < 0 ? 'wc-placeholder' : ''}}">{{form.textbookIndex < 0 ? '请选择' : textbookOptions[form.textbookIndex]}}</text></view></picker>
+    <view class="wc-field"><text class="wc-label">学校</text><input class="wc-input" maxlength="50" value="{{form.schoolName}}" placeholder="孩子就读的学校" placeholder-class="wc-placeholder" data-key="schoolName" bindinput="onField" /></view>
+    <view class="wc-field"><text class="wc-label">所在城市</text><input class="wc-input" maxlength="40" value="{{form.regionDetail}}" placeholder="比如：深圳市" placeholder-class="wc-placeholder" data-key="regionDetail" bindinput="onField" /></view>
+    <text class="wc-form__title wc-form__title--gap">网页端登录密码</text>
+    <view class="wc-field"><text class="wc-label">密码</text><input class="wc-input" password maxlength="64" value="{{form.password}}" placeholder="8～64 位，字母加数字" placeholder-class="wc-placeholder" data-key="password" bindinput="onField" /></view>
+    <view class="wc-field"><text class="wc-label">再输一次</text><input class="wc-input" password maxlength="64" value="{{form.confirm}}" placeholder="确认密码" placeholder-class="wc-placeholder" data-key="confirm" bindinput="onField" /></view>
+    <text class="wc-note">登录账号是系统给孩子分配的 6 位编号，创建后显示在这里。同一个孩子一年内最多在 3 台设备（电脑、平板、浏览器）上登录，超出会锁定账号，请只给孩子本人使用。</text>
+    <button class="wc-submit pressable" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">创建账号</button>
+    <text class="wc-link wc-link--muted wc-cancel" bindtap="closeForm">取消</text>
+  </view>
+</view>
+<dev-reset-fab />

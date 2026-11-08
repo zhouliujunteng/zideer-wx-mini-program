@@ -1,0 +1,38 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.add-root{min-height:100vh;flex-direction:column}
+.add-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:336px}
+.add-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
+.add-topbar-inner{padding:0 19px 9px}
+.add-back{flex:0 0 auto;width:32px;height:32px;border-radius:50%}
+.add-back-icon{width:13px;height:13px;border-bottom:2px solid #FFFFFF;border-left:2px solid #FFFFFF}
+.add-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.add-hero{flex:0 0 auto;padding:0 24px 37px}
+.add-hero-title{margin-top:15px;font-size:22px;font-weight:600;line-height:1.3}
+.add-hero-copy{margin-top:7px;font-size:13px;line-height:1.55}
+.add-panel{margin-top:-15px;padding:21px 16px calc(28px + env(safe-area-inset-bottom));flex:1;border-radius:15px 15px 0 0}
+.section-heading{margin:0 2px 12px;font-size:16px;font-weight:700;line-height:1.25}
+.section-note{margin:14px 2px 0;font-size:12px;line-height:1.6}
+.card{border:0;border-radius:16px}
+.code-field{height:67px;padding:0 24px;border:1px solid transparent;border-radius:599px}
+.code-field.is-error{border-color:rgba(232, 95, 77, .55)}
+.code-input{min-width:0;height:67px;flex:1;font-size:26px;font-weight:700;letter-spacing:8px;line-height:67px}
+.code-placeholder{font-size:16px;font-weight:400;letter-spacing:0}
+.code-clear{top:50%;right:16px;width:24px;height:24px;border-radius:50%;font-size:16px;font-weight:300;line-height:1}
+.add-error{margin:9px 4px 0;font-size:13px;line-height:1.5}
+.add-submit{width:100%;height:55px;margin:19px 0 0;padding:0;border-radius:599px;font-size:16px;font-weight:600;line-height:55px}
+.add-submit::after{border:0}
+.result-card{padding:16px 15px}
+.result-avatar{width:57px;height:57px;flex:0 0 57px;border-radius:50%}
+.result-copy{min-width:0;margin-left:13px;flex:1}
+.result-name{font-size:18px;font-weight:600;line-height:1.35}
+.result-meta{margin-top:3px;font-size:13px;line-height:1.4}
+.result-badge{flex:none;margin-left:9px;padding:3px 9px;border-radius:599px;font-size:12px;font-weight:600}
+.result-actions{margin-top:16px;gap:10px}
+.result-action{height:52px;flex:1;border-radius:599px;font-size:15px;font-weight:600}
+.empty-card{padding:33px 19px;flex-direction:column}
+.empty-title{font-size:16px;font-weight:600}
+.empty-copy{margin-top:7px;font-size:13px;line-height:1.6}
+.empty-retry{margin-top:14px;padding:8px 21px;border-radius:599px;font-size:13px;font-weight:600}
+}

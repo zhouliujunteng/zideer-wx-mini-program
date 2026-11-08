@@ -47,15 +47,29 @@ function loadPage({ live } = {}) {
   return { definition, instance, navigations, toasts }
 }
 
-test('every score tool uses its backend icon and announces it is coming soon', () => {
+test('every score tool uses its backend icon; live tools open their page, the rest are coming soon', () => {
   const template = readFileSync(require.resolve('../pages/home/index.wxml'), 'utf8')
-  const { instance, toasts } = loadPage()
+  const { instance, toasts, navigations } = loadPage()
   const tools = [...instance.data.primaryTools, ...instance.data.secondaryToolPages.flat()]
 
   assert.equal(tools.length, 7)
   assert.match(template, /UA\.src\(ui, '\/assets\/home\/score-tools\/' \+ \(item\.id\) \+ '\.png'\)/)
-  instance.handleScoreToolTap({ currentTarget: { dataset: { label: '错因诊断' } } })
-  assert.deepEqual(toasts, [{ title: '错因诊断即将上线', icon: 'none' }])
+  assert.match(template, /data-id="{{item\.id}}" data-label="{{item\.label}}" bindtap="handleScoreToolTap"/)
+  assert.match(template, /data-id="{{tool\.id}}" data-label="{{tool\.label}}" bindtap="handleScoreToolTap"/)
+
+  instance.data.model.access = 'ready'
+  instance.handleScoreToolTap({ currentTarget: { dataset: { id: 'error-diagnosis', label: '错因诊断' } } })
+  assert.deepEqual(navigations, [{ url: '/score-tools/tool/index?tool=error-diagnosis' }])
+  instance.handleScoreToolTap({ currentTarget: { dataset: { id: 'paper-analysis', label: '试卷复盘' } } })
+  assert.deepEqual(toasts, [{ title: '试卷复盘即将上线', icon: 'none' }])
+})
+
+test('a guest tapping a live score tool is sent to log in first', () => {
+  const { instance, navigations } = loadPage()
+  instance.data.model.access = 'guest'
+  instance.handleScoreToolTap({ currentTarget: { dataset: { id: 'question-review', label: '审题拆解' } } })
+  assert.equal(navigations.length, 1)
+  assert.doesNotMatch(navigations[0].url, /score-tools/)
 })
 
 test('the secondary tool swiper has no placeholder page', () => {
@@ -84,14 +98,14 @@ test('home keeps only the latest live model when loads overlap', async () => {
   assert.equal(instance.data.model.notifications.count, 2)
 })
 
-test('home top bar opens messages and the course heading opens the member catalog', () => {
+test('home top bar shows the learning streak entry and the course heading opens the member catalog', () => {
+  const template = readFileSync(require.resolve('../pages/home/index.wxml'), 'utf8')
   const { instance, navigations } = loadPage()
 
-  instance.showNotifications()
+  // 顶栏胶囊左边是学习连胜入口（components/streak-entry），不再是消息入口；消息中心在「我的 → 常用入口」。
+  assert.match(template, /<streak-entry top="\{\{streakEntryTop\}\}" right="\{\{streakEntryRight\}\}" size="\{\{menuButtonHeight\}\}" \/>/)
+  assert.doesNotMatch(template, /showNotifications|topbar\/message\.png/)
   instance.openMembershipCatalog()
 
-  assert.deepEqual(navigations, [
-    { url: '/pages/messages/index' },
-    { url: '/commerce/products/index' }
-  ])
+  assert.deepEqual(navigations, [{ url: '/learning/library/index' }])
 })

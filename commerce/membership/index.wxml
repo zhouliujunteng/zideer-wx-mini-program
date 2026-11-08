@@ -17,15 +17,16 @@
     <view class="membership-hero">
       <view class="member-profile">
         <view class="member-avatar">
-          <image wx:if="{{profile.avatarSrc}}" class="member-avatar-image" src="{{UA.src(ui, profile.avatarSrc)}}" mode="aspectFill"></image>
-          <text wx:else class="member-avatar-initial">{{profile.initial}}</text>
+          <view wx:if="{{!profileLoaded}}" class="sk sk-round member-avatar-skeleton"></view>
+          <image wx:else class="member-avatar-image" src="{{UA.avatar(ui, profile.avatarSrc)}}" mode="aspectFill"></image>
         </view>
         <view class="member-copy">
           <view class="member-name-row">
-            <text class="member-name">{{profile.name}}</text>
+            <text wx:if="{{profileLoaded}}" class="member-name">{{profile.name}}</text>
+            <view wx:else class="sk sk-line member-name-skeleton"></view>
             <text wx:if="{{member.active}}" class="vip-mark">VIP</text>
           </view>
-          <view wx:if="{{loading}}" class="member-status-row member-status-muted">正在读取会员信息</view>
+          <view wx:if="{{loading}}" class="member-status-row"><view class="sk member-status-skeleton"></view></view>
           <view wx:elif="{{error}}" class="member-status-row member-status-muted">会员状态待确认</view>
           <view wx:elif="{{member.active}}" class="member-status-row">
             <text>{{member.tierLabel}}</text>
@@ -45,7 +46,12 @@
     </view>
 
     <view class="membership-panel">
-      <view wx:if="{{loading}}" class="membership-state">正在读取会员信息…</view>
+      <view wx:if="{{loading}}" class="membership-skeleton">
+        <view class="plans-row"><view wx:for="{{[1, 2, 3]}}" wx:key="*this" class="sk plan-skeleton"></view></view>
+        <view class="sk sk-line plans-note-skeleton"></view>
+        <view class="sk sk-line sk-mid"></view>
+        <view class="sk action-skeleton"></view>
+      </view>
       <view wx:elif="{{error}}" class="membership-state">
         <text class="membership-error">{{error}}</text>
         <view class="membership-state-action" bindtap="refresh" aria-role="button">重新查询</view>
@@ -65,6 +71,7 @@
         </view>
 
         <block wx:if="{{showPlan}}">
+          <text wx:if="{{member.active}}" class="plans-title">升级到更高等级</text>
           <scroll-view class="plans-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
             <view class="plans-row">
               <view wx:for="{{plans}}" wx:key="id" class="plan-card-shell" data-id="{{item.id}}" bindtap="selectTier" aria-role="radio" aria-checked="{{item.isSelected}}" aria-label="{{item.name}} {{item.price}} 元，{{item.note}}">
@@ -72,14 +79,16 @@
                   <view class="plan-card {{item.isSelected ? 'plan-card-selected' : ''}}">
                     <view wx:if="{{item.isSelected}}" class="plan-crown-crop" aria-hidden="true"><image class="plan-crown-icon" src="{{UA.src(ui, '/commerce/assets/membership/plan-crown.svg')}}" mode="aspectFit"></image></view>
                     <text class="plan-name">{{item.name}}</text>
-                    <view class="plan-price-row"><text class="plan-yuan">¥</text><text class="plan-price">{{item.price}}</text></view>
+                    <view class="plan-price-row"><text class="plan-yuan">¥</text><text class="plan-price {{item.priceLong ? 'plan-price-long' : ''}}">{{item.price}}</text></view>
                   </view>
                   <view class="plan-promotion-copy">{{item.note}}</view>
                 </view>
               </view>
             </view>
           </scroll-view>
-          <text class="plans-note">会员永久有效，各等级权益相同，赠送积分永久有效；开通后不能更换等级，可购买积分包补充积分。</text>
+          <text wx:if="{{membership.inviteRequired}}" class="plans-invite-note">开通会员需要先填写邀请人的邀请码，填写后不可更改。</text>
+          <text wx:if="{{member.active}}" class="plans-note">按所选等级原价购买，开通后再赠送该等级的积分；只能往更高等级升级，不能降级。</text>
+          <text wx:else class="plans-note">会员永久有效，赠送积分永久有效；开通后可以随时升级到更高等级（按原价购买），但不能降级。</text>
         </block>
         <view wx:elif="{{!member.active && !confirming}}" class="membership-notice">会员等级暂未开放，请稍后再来看看。</view>
 
@@ -93,40 +102,34 @@
             <text class="agreement-link" bindtap="openAgreement">《会员服务说明》</text>
           </view>
         </view>
+      </block>
 
-        <view class="benefits-heading">
-          <view class="benefits-heading-line"></view>
-          <text>我的会员权益</text>
-          <view class="benefits-heading-line benefits-heading-line-right"></view>
-        </view>
+      <!-- 权益区：选中哪个等级就显示哪个等级的权益（2026-09-24），没有可选等级时是我的会员权益；卡片结构共用 -->
+      <view class="benefits-heading">
+        <view class="benefits-heading-line"></view>
+        <text>{{benefitsHeading}}</text>
+        <view class="benefits-heading-line benefits-heading-line-right"></view>
+      </view>
 
-        <view class="benefits-grid">
-          <view class="benefit-card benefit-card-wide">
+      <view class="benefits-grid">
+        <block wx:if="{{benefits.length}}">
+          <view wx:for="{{benefits}}" wx:key="key" class="benefit-card benefit-card-wide {{item.action ? 'benefit-card-link' : ''}}" data-action="{{item.action}}" bindtap="handleBenefitTap" aria-role="{{item.action ? 'button' : ''}}" aria-label="{{item.title}}">
             <view class="benefit-copy">
-              <text class="benefit-title">会员课程库</text>
-              <text class="benefit-subtitle">平台已上架课程</text>
-              <text class="benefit-state {{member.active ? 'is-active' : ''}}">{{member.libraryLabel}}</text>
+              <text class="benefit-title">{{item.title}}</text>
+              <text wx:if="{{item.subtitle}}" class="benefit-subtitle">{{item.subtitle}}</text>
+              <text wx:if="{{item.state}}" class="benefit-state {{item.stateActive ? 'is-active' : ''}}">{{item.state}}</text>
             </view>
-            <image class="benefit-art" src="{{UA.src(ui, '/commerce/assets/membership/benefit-learning-view.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+            <image class="benefit-art" src="{{UA.src(ui, item.art)}}" mode="aspectFit" aria-hidden="true"></image>
           </view>
-          <view class="benefit-card benefit-card-wide benefit-card-plan">
-            <view class="benefit-copy">
-              <text class="benefit-title">课程积分</text>
-              <text class="benefit-subtitle">开通赠送，永久有效，用于生成专属课程</text>
-              <text class="benefit-state {{member.giftCreditsText ? 'is-active' : ''}}">{{member.giftCreditsText || '按等级赠送'}}</text>
-            </view>
-            <image class="benefit-art" src="{{UA.src(ui, '/commerce/assets/membership/benefit-learning-plan.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+        </block>
+        <block wx:else>
+          <view wx:for="{{[0, 1, 2]}}" wx:key="*this" class="benefit-card benefit-card-wide">
+            <view class="benefit-copy"><view class="sk sk-line benefit-title-skeleton"></view><view class="sk sk-line sk-mid"></view><view class="sk benefit-state-skeleton"></view></view>
           </view>
-          <view class="benefit-card benefit-card-wide benefit-card-link" bindtap="openProducts" aria-role="button" aria-label="购买积分包">
-            <view class="benefit-copy">
-              <text class="benefit-title">积分包</text>
-              <text class="benefit-subtitle">积分不够时随时补充，会员购买享会员价</text>
-              <text class="benefit-state {{member.active ? 'is-active' : ''}}">{{member.active ? '去购买 ›' : '开通会员享会员价'}}</text>
-            </view>
-            <image class="benefit-art" src="{{UA.src(ui, '/commerce/assets/membership/benefit-learning-view.svg')}}" mode="aspectFit" aria-hidden="true"></image>
-          </view>
-        </view>
+        </block>
+      </view>
 
+      <block wx:if="{{!loading && !error}}">
         <view wx:if="{{membership.order}}" class="membership-card membership-order">
           <view class="membership-card-heading"><text class="membership-card-title">最近会员订单</text><view class="membership-text-button" bindtap="openOrder" aria-role="button">订单详情 ›</view></view>
           <view class="membership-row"><text>订单号</text><text selectable>{{membership.order.orderNo}}</text></view>
@@ -157,10 +160,11 @@
       </view>
       <scroll-view class="agreement-sheet-scroll" scroll-y>
         <text class="agreement-sheet-intro">开通前请确认以下内容。</text>
-        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>支付成功并经服务端确认后即成为会员，永久有效，可访问会员课程库。各会员等级权益相同，只是价格和赠送积分不同。</text></view>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>支付成功并经服务端确认后即成为会员，永久有效，可访问会员课程库。不同等级的价格、赠送积分与权益以会员中心所示为准。</text></view>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>开通或升级会员前需要先填写邀请人的邀请码（绑定推荐人），填写后不可更改。</text></view>
         <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>开通时按所选等级一次性赠送课程积分，赠送积分永久有效，用于生成专属课程。</text></view>
-        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>开通后不能更换或升级等级；积分不够时可购买积分包，会员享会员价。</text></view>
-        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>如办理退款，会员身份将取消，并扣回赠送积分中尚未使用的部分。</text></view>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>开通后可以升级到更高等级：按所选等级原价购买，并再赠送该等级的积分；不能降级到更低等级。积分不够时也可购买积分包，会员享会员价。</text></view>
+        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>支付成功之日起 7 日内可联系客服申请退款，超过 7 日不支持退款。退款的那个等级取消，并扣回它赠送积分中尚未使用的部分；仍持有的其他等级不受影响。</text></view>
         <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>支付后会员状态需要短暂确认。如已扣款但仍显示未开通，请勿重复支付，可重新查询或联系服务人员。</text></view>
         <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>会员权益仅限当前账号使用。</text></view>
       </scroll-view>

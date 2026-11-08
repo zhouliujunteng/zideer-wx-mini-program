@@ -1,41 +1,30 @@
 <wxs module="UA" src="../../utils/ui-asset.wxs" />
-<view class="map-page">
+<view class="map-page {{tabletLayout ? 'tablet-map' : ''}} {{tabletLayout.sidebar ? 'tablet-map-sidebar' : ''}}">
   <view class="map-topbar">
     <view class="map-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
-      <view class="map-view-switch" role="tablist" aria-label="学习宇宙与知识图谱切换">
-        <view class="map-view-switch-item {{activeView === 'universe' ? 'map-view-switch-item-active' : ''}}" data-view="universe" bindtap="switchMapView" role="tab" aria-selected="{{activeView === 'universe'}}">学习宇宙</view>
-        <view class="map-view-switch-item {{activeView === 'graph' ? 'map-view-switch-item-active' : ''}}" data-view="graph" bindtap="switchMapView" role="tab" aria-selected="{{activeView === 'graph'}}">知识图谱</view>
-      </view>
+      <view class="map-back" bindtap="handleBack" role="button" aria-label="返回"><view class="map-back-icon"></view></view>
+      <text class="map-topbar-title">知识图谱</text>
     </view>
-    <view class="map-assessment-button" style="top: {{notificationTop}}px; right: {{assessmentRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="openAssessmentCenter" role="button" aria-label="打开测评中心">
-      <image class="map-assessment-icon" src="{{UA.src(ui, '../../assets/messages/assessment.svg')}}" mode="aspectFit"></image>
+    <view class="map-galaxy-button" style="top: {{streakEntryTop}}px; right: {{galaxyRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="openGalaxy" role="button" aria-label="打开知识星河">
+      <image class="map-galaxy-icon" src="{{UA.src(ui, '../../assets/topbar/galaxy.svg')}}" mode="aspectFit"></image>
     </view>
-    <view class="map-notice-button" style="top: {{notificationTop}}px; right: {{notificationRight}}px; width: {{menuButtonHeight}}px; height: {{menuButtonHeight}}px;" bindtap="showNotifications">
-      <image class="map-message-icon" src="{{UA.src(ui, '../../assets/topbar/message.png')}}" mode="aspectFit"></image>
-      <view wx:if="{{model.notifications.count}}" class="map-notice-badge">{{model.notifications.count}}</view>
-    </view>
+    <streak-entry top="{{streakEntryTop}}" right="{{streakEntryRight}}" size="{{menuButtonHeight}}" />
   </view>
-  <scroll-view wx:if="{{activeView === 'universe'}}" class="universe-scroll" scroll-y="true" enhanced="true" show-scrollbar="false" style="top: {{contentTop}}px;">
-    <view class="universe-content">
-      <view class="universe-heading"><text class="universe-title">我的学习宇宙</text><text class="universe-scope">{{model.scopeLabel}}</text></view>
-      <text class="universe-summary">{{model.learningSummary}}</text>
-      <view class="map-universe-stats"><view wx:for="{{model.universeStats}}" wx:key="key" class="map-universe-stat"><text class="map-universe-value">{{item.value}}</text><text class="map-universe-label">{{item.label}}</text></view></view>
-      <view class="universe-section-heading"><text class="universe-section-title">已沉淀的知识点</text><text class="universe-section-meta">来自测评与课程</text></view>
-      <view wx:if="{{model.universeTopics && model.universeTopics.length}}" class="universe-topic-list">
-        <view wx:for="{{model.universeTopics}}" wx:key="id" class="universe-topic-card"><view><text class="universe-topic-title">{{item.label}}</text><text class="universe-topic-evidence">{{item.evidence}}</text></view><text class="map-topic-status map-topic-status-{{item.status}}">{{item.statusLabel}}</text></view>
-      </view>
-      <view wx:else class="universe-empty"><text class="universe-empty-title">知识点会在这里慢慢点亮</text><text class="universe-empty-copy">{{model.emptyCopy}}</text></view>
-      <text class="universe-note">切换到知识图谱，可以查看每个知识点之间的前后关系。</text>
-    </view>
-  </scroll-view>
-  <view wx:if="{{activeView === 'graph'}}" class="map-canvas-region {{sheetSnapping ? 'map-canvas-region-snapping' : ''}}" style="top: {{contentTop}}px; height: {{canvasClipHeight}}px;">
+  <!-- 示例图谱（没登录、没完善学习资料时）：标明「示例」，点了去登录 / 去完善。
+     画布在示例模式下从它下面开始（index.js SAMPLE_BANNER_SPACE_RPX），不叠在画布上 -->
+  <view wx:if="{{sampleMode}}" class="map-sample-banner" style="top: {{sampleBannerTop}}px;" bindtap="openAccessStep" role="button" aria-label="{{access === 'guest' ? '这是示例图谱，去登录' : '这是示例图谱，去完善学习资料'}}">
+    <text class="map-sample-tag">示例</text>
+    <text class="map-sample-copy">{{access === 'guest' ? '登录后查看你自己的知识图谱' : '完善学习资料后查看你的知识图谱'}}</text>
+    <text class="map-sample-action">{{access === 'guest' ? '去登录' : '去完善'}}</text>
+  </view>
+  <view class="map-canvas-region {{sheetSnapping ? 'map-canvas-region-snapping' : ''}}" style="top: {{contentTop}}px; height: {{canvasClipHeight}}px; {{tabletLayout ? 'width: ' + tabletLayout.stageWidth + 'px;' : ''}}">
     <view class="map-viewport" style="height: {{canvasHeight}}px;">
       <canvas id="knowledge-map-canvas" type="2d" class="knowledge-map-canvas {{sheetSnapping ? 'map-canvas-follow-snapping' : ''}}" style="transform: translate3d(0, -{{canvasFollowOffset}}px, 0);" disable-scroll="true" bindtouchstart="handleMapTouchStart" bindtouchmove="handleMapTouchMove" bindtouchend="handleMapTouchEnd" bindtouchcancel="handleMapTouchEnd"></canvas>
       <view wx:if="{{metricsVisible}}" class="map-metrics {{metricsCollapsed ? 'map-metrics-collapsed' : ''}}" catchtap="toggleMetricsPanel"><view class="map-metrics-header"><text class="map-metrics-title">{{metricsCollapsed ? '性能' : '性能监测'}}</text><view class="map-metrics-toggle {{metricsCollapsed ? 'map-metrics-toggle-collapsed' : ''}}"></view></view><block wx:if="{{!metricsCollapsed}}"><text wx:for="{{metricsRows}}" wx:key="*this" class="map-metrics-row">{{item}}</text></block></view>
-      <view class="map-gesture-tip {{sheetSnapping ? 'map-control-snapping' : ''}}" style="transform: translate3d(0, -{{sheetVisualOffset}}px, 0);"><text>{{zoomPercent}}% · 双指缩放 · 单指移动</text></view><view class="map-reset {{sheetSnapping ? 'map-control-snapping' : ''}}" style="transform: translate3d(0, -{{sheetVisualOffset}}px, 0);" bindtap="resetMap"><view class="map-reset-icon"><view class="map-reset-icon-center"></view></view></view>
+      <view class="map-gesture-tip {{sheetSnapping ? 'map-control-snapping' : ''}}" style="transform: translate3d(0, -{{canvasControlOffset}}px, 0);"><text>{{zoomPercent}}% · 双指缩放 · 单指移动</text></view><view class="map-reset {{sheetSnapping ? 'map-control-snapping' : ''}}" style="transform: translate3d(0, -{{canvasControlOffset}}px, 0);" bindtap="resetMap"><view class="map-reset-icon"><view class="map-reset-icon-center"></view></view></view>
     </view>
   </view>
-  <view wx:if="{{activeView === 'graph'}}" class="map-sheet {{sheetSnapping ? 'map-sheet-snapping' : ''}}" style="top: {{sheetStart}}rpx; transform: translate3d(0, -{{sheetVisualOffset}}px, 0);" bindtouchstart="handleMapSheetTouchStart" bindtouchmove="handleMapSheetTouchMove" bindtouchend="handleMapSheetTouchEnd" bindtouchcancel="handleMapSheetTouchEnd">
+  <scroll-view scroll-y="{{!!tabletLayout}}" class="map-sheet {{sheetSnapping ? 'map-sheet-snapping' : ''}}" style="top: {{sheetTop}}px; transform: translate3d(0, {{sheetTranslateY}}px, 0); {{tabletLayout ? 'left: ' + tabletLayout.panelLeft + 'px; width: ' + tabletLayout.panelWidth + 'px; height: ' + tabletLayout.panelHeight + 'px;' : ''}}" bindtouchstart="handleMapSheetTouchStart" bindtouchmove="handleMapSheetTouchMove" bindtouchend="handleMapSheetTouchEnd" bindtouchcancel="handleMapSheetTouchEnd">
     <view class="map-sheet-handle"></view>
     <block wx:if="{{relationMode && selectedNode}}">
       <view class="map-topic-head">
@@ -46,7 +35,7 @@
         </view>
         <text class="map-topic-status map-topic-status-{{selectedNode.status || 'unknown'}}">{{selectedNode.statusLabel}}</text>
       </view>
-      <scroll-view wx:if="{{!relationLoading && !relationError}}" class="map-topic-body" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}" catchtouchmove="noopSheetTouch">
+      <scroll-view wx:if="{{!relationLoading && !relationError}}" class="map-topic-body" scroll-y="{{true}}" style="{{tabletLayout ? 'height: ' + (tabletLayout.panelHeight - 112) + 'px;' : ''}}" enhanced="{{true}}" show-scrollbar="{{false}}" catchtouchmove="noopSheetTouch">
         <view class="map-topic-block"><text class="map-topic-block-title">知识说明</text><text class="map-topic-copy">{{selectedNode.description || '来源暂未提供说明'}}</text></view>
         <view wx:if="{{selectedNode.masteryStandard}}" class="map-topic-block"><text class="map-topic-block-title">掌握标准</text><text class="map-topic-copy">{{selectedNode.masteryStandard}}</text></view>
         <view class="map-topic-block">
@@ -64,20 +53,27 @@
           <view wx:for="{{selectedNode.relatedLinks}}" wx:key="id" class="map-topic-link" data-id="{{item.id}}" bindtap="selectRelatedNode" role="button" aria-label="查看相关知识 {{item.label}}"><text class="map-topic-link-label">{{item.label}}</text><text class="map-topic-link-meta">{{item.gradeLabel}}</text></view>
         </view>
         <view class="map-topic-block"><text class="map-topic-block-title">掌握证据</text><text class="map-topic-copy">{{selectedNode.evidence}}</text><text wx:for="{{selectedNode.evidenceRecords}}" wx:key="id" class="map-topic-copy map-topic-copy-muted">{{item.summary}}</text></view>
+        <view wx:if="{{!sampleMode}}" class="map-topic-detail-link" bindtap="openTopicDetail" role="button" aria-label="查看知识点详情和测评记录"><text>查看知识点详情和测评记录</text><view class="map-topic-detail-arrow" aria-hidden="true"></view></view>
       </scroll-view>
       <view wx:elif="{{relationLoading}}" class="map-topic-state"><view class="map-topic-state-dot"></view><text class="map-topic-state-copy">正在加载知识点详情…</text></view>
       <view wx:else class="map-topic-state"><text class="map-topic-state-copy">{{relationError}}</text><view class="map-topic-retry" bindtap="retryRelations" role="button" aria-label="重试加载知识点详情">重试</view></view>
     </block>
     <block wx:else>
-      <view class="map-section-heading"><text class="map-section-title">我的知识星图</text><text class="map-section-scope">{{model.scopeLabel}}</text></view>
-      <view class="map-universe-stats"><view wx:for="{{model.universeStats}}" wx:key="key" class="map-universe-stat"><text class="map-universe-value">{{item.value}}</text><text class="map-universe-label">{{item.label}}</text></view></view>
-      <scroll-view class="map-course-strip" scroll-x show-scrollbar="false" enhanced="true"><view class="map-course-list">
-        <view wx:for="{{model.courses}}" wx:key="id" class="map-course-card {{item.id === model.activeCourseId ? 'map-course-card-active' : ''}} {{item.isStressFixture ? 'map-course-card-stress' : ''}}" data-id="{{item.id}}" bindtap="selectCourse"><view class="map-course-card-top"><text class="map-course-title">{{item.title}}</text><text class="map-course-status">{{item.progressLabel}}</text></view><text class="map-course-meta">{{item.meta}}</text><view wx:if="{{item.hasProgress}}" class="map-course-track"><view class="map-course-bar" style="width: {{item.progress}}%;"></view></view><view wx:else class="map-course-stress-meta"><view class="map-course-stress-line"></view><text>性能验证</text></view></view>
-      </view></scroll-view>
+      <view class="map-section-heading"><text class="map-section-title">{{sampleMode ? '示例知识星图' : '我的知识星图'}}</text><text wx:if="{{mapLoaded}}" class="map-section-scope">{{model.scopeLabel}}</text><view wx:elif="{{!loadError && !access}}" class="sk map-scope-skeleton"></view></view>
+      <!-- 没登录、没完善学习资料（2026-09-27 起未登录也能浏览）：mapLoaded 时画的是示例图谱（sampleMode），提示在画布上方 -->
+      <view wx:if="{{mapLoaded}}" class="map-universe-stats"><view wx:for="{{model.universeStats}}" wx:key="key" class="map-universe-stat"><text class="map-universe-value">{{item.value}}</text><text class="map-universe-label">{{item.label}}</text></view></view>
+      <view wx:elif="{{loadError}}" class="map-topic-state"><text class="map-topic-state-copy">{{loadError}}</text><view class="map-topic-retry" bindtap="retryKnowledgeMap" role="button" aria-label="重新加载知识图谱">重试</view></view>
+      <view wx:else class="map-universe-stats"><view wx:for="{{skeletonStats}}" wx:key="key" class="map-universe-stat"><view class="sk map-value-skeleton"></view><text class="map-universe-label">{{item.label}}</text></view></view>
+      <view wx:if="{{tabletLayout}}" class="map-course-strip"><template is="tablet-map-courses" data="{{model:model}}" /></view>
+      <scroll-view wx:else class="map-course-strip" scroll-x show-scrollbar="false" enhanced="true"><template is="tablet-map-courses" data="{{model:model}}" /></scroll-view>
       <view class="map-legend"><view wx:for="{{model.legend}}" wx:key="key" class="map-legend-item"><view class="map-legend-mark map-legend-{{item.key}}"><text wx:if="{{item.key === 'mastered'}}">✓</text></view><text>{{item.label}}</text></view></view>
-      <text class="map-learning-summary">{{model.learningSummary}}</text>
+      <text wx:if="{{model.learningSummary}}" class="map-learning-summary">{{model.learningSummary}}</text>
       <text class="map-note">{{model.tip}}</text>
     </block>
-  </view>
+  </scroll-view>
 </view>
 <dev-reset-fab />
+
+<template name="tablet-map-courses"><view class="map-course-list">
+        <view wx:for="{{model.courses}}" wx:key="id" class="map-course-card {{item.id === model.activeCourseId ? 'map-course-card-active' : ''}} {{item.isStressFixture ? 'map-course-card-stress' : ''}}" data-id="{{item.id}}" bindtap="selectCourse"><view class="map-course-card-top"><text class="map-course-title">{{item.title}}</text><text class="map-course-status">{{item.progressLabel}}</text></view><text class="map-course-meta">{{item.meta}}</text><view wx:if="{{item.hasProgress}}" class="map-course-track"><view class="map-course-bar" style="width: {{item.progress}}%;"></view></view><view wx:elif="{{item.isStressFixture}}" class="map-course-stress-meta"><view class="map-course-stress-line"></view><text>性能验证</text></view></view>
+      </view></template>

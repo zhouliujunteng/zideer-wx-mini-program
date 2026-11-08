@@ -1,0 +1,6 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="streak-entry" style="top: {{top}}px; right: {{right}}px; width: {{size}}px; height: {{size}}px;" bindtap="openCheckIn" role="button" aria-label="{{streak ? (streak.lit ? '学习连胜，已连续学习' + streak.streakDays + '天，今天已点亮' : '学习连胜，今天还没点亮') : '学习连胜'}}">
+  <!-- 第一次读到打卡状态前只画骨架，不先显示未点亮再变成点亮。读取失败按未点亮显示，点进去由打卡页给出错误与重试。 -->
+  <view wx:if="{{streakStatus === 'loading'}}" class="sk sk-round streak-entry-skeleton"></view>
+  <image wx:else class="streak-entry-icon" src="{{UA.src(ui, streak && streak.lit ? '/learning/assets/check-in/streak.svg' : '/learning/assets/check-in/streak-gray.svg')}}" mode="aspectFit"></image>
+</view>

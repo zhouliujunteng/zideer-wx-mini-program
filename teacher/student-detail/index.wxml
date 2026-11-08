@@ -1,0 +1,317 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="student-service-root">
+  <view class="student-service-ambient" aria-hidden="true"></view>
+  <view class="student-service-topbar">
+    <view class="student-service-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="student-service-back" bindtap="handleBack" aria-label="返回上一页" aria-role="button"><view class="student-service-back-icon"></view></view>
+      <text class="student-service-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">我的学生详情</text>
+    </view>
+  </view>
+
+  <scroll-view class="student-service-page" scroll-y show-scrollbar="false" enhanced="{{true}}" style="padding-top: {{contentTop}}px;" refresher-enabled="{{true}}" refresher-default-style="white" refresher-background="transparent" refresher-triggered="{{refreshing}}" bindrefresherrefresh="handleRefresh">
+    <view class="student-service-hero">
+      <view class="student-summary">
+        <image wx:if="{{profile.avatarUrl}}" class="student-avatar student-avatar-image" src="{{profile.avatarUrl}}" mode="aspectFill" aria-label="学生头像"></image>
+        <view wx:elif="{{avatarInitial}}" class="student-avatar">{{avatarInitial}}</view>
+        <view wx:else class="student-avatar student-avatar-empty"></view>
+        <view class="student-copy">
+          <view class="student-heading">
+            <text wx:if="{{profile.displayName}}" class="student-name">{{profile.displayName}}</text>
+            <view wx:else class="sk hero-name-sk"></view>
+            <view class="student-role-badge">我负责的学生</view>
+          </view>
+          <text wx:if="{{loadState === 'ready'}}" class="student-meta">{{headerMeta}}</text>
+          <view wx:elif="{{loadState === 'loading'}}" class="sk hero-meta-sk"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="student-service-panel">
+      <view class="student-service-tabs">
+        <view wx:for="{{tabs}}" wx:key="id" class="student-service-tab {{activeTab === item.id ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleTabChange" aria-role="button">
+          <image class="student-service-tab-icon" src="{{UA.src(ui, item.icon)}}" mode="aspectFit" aria-hidden="true"></image>
+          <text>{{item.label}}</text>
+          <view wx:if="{{item.id === 'learning' && pendingCourseCount}}" class="tab-dot" aria-label="{{pendingCourseCount}} 门课程待核验"></view>
+        </view>
+      </view>
+
+      <!-- 学生档案：老师只读，学生本人维护 -->
+      <view wx:if="{{activeTab === 'profile'}}" class="tab-content {{tabMotion}}">
+        <view class="section-heading"><text>学生个人档案</text><view wx:if="{{loadState === 'ready'}}" class="profile-status-badge"><view class="profile-status-dot"></view><text>{{profile.profileCompleted ? '档案已是最新' : '档案还没填完整'}}</text></view></view>
+        <view wx:if="{{loadState === 'failed'}}" class="card empty-card">
+          <text class="empty-title">学生档案暂时无法读取</text>
+          <text class="empty-copy">{{loadError}}</text>
+          <view class="empty-retry" bindtap="loadPage" aria-role="button">重新加载</view>
+        </view>
+        <view wx:elif="{{loadState === 'ready'}}" class="card profile-card">
+          <view wx:for="{{profileRows}}" wx:key="label" class="profile-row">
+            <text class="field-label">{{item.label}}</text>
+            <text class="field-value">{{item.value}}</text>
+          </view>
+        </view>
+        <view wx:else class="card profile-card">
+          <view wx:for="{{skeletonLabels}}" wx:key="*this" class="profile-row">
+            <text class="field-label">{{item}}</text>
+            <view class="sk profile-value-sk"></view>
+          </view>
+        </view>
+        <text class="section-note profile-notice">档案信息由学生本人维护，老师仅支持查看内容。</text>
+
+        <!-- 学习目标与偏好（2026-10-07）：学生在「学习宇宙」里自己填，诊断会议定制课程前先看；老师只读，没填时引导学生完善 -->
+        <view class="section-heading learning-gap"><text>学习目标与偏好</text><text wx:if="{{preferenceState === 'ready' && (goalSet || preferenceSet)}}" class="section-caption">学生自己填写</text></view>
+        <view wx:if="{{preferenceState === 'failed'}}" class="card empty-card">
+          <text class="empty-title">学习目标与偏好暂时无法读取</text>
+          <text class="empty-copy">{{preferenceError}}</text>
+          <view class="empty-retry" bindtap="loadPreference" aria-role="button">重新加载</view>
+        </view>
+        <view wx:elif="{{preferenceState === 'ready' && !goalSet && !preferenceSet}}" class="card empty-card">
+          <text class="empty-title">学生还没有填学习目标和偏好</text>
+          <text class="empty-copy">可以提醒学生在「宇宙 › 老师备课先看」里写下学习目标、选一选喜欢怎么学，定制课程时会照着来。没填时，诊断会议里会先问他。</text>
+        </view>
+        <view wx:elif="{{preferenceState === 'ready'}}" class="card preference-card">
+          <view class="preference-row">
+            <text class="field-label">学习目标</text>
+            <text wx:if="{{goalSet}}" class="preference-note">{{goalText}}</text>
+            <text wx:else class="preference-missing">还没写，可以提醒学生在「宇宙」页写下目标</text>
+          </view>
+          <view wx:if="{{goalSet}}" class="preference-row goal-map-link" bindtap="openGoalMap" aria-role="button" aria-label="查看目标导图">
+            <text class="field-label">目标导图</text>
+            <view class="goal-map-link-row"><text class="preference-note">围绕目标测出的卡点和补习顺序</text><view class="goal-map-chevron" aria-hidden="true"></view></view>
+          </view>
+          <view wx:for="{{preferenceLines}}" wx:key="title" class="preference-row">
+            <text class="field-label">{{item.title}}</text>
+            <view class="preference-tags"><text wx:for="{{item.labels}}" wx:key="*this" wx:for-item="label" class="preference-tag">{{label}}</text></view>
+          </view>
+          <view wx:if="{{preferenceNote}}" class="preference-row">
+            <text class="field-label">学生补充</text>
+            <text class="preference-note">{{preferenceNote}}</text>
+          </view>
+          <view wx:if="{{!preferenceSet}}" class="preference-row">
+            <text class="field-label">学习偏好</text>
+            <text class="preference-missing">还没设置，可以提醒学生在「宇宙」页选一选喜欢怎么学</text>
+          </view>
+        </view>
+        <view wx:else class="card preference-card">
+          <view wx:for="{{[1, 2]}}" wx:key="*this" class="preference-row"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid record-sk-gap"></view></view>
+        </view>
+      </view>
+
+      <!-- 预约会议 -->
+      <view wx:if="{{activeTab === 'appointment'}}" class="tab-content {{tabMotion}}">
+        <view class="section-heading"><text>发起预约</text></view>
+        <view class="appointment-launcher" bindtap="openSheet" aria-role="button">
+          <image class="appointment-launcher-icon" src="{{UA.src(ui, '/assets/student-service/video-camera.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+          <text class="appointment-launcher-label">发起预约会议</text>
+          <view class="appointment-launcher-arrow" aria-hidden="true"></view>
+        </view>
+        <view class="appointment-records">
+          <view class="section-heading"><text>预约记录</text><text wx:if="{{loadState === 'ready'}}" class="section-caption">{{invites.length}} 条</text></view>
+          <block wx:if="{{loadState === 'loading'}}">
+            <view wx:for="{{[1, 2]}}" wx:key="*this" class="record-card-stack"><view class="card record-card"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short record-sk-gap"></view></view></view>
+          </block>
+          <view wx:elif="{{loadState === 'failed'}}" class="card empty-card">
+            <text class="empty-title">预约记录暂时无法读取</text>
+            <text class="empty-copy">{{loadError}}</text>
+            <view class="empty-retry" bindtap="loadPage" aria-role="button">重新加载</view>
+          </view>
+          <view wx:elif="{{!invites.length}}" class="card empty-card"><text class="empty-copy">还没有预约记录，点上方「发起预约会议」创建第一场。</text></view>
+          <block wx:else>
+            <view wx:for="{{invites}}" wx:key="inviteId" class="record-card-stack">
+              <view class="card record-card {{item.status === 'canceled' || !item.isLatest ? 'is-inactive' : ''}}">
+                <view class="record-heading">
+                  <text class="record-title">{{item.title}}</text>
+                  <text class="record-time">{{item.dateLabel}} {{item.timeLabel}}</text>
+                </view>
+                <view class="record-subtitle">
+                  <text>{{item.subtitle}}</text>
+                  <text wx:if="{{item.shareHint}}" class="record-inline-unshare"> · {{item.shareHint}}</text>
+                </view>
+                <view class="record-actions">
+                  <button wx:if="{{item.canShare}}" class="record-action record-action-soft" open-type="share" data-token="{{item.token}}" data-subject="{{item.subject}}" data-scheduled-at="{{item.scheduledOnlineAt}}">分享给学生</button>
+                  <view wx:if="{{item.canWatchLive}}" class="record-action" data-invite-id="{{item.inviteId}}" data-subject="{{item.subject}}" bindtap="handleOpenRoom" aria-role="button">看直播间</view>
+                  <view wx:if="{{item.canCancel}}" class="record-action record-menu-cancel-action" data-invite-id="{{item.inviteId}}" data-latest="{{item.isLatest}}" bindtap="handleCancelInvite" aria-role="button">取消</view>
+                </view>
+              </view>
+              <view wx:if="{{item.showVoice}}" class="record-voice-peek" data-invite-id="{{item.inviteId}}" bindtap="handleVoiceTap" aria-role="button">
+                <view class="voice-state-dot {{recordingInviteId === item.inviteId ? 'is-recording' : (item.hasVoice ? 'is-ready' : '')}}"></view>
+                <text class="voice-state">{{recordingInviteId === item.inviteId ? '录音中 ' + recordingSeconds + ' 秒，点此结束' : item.voiceText}}</text>
+                <text class="voice-action">{{uploadingVoice ? '保存中…' : (recordingInviteId === item.inviteId ? '结束' : (item.hasVoice ? '重录' : '录语音'))}}</text>
+              </view>
+            </view>
+            <text class="section-note">同一个学生同时只有最新一条预约生效；取消它之后，已经发出去的链接都会打不开。</text>
+          </block>
+        </view>
+      </view>
+
+      <!-- 学习情况：学习课程（AI 验收后由老师核验）与测评记录 -->
+      <view wx:if="{{activeTab === 'learning'}}" class="tab-content {{tabMotion}}">
+        <!-- 从服务号「课程学习完成通知」点进来：提醒老师去服务群里跟学生互动 -->
+        <view wx:if="{{meetingDoneHint}}" class="meeting-done-hint" aria-role="note">
+          <view class="meeting-done-hint-copy">
+            <text class="meeting-done-hint-title">诊断会议已结束</text>
+            <text class="meeting-done-hint-text">记得到服务群里和学生互动，聊聊这次的收获，再看看下面的学习安排。</text>
+          </view>
+          <view class="meeting-done-hint-close" bindtap="dismissMeetingDoneHint" aria-role="button" aria-label="关闭提醒">×</view>
+        </view>
+        <!-- 今日学习：学生今天学了什么；今天学过的，老师生成一段话单独发给学生（一天一段，课程服务 lib/daily-learning） -->
+        <view class="section-heading"><text>今日学习</text><text wx:if="{{dailyState === 'ready'}}" class="section-caption">{{daily.dayText}}</text></view>
+        <view wx:if="{{dailyState === 'loading'}}" class="card daily-block daily-card">
+          <view class="sk sk-line sk-short"></view>
+          <view class="daily-stats"><view wx:for="{{[1, 2, 3]}}" wx:key="*this" class="daily-stat"><view class="sk daily-stat-sk"></view></view></view>
+          <view class="sk sk-line sk-mid"></view>
+        </view>
+        <view wx:elif="{{dailyState === 'failed'}}" class="card empty-card daily-block">
+          <text class="empty-title">今日学习暂时没有读到</text>
+          <text class="empty-copy">{{dailyError}}</text>
+          <view class="empty-retry" bindtap="loadDaily" aria-role="button">重新加载</view>
+        </view>
+        <view wx:elif="{{!daily.studied}}" class="card daily-block daily-card is-idle">
+          <view class="daily-state"><view class="daily-state-dot"></view><text>今天还没有学习</text></view>
+          <text class="daily-idle-copy">孩子今天学完一页、交了测验或在课程里学满 1 分钟后，这里会显示今天学了什么，你就可以生成一段话发给孩子。</text>
+        </view>
+        <view wx:else class="card daily-block daily-card">
+          <view class="daily-state is-studied"><view class="daily-state-dot"></view><text>今天学习了{{daily.checkedIn ? ' · 已打卡' : ''}}</text></view>
+          <view class="daily-stats">
+            <view wx:for="{{daily.stats}}" wx:key="label" class="daily-stat">
+              <view class="daily-stat-value"><text>{{item.value}}</text><text class="daily-stat-unit">{{item.unit}}</text></view>
+              <text class="daily-stat-label">{{item.label}}</text>
+            </view>
+          </view>
+          <text wx:if="{{daily.recentText}}" class="daily-recent">{{daily.recentText}}</text>
+          <view wx:for="{{daily.courses}}" wx:key="stageId" class="daily-course">
+            <view class="daily-course-head"><text class="daily-course-title">{{item.title}}</text><text wx:if="{{item.progress}}" class="daily-course-progress">{{item.progress}}</text></view>
+            <text class="daily-course-line">{{item.line}}</text>
+            <view wx:if="{{item.tags.length}}" class="daily-tags"><text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="text" class="daily-tag {{tag.tone ? 'is-' + tag.tone : ''}}">{{tag.text}}</text></view>
+          </view>
+          <text wx:if="{{daily.onlyTime}}" class="daily-course-line daily-only-time">今天在课程里学了一会儿，还没有学完新的一页（可能在复习或看到一半）。</text>
+
+          <view wx:if="{{daily.note}}" class="daily-note" bindtap="copyDailyNote" aria-role="button" aria-label="复制发给学生的话">
+            <view class="daily-note-head"><text class="daily-note-label">发给学生的话</text><text class="daily-note-copy">点击复制</text></view>
+            <text class="daily-note-text" user-select="{{true}}">{{daily.note.text}}</text>
+            <text class="daily-note-meta">{{daily.note.meta}}{{daily.note.outdated ? ' · 孩子之后又学了新内容，可以重新生成' : ''}}</text>
+          </view>
+          <view class="daily-actions">
+            <text class="daily-hint">按今天的学习，结合测评成绩、课程进度和最近 7 天来写</text>
+            <view class="daily-generate {{dailyWriting ? 'is-busy' : ''}} {{daily.note && !daily.note.outdated ? 'is-soft' : ''}}" bindtap="handleDailyNote" aria-role="button">{{dailyWriting ? '正在写…' : (daily.note ? '重新生成' : '生成发给学生的话')}}</view>
+          </view>
+        </view>
+
+        <!-- 学习安排：和学生确认每天学多久后，自动把课程排进每天的学习任务（teacher/study-plan） -->
+        <view class="appointment-launcher study-plan-launcher" bindtap="openStudyPlan" aria-role="button">
+          <image class="appointment-launcher-icon" src="{{UA.src(ui, '/assets/student-service/calendar.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+          <view class="study-plan-launcher-copy">
+            <text class="appointment-launcher-label">学习安排</text>
+            <text class="study-plan-launcher-note">选每天学习时长，自动排进每天的学习任务</text>
+          </view>
+          <view class="appointment-launcher-arrow" aria-hidden="true"></view>
+        </view>
+        <!-- 家长学习报告：生成学习成长报告发给家长，每份都留档（teacher/parent-report） -->
+        <view class="appointment-launcher study-plan-launcher" bindtap="openParentReport" aria-role="button">
+          <image class="appointment-launcher-icon" src="{{UA.src(ui, '/assets/student-service/study-file.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+          <view class="study-plan-launcher-copy">
+            <text class="appointment-launcher-label">家长学习报告</text>
+            <text class="study-plan-launcher-note">生成学习成长报告发给家长，每份都留档</text>
+          </view>
+          <view class="appointment-launcher-arrow" aria-hidden="true"></view>
+        </view>
+        <view class="section-heading learning-gap"><text>学习课程</text><text wx:if="{{pendingCourseCount}}" class="section-badge">{{pendingCourseCount}} 门待核验</text></view>
+        <block wx:if="{{courseState === 'loading'}}">
+          <view wx:for="{{[1, 2]}}" wx:key="*this" class="card list-row"><view class="list-copy"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short record-sk-gap"></view></view></view>
+        </block>
+        <view wx:elif="{{courseState === 'failed'}}" class="card empty-card">
+          <text class="empty-title">学生课程暂时没有读到</text>
+          <text class="empty-copy">{{courseError}}</text>
+          <view class="empty-retry" bindtap="loadCourses" aria-role="button">重新加载</view>
+        </view>
+        <view wx:elif="{{!courses.length}}" class="card empty-card"><text class="empty-copy">学生在诊断室和 AI 聊完生成的课程会显示在这里，学完并通过 AI 验收后由你最终核验。</text></view>
+        <block wx:else>
+          <!-- 快速筛选：全部 / 未学 / 学习中 / 已学完 -->
+          <view class="course-filters">
+            <view wx:for="{{courseFilters}}" wx:key="id" class="course-filter {{item.active ? 'is-active' : ''}}" data-filter="{{item.id}}" bindtap="handleCourseFilter" aria-role="button" aria-label="{{item.label}} {{item.count}} 门">
+              <text>{{item.label}}</text><text class="course-filter-count">{{item.count}}</text>
+            </view>
+          </view>
+          <view wx:if="{{!visibleCourses.length}}" class="card empty-card"><text class="empty-copy">没有符合这个筛选的课程。</text></view>
+          <view wx:for="{{visibleCourses}}" wx:key="stageId" class="card list-row {{item.needsReview ? 'is-pending' : ''}}" data-stage-id="{{item.stageId}}" bindtap="openCourseAcceptance" aria-role="button">
+            <view class="list-copy">
+              <text class="list-title">{{item.title}}</text>
+              <text class="list-meta">{{item.progressText}}</text>
+            </view>
+            <text class="list-status list-status-{{item.statusTone}}">{{item.statusText}}</text>
+          </view>
+          <text class="section-note">学生学完一门课后先和 AI 验收，AI 通过的课程等你核验；你确认后这门课才算通过，知识点进入学生的学习宇宙。</text>
+        </block>
+
+        <view class="section-heading learning-gap"><text>测评记录</text><text wx:if="{{assessmentState === 'ready'}}" class="section-caption">{{assessments.length}} 条</text></view>
+        <block wx:if="{{assessmentState === 'loading'}}">
+          <view wx:for="{{[1, 2]}}" wx:key="*this" class="card list-row"><view class="list-copy"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short record-sk-gap"></view></view></view>
+        </block>
+        <view wx:elif="{{assessmentState === 'failed'}}" class="card empty-card">
+          <text class="empty-title">测评记录暂时没有读到</text>
+          <text class="empty-copy">{{assessmentError}}</text>
+          <view class="empty-retry" bindtap="loadAssessments" aria-role="button">重新加载</view>
+        </view>
+        <view wx:elif="{{!assessments.length}}" class="card empty-card"><text class="empty-copy">学生在测评中心做完测评后，每一轮的成绩和作答都会显示在这里。</text></view>
+        <block wx:else>
+          <view wx:for="{{assessments}}" wx:key="attemptId" class="card list-row" data-attempt-id="{{item.attemptId}}" bindtap="openAssessment" aria-role="button">
+            <view class="list-copy">
+              <text class="list-title">{{item.name}}</text>
+              <text class="list-meta">{{item.meta}}</text>
+            </view>
+            <text class="list-status list-status-{{item.tone}}">{{item.statusText}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 发起预约会议：底部弹出表单 -->
+  <view wx:if="{{sheetVisible}}" class="appointment-sheet-layer {{sheetClosing ? 'is-closing' : ''}}" catchtap="closeSheet">
+    <view class="appointment-sheet" catchtap="stopTap" aria-modal="true" aria-label="发起预约会议">
+      <view class="appointment-sheet-handle" aria-hidden="true"></view>
+      <view class="appointment-sheet-header">
+        <text class="appointment-sheet-title">发起预约会议</text>
+        <view class="appointment-sheet-close" bindtap="closeSheet" aria-role="button" aria-label="关闭预约表单">×</view>
+      </view>
+      <scroll-view class="appointment-sheet-scroll" scroll-y enhanced show-scrollbar="false">
+        <view class="appointment-field">
+          <text class="appointment-field-label">本次学科</text>
+          <picker class="appointment-option" mode="selector" range="{{subjectOptions}}" value="{{form.subjectIndex}}" data-field="subject" bindchange="handleFormPicker">
+            <view class="appointment-option-content"><text>{{subjectOptions[form.subjectIndex]}}</text><view class="appointment-option-chevron" aria-hidden="true"></view></view>
+          </picker>
+        </view>
+        <view class="appointment-field">
+          <text class="appointment-field-label">日期</text>
+          <picker class="appointment-option" mode="date" value="{{form.date}}" start="{{today}}" data-field="date" bindchange="handleFormPicker">
+            <view class="appointment-option-content"><text>{{form.date}}</text><view class="appointment-option-chevron" aria-hidden="true"></view></view>
+          </picker>
+        </view>
+        <view class="appointment-field">
+          <text class="appointment-field-label">上线时间</text>
+          <picker class="appointment-option" mode="time" value="{{form.time}}" data-field="time" bindchange="handleFormPicker">
+            <view class="appointment-option-content"><text>{{form.time}}</text><view class="appointment-option-chevron" aria-hidden="true"></view></view>
+          </picker>
+        </view>
+        <view class="appointment-field">
+          <text class="appointment-field-label">会议时长</text>
+          <view class="duration-control">
+            <input class="duration-value-input" type="number" value="{{form.durationValue}}" placeholder="输入时长" placeholder-class="note-input-placeholder" maxlength="3" bindinput="handleDurationInput" />
+            <picker class="duration-unit-picker" mode="selector" range="{{durationUnits}}" value="{{form.durationUnitIndex}}" data-field="durationUnit" bindchange="handleFormPicker">
+              <view class="duration-unit-content"><text>{{durationUnits[form.durationUnitIndex]}}</text><view class="appointment-option-chevron" aria-hidden="true"></view></view>
+            </picker>
+          </view>
+        </view>
+        <view class="appointment-field">
+          <text class="appointment-field-label">预约说明</text>
+          <input class="appointment-option appointment-note-input" value="{{form.note}}" placeholder="选填，填写本次沟通重点" placeholder-class="note-input-placeholder" maxlength="60" bindinput="handleNoteInput" />
+        </view>
+        <text wx:if="{{formError}}" class="appointment-error">{{formError}}</text>
+        <text class="section-note appointment-notice">预约后会生成分享页，学生本人打开才能看到，到约定时间前显示倒计时。先在预约记录里录好课前语音，才能分享给学生。</text>
+      </scroll-view>
+      <view class="primary-button appointment-submit {{creating ? 'is-busy' : ''}}" bindtap="handleCreateInvite" aria-role="button">{{creating ? '创建中…' : '发起预约'}}</view>
+    </view>
+  </view>
+</view>
+<!-- 画「分享给学生」卡片封面的离屏画布（services/share-cover.js） -->
+<canvas type="2d" id="share-cover-canvas" class="share-cover-canvas" aria-hidden="true"></canvas>
+<dev-reset-fab />

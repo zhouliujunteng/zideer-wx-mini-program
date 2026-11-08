@@ -1,10 +1,13 @@
 <view class="screen score-forecast"><view class="score-forecast__inner">
-  <view class="skeleton score-forecast__skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><text class="state-panel__title">诊断报告没有加载出来</text><button bindtap="loadPage">重新加载</button></view>
-  <block wx:else><view class="score-forecast__head"><text class="score-forecast__eyebrow">摸底诊断</text><text class="score-forecast__title">我的诊断报告</text><text class="score-forecast__copy">每次摸底诊断生成一份掌握报告，展示综合掌握度与知识点状态。</text></view>
+  <view class="score-forecast__head"><text class="score-forecast__eyebrow">摸底诊断</text><text class="score-forecast__title">我的诊断报告</text><text class="score-forecast__copy">每次摸底诊断生成一份掌握报告，展示综合掌握度与知识点状态。</text></view>
+  <view class="state-panel" wx:if="{{failed && !loaded}}"><text class="state-panel__title">诊断报告没有加载出来</text><button bindtap="loadPage">重新加载</button></view>
+  <block wx:elif="{{!loaded}}">
+    <view wx:for="{{[1, 2]}}" wx:key="*this" class="forecast-card surface"><view class="sk sk-line sk-short"></view><view class="sk forecast-range-sk"></view><view class="sk sk-line forecast-meta-sk"></view><view class="sk sk-line sk-mid"></view></view>
+  </block>
+  <block wx:else>
     <view class="forecast-empty surface" wx:if="{{!reports.length}}"><text>完成学科摸底诊断后，这里会展示掌握报告。</text><button bindtap="startTest">开始诊断</button></view>
     <view class="forecast-card surface" wx:for="{{reports}}" wx:key="id"><text class="forecast-card__subject">{{item.scopeName}}</text><text class="forecast-card__range">{{item.scoreLabel}} · {{item.bandLabel}}</text><text class="forecast-card__meta">作答 {{item.answeredCount}} 题 · 覆盖 {{item.measuredCount}} / {{item.totalCount}} 个知识点 · {{item.submittedAt}}</text><text class="forecast-card__meta">掌握 {{item.masteredCount}} · 待巩固 {{item.reinforceCount}} · 未掌握 {{item.notMasteredCount}} · 待测 {{item.pendingCount}}</text>
-      <view wx:for="{{item.topics}}" wx:for-item="topic" wx:key="topicId" data-id="{{topic.topicId}}" bindtap="openTopic" style="padding:20rpx 0;border-top:1rpx solid #eee"><text>{{topic.name}} · {{topic.stateLabel}} {{topic.rateLabel}} ›</text></view>
+      <view wx:for="{{item.topics}}" wx:for-item="topic" wx:key="topicId" data-id="{{topic.topicId}}" bindtap="openTopic" class="forecast-topic-row"><text>{{topic.name}} · {{topic.stateLabel}} {{topic.rateLabel}} ›</text></view>
     </view>
   </block>
 </view></view>

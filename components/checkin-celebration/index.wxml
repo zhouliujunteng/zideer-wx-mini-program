@@ -1,0 +1,25 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view wx:if="{{view}}" class="cc-mask" catchtap="noop" catchtouchmove="noop">
+  <view class="cc-card" role="dialog" aria-label="今日打卡完成">
+    <view class="cc-close" bindtap="handleClose" aria-role="button" aria-label="关闭">×</view>
+    <view class="cc-glow" aria-hidden="true">
+      <image class="cc-flame" src="{{UA.src(ui, '/learning/assets/check-in/streak.svg')}}" mode="aspectFit"></image>
+    </view>
+    <text class="cc-title">今日打卡完成</text>
+    <text class="cc-subtitle">{{view.subtitle}}</text>
+    <view wx:if="{{view.confirmed}}" class="cc-rewards">
+      <view wx:if="{{view.streakDays}}" class="cc-reward"><text class="cc-reward-value">{{view.streakDays}}</text><text>天连胜</text></view>
+      <view wx:if="{{view.rewardCoins}}" class="cc-reward cc-reward-coin">
+        <image class="cc-reward-icon" src="{{UA.src(ui, '/assets/me/coins.png')}}" mode="aspectFit"></image>
+        <text class="cc-reward-value">+{{view.rewardCoins}}</text><text>金币</text>
+      </view>
+      <view wx:for="{{view.cards}}" wx:key="type" class="cc-reward cc-reward-{{item.type}}">
+        <image class="cc-reward-icon" src="{{UA.src(ui, item.iconSrc)}}" mode="aspectFit"></image>
+        <text>{{item.title}}</text><text class="cc-reward-value">+{{item.count}}</text>
+      </view>
+    </view>
+    <text wx:else class="cc-pending">打卡已记下，连胜天数和奖励稍后更新。</text>
+    <view class="cc-primary" bindtap="handleView" aria-role="button">去打卡页查看</view>
+    <view class="cc-secondary" bindtap="handleClose" aria-role="button">{{closeLabel}}</view>
+  </view>
+</view>

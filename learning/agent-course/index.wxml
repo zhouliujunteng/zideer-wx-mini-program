@@ -1,57 +1,204 @@
-<view class="agent-course-page">
-  <view class="agent-course-skeleton" wx:if="{{loading}}"></view>
-
-  <view class="state-panel" wx:elif="{{errorMessage && !course}}">
-    <view class="state-panel__mark">!</view>
-    <text class="state-panel__title">课程进度暂时无法读取</text>
-    <text class="state-panel__copy">{{errorMessage}}</text>
-    <button class="primary-action pressable" bindtap="reload">重新读取</button>
-    <button class="secondary-action pressable" bindtap="openMyCourses">去「我的课程」看看</button>
+<!-- 课程详情（设计稿 ui-ref M37：package-learning/pages/learning/generation）。
+     设计稿的「积分消耗」没有搬：定制课程不走知鹿积分结算。卡片底部：制作中是制作进度，做好后是学习进度（读不到时显示页数）。
+     封面改为横版通栏（设计稿是左侧 3:4 竖图）：课程封面本身是 4:3 横图，「我的课程」卡片也是横着显示，进来不能变成竖的（2026-09-24 用户反馈）。
+     「课程内容」页列表是设计稿之外保留的：制作中要靠它看每一页的进度。
+     2026-10-04 用户反馈「复述验收、课程内容好丑、绿色不搭」：两块按设计语言重做——验收卡用橙色图标块 + 进度环 / 渐变按钮，
+     课程内容改成竖向步骤条（学完的节点橙色打勾、接下来该学的那页点亮），本页不再用绿色。 -->
+<view class="course-display-page">
+  <view class="course-display-topbar">
+    <view class="course-display-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="course-display-back" bindtap="handleBack" role="button" aria-label="返回">
+        <view class="course-display-back-icon"></view>
+      </view>
+      <text class="course-display-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">课程详情</text>
+    </view>
   </view>
 
-  <block wx:elif="{{course}}">
-    <view class="agent-course-head">
-      <text class="agent-course-eyebrow">AI 定制课程</text>
-      <text class="agent-course-title">{{course.title}}</text>
-    </view>
+  <view wx:if="{{refreshing}}" class="course-refresh-loading" style="top: {{contentTop}}px;" aria-live="polite">
+    <view class="course-refresh-spinner"></view>
+    <!-- 只在手动下拉时出现；设计稿原文是加载提示，按骨架屏规则改写成「正在刷新」 -->
+    <text>正在刷新</text>
+  </view>
 
-    <view class="agent-course-progress agent-course-progress--{{course.status}}">
-      <view class="agent-course-ring" style="background: conic-gradient({{course.status === 'failed' ? '#D6574B' : '#FD7C02'}} {{course.percent}}%, rgba(253, 124, 2, 0.14) 0);">
-        <view class="agent-course-ring__inner">
-          <text class="agent-course-ring__value">{{course.percent}}<text class="agent-course-ring__unit">%</text></text>
+  <scroll-view class="course-display-scroll" scroll-y refresher-enabled="{{!!course}}" refresher-triggered="{{refreshing}}" refresher-default-style="white" refresher-background="#FAFAFA" bindrefresherrefresh="handlePullRefresh" style="padding-top: {{contentTop}}px;">
+    <view class="course-display-shell">
+      <!-- 第一次读到课程前：骨架，形状与下面的真实内容一致 -->
+      <block wx:if="{{loading}}">
+        <view class="course-overview-card">
+          <view class="course-cover-thumb sk"></view>
+          <view class="course-overview-copy">
+            <view class="sk cd-sk-title"></view>
+            <view class="sk sk-line sk-short cd-sk-subtitle"></view>
+            <view class="course-pill-row"><view class="sk cd-sk-pill"></view><view class="sk cd-sk-pill"></view></view>
+            <view class="course-mini-progress"><view class="sk sk-line sk-mid"></view><view class="sk cd-sk-track"></view></view>
+          </view>
         </view>
+        <view class="course-review-section">
+          <view class="course-section-head"><text class="course-section-title">复述验收</text></view>
+          <view class="course-review-card">
+            <view class="course-review-tile sk"></view>
+            <view class="course-review-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid cd-sk-gap"></view></view>
+          </view>
+        </view>
+        <view class="course-pages-section">
+          <view class="course-section-head"><text class="course-section-title">课程内容</text></view>
+          <view class="course-steps">
+            <view class="course-step" wx:for="{{[0, 1, 2]}}" wx:key="*this">
+              <view class="course-step__rail">
+                <view class="course-step__line course-step__line--top {{index === 0 ? 'is-hidden' : ''}}"></view>
+                <view class="course-step__node sk"></view>
+                <view class="course-step__line {{index === 2 ? 'is-hidden' : ''}}"></view>
+              </view>
+              <view class="course-step__main"><view class="course-step__body"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short cd-sk-gap"></view></view></view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view class="state-panel" wx:elif="{{errorMessage && !course}}">
+        <view class="state-panel__mark">!</view>
+        <text class="state-panel__title">课程进度暂时无法读取</text>
+        <text class="state-panel__copy">{{errorMessage}}</text>
+        <button class="primary-action pressable" bindtap="reload">重新读取</button>
+        <button class="secondary-action pressable" bindtap="openMyCourses">去「我的课程」看看</button>
       </view>
-      <view class="agent-course-progress__copy">
-        <view class="agent-course-status">
-          <view class="agent-course-status__dot {{course.isGenerating ? 'is-live' : ''}}"></view>
-          <text>{{course.statusLabel}}</text>
-        </view>
-        <text class="agent-course-summary">{{course.summary}}</text>
-        <text class="agent-course-note" wx:if="{{course.isGenerating}}">离开这个页面不会中断生成，也可以在「学习 › 我的课程」里查看进度。</text>
-      </view>
-    </view>
 
-    <view class="agent-course-pages">
-      <view wx:for="{{course.pages}}" wx:key="order" class="agent-course-page-row is-{{item.status}}">
-        <view class="agent-course-page-row__index">{{item.order}}</view>
-        <view class="agent-course-page-row__body">
-          <text class="agent-course-page-row__title">{{item.title}}</text>
-          <text class="agent-course-page-row__type">{{item.typeLabel}}</text>
+      <block wx:elif="{{course}}">
+        <view class="course-overview-card">
+          <image wx:if="{{coverUrl}}" class="course-cover-thumb" src="{{coverUrl}}" mode="aspectFill"></image>
+          <view wx:else class="course-cover-thumb" aria-label="课程封面占位"></view>
+          <view class="course-overview-copy">
+            <text class="course-title">{{course.title}}</text>
+            <text class="course-subtitle">{{detail.subtitle}}</text>
+            <view class="course-pill-row">
+              <view class="course-pill course-pill-warm">定制课程</view>
+              <view class="course-pill course-pill-{{detail.statusTone}}">{{detail.statusPill}}</view>
+            </view>
+            <view class="course-mini-progress">
+              <view class="course-mini-progress-head">
+                <text>{{detail.progressRow.label}}</text>
+                <text>{{detail.progressRow.value}}</text>
+              </view>
+              <view wx:if="{{detail.progressRow.track}}" class="course-mini-progress-track">
+                <view class="course-mini-progress-fill" style="width: {{detail.progressRow.percent}}%;"></view>
+              </view>
+            </view>
+          </view>
         </view>
-        <view class="agent-course-page-row__state">
-          <view wx:if="{{item.status === 'generating'}}" class="agent-course-spinner"></view>
-          <text>{{item.statusLabel}}</text>
+
+        <!-- 系列课按顺序学（2026-10-15 用户规则）：上一节还没学完进复述验收，这一节锁着，点一下去学上一节 -->
+        <view wx:if="{{detail.lock}}" class="course-review-section">
+          <view class="course-review-card is-available" bindtap="openPrevious" role="button" aria-label="{{detail.lock.title}}，去学上一节">
+            <view class="course-review-tile">
+              <view class="review-glyph review-glyph--lock"><view class="review-glyph__shackle"></view><view class="review-glyph__body"></view></view>
+            </view>
+            <view class="course-review-copy">
+              <text class="course-review-title">{{detail.lock.title}}</text>
+              <text class="course-review-text">{{detail.lock.text}}</text>
+            </view>
+            <view class="course-review-cta is-primary">去学</view>
+          </view>
         </view>
-      </view>
-    </view>
 
-    <text class="agent-course-stale" wx:if="{{errorMessage}}">{{errorMessage}}</text>
+        <!-- 做好的课：两件事分开，先学课程（底部按钮），学完再去验收（2026-09-24 用户规则，「我的课程」卡片上不放验收按钮）。
+             没学完时这张卡锁住，与验收页同一口径 -->
+        <view class="course-review-section">
+          <view class="course-section-head"><text class="course-section-title">复述验收</text></view>
+          <view class="course-review-card is-{{detail.review.icon}} {{detail.review.available ? 'is-available' : ''}}" bindtap="openAcceptance" role="button" aria-label="{{detail.review.available ? '去验收：' + detail.review.title : detail.review.title}}">
+            <!-- 图标按验收进度换（utils/agent-course-view.js REVIEW_ICONS），用 CSS 画在橙色图标块里：
+                 对勾只在老师确认通过后出现；锁住时是灰色锁 -->
+            <view class="course-review-tile">
+              <view wx:if="{{detail.review.icon === 'talk'}}" class="review-glyph review-glyph--talk"><view class="review-glyph__dot"></view><view class="review-glyph__dot"></view><view class="review-glyph__dot"></view></view>
+              <view wx:elif="{{detail.review.icon === 'waiting'}}" class="review-glyph review-glyph--clock"></view>
+              <view wx:elif="{{detail.review.icon === 'passed'}}" class="review-glyph review-glyph--check"></view>
+              <view wx:else class="review-glyph review-glyph--lock"><view class="review-glyph__shackle"></view><view class="review-glyph__body"></view></view>
+            </view>
+            <view class="course-review-copy">
+              <text class="course-review-title">{{detail.review.title}}</text>
+              <text class="course-review-text">{{detail.review.text}}</text>
+            </view>
+            <view wx:if="{{detail.review.ring}}" class="course-review-ring" style="background: conic-gradient(#FD7C02 {{detail.review.ring.percent}}%, rgba(253, 124, 2, 0.14) 0);" aria-label="已学 {{detail.review.ring.text}} 页">
+              <view class="course-review-ring__inner"><text>{{detail.review.ring.text}}</text></view>
+            </view>
+            <view wx:elif="{{detail.review.cta}}" class="course-review-cta {{detail.review.cta === '去验收' ? 'is-primary' : ''}}">{{detail.review.cta}}</view>
+          </view>
+          <!-- 测试快捷方式：只在输入过「重置测试账号」开启码的手机上出现（2026-10-03 用户要求） -->
+          <view wx:if="{{testFinishVisible && course.canLearn}}" class="course-test-finish {{testFinishing ? 'is-busy' : ''}}" bindtap="finishForTest" role="button" aria-label="测试：标记学完，去验收">
+            <text class="course-test-finish__tag">测试</text>
+            <text class="course-test-finish__label">标记学完，去验收</text>
+          </view>
+        </view>
 
-    <view class="agent-course-actions">
-      <button class="primary-action pressable" wx:if="{{course.canLearn}}" bindtap="startLearning">开始学习</button>
-      <button class="primary-action primary-action--disabled" wx:elif="{{course.isGenerating}}" disabled="true">生成完成后即可学习</button>
-      <button class="secondary-action pressable" bindtap="openMyCourses">查看我的课程</button>
+        <!-- 课后作业（2026-10-13 用户规则）：整节学完后按本课知识点出 3～5 道练习题，做完马上判分。
+             图标与「复述验收」卡同一套；第一次读到前画骨架 -->
+        <view wx:if="{{course.canLearn}}" class="course-review-section">
+          <view class="course-section-head"><text class="course-section-title">课后作业</text></view>
+          <view wx:if="{{!homework}}" class="course-review-card">
+            <view class="course-review-tile sk"></view>
+            <view class="course-review-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid cd-sk-gap"></view></view>
+          </view>
+          <view wx:else class="course-review-card is-{{homework.icon}} {{homework.available ? 'is-available' : ''}}" bindtap="openHomework" role="button" aria-label="{{homework.title}}">
+            <view class="course-review-tile">
+              <view wx:if="{{homework.icon === 'talk'}}" class="review-glyph review-glyph--talk"><view class="review-glyph__dot"></view><view class="review-glyph__dot"></view><view class="review-glyph__dot"></view></view>
+              <view wx:elif="{{homework.icon === 'waiting'}}" class="review-glyph review-glyph--clock"></view>
+              <view wx:elif="{{homework.icon === 'passed'}}" class="review-glyph review-glyph--check"></view>
+              <view wx:else class="review-glyph review-glyph--lock"><view class="review-glyph__shackle"></view><view class="review-glyph__body"></view></view>
+            </view>
+            <view class="course-review-copy">
+              <text class="course-review-title">{{homework.title}}</text>
+              <text class="course-review-text">{{homework.text}}</text>
+            </view>
+            <view wx:if="{{homework.cta}}" class="course-review-cta {{homework.cta === '去做题' ? 'is-primary' : ''}}">{{homework.cta}}</view>
+          </view>
+        </view>
+
+        <view class="course-pages-section">
+          <view class="course-section-head">
+            <text class="course-section-title">课程内容</text>
+            <text wx:if="{{detail.pagesSummary}}" class="course-section-meta">{{detail.pagesSummary}}</text>
+          </view>
+          <!-- 做好后每一页显示学没学（已学完 / 学习中 / 未学），点一下从这一页开始学（2026-09-24 用户需求）。
+               竖向步骤条：学完的节点橙色打勾，接下来该学的那页（isNext）点亮 -->
+          <view class="course-steps {{course.canLearn ? 'is-ready' : ''}}">
+            <view wx:for="{{detail.pages}}" wx:key="order" class="course-step is-{{item.status}} {{item.learnState ? 'learn-' + item.learnState : ''}} {{item.isNext ? 'is-next' : ''}} {{item.openable ? 'is-openable' : ''}}" bindtap="openPage" data-order="{{item.order}}" role="{{item.openable ? 'button' : ''}}" aria-label="{{item.openable ? '从这一页开始学：' + item.title : ''}}">
+              <view class="course-step__rail">
+                <view class="course-step__line course-step__line--top {{index === 0 ? 'is-hidden' : ''}}"></view>
+                <view class="course-step__node">
+                  <view wx:if="{{item.learnState === 'completed'}}" class="course-step__check"></view>
+                  <view wx:elif="{{item.status === 'generating'}}" class="course-page-spinner"></view>
+                  <text wx:else>{{item.status === 'failed' ? '!' : item.order}}</text>
+                </view>
+                <view class="course-step__line {{index === detail.pages.length - 1 ? 'is-hidden' : ''}}"></view>
+              </view>
+              <view class="course-step__main">
+                <view class="course-step__body">
+                  <text class="course-step__title">{{item.title}}</text>
+                  <view class="course-step__meta">
+                    <text class="course-step__type type-{{item.type}}">{{item.typeLabel}}</text>
+                  </view>
+                </view>
+                <view class="course-step__state">
+                  <text wx:if="{{item.stateLabel}}" class="course-step__label">{{item.stateLabel}}</text>
+                  <view wx:if="{{item.openable}}" class="course-step__chevron"></view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <text class="course-pages-note" wx:if="{{course.isGenerating}}">离开这个页面不会中断制作，也可以在「学习 › 我的课程」里查看进度。</text>
+        </view>
+
+        <text class="course-stale" wx:if="{{errorMessage}}">{{errorMessage}}</text>
+      </block>
     </view>
-  </block>
+  </scroll-view>
+
+  <view wx:if="{{loading || course}}" class="course-bottom-bar">
+    <view class="course-bottom-inner">
+      <view wx:if="{{loading}}" class="course-primary-button sk"></view>
+      <view wx:elif="{{course.canLearn}}" class="course-primary-button" bindtap="startLearning" role="button" aria-label="{{detail.learnAction}}">{{detail.learnAction}}</view>
+      <view wx:elif="{{course.isGenerating}}" class="course-primary-button is-disabled" aria-disabled="true">制作完成后即可学习</view>
+      <view wx:else class="course-primary-button" bindtap="openMyCourses" role="button" aria-label="返回我的课程">返回我的课程</view>
+    </view>
+  </view>
 </view>
 <dev-reset-fab />

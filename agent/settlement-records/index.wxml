@@ -1,0 +1,61 @@
+<view class="settlement-records-page">
+  <view class="settlement-records-topbar">
+    <view class="settlement-records-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="settlement-records-back" bindtap="handleBack" aria-label="返回结算中心" aria-role="button"><view class="settlement-records-back-icon"></view></view>
+      <text class="settlement-records-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">结算明细</text>
+    </view>
+  </view>
+
+  <scroll-view class="settlement-records-scroll" scroll-y="{{false}}" enhanced="{{true}}" show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="settlement-records-shell">
+      <view class="settlement-records-state" wx:if="{{loadState === 'failed'}}">
+        <text class="settlement-records-state-title">结算明细暂时无法加载</text>
+        <text class="settlement-records-state-copy">{{loadError}}</text>
+        <view class="settlement-records-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+      </view>
+
+      <view wx:else class="settlement-records-module">
+        <view class="settlement-records-tabs" aria-label="结算明细筛选">
+          <view wx:for="{{recordTabs}}" wx:key="id" class="settlement-records-tab {{item.isSelected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleRecordTab" aria-role="button">{{item.label}}</view>
+        </view>
+
+        <!-- 首次读到明细前：月份行 + 记录行骨架，不先闪「暂无对应结算记录」 -->
+        <view wx:if="{{loadState !== 'ready'}}" class="settlement-records-sk-card" aria-label="正在读取结算明细">
+          <view class="sk sk-line settlement-records-sk-month"></view>
+          <view wx:for="{{[0, 1, 2, 3]}}" wx:key="*this" class="settlement-record-item">
+            <view class="settlement-record-copy">
+              <view class="settlement-record-title-row">
+                <view class="settlement-record-left">
+                  <view class="sk sk-line sk-mid"></view>
+                  <view class="sk sk-line sk-short settlement-records-sk-date"></view>
+                </view>
+                <view class="sk settlement-records-sk-amount"></view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <scroll-view wx:else class="settlement-records-list-card" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" style="height: {{recordsHeight}}px; max-height: {{recordsHeight}}px;">
+          <view wx:if="{{recordGroups.length}}" class="settlement-record-list">
+            <view wx:for="{{recordGroups}}" wx:for-item="group" wx:key="monthLabel" class="settlement-record-group">
+              <view class="settlement-record-month"><text>{{group.monthLabel}}</text></view>
+              <view wx:for="{{group.records}}" wx:for-item="record" wx:key="id" class="settlement-record-item">
+                <view class="settlement-record-copy">
+                  <view class="settlement-record-title-row">
+                    <view class="settlement-record-left">
+                      <text class="settlement-record-title">{{record.title}}{{record.recordNo ? '-' : ''}}{{record.recordNo}}</text>
+                      <text class="settlement-record-date">{{record.detail}} · {{record.statusLabel}}</text>
+                    </view>
+                    <text class="settlement-record-amount {{record.statusKey}}">{{record.amount}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="settlement-records-empty"><text>暂无对应结算记录</text><text>推广订单结算后，奖励会按时间展示在这里。</text></view>
+        </scroll-view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

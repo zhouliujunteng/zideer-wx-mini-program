@@ -1,1 +1,56 @@
-.result-page { min-height:100vh; padding:112rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); text-align:center; }.result-icon { display:flex; align-items:center; justify-content:center; width:88rpx; height:88rpx; margin:0 auto; border-radius:50%; background:#FFF3CF; color:#9E7100; font-size:46rpx; font-weight:700; }.result-title { display:block; margin-top:28rpx; font-size:38rpx; font-weight:700; }.result-copy { display:block; margin:16rpx auto 0; max-width:590rpx; color:var(--muted); font-size:23rpx; line-height:1.65; }.result-card { margin-top:38rpx; padding:0 26rpx; text-align:left; }.result-card view { display:flex; justify-content:space-between; gap:20rpx; padding:27rpx 0; border-bottom:1rpx solid var(--line); color:var(--ink-soft); font-size:23rpx; }.result-card view:last-child { border-bottom:0; }.result-card text:last-child { color:var(--ink); text-align:right; overflow-wrap:anywhere; }.result-primary,.result-secondary { width:100%; min-height:88rpx; border-radius:8rpx; font-size:27rpx; font-weight:700; }.result-primary { margin-top:42rpx; background:var(--ink); color:#fff; }.result-secondary { margin-top:18rpx; background:#fff; color:var(--ink); border:1rpx solid var(--line); }
+@import "../../styles/skeleton.wxss";
+/* 订单状态：与积分包（commerce/products）、确认订单（commerce/order-confirm）同一套——课程积分页的氛围光、自定义顶栏、
+   白色大圆角卡片、品牌橙 #FD7C02；结果图标与标题照设计稿兑换结果弹层（ui-ref redemption 的 redemption-result-*）。 */
+page { background: #FAFAFA; }
+
+.result-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.result-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(125% 42% at 100% 0, rgba(201, 232, 255, .72) 0%, rgba(215, 239, 255, .4) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.result-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.result-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.result-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.result-back:active { background: #F0F2EF; }
+.result-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.result-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.result-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.result-shell { min-height: 100%; padding: 0 32rpx calc(200rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+/* 结果：浅暖色圆底 + 品牌橙对勾 / 感叹号，下面标题与说明 */
+.result-hero { display: flex; flex-direction: column; align-items: center; padding: 64rpx 24rpx 8rpx; text-align: center; }
+.result-mark { display: flex; align-items: center; justify-content: center; width: 144rpx; height: 144rpx; border-radius: 50%; background: #FFF3D8; }
+.result-mark.is-paid { animation: result-mark-pop .42s .08s cubic-bezier(.22, .8, .24, 1) both; }
+.result-check { width: 30rpx; height: 56rpx; margin-top: -14rpx; box-sizing: border-box; border-right: 10rpx solid #FD7C02; border-bottom: 10rpx solid #FD7C02; border-radius: 0 0 6rpx 0; transform: rotate(45deg); }
+.result-mark-text { color: #FD7C02; font-size: 68rpx; font-weight: 700; line-height: 1; }
+.result-title { display: block; margin-top: 32rpx; color: #24332D; font-size: 36rpx; font-weight: 700; line-height: 1.25; }
+.result-subtitle { display: block; max-width: 560rpx; margin-top: 14rpx; color: #7D8981; font-size: 22rpx; line-height: 1.6; }
+.result-retry { margin-top: 32rpx; padding: 0 48rpx; height: 72rpx; border-radius: 999rpx; background: #F0F2EF; color: #4A514C; font-size: 25rpx; font-weight: 650; line-height: 72rpx; }
+.result-retry:active { opacity: .7; }
+
+.result-card { margin-top: 48rpx; padding: 4rpx 26rpx; border-radius: 32rpx; background: #fff; }
+.result-row { display: flex; align-items: center; justify-content: space-between; gap: 22rpx; padding: 26rpx 0; border-bottom: 2rpx solid #F0F3F0; color: #7E8A82; font-size: 24rpx; line-height: 1.4; }
+.result-row:last-child { border-bottom: 0; }
+.result-row text:first-child { flex: 0 0 auto; }
+.result-row text:last-child { min-width: 0; color: #24332D; text-align: right; overflow-wrap: anywhere; }
+.result-row text.result-amount { color: #FD7C02; font-size: 32rpx; font-weight: 700; }
+.result-link { display: flex; align-items: center; justify-content: center; margin-top: 20rpx; padding: 12rpx 0; color: #98A49C; font-size: 22rpx; line-height: 1.2; }
+.result-link:active { opacity: .6; }
+.result-link-icon { width: 12rpx; height: 12rpx; margin-left: 6rpx; border-top: 3rpx solid #AAB4AD; border-right: 3rpx solid #AAB4AD; transform: rotate(45deg); }
+
+/* 底部操作栏：主按钮品牌橙渐变胶囊，次按钮浅橙底（设计稿兑换结果弹层的按钮） */
+.result-bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 18; display: flex; align-items: center; gap: 20rpx; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .96); box-shadow: 0 -8rpx 24rpx rgba(36, 51, 45, .06); }
+.result-button { flex: 1; min-width: 0; height: 88rpx; margin: 0; padding: 0; border: 0; border-radius: 999rpx; font-size: 28rpx; font-weight: 650; line-height: 88rpx; }
+.result-button::after { border: 0; }
+.result-button:active { opacity: .82; }
+.result-button.is-primary { background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #fff; }
+.result-button.is-primary[disabled] { background: #F3C9A0 !important; color: #fff !important; }
+.result-button.is-secondary { background: rgba(253, 124, 2, .12); color: #FD7C02; }
+
+@keyframes result-mark-pop { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
+
+/* 首次加载骨架 */
+.result-sk-mark { width: 144rpx; height: 144rpx; }
+.result-sk-title { width: 300rpx; height: 44rpx; margin-top: 32rpx; }
+.result-sk-subtitle { width: 460rpx; margin-top: 18rpx; }
+.result-sk-value { width: 180rpx; }
+.result-sk-button { flex: 1; height: 88rpx; border-radius: 999rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -82,7 +82,7 @@ Page({
   },
 
   openKnowledgeMap() {
-    switchTab(2)
+    switchTab(3)
   },
 
   openScoreForecast() {

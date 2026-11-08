@@ -121,3 +121,17 @@ test('the template helper maps any package path spelling to the backend url and 
   assert.equal(src(ui, 'wxfile://tmp/a.png'), 'wxfile://tmp/a.png')
   assert.equal(src(ui, ''), '')
 })
+
+test('user avatars fall back to the backend default avatar when the user has none', () => {
+  const vm = require('node:vm')
+  const sandbox = { module: { exports: {} } }
+  vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'utils/ui-asset.wxs'), 'utf8'), sandbox)
+  const { avatar } = sandbox.module.exports
+  const ui = { 'avatar/default.png': 'https://cdn/default-avatar.png' }
+
+  assert.equal(avatar(ui, 'https://zion/me.png'), 'https://zion/me.png')
+  assert.equal(avatar(ui, 'wxfile://tmp/a.png'), 'wxfile://tmp/a.png')
+  assert.equal(avatar(ui, ''), 'https://cdn/default-avatar.png')
+  assert.equal(avatar(ui, undefined), 'https://cdn/default-avatar.png')
+  assert.equal(avatar(undefined, ''), '')
+})

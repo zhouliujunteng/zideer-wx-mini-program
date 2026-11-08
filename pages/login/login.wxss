@@ -1,83 +1,57 @@
-.login-page {
-  min-height: 100vh;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  padding: 88rpx 48rpx 64rpx;
+/* 登录页：设计稿 ui-ref b5d394a（package-account/pages/account/login）。背景图 login/login-split.svg、Logo home/brand-logo.png 均由后端下发。 */
+page { height: 100%; overflow: hidden; background: #fff; }
+
+.login-page { position: relative; width: 100%; height: 100vh; overflow: hidden; background: #fff; }
+.login-background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.login-back-button { position: absolute; z-index: 4; left: 18rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #FFFFFF; box-shadow: 0 2rpx 8rpx rgba(36, 51, 45, .12); }
+.login-back-button:active { opacity: .65; }
+.login-back-arrow { display: block; width: 22rpx; height: 22rpx; box-sizing: border-box; border-bottom: 4rpx solid #000000; border-left: 4rpx solid #000000; transform: translateX(2px) rotate(45deg) scale(.72); }
+.login-brand-wrap { position: absolute; z-index: 2; top: calc(50vh - 110px); left: 50%; width: 400rpx; height: 228rpx; transform: translate(-50%, -50%); }
+.login-brand-logo { display: block; width: 100%; height: 100%; filter: drop-shadow(-6rpx 0 0 #fff) drop-shadow(6rpx 0 0 #fff) drop-shadow(0 -6rpx 0 #fff) drop-shadow(0 6rpx 0 #fff) drop-shadow(-4rpx -4rpx 0 #fff) drop-shadow(4rpx -4rpx 0 #fff) drop-shadow(-4rpx 4rpx 0 #fff) drop-shadow(4rpx 4rpx 0 #fff) drop-shadow(0 8rpx 12rpx rgba(110, 52, 0, .22)); }
+.login-actions { position: fixed; z-index: 3; right: 16rpx; bottom: calc(17vh + env(safe-area-inset-bottom) - 80px); left: 16rpx; }
+.login-error { display: block; margin: 0 32rpx 20rpx; color: #B65314; font-size: 25rpx; line-height: 1.6; text-align: center; }
+/* 登录按钮用主题橙 #FD7C02（2026-09-25 用户要求，设计稿原为黑色），与协议勾选、弹窗里的「同意并继续」同色。
+   设计稿是通栏 96rpx 高，用户嫌太大（2026-09-26），收窄到 560rpx 居中、84rpx 高；协议行仍按通栏排，不受影响 */
+.login-button { display: flex; width: 560rpx; height: 84rpx; align-items: center; justify-content: center; margin: 0 auto; padding: 0; border: 0; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 30rpx; font-weight: 600; line-height: 84rpx; }
+.login-button::after { border: 0; }
+.login-button:active { background: #E86F00; }
+.login-button[disabled] { background: #FD7C02; color: rgba(255, 255, 255, .72); }
+.agreement-row { display: flex; min-height: 64rpx; align-items: center; justify-content: center; gap: 8rpx; margin-top: 28rpx; color: #737373; font-size: 23rpx; line-height: 1.5; }
+.agreement-checkbox { display: flex; width: 30rpx; height: 30rpx; flex: 0 0 30rpx; align-items: center; justify-content: center; box-sizing: border-box; border: 2rpx solid #A9A9A9; border-radius: 50%; color: #fff; font-size: 21rpx; line-height: 1; }
+.agreement-checkbox.is-checked { border-color: #FD7C02; background: #FD7C02; }
+.agreement-copy { white-space: nowrap; }
+.agreement-link { color: #FD7C02; white-space: nowrap; }
+.login-browse { width: 240rpx; margin: 12rpx auto 0; color: #8C938F; font-size: 25rpx; line-height: 64rpx; text-align: center; }
+.login-browse:active { opacity: .6; }
+
+.agreement-modal-mask { position: fixed; z-index: 10; inset: 0; display: flex; align-items: center; justify-content: center; padding: 48rpx; box-sizing: border-box; background: rgba(0, 0, 0, .42); }
+.agreement-modal-mask.is-document { z-index: 11; }
+.agreement-modal { position: relative; display: flex; width: 100%; max-height: 78vh; flex-direction: column; overflow: hidden; border-radius: 32rpx; background: #FFFFFF; box-shadow: 0 20rpx 60rpx rgba(36, 51, 45, .18); }
+.agreement-modal-header { position: relative; display: flex; min-height: 104rpx; align-items: center; justify-content: center; padding: 0 72rpx; box-sizing: border-box; border-bottom: 1rpx solid #F0F0F0; }
+.agreement-modal-title { color: #24332D; font-size: 32rpx; font-weight: 700; text-align: center; }
+.agreement-modal-close { position: absolute; top: 16rpx; right: 20rpx; display: flex; width: 72rpx; height: 72rpx; align-items: center; justify-content: center; color: #7C8580; font-size: 48rpx; line-height: 1; }
+.agreement-modal-content { height: 56vh; padding: 28rpx 32rpx; box-sizing: border-box; } /* 要给确定高度：只给 max-height 时内层滚动容器按内容撑开，文字会溢出到下面的按钮后 */
+.agreement-modal-meta { display: block; margin-bottom: 24rpx; color: #8C938F; font-size: 24rpx; line-height: 1.6; }
+.agreement-modal-section { margin-bottom: 8rpx; }
+.agreement-modal-heading { display: block; margin-bottom: 12rpx; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.6; }
+.agreement-modal-paragraph { display: block; margin-bottom: 24rpx; color: #4D5752; font-size: 27rpx; line-height: 1.75; }
+.agreement-modal-confirm { display: flex; min-height: 88rpx; align-items: center; justify-content: center; margin: 0 32rpx 28rpx; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 30rpx; font-weight: 600; }
+
+/* 未勾选协议时的确认框：「同意并继续」是 open-type="getPhoneNumber" 按钮，所以不能用 wx.showModal */
+.agreement-prompt { padding: 48rpx 40rpx 36rpx; box-sizing: border-box; }
+.agreement-prompt-title { display: block; color: #24332D; font-size: 32rpx; font-weight: 700; text-align: center; }
+.agreement-prompt-copy { margin-top: 20rpx; color: #4D5752; font-size: 27rpx; line-height: 1.75; text-align: center; }
+.agreement-prompt-copy .agreement-link { white-space: normal; }
+.agreement-prompt-actions { display: flex; gap: 20rpx; margin-top: 40rpx; }
+.agreement-prompt-button { display: flex; min-width: 0; height: 88rpx; flex: 1; align-items: center; justify-content: center; margin: 0; padding: 0; border: 0; border-radius: 999rpx; font-size: 30rpx; font-weight: 600; line-height: 88rpx; }
+.agreement-prompt-button::after { border: 0; }
+.agreement-prompt-button.is-cancel { background: #F3F4F3; color: #4D5752; }
+.agreement-prompt-button.is-confirm { background: #FD7C02; color: #FFFFFF; }
+.agreement-prompt-button:active { opacity: .8; }
+
+@media (max-height: 680px) {
+  .login-brand-wrap { width: 360rpx; height: 204rpx; }
+  .login-actions { bottom: calc(12vh + env(safe-area-inset-bottom) - 80px); }
 }
 
-.login-brand {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-}
-
-.brand-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 76rpx;
-  height: 76rpx;
-  box-sizing: border-box;
-  border: 2rpx solid #FD7C02;
-  color: #FD7C02;
-  font-size: 36rpx;
-  font-weight: 600;
-}
-
-.brand-name {
-  color: #20231F;
-  font-size: 34rpx;
-  font-weight: 600;
-}
-
-.login-content {
-  margin-top: 230rpx;
-}
-
-.login-title {
-  display: block;
-  color: #20231F;
-  font-size: 52rpx;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.login-copy {
-  display: block;
-  margin-top: 24rpx;
-  color: #72746C;
-  font-size: 28rpx;
-  line-height: 1.7;
-}
-
-.login-footer {
-  margin-top: auto;
-}
-
-.phone-button {
-  height: 96rpx;
-  line-height: 96rpx;
-  border-radius: 20rpx;
-  background: #FD7C02;
-  color: #FFFFFF;
-  font-size: 32rpx;
-  font-weight: 500;
-}
-
-.login-notice,
-.checking-copy {
-  display: block;
-  margin-top: 24rpx;
-  color: #8C8E85;
-  font-size: 24rpx;
-  line-height: 1.6;
-  text-align: center;
-}
-
-.checking-copy {
-  margin-top: auto;
-}
-.login-error { display: block; margin-bottom: 24rpx; color: #B65314; font-size: 25rpx; line-height: 1.6; }
-.privacy-link { display: block; padding: 22rpx 0; color: #A5540A; font-size: 24rpx; text-align: center; }
-.phone-button::after { border: 0; }
+@import "./login.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

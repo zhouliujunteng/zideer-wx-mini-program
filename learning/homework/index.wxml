@@ -1,0 +1,93 @@
+<!-- 课后作业（2026-10-13 用户规则）：整节学完后按本课知识点出 3～5 道客观题，选好交卷，服务端判分后给出答案与解析。
+     第一次读到前画骨架；出题中、出题失败、还没学完各有提示。 -->
+<view class="hw-page">
+  <view class="hw-topbar">
+    <view class="hw-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="hw-back" bindtap="handleBack" role="button" aria-label="返回"><view class="hw-back-icon"></view></view>
+      <text class="hw-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">课后作业</text>
+    </view>
+  </view>
+
+  <view class="hw-shell" style="padding-top: {{contentTop}}px;">
+    <!-- 第一次读到前：骨架，形状与题目卡一致 -->
+    <block wx:if="{{!loaded && !loadFailed}}">
+      <view class="hw-head"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short"></view></view>
+      <view wx:for="{{[0, 1, 2]}}" wx:key="*this" class="hw-card">
+        <view class="sk sk-line sk-short"></view>
+        <view class="sk sk-line"></view>
+        <view class="sk hw-sk-option"></view>
+        <view class="sk hw-sk-option"></view>
+      </view>
+    </block>
+
+    <view wx:elif="{{loadFailed}}" class="state-panel">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">课后作业暂时没有打开</text>
+      <text class="state-panel__copy">{{errorMessage}}</text>
+      <view class="hw-button is-primary" bindtap="reload" role="button">重新读取</view>
+    </view>
+
+    <block wx:elif="{{homework}}">
+      <view class="hw-head">
+        <text class="hw-course">{{homework.title}}</text>
+        <text wx:if="{{homework.status === 'ready'}}" class="hw-sub">共 {{homework.questionCount}} 道练习题，选好答案后交卷，马上出结果</text>
+        <text wx:elif="{{homework.status === 'done'}}" class="hw-sub">课后作业已完成</text>
+      </view>
+
+      <view wx:if="{{homework.status === 'locked'}}" class="state-panel">
+        <text class="state-panel__title">学完整节课后出练习题</text>
+        <text class="state-panel__copy">把这节课的全部内容学完，会按本课知识点出 3～5 道练习题。</text>
+        <view class="hw-button is-primary" bindtap="openCourse" role="button">回到课程</view>
+      </view>
+
+      <view wx:elif="{{homework.status === 'preparing'}}" class="state-panel">
+        <view class="hw-spinner" aria-hidden="true"></view>
+        <text class="state-panel__title">正在出练习题</text>
+        <text class="state-panel__copy">按这节课的知识点出 3～5 道题，每道题都会另外核对一遍答案，一般一两分钟就好。</text>
+        <view wx:if="{{pollStopped}}" class="hw-button is-primary" bindtap="reload" role="button">刷新看看</view>
+      </view>
+
+      <view wx:elif="{{homework.status === 'failed'}}" class="state-panel">
+        <view class="state-panel__mark">!</view>
+        <text class="state-panel__title">练习题没有出好</text>
+        <text class="state-panel__copy">这次没能出出合格的题目，可以再出一次。</text>
+        <view class="hw-button is-primary" bindtap="retryGenerate" role="button">重新出题</view>
+      </view>
+
+      <block wx:else>
+        <view wx:if="{{summary}}" class="hw-result">
+          <text class="hw-result-score">{{summary.score}}</text>
+          <view class="hw-result-copy"><text class="hw-result-title">答对 {{homework.result.correct}} 道</text><text class="hw-result-comment">{{summary.comment}}</text></view>
+        </view>
+
+        <view wx:for="{{rows}}" wx:key="index" class="hw-card {{item.correct === true ? 'is-right' : item.correct === false ? 'is-wrong' : ''}}">
+          <view class="hw-card-head">
+            <text class="hw-number">第 {{item.number}} 题</text>
+            <text class="hw-type">{{item.typeLabel}}</text>
+            <text wx:if="{{item.correct === true}}" class="hw-mark is-right">答对了</text>
+            <text wx:elif="{{item.correct === false}}" class="hw-mark is-wrong">答错了</text>
+          </view>
+          <text class="hw-prompt">{{item.prompt}}</text>
+          <view class="hw-options {{item.typeLabel === '判断题' ? 'is-judge' : ''}}">
+            <view wx:for="{{item.options}}" wx:for-item="option" wx:key="letter" class="hw-option is-{{option.state || 'idle'}}" data-index="{{item.index}}" data-letter="{{option.letter}}" bindtap="choose" role="button" aria-label="{{option.letter}}. {{option.label}}">
+              <text class="hw-option-letter">{{option.letter}}</text>
+              <text class="hw-option-label">{{option.label}}</text>
+            </view>
+          </view>
+          <view wx:if="{{item.answerText}}" class="hw-explain">
+            <text class="hw-explain-answer">{{item.answerText}}</text>
+            <text wx:if="{{item.explanation}}" class="hw-explain-text">{{item.explanation}}</text>
+          </view>
+        </view>
+      </block>
+    </block>
+  </view>
+
+  <view wx:if="{{homework && homework.status === 'ready'}}" class="hw-bottom">
+    <view class="hw-submit {{canSubmit ? 'is-ready' : ''}} {{submitting ? 'is-busy' : ''}}" bindtap="submit" role="button" aria-label="交卷">{{submitting ? '正在判分' : '交卷'}}</view>
+  </view>
+  <view wx:elif="{{homework && homework.status === 'done'}}" class="hw-bottom">
+    <view class="hw-submit is-ready" bindtap="openCourse" role="button">回到课程</view>
+  </view>
+</view>
+<dev-reset-fab />

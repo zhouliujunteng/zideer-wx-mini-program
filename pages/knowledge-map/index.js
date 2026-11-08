@@ -1,7 +1,12 @@
-const { loadKnowledgeMap, loadKnowledgeTopic } = require('../../services/identity')
+const { tabletStage } = require('../../utils/tablet-stage')
+const { loadKnowledgeMap, loadKnowledgeTopic, hasSession, accessOfError } = require('../../services/identity')
+const { openAccessStep } = require('../../utils/access-gate')
 const { buildKnowledgeRelationGraph } = require('../../utils/knowledge-map-relations')
+const { sampleKnowledgeMap, sampleKnowledgeTopic } = require('../../utils/knowledge-map-sample')
 const { layoutKnowledgeRadially, spaceRadialCards } = require('../../utils/knowledge-map-radial')
 const { attachUiAssets } = require('../../services/ui-assets')
+const { isGuardianAccount } = require('../../utils/account-role')
+const { rpxUnit, getMenuButtonRect } = require('../../utils/screen')
 const {
   getKnowledgeMapTextCardMetrics,
   getKnowledgeMapLayoutProfile,
@@ -29,7 +34,12 @@ const SHEET_DIRECTION_EPSILON = 8
 const SHEET_SETTLE_EPSILON = 2
 const SHEET_ANIMATION_DURATION = 420
 const GRAPH_DPR_LIMIT = 2
+// 自定义底栏（custom-tab-bar）高 49px + 底部安全区，盖在页面最下面：windowHeight 包含这块区域。
+const CUSTOM_TAB_BAR_HEIGHT = 49
 const SELECTION_FLOW_FRAME_MS = 34
+// 示例图谱提示条占的高度（上边距 18 + 条高 72 + 与画布的间隔 18，rpx）：示例模式下画布从提示条下面开始。
+// 不叠在画布上：2d 画布会盖住叠在它上面的视图（开发者工具实测，调 z-index 无效）。
+const SAMPLE_BANNER_SPACE_RPX = 108
 const STATUS_STYLES = {
   provisional: { fill: '#F0F4F8', stroke: '#7893AC', text: '#39443F', marker: '#7893AC' },
   assessed_stable: { fill: '#EDF5EF', stroke: '#4B8764', text: '#39443F', marker: '#4B8764' },
@@ -66,6 +76,17 @@ function applyTopicDisplay(node) {
 }
 
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)) }
+// 行内 style 用的位移量：保留一位小数，避免 1e-13 这类写法让 transform 失效。
+function roundOffset(value) { return Math.round(value * 10) / 10 || 0 }
+// 页面底部被盖住的高度；onResize 带来的 size 没有 safeArea，就再读一次窗口信息。
+// 2026-10-10 起知识图谱不再是 tab 页（底栏换成「目标」，这里从「我的 › 知鹿服务」进），只让开底部安全区。
+function getTabBarInset(windowInfo) {
+  const info = windowInfo && windowInfo.safeArea ? windowInfo : (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync())
+  const safeArea = info && info.safeArea
+  const screenHeight = (info && (info.screenHeight || info.windowHeight)) || 0
+  const safeBottom = safeArea && safeArea.bottom ? Math.max(0, screenHeight - safeArea.bottom) : 0
+  return safeBottom
+}
 function getTouchDistance(touches) {
   const dx = touches[0].clientX - touches[1].clientX
   const dy = touches[0].clientY - touches[1].clientY
@@ -102,7 +123,7 @@ function getBezierPoint(geometry, progress) {
   }
 }
 function liveGraphModel(map) {
-  const status = { provisional:'provisional', assessed_stable:'assessed_stable', weak: 'reinforce', mastered: 'mastered', learning: 'learning', unknown: 'unknown' }
+  const status = { provisional:'provisional', assessed_stable:'assessed_stable', weak: 'reinforce', mastered: 'mastered', learning: 'learning', pending_teacher: 'learning', unknown: 'unknown' }
   const nodes = layoutKnowledgeRadially(map.nodes || [], map.edges || []).map(node => ({ ...node, status: status[node.status] || 'unknown', coreScore: 0.5 }))
   const universe = map.universe || {}
   const universeTopics = nodes
@@ -128,21 +149,32 @@ function liveGraphModel(map) {
 function diagnosisView(map) {
   const entry=map.diagnostic||{mode:'unavailable'}
   const subject=map.activeSubject||'当前学科'
-  const buttons={start:'开始测评',resume:'继续测评',report:'查看报告',unavailable:'题库准备中'}
+  const rounds=Number(entry.roundCount||1),done=Number(entry.completedRounds||0)
+  const buttons={start:'开始测评',resume:'继续测评',continue:`开始第 ${entry.round||done+1} 轮`,report:'查看报告',unavailable:'题库准备中'}
+  const plan=rounds>1?`共 ${rounds} 轮，每轮约 ${entry.roundMinutes||28} 分钟`:`约 ${entry.roundMinutes||28} 分钟`
   return {...entry,button:buttons[entry.mode]||buttons.unavailable,
-    title:entry.mode==='report'?`${subject}测评后，看看我的掌握情况`:entry.mode==='resume'?'上次测评还没完成，继续了解自己':'这些知识点，我掌握了多少？',
-    description:entry.mode==='unavailable'?`${subject}当前年级、学期的测评正在准备`:entry.mode==='report'?'图谱已根据作答更新，未测部分仍标为待测':`${subject} · ${map.semester||''} · 约 10–20 分钟 · 首次免费`}
+    title:entry.mode==='report'?`${subject}测评后，看看我的掌握情况`:entry.mode==='resume'?'上次测评还没完成，继续了解自己':entry.mode==='continue'?`已完成 ${done}/${rounds} 轮，接着测下一轮`:'这些知识点，我掌握了多少？',
+    description:entry.mode==='unavailable'?`${subject}当前年级、学期的测评正在准备`:entry.mode==='report'?'图谱已根据作答更新':entry.mode==='continue'?'每轮结束都会更新图谱，未测部分仍标为待测':`${subject} · ${plan} · 首次免费`}
 }
 
 Page({
   data: {
     model: {}, statusBarHeight: 20, navigationBarHeight: 44, menuButtonHeight: 32,
-    contentTop: 80, canvasHeight: 620, sheetStart: 860, sheetTrigger: 100,
-    canvasClipHeight: 620, canvasFollowOffset: 0, canvasControlOffset: 0, sheetMinOffset: 0, sheetSnapping: false, sheetVisualOffset: 0,
-    notificationTop: 26, notificationRight: 100, metricsVisible: false, metricsCollapsed: false, metricsRows: [],
+    contentTop: 80, canvasHeight: 620, sheetStart: 860, sheetTop: 430, sheetTrigger: 100,
+    canvasClipHeight: 620, canvasFollowOffset: 0, canvasControlOffset: 0, sheetMinOffset: 0, sheetSnapping: false, sheetVisualOffset: 0, sheetTranslateY: 0,
+    streakEntryTop: 26, streakEntryRight: 100, galaxyRight: 144, sampleBannerTop: 80, metricsVisible: false, metricsCollapsed: false, metricsRows: [],
     zoomPercent: 100, diagnostic: null, diagnosticTop: 80,
     relationMode: false, relationLoading: false, relationError: '', prerequisiteLinks: [], successorLinks: [],
-    activeView: 'universe'
+    // 学习宇宙已独立成「宇宙」Tab（pages/knowledge-universe），这里只剩知识图谱。
+    activeView: 'graph',
+    // 第一次读到图谱前统计与知识点位显示骨架，不显示「慢慢点亮」空状态；之后切回本页保留旧数据静默刷新。
+    mapLoaded: false,
+    // guest 未登录、profile 没完善学习资料（2026-09-27 起未登录也能浏览）：图谱按年级学期出，没有学习资料就提示先去完善
+    access: '',
+    // 没登录、没完善学习资料时画示例图谱（2026-09-30，审核需要）：画布上方标「示例」，能切学科、点知识点，只用本地数据
+    sampleMode: false,
+    skeletonStats: [{ key: 'mastered', label: '累计掌握' }, { key: 'assessment', label: '测评证据' }, { key: 'course', label: '课程证据' }],
+    skeletonTopics: [0, 1, 2]
   },
 
   onLoad() {
@@ -157,63 +189,191 @@ Page({
       this._metrics.record('frame-latency', latency)
     })
     this._isDevelop = isDevelopEnvironment()
+    this.applyTopbarLayout()
+    this.applyWindowLayout()
+  },
+
+  // iPad 转屏、电脑窗口缩放（app.json resizable）后窗口高度变了：底部面板回到总览位置，画布按新高度重建。
+  // 顶栏按钮不在这里重算：转屏那一刻读到的胶囊位置可能还是旧的（按钮会离开胶囊），
+  // 而它们到窗口右边、顶边的距离转屏前后不变，进入页面时算一次即可，与首页、学习页、宇宙页一致。
+  onResize(event) {
+    this._mapSheetOffset = 0
+    if (this._overviewSheetOffset != null) this._overviewSheetOffset = 0
+    this.applyWindowLayout(event && event.size, () => {
+      if (this._pageReady && this.data.activeView === 'graph') this.initializeCanvas()
+    })
+  },
+
+  // 自定义导航栏：高度、胶囊左边两个按钮（学习连胜紧贴胶囊 8px，知识星河在它左边 12px），与胶囊顶对齐、同高。
+  applyTopbarLayout() {
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const windowWidth = windowInfo.windowWidth || 375
-    const menuButton = wx.getMenuButtonBoundingClientRect
-      ? wx.getMenuButtonBoundingClientRect()
-      : { left: windowWidth - 92, top: (windowInfo.statusBarHeight || 20) + 6, width: 32, height: 32 }
+    const menuButton = getMenuButtonRect(windowInfo)
     const statusBarHeight = windowInfo.statusBarHeight || 20
     const navigationBarHeight = menuButton.height + (menuButton.top - statusBarHeight) * 2
     // The diagnostic banner was removed from the template; the canvas starts
     // directly below the custom navigation bar instead of reserving its height.
-    const diagnosticTop = statusBarHeight + navigationBarHeight + 10
-    const contentTop = diagnosticTop
-    const sheetStart = Math.round(contentTop * 750 / windowWidth + 760)
-    const sheetStartPx = sheetStart * windowWidth / 750
-    const sheetTrigger = Math.max(0, Math.round(sheetStartPx - (windowInfo.windowHeight || 667) / 2))
-    const baseCanvasHeight = Math.max(180, sheetStartPx - contentTop)
-    // windowHeight already excludes the native tab bar. Keep the grip inside that window.
-    const collapsedPeek = 44 + 18 * windowWidth / 750
-    const sheetMinOffset = Math.min(0, sheetStartPx - (windowInfo.windowHeight || 667) + collapsedPeek)
-    const canvasHeight = baseCanvasHeight - sheetMinOffset
-    this._baseCanvasHeight = baseCanvasHeight
-    this._relationSheetOffset = clamp(sheetStartPx + 660 * windowWidth / 750 - (windowInfo.windowHeight || 667), 0, sheetTrigger)
+    this._baseContentTop = statusBarHeight + navigationBarHeight + 10
+    this._contentTop = this._baseContentTop + (this.data.sampleMode ? Math.round(SAMPLE_BANNER_SPACE_RPX * rpxUnit(windowWidth)) : 0)
     this.setData({
+      sampleBannerTop: this._baseContentTop,
       statusBarHeight,
       navigationBarHeight,
       menuButtonHeight: menuButton.height,
-      contentTop, diagnosticTop,
-      canvasHeight,
-      canvasClipHeight: baseCanvasHeight,
-      canvasControlOffset: -sheetMinOffset,
-      sheetMinOffset,
-      sheetStart,
-      sheetTrigger,
-      sheetVisualOffset: 0,
-      canvasFollowOffset: 0,
-      sheetSnapping: false,
-      notificationTop: menuButton.top,
-      notificationRight: windowWidth - menuButton.left + 8,
-      assessmentRight: windowWidth - menuButton.left + 8 + menuButton.height + 12
+      streakEntryTop: menuButton.top,
+      streakEntryRight: windowWidth - menuButton.left + 8,
+      galaxyRight: windowWidth - menuButton.left + 8 + menuButton.height + 12
     })
   },
 
-  openAssessmentCenter() {
-    wx.navigateTo({ url: '/assessment/center/index' })
+  // 画布与底部面板按窗口高度排布；size 是 onResize 带来的新窗口尺寸（比此刻再读 getWindowInfo 可靠）。
+  applyWindowLayout(size, callback) {
+    const windowInfo = size && size.windowWidth ? size : (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync())
+    const windowWidth = windowInfo.windowWidth || 375
+    const contentTop = this._contentTop
+    const tabletLayout = tabletStage(windowWidth, windowInfo.windowHeight || 667, contentTop, getTabBarInset(windowInfo))
+    if (tabletLayout) {
+      this._baseCanvasHeight = tabletLayout.stageHeight
+      this._relationSheetOffset = 0
+      this._mapSheetOffset = 0
+      this.setData({ tabletLayout, contentTop, diagnosticTop: contentTop,
+        canvasHeight: tabletLayout.stageHeight, canvasClipHeight: tabletLayout.stageHeight,
+        canvasControlOffset: 0, canvasFollowOffset: 0, sheetMinOffset: 0,
+        sheetTop: tabletLayout.panelTop, sheetTrigger: 0, sheetVisualOffset: 0,
+        sheetTranslateY: 0, sheetSnapping: false
+      }, callback)
+      return
+    }
+    const diagnosticTop = contentTop
+    // sheetStart 是 rpx 设计值；大屏下 rpx 按固定比例折算（utils/screen.js），页面上用换算好的 sheetTop（px）。
+    const unit = rpxUnit(windowWidth)
+    // 底部面板位置不随示例提示条下移（提示条只占画布的高度）
+    const sheetStart = Math.round(this._baseContentTop / unit + 760)
+    const sheetStartPx = sheetStart * unit
+    const windowHeight = windowInfo.windowHeight || 667
+    const sheetTrigger = Math.max(0, Math.round(sheetStartPx - windowHeight / 2))
+    const baseCanvasHeight = Math.max(180, sheetStartPx - contentTop)
+    // 自定义底栏盖在页面上（windowHeight 含底栏）：面板收起后的把手、详情面板的可见部分都要算到底栏上沿为止。
+    const visibleBottom = windowHeight - getTabBarInset(windowInfo)
+    const collapsedPeek = 44 + 18 * unit
+    const sheetMinOffset = Math.min(0, sheetStartPx - visibleBottom + collapsedPeek)
+    const canvasHeight = baseCanvasHeight - sheetMinOffset
+    this._baseCanvasHeight = baseCanvasHeight
+    this._relationSheetOffset = clamp(sheetStartPx + 660 * unit - visibleBottom, 0, sheetTrigger)
+    this.setData({
+      tabletLayout: null, contentTop, diagnosticTop,
+      canvasHeight,
+      canvasClipHeight: baseCanvasHeight,
+      canvasControlOffset: roundOffset(-sheetMinOffset),
+      sheetMinOffset,
+      sheetStart,
+      sheetTop: sheetStartPx,
+      sheetTrigger,
+      sheetVisualOffset: 0,
+      sheetTranslateY: 0,
+      canvasFollowOffset: 0,
+      sheetSnapping: false
+    }, callback)
+  },
+
+  // 顶栏星河入口：用 web-view 打开官网的知识星河（config.GALAXY_URL）。
+  openGalaxy() {
+    wx.navigateTo({ url: '/pages/galaxy/index' })
   },
 
   onReady() {
     this._pageReady = true
     if (this.data.activeView === 'graph') this.initializeCanvas()
   },
+  // 不再是 tab 页：左上角返回，没有上一页就回「我的」
+  handleBack() {
+    wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/me/index' }) })
+  },
   async onShow() {
+    // 家长账号没有「图谱」（2026-09-25 用户规则）：通知、旧入口等把家长带到这里时回首页，不读图谱
+    if (isGuardianAccount()) { wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/home/index' }) }); return }
     this._isPageVisible = true
     const app = getApp()
     if (app && app.markTabVisible) app.markTabVisible('pages/knowledge-map/index')
     if (this.data.activeView === 'graph' && this._canvas) this.requestGraphDraw()
     if (this.data.metricsVisible && !this.data.metricsCollapsed && !this._metricsTimer) this.startMetricsPanel()
+    // 游客不读图谱，画示例图谱，画布上方提示登录并完善学习资料后看自己的（去完善会先带去登录）
+    if (!hasSession()) {
+      if (!(this.data.sampleMode && this.data.access === 'guest')) this.showSampleMap('guest')
+      return
+    }
+    // 刚登录回来：示例图谱不能留给已登录的人，重新读自己的（没建档会再换成示例）
+    if (this.data.sampleMode && this.data.access === 'guest') {
+      await this.loadKnowledgeMapCourse()
+      return
+    }
+    // 已经读到过（含没建档时的示例图谱）：保留当前内容后台刷新；正在看某个知识点详情时不打断。
+    if (this.data.mapLoaded) {
+      if (!this.data.relationMode) await this.refreshKnowledgeMapSilently(this.data.sampleMode ? undefined : this.data.activeSubjectKey)
+      return
+    }
     await this.loadKnowledgeMapCourse(this.data.activeSubjectKey)
   },
+  // 进出示例模式时给提示条留位置 / 收回位置：画布区域变了就重排并重建画布（与转屏一样）。
+  applySampleSpace(sample) {
+    if (this._baseContentTop == null) return
+    const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+    const contentTop = this._baseContentTop + (sample ? Math.round(SAMPLE_BANNER_SPACE_RPX * rpxUnit(windowInfo.windowWidth || 375)) : 0)
+    if (contentTop === this._contentTop) return
+    this._contentTop = contentTop
+    this._mapSheetOffset = 0
+    this.applyWindowLayout(undefined, () => {
+      if (this._pageReady && this.data.activeView === 'graph') this.initializeCanvas()
+    })
+  },
+  // 示例图谱：数据与正式图谱同形（utils/knowledge-map-sample），照常建场景、画图；切学科、点知识点都走本地数据。
+  showSampleMap(access, subjectKey) {
+    this.applySampleSpace(true)
+    this._knowledgeLoadGeneration = (this._knowledgeLoadGeneration || 0) + 1
+    this._relationGeneration = (this._relationGeneration || 0) + 1
+    this._overviewGraphView = null
+    this._selectedNodeId = null
+    this.cancelSelectionFlowAnimation()
+    const map = sampleKnowledgeMap(subjectKey)
+    const { viewModel, graphModel } = liveGraphModel(map)
+    this._graphModel = graphModel
+    this._overviewGraphModel = graphModel
+    const stats = map.stats
+    const model = {
+      ...viewModel,
+      scopeLabel: `示例 · ${viewModel.scopeLabel}`,
+      learningSummary: `示例图谱：${map.activeSubject}已掌握 ${stats.mastered || 0} 个、需巩固 ${stats.weak || 0} 个。${access === 'guest' ? '登录并完善学习资料后' : '完善学习资料后'}，会按你的测评和课程记录生成自己的知识图谱。`
+    }
+    this.setData({ access, sampleMode: true, loading: false, mapLoaded: true, loadError: '', diagnostic: null, activeSubjectKey: map.activeSubjectKey, model, selectedNode: null, relationMode: false, relationLoading: false, relationError: '', prerequisiteLinks: [], successorLinks: [] }, () => {
+      if (!this._pageReady || this.data.activeView !== 'graph') return
+      if (!this._canvas) this.initializeCanvas()
+      else { this.buildGraphScene(); this.resetGraphView() }
+    })
+  },
+  async refreshKnowledgeMapSilently(courseId) {
+    const generation = (this._knowledgeLoadGeneration || 0) + 1
+    this._knowledgeLoadGeneration = generation
+    try {
+      const map = await loadKnowledgeMap(courseId)
+      if (generation !== this._knowledgeLoadGeneration || this.data.relationMode) return
+      const { viewModel, graphModel } = liveGraphModel(map)
+      this._graphModel = graphModel
+      this._overviewGraphModel = graphModel
+      this._viewModelBytes = getUtf8Size(viewModel)
+      const leavingSample = this.data.sampleMode
+      if (leavingSample) this.applySampleSpace(false)
+      this.setData({ model: viewModel, diagnostic: diagnosisView(map), activeSubjectKey: map.activeSubjectKey, loadError: '', sampleMode: false, access: '' }, () => {
+        if (!this._pageReady || this.data.activeView !== 'graph' || !this._canvas) return
+        this.buildGraphScene()
+        // 示例换成自己的图谱：知识点全变了，视角回到初始位置
+        if (leavingSample) this.resetGraphView()
+        else this.requestGraphDraw()
+      })
+    } catch (error) {
+      // 静默刷新失败：保留已显示的数据（没建档时就是示例图谱），不弹提示。
+    }
+  },
+  retryKnowledgeMap() { return this.loadKnowledgeMapCourse(this.data.activeSubjectKey) },
   onHide() {
     this._relationGeneration = (this._relationGeneration || 0) + 1
     this._knowledgeLoadGeneration = (this._knowledgeLoadGeneration || 0) + 1
@@ -238,25 +398,6 @@ Page({
     this._mapGesture = null
     this._frameLatencyTracker.reset()
   },
-  showNotifications() { wx.navigateTo({ url: '/pages/messages/index' }) },
-  switchMapView(e) {
-    const activeView = e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.view
-    if (!['universe', 'graph'].includes(activeView) || activeView === this.data.activeView) return
-    if (activeView === 'universe') {
-      this._canvasInitGeneration += 1
-      this.cancelSelectionFlowAnimation()
-      this.cancelGraphDraw()
-      this.stopMetricsPanel()
-      this._canvas = null
-      this._graphScene = null
-      this._graphView = null
-      this.setData({ activeView, metricsVisible: false })
-      return
-    }
-    this.setData({ activeView, metricsVisible: false }, () => {
-      if (this._pageReady && this.data.activeView === 'graph') this.initializeCanvas()
-    })
-  },
   openDiagnosis() {
     const d=this.data.diagnostic
     if(this.data.loading||!d||d.mode==='unavailable')return
@@ -279,7 +420,8 @@ Page({
     const startedAt = this._metrics.now()
     this._graphModel = { nodes: [], edges: [] }
     this._selectedNodeId = null
-    this.setData({ loading: true, loadError: '', diagnostic: null, selectedNode: null, model: {}, relationMode: false, relationLoading: false, relationError: '', prerequisiteLinks: [], successorLinks: [] }, () => {
+    this.applySampleSpace(false)
+    this.setData({ loading: true, mapLoaded: false, loadError: '', access: '', sampleMode: false, diagnostic: null, selectedNode: null, model: {}, relationMode: false, relationLoading: false, relationError: '', prerequisiteLinks: [], successorLinks: [] }, () => {
       if (this._canvas) { this.buildGraphScene(); this.requestGraphDraw() }
     })
     try {
@@ -290,16 +432,23 @@ Page({
       this._graphModel = graphModel
       this._overviewGraphModel = graphModel
       this._viewModelBytes = getUtf8Size(viewModel)
-      this.setData({ model: viewModel, diagnostic: diagnosisView(map), activeSubjectKey: map.activeSubjectKey, loading: false, metricsVisible: false, metricsRows: [] }, () => {
+      this.setData({ model: viewModel, diagnostic: diagnosisView(map), activeSubjectKey: map.activeSubjectKey, loading: false, mapLoaded: true, metricsVisible: false, metricsRows: [] }, () => {
         if (!this._pageReady || this.data.activeView !== 'graph') return
         if (!this._canvas) this.initializeCanvas()
         else { this.buildGraphScene(); this.resetGraphView() }
       })
     } catch (error) {
       if (generation !== this._knowledgeLoadGeneration) return
+      // 登录已失效、还没完善学习资料：不算读取失败，画示例图谱并提示先去完善
+      const access = accessOfError(error)
+      if (access) { this.showSampleMap(access); return }
       this.setData({ loading: false, loadError: error.message || '知识图谱加载失败', model: {} })
       wx.showToast({ title: error.message || '知识图谱加载失败', icon: 'none' })
     }
+  },
+  // 示例图谱上方「去登录 / 去完善」：游客先登录（登录后没建档会接着去建档），已登录的去完善
+  openAccessStep() {
+    openAccessStep(this.data.access)
   },
 
   async selectKnowledgeNode(node) {
@@ -320,7 +469,7 @@ Page({
     this.buildGraphScene()
     this.resetGraphView()
     try {
-      const detail = await loadKnowledgeTopic(node.id)
+      const detail = this.data.sampleMode ? sampleKnowledgeTopic(node.id) : await loadKnowledgeTopic(node.id)
       if (generation !== this._relationGeneration || this._isPageVisible === false) return
       const graph = buildKnowledgeRelationGraph(detail, (this._overviewGraphModel || {}).nodes)
       this._graphModel = graph
@@ -875,6 +1024,14 @@ Page({
     if (gesture && gesture.type === 'pinch' && this._graphView) {
       const zoomPercent = Math.round(this._graphView.scale * 100)
       if (this.data.zoomPercent !== zoomPercent) this.setData({ zoomPercent })
+      // 双指缩放后只抬起一根手指：剩下那根接着拖动，不用松手重按；松手时也不算点击知识点。
+      const rest = (e.touches || [])[0]
+      if (e.type !== 'touchcancel' && rest && this._canvas) {
+        this._mapGesture = { type: 'pan', point: this.getCanvasTouch(rest), startView: { ...this._graphView } }
+        this._mapDidMove = true
+        this.requestGraphDraw()
+        return
+      }
     }
     if (e.type === 'touchcancel' || !gesture || this._mapDidMove || gesture.type !== 'pan' || !this._canvas) {
       this.requestGraphDraw()
@@ -968,6 +1125,7 @@ Page({
   },
 
   handleMapSheetTouchStart(e) {
+    if (this.data.tabletLayout) return
     if (this._isMapSheetSnapping) return
     const touch = (e.touches || [])[0]
     if (!touch) return
@@ -995,15 +1153,19 @@ Page({
     this.snapMapSheet(e.type === 'touchcancel' ? this._mapSheetOffset : gesture.startTop)
   },
   updateMapSheetPosition(scrollTop) {
+    if (this.data.tabletLayout) return
     const boundedTop = clamp(scrollTop, this.data.sheetMinOffset || 0, this.data.sheetTrigger)
     const baseHeight = this._baseCanvasHeight == null ? this.data.canvasHeight : this._baseCanvasHeight
     const canvasClipHeight = clamp(baseHeight - boundedTop, 0, this.data.canvasHeight)
     this._mapSheetOffset = boundedTop
+    // 面板往下收时 boundedTop 是负数：位移量在这里算好符号再给 WXML，
+    // 模板里写「-{{负数}}px」会拼出「--200px」，整条 transform 失效，面板不动而画布以为下面空出来了。
     this.setData({
       sheetVisualOffset: boundedTop,
-      canvasFollowOffset: Math.round(Math.max(0, boundedTop) * CANVAS_SHEET_FOLLOW_RATIO * 10) / 10,
+      sheetTranslateY: roundOffset(-boundedTop),
+      canvasFollowOffset: roundOffset(Math.max(0, boundedTop) * CANVAS_SHEET_FOLLOW_RATIO),
       canvasClipHeight,
-      canvasControlOffset: this.data.canvasHeight - canvasClipHeight
+      canvasControlOffset: roundOffset(this.data.canvasHeight - canvasClipHeight)
     })
     if (this._canvas) this.requestGraphDraw()
   },
@@ -1022,6 +1184,7 @@ Page({
     else target = current >= ((this.data.sheetMinOffset || 0) + this.data.sheetTrigger) / 2 ? this.data.sheetTrigger : (this.data.sheetMinOffset || 0)
     if (Math.abs(target - current) <= SHEET_SETTLE_EPSILON) {
       this.updateMapSheetPosition(target)
+      this.reclampGraphView()
       return
     }
     this._isMapSheetSnapping = true
@@ -1032,16 +1195,27 @@ Page({
       this._isMapSheetSnapping = false
       this._mapSheetSnapTimer = null
       this.setData({ sheetSnapping: false })
+      this.reclampGraphView()
     }, SHEET_ANIMATION_DURATION)
+  },
+  // 面板停稳后按新的可见区域重新收一次边界：面板拉高后，原来在底部的节点不再被盖住、要再碰一下才归位（2026-10-06）
+  reclampGraphView() {
+    if (!this._canvas || !this._graphView) return
+    const next = this.clampGraphView(this._graphView.scale, this._graphView.x, this._graphView.y)
+    if (next.x === this._graphView.x && next.y === this._graphView.y) return
+    this._graphView = next
+    this.requestGraphDraw()
   },
   selectCourse(e) {
     const courseId = e.currentTarget.dataset.id
     if (!courseId) return
     if (courseId === this.data.model.activeCourseId) { if (this.data.relationMode) this.returnToOverview(); return }
-    this.loadKnowledgeMapCourse(courseId)
+    if (this.data.sampleMode) this.showSampleMap(this.data.access, courseId)
+    else this.loadKnowledgeMapCourse(courseId)
     if (wx.vibrateShort) wx.vibrateShort({ type: 'light' })
   },
   openSubjectAssessment() {
+    if (this.data.sampleMode) return this.openAccessStep()
     const subjectKey = String(this.data.activeSubjectKey || '')
     if (!subjectKey) return wx.showToast({ title: '请先选择一个学科', icon: 'none' })
     wx.navigateTo({ url: `/assessment/short/index?subjectKey=${encodeURIComponent(subjectKey)}` })
@@ -1049,6 +1223,7 @@ Page({
   openTopicDetail() {
     const node = this.data.selectedNode
     if (!node || !node.id) return
+    if (this.data.sampleMode) return
     wx.navigateTo({ url: `/diagnosis/topic/index?topicId=${encodeURIComponent(node.id)}&subjectKey=${encodeURIComponent(node.subjectKey || this.data.activeSubjectKey)}` })
   }
 })

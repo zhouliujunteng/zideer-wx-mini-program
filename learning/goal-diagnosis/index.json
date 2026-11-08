@@ -1,0 +1,1 @@
+{"navigationBarTitleText": "按目标测评", "navigationStyle": "custom", "navigationBarTextStyle": "black", "backgroundColor": "#FAFAFA", "disableScroll": true, "usingComponents": {"goal-map": "/components/goal-map/index"}}

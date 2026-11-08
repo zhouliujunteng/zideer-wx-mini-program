@@ -10,11 +10,12 @@ function loadPage(load = async () => 'https://example.test/learn?course=1') {
   const source = fs.readFileSync(path.join(__dirname, '../learning/course/index.js'), 'utf8')
   vm.runInNewContext(source, {
     Page(value) { definition = value },
-    require() {
+    require(name) {
+      if (name.includes('support-diagnostics')) return { record() {} }
       return {
         createCourseLaunchUrl: load,
         createLibraryCourseLaunchUrl: load,
-        courseShareUrl: (url) => String(url || '').replace('/api/learn/entry?', '/learn?').replace(/&ticket=[A-Za-z0-9_-]*/, '')
+        createAgentCourseLaunchUrl: load
       }
     },
     wx: {
@@ -79,7 +80,6 @@ test('domain restrictions are not disguised as a network outage, and stale web e
   page.onWebViewError({ detail: { src: page.data.launchUrl, errMsg: 'url not in domain list' } })
   assert.equal(page.data.failed, true)
   assert.match(page.data.errorMessage, /业务域名/)
-  assert.equal(page.data.courseUrl, 'https://example.test/learn?course=1')
 })
 
 test('entry failures retain their actionable Chinese reason', async () => {
@@ -88,9 +88,27 @@ test('entry failures retain their actionable Chinese reason', async () => {
   assert.equal(page.data.errorMessage, '请先登录后进入课程。')
 })
 
-test('copying the course link never exposes the one-time entry ticket', async () => {
-  const { page } = loadPage(async () => 'https://example.test/api/learn/entry?course=1&layout=focus&ticket=TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+// 课程只能在小程序里学（学习设备确认已下线）：出错时只给重试和返回，不引导复制链接到浏览器
+test('a failed course page offers retry and back, never a link to open in a browser', async () => {
+  const { page } = loadPage()
   await page.loadCourse()
-  assert.match(page.data.launchUrl, /ticket=/)
-  assert.equal(page.data.courseUrl, 'https://example.test/learn?course=1&layout=focus')
+  page.onWebViewError({ detail: { src: page.data.launchUrl, errMsg: 'network failed' } })
+  assert.doesNotMatch(page.data.errorMessage, /复制|浏览器/)
+  assert.equal(page.copyCourseLink, undefined)
+  const template = fs.readFileSync(path.join(__dirname, '../learning/course/index.wxml'), 'utf8')
+  assert.doesNotMatch(template, /复制|copyCourseLink/)
+  assert.match(template, /bindtap="retry"/)
+  assert.match(template, /bindtap="goBack"/)
+})
+
+// 课程详情页点了某一页：把这一页交给入口地址，课程从这一页开始
+test('an agent course opened from a page row asks for an entry that starts at that page', async () => {
+  const requests = []
+  const { page } = loadPage(async (...args) => { requests.push(args); return 'https://example.test/learn?agent=stage-abc123&scene=scene_a2' })
+  page.onLoad({ agentCourseId: 'stage-abc123', sceneId: 'scene_a2' })
+  await page.loadCourse()
+  assert.deepEqual(requests.pop(), ['stage-abc123', 'scene_a2'])
+  page.onLoad({ agentCourseId: 'stage-abc123' })
+  await page.loadCourse()
+  assert.deepEqual(requests.pop(), ['stage-abc123', ''])
 })

@@ -1,0 +1,12 @@
+/* 复习小测与复述验收同一套版式（learning/agent-acceptance），这里只补复习独有的几处 */
+@import "../agent-acceptance/index.wxss";
+
+/* 输入框下面那行提示平时不接点击，「跳过这题」要能点 */
+.agent-composer-note.rev-skip { pointer-events: auto; color: #6F7A72; text-decoration: underline; }
+
+/* 没算作答案的那句下面：重新回答 / 就这样算 */
+.rev-choices { display: flex; gap: 18rpx; margin: 6rpx 0 10rpx 28rpx; }
+.rev-choice { padding: 14rpx 30rpx; border-radius: 999rpx; background: #FD7C02; color: #FFF; font-size: 25rpx; font-weight: 600; }
+.rev-choice.is-secondary { background: rgba(255, 255, 255, .92); color: #6F7A72; font-weight: 500; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

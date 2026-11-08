@@ -1,0 +1,160 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 照学生的诊断室（pages/diagnosis-room）画：同一个顶栏、底色、气泡和输入框。
+     这里是让学生开口复述：对话默认「按住说话」，点左边的键盘也能打字。 -->
+<view class="agent-page">
+  <view class="agent-ambient" aria-hidden="true"></view>
+  <view class="agent-topbar">
+    <view class="agent-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="agent-back-button" bindtap="handleBack" aria-role="button" aria-label="返回">
+        <view class="agent-back-icon" aria-hidden="true"></view>
+      </view>
+      <view class="acc-topbar-heading" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
+        <text class="acc-topbar-title">复述验收</text>
+        <text wx:if="{{course.title}}" class="acc-topbar-sub">{{course.title}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loaded && !loadFailed}}" class="acc-skeleton" style="padding-top: {{contentTop}}px;" aria-hidden="true">
+    <view class="sk acc-skeleton-bubble"></view>
+    <view class="sk acc-skeleton-bubble is-user"></view>
+    <view class="sk acc-skeleton-bubble is-short"></view>
+  </view>
+
+  <view wx:elif="{{loadFailed}}" class="agent-entry-gate acc-gate" style="padding-top: {{contentTop}}px;">
+    <text class="agent-entry-gate-title">验收状态暂时没有读到</text>
+    <text class="agent-entry-gate-copy">{{errorMessage}}</text>
+    <view class="agent-entry-gate-button" bindtap="retry" aria-role="button" aria-label="重新读取">重新读取</view>
+  </view>
+
+  <view wx:elif="{{state === 'learning' || state === 'intro'}}" class="acc-welcome" style="padding-top: {{contentTop}}px;">
+    <view class="agent-welcome-avatar" aria-hidden="true">
+      <view class="agent-welcome-avatar-shape">
+        <view class="agent-welcome-eye agent-welcome-eye-left"></view>
+        <view class="agent-welcome-eye agent-welcome-eye-right"></view>
+      </view>
+    </view>
+    <block wx:if="{{state === 'learning'}}">
+      <text class="agent-welcome-title">学完这门课再来验收</text>
+      <text class="acc-welcome-copy">已学完 {{acceptance.learning.completed || 0}} / {{acceptance.learning.total || 0}} 部分。全部学完后，把学到的讲给它听。</text>
+      <view class="agent-entry-gate-button" bindtap="continueLearning" aria-role="button" aria-label="继续学习">继续学习</view>
+    </block>
+    <block wx:else>
+      <text class="agent-welcome-title">把学到的讲给它听</text>
+      <text class="acc-welcome-copy">它会像一个没学过这门课的同学一样问你问题，你按住说话，用自己的话讲清楚就好。</text>
+      <view class="acc-steps">
+        <view class="acc-step"><text class="acc-step-mark">1</text><text>它每次只问一个问题</text></view>
+        <view class="acc-step"><text class="acc-step-mark">2</text><text>合上课程凭记忆讲，按住说话，不方便说话也能打字</text></view>
+        <view class="acc-step"><text class="acc-step-mark">3</text><text>讲出本课三分之二的要点算通过，老师核验后知识点进入学习宇宙</text></view>
+      </view>
+      <view class="agent-entry-gate-button {{sending ? 'is-busy' : ''}}" bindtap="start" aria-role="button" aria-label="开始验收">{{sending ? '正在准备…' : '开始验收'}}</view>
+    </block>
+  </view>
+
+  <block wx:else>
+    <scroll-view
+      class="diagnosis-room-scroll"
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+      scroll-top="{{scrollTop}}"
+      scroll-with-animation
+      style="padding-top: {{contentTop}}px; padding-bottom: {{listBottomPadding}}px;"
+    >
+      <view class="diagnosis-room-shell">
+        <view wx:for="{{turns}}" wx:key="id" class="agent-message agent-message-{{item.role}}">
+          <view class="agent-message-column">
+            <view class="agent-message-bubble">
+              <text class="agent-message-text" user-select="true">{{item.content}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{sending && state === 'chat'}}" class="agent-message agent-message-assistant">
+          <view class="agent-message-column">
+            <view class="agent-message-bubble is-typing">
+              <view class="agent-typing"><view class="typing-dots"><view></view><view></view><view></view></view><text class="agent-typing-label">{{typingLabel}}</text></view>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{result}}" class="acc-result is-{{state}}" aria-live="polite">
+          <!-- 对话结束后的结论：接在最后一条后面，学生正看着这儿，不用往上翻 -->
+          <text class="acc-result-title">{{result.title}}</text>
+          <text wx:if="{{result.copy}}" class="acc-result-copy">{{result.copy}}</text>
+          <view wx:if="{{result.topics.length}}" class="acc-result-topics">
+            <text class="acc-result-topics-title">{{result.topicsTitle}}</text>
+            <view class="acc-topic-list"><text wx:for="{{result.topics}}" wx:key="name" class="acc-topic">{{item.name}}</text></view>
+          </view>
+          <view wx:if="{{result.weakPoints.length}}" class="acc-result-points">
+            <text class="acc-result-topics-title">还没讲清的要点</text>
+            <text wx:for="{{result.weakPoints}}" wx:key="*this" class="acc-result-point">{{item}}</text>
+          </view>
+          <view wx:if="{{result.misconceptions.length}}" class="acc-result-points">
+            <text class="acc-result-topics-title">说得不对的地方</text>
+            <text wx:for="{{result.misconceptions}}" wx:key="*this" class="acc-result-point is-wrong">{{item}}</text>
+          </view>
+          <view wx:if="{{state === 'passed'}}" class="acc-result-link" bindtap="openUniverse" aria-role="link" aria-label="去宇宙看看">去宇宙看看</view>
+          <block wx:if="{{state === 'retry'}}">
+            <view class="agent-entry-gate-button acc-result-button {{sending ? 'is-busy' : ''}}" bindtap="start" aria-role="button" aria-label="重新验收">{{sending ? '正在准备…' : '重新验收'}}</view>
+            <view class="acc-result-link" bindtap="continueLearning" aria-role="link" aria-label="回到课程复习">回到课程复习</view>
+          </block>
+        </view>
+        <view class="diagnosis-room-bottom"></view>
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{voiceRecognizing}}" class="voice-demo-status {{voiceCancel ? 'is-canceling' : ''}}" aria-live="polite">
+      <text class="voice-demo-label">{{voiceCancel ? '松手取消' : (voiceRemaining ? '还能说 ' + voiceRemaining + ' 秒，松手发送' : '松手发送，上移取消')}}</text>
+      <view class="voice-demo-wave {{voiceSoundActive ? 'is-speaking' : 'is-silent'}}">
+        <view wx:for="{{voiceBars}}" wx:key="id" class="voice-demo-bar" style="--bar-height: {{item.height}}; opacity: {{item.opacity}};"></view>
+      </view>
+    </view>
+
+    <block wx:if="{{state === 'chat'}}">
+      <view class="agent-composer" style="bottom: {{composerBottomOffset}}px;">
+        <view class="agent-composer-bar {{draft ? 'is-input-active' : ''}} {{voiceRecognizing ? 'is-voice-active' : ''}}">
+          <view wx:if="{{voiceMode}}" class="agent-voice-button agent-keyboard-button" catchtap="handleKeyboardButtonTap" aria-role="button" aria-label="切换到键盘输入">
+            <image class="agent-voice-icon" src="{{UA.src(ui, '../../assets/keyboard-icon.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+          </view>
+          <view wx:else class="agent-voice-button {{draft ? 'is-collapsing' : ''}}" catchtap="handleVoiceButtonTap" aria-role="button" aria-label="切换到语音输入">
+            <image class="agent-voice-icon" src="{{UA.src(ui, '../../assets/agent-voice.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+          </view>
+          <view
+            wx:if="{{voiceMode}}"
+            class="agent-voice-speak-button {{sending ? 'is-waiting' : ''}}"
+            catchtouchstart="handleSpeakTouchStart"
+            catchtouchmove="handleSpeakTouchMove"
+            catchtouchend="handleSpeakTouchEnd"
+            catchtouchcancel="handleSpeakTouchEnd"
+            aria-role="button"
+            aria-label="按住说话"
+          >
+            <text>按住说话</text>
+          </view>
+          <input
+            wx:else
+            class="agent-input"
+            value="{{draft}}"
+            placeholder="用自己的话讲一讲…"
+            placeholder-class="agent-input-placeholder"
+            maxlength="1000"
+            cursor-spacing="24"
+            show-confirm-bar="{{false}}"
+            confirm-type="send"
+            bindinput="handleInput"
+            bindconfirm="handleSend"
+            disabled="{{sending}}"
+          />
+          <view class="agent-send-button {{draft && !voiceMode && !sending ? 'is-enabled' : ''}}" catchtap="handleSend" aria-role="button" aria-label="发送">
+            <image class="agent-send-icon" src="{{UA.src(ui, '../../assets/agent-send.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+          </view>
+        </view>
+      </view>
+      <view class="agent-composer-note-background" aria-hidden="true"></view>
+      <text class="agent-composer-note">{{voiceRecognizing ? '松手后录音将上传用于转成文字，识别后不保留录音' : (voiceMode ? '按住说话，用自己的话讲给它听' : '用自己的话讲清楚就好，不用照抄课程原话')}}</text>
+    </block>
+  </block>
+</view>
+<checkin-celebration notice="{{checkinNotice}}" close-label="看看验收结果" bind:close="closeCheckinNotice" />
+<dev-reset-fab />

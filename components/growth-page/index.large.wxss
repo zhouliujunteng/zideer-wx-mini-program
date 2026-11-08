@@ -1,0 +1,63 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.growth-page{min-height:100vh;padding:28px 16px calc(env(safe-area-inset-bottom) + 28px)}
+.growth-head{margin-bottom:19px}
+.growth-eyebrow,.growth-hero__label,.growth-row__meta{font-size:13px}
+.growth-title{margin-top:4px;font-size:25px;font-weight:700;line-height:1.2}
+.growth-hero{padding:18px}
+.growth-hero__value{margin-top:8px;font-size:27px;font-weight:700}
+.growth-hero__copy,.growth-empty__copy{margin-top:7px;font-size:14px;line-height:1.55}
+.growth-facts{gap:10px;margin-top:13px;font-size:13px;flex-wrap:wrap}
+.growth-primary,.growth-outline{min-height:46px;margin-top:14px;padding:0 15px;border-radius:23px;font-size:15px;font-weight:700}
+.growth-outline{border:0.5px solid var(--line-strong)}
+.growth-nav{margin-top:13px}
+.growth-nav__row{width:100%;min-height:57px;padding:0 15px;border-bottom:0.5px solid var(--line);font-size:16px}
+.growth-nav__row:last-child{border-bottom:0}
+.growth-nav__row text{font-size:21px}
+.growth-section{margin-top:20px}
+.growth-section__title{margin-bottom:9px;font-size:18px;font-weight:700}
+.growth-empty{padding:16px}
+.growth-empty__title{font-weight:700}
+.growth-row{min-height:62px;padding:10px 14px;border-bottom:0.5px solid var(--line);font-size:15px;gap:12px}
+.growth-row:last-child{border-bottom:0}
+.growth-row__meta{margin-top:3px}
+.growth-redemption-form{padding:16px}
+.growth-redemption-form__label{font-size:13px;font-weight:700}
+.growth-redemption-form__code-row{gap:9px;margin-top:9px}
+.growth-redemption-form__input{flex:1;min-width:0;height:52px;padding:0 12px;border:0.5px solid var(--line-strong);border-radius:4px;font-size:18px}
+.growth-redemption-form__scan{flex:0 0 67px;height:52px;padding:0;border:0.5px solid var(--line-strong);border-radius:4px;font-size:14px}
+.growth-redemption-form__hint{margin-top:9px;font-size:13px;line-height:1.6}
+.growth-redemption-form .growth-primary{width:100%;margin-top:14px}
+.growth-redemption-result{margin-top:12px;padding:16px}
+.growth-redemption-result__title{font-size:16px;font-weight:700}
+.growth-redemption-result__copy, .growth-redemption-result__record{margin-top:6px;font-size:13px;line-height:1.55}
+.growth-redemption-result__benefit{margin-top:6px;font-size:14px;font-weight:700}
+.growth-poster-form{padding:16px}
+.growth-poster-form__input{width:100%;min-height:102px;margin-top:9px;padding:12px;border:0.5px solid var(--line-strong);border-radius:4px;font-size:16px;line-height:1.5}
+.growth-poster-form .growth-primary{width:100%;margin-top:14px}
+.growth-poster-form__status,.growth-poster-result__meta{margin-top:9px;font-size:13px;line-height:1.55}
+.growth-poster-result{margin-top:12px;padding:12px}
+.growth-poster-result__image{width:100%;border-radius:4px}
+.growth-sk-value{width:132px;height:30px;margin:9px 0}
+.growth-sk-copy{width:92%}
+.growth-sk-button{height:46px;margin-top:14px;border-radius:23px}
+.growth-sk-title{width:108px;height:19px;margin-bottom:9px}
+.growth-sk-row{min-height:57px;padding:0 15px;border-bottom:0.5px solid var(--line)}
+.growth-sk-row:last-child{border-bottom:0}
+.growth-sk-row .sk{flex:0 0 40%}
+.growth-sk-row-copy{flex:1;min-width:0}
+.growth-sk-tail{flex:0 0 auto;width:66px;height:15px}
+.growth-sk-textarea{height:102px;margin-top:9px;border-radius:4px}
+.growth-sk-poster{height:252px;border-radius:4px}
+.growth-sk-material-title{margin:12px 0 8px}
+.growth-sk-material{padding:14px}
+}

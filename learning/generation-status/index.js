@@ -14,7 +14,8 @@ function creditsRange(settlement, fallback) {
 }
 
 Page({
-  data: { loading: true, failed: false, starting: false, quoting: false, quote: null, result: null, outlineReady: false },
+  // 第一次读到任务前只显示骨架；读到过一次后回到本页、手动刷新都保留旧内容静默刷新。
+  data: { loading: true, loaded: false, failed: false, starting: false, quoting: false, quote: null, result: null, outlineReady: false },
 
   onLoad(options) {
     this.planItemId = String(options.planItemId || '')
@@ -61,7 +62,7 @@ Page({
   async loadPage(options = {}) {
     this.stopPolling()
     const version = this._loadVersion = (this._loadVersion || 0) + 1
-    this.setData({ loading: options.silent !== true, failed: false })
+    if (!this.data.loaded) this.setData({ loading: options.silent !== true, failed: false })
     try {
       const data = await loadCurrentLearningPlans()
       if (version !== this._loadVersion || !this._active) return
@@ -70,7 +71,7 @@ Page({
       const courses = item && (item.courseInstances || []).slice().sort((a, b) => Number(b.id) - Number(a.id)) || []
       let course = courses.find((entry) => !this.courseInstanceId || String(entry.id) === this.courseInstanceId)
       if (!item || (this.courseInstanceId && !course)) {
-        this.setData({ result: null })
+        this.setData({ result: null, loaded: true, failed: false })
         return
       }
       if (course && ['failed', 'cancelled', 'voided_credit_limit'].includes(course.status) && courses[0] !== course) {
@@ -95,6 +96,8 @@ Page({
       const settlement = course && course.creditSettlement || null
       const creditState = courseCreditState(settlement)
       this.setData({
+        loaded: true,
+        failed: false,
         result: {
           taskTitle: item.topicName || '学习任务',
           subject: item.subjectName || '学习计划',
@@ -123,8 +126,9 @@ Page({
       } else this.setData({ outlineReady: false, outlineError: '' })
     } catch (error) {
       if (version !== this._loadVersion || !this._active) return
-      this.setData({ failed: true })
-      wx.showToast({ title: error.message || '课程进度加载失败', icon: 'none' })
+      // 已显示过的进度不因刷新失败被换成错误页；轮询失败不打扰，下一轮继续读。
+      if (!this.data.loaded) this.setData({ failed: true })
+      if (!this.data.loaded || options.silent !== true) wx.showToast({ title: error.message || '课程进度加载失败', icon: 'none' })
     } finally {
       if (version === this._loadVersion && this._active) {
         this.setData({ loading: false })

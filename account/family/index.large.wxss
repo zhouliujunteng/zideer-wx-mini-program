@@ -1,0 +1,51 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.family-page{height:100vh}
+.family-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
+.family-ambient-ribbon{top:-84px;left:-258px;width:888px;height:432px;border:14px solid rgba(255, 255, 255, .72);border-top-color:transparent;border-right-color:transparent;border-radius:50%}
+.family-ambient-ribbon::after{top:22px;right:22px;bottom:22px;left:22px;border:6px solid rgba(255, 255, 255, .38);border-top-color:transparent;border-right-color:transparent;border-radius:50%}
+.family-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
+.family-topbar-inner{padding:0 19px 9px}
+.family-back{flex:0 0 auto;width:32px;height:32px;border-radius:50%}
+.family-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.family-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.family-scroll{height:100vh}
+.family-shell{min-height:100%;padding:0 19px calc(26px + env(safe-area-inset-bottom))}
+.family-state{min-height:192px;flex-direction:column}
+.family-state text:first-child{font-size:16px;font-weight:650}
+.family-state-action{margin-top:14px;padding:0 26px;height:43px;border-radius:599px;font-size:15px;font-weight:650;line-height:43px}
+.family-pair-card{border-radius:18px}
+.family-pair-half{min-width:0;flex:1;flex-direction:column;padding:20px 16px}
+.family-pair-eyebrow{font-size:12px;font-weight:650;line-height:1.2}
+.family-pair-title{margin-top:7px;font-size:18px;font-weight:700;line-height:1.25}
+.family-pair-hint{margin-top:6px;font-size:12px;line-height:1.35}
+.family-pair-divider{flex:0 0 1px;margin:16px 0}
+.family-section{margin-top:22px}
+.family-section-head{padding:0 2px}
+.family-section-title{font-size:18px;font-weight:700;line-height:1.2}
+.family-section-link{font-size:13px;font-weight:650}
+.family-list-card{margin-top:13px;padding:3px 14px;border-radius:18px}
+.family-member{gap:10px;padding:15px 0;border-bottom:1px solid #F0F3F0}
+.family-member:last-child{border-bottom:0}
+.family-avatar{flex:0 0 auto;width:50px;height:50px;border-radius:50%;font-size:16px;font-weight:700}
+.family-avatar-photo{width:100%;height:100%;border-radius:50%}
+.family-member-copy{min-width:0;flex:1}
+.family-member-name{font-size:16px;font-weight:650;line-height:1.35}
+.family-member-meta{margin-top:4px;font-size:12px;line-height:1.3}
+.family-member-status{flex:0 0 auto;gap:4px}
+.family-member-status > text:first-child{padding:4px 9px;border-radius:599px;font-size:11px;font-weight:650;line-height:1}
+.family-member-arrow{font-size:18px;line-height:1}
+.family-empty{min-height:120px;flex-direction:column}
+.family-empty text:first-child{font-size:15px;font-weight:650}
+.family-empty text:last-child{margin-top:7px;font-size:12px;line-height:1.5}
+.family-avatar-sk{flex:0 0 auto;width:50px;height:50px}
+}

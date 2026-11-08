@@ -3,7 +3,11 @@ const test = require('node:test')
 const config = require('../config/index')
 
 const requests = []
+const switchReads = []
 let paymentOptions = null
+let paymentSwitchOpen = true
+// 发起支付前会先读支付开关（services/payment-switch.js）：给它一个测试用的流程编号，开关读取单独记账
+config.ACTION_FLOWS.GET_PAYMENT_SWITCH.id = 'payment-switch-test-flow'
 
 global.wx = {
   getStorageSync(key) {
@@ -11,6 +15,11 @@ global.wx = {
   },
   request(options) {
     if (require('./helpers/verified-phone-session')(options)) return
+    if (String(options.data && options.data.query).includes('payment-switch-test-flow')) {
+      switchReads.push(options)
+      options.success({ statusCode: 200, data: { data: { result: { status: 'ready', paymentEnabled: paymentSwitchOpen } } } })
+      return
+    }
     requests.push(options)
     if (String(options.data && options.data.query).includes(config.ACTION_FLOWS.CREATE_WECHAT_PAYMENT_TEST_ORDER.id)) {
       options.success({
@@ -78,3 +87,25 @@ test('isWechatPaymentCancelled recognizes WeChat cancellation responses', () => 
   assert.equal(isWechatPaymentCancelled({ errMsg: 'requestPayment:fail cancel' }), true)
   assert.equal(isWechatPaymentCancelled(new Error('network error')), false)
 })
+
+// 2026-09-30 支付开关：关着时不发起微信支付（待支付订单的「继续支付」也拦），开关以游客身份读、每次现读
+test('payWechatOrder refuses to start WeChat payment while the payment switch is closed', async () => {
+  const before = requests.length
+  const reads = switchReads.length
+  paymentOptions = null
+  paymentSwitchOpen = false
+  try {
+    await assert.rejects(payWechatOrder({ orderId: 44, amount: '19.90', description: '课程积分包' }), (error) => {
+      assert.equal(error.code, 'PAYMENT_DISABLED')
+      assert.equal(error.paymentNotStarted, true)
+      return true
+    })
+  } finally {
+    paymentSwitchOpen = true
+  }
+  assert.equal(requests.length, before)
+  assert.equal(paymentOptions, null)
+  assert.equal(switchReads.length, reads + 1)
+  assert.equal(switchReads[reads].header.authorization, undefined)
+})
+

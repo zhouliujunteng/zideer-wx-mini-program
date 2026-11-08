@@ -1,5 +1,8 @@
 <view class="outline-page">
-  <view class="state-panel" wx:if="{{loading}}"><text class="state-panel__title">正在读取课程大纲</text></view>
+  <view class="outline-skeleton" wx:if="{{loading}}">
+    <view class="sk sk-line outline-sk-eyebrow"></view><view class="sk outline-sk-heading"></view><view class="sk sk-line sk-mid"></view>
+    <view class="surface chapter" wx:for="{{[0, 1, 2]}}" wx:key="*this"><view class="sk sk-line sk-short"></view><view class="sk outline-sk-input"></view><view class="sk outline-sk-text"></view></view>
+  </view>
   <view class="state-panel" wx:elif="{{failed}}"><text class="state-panel__title">暂时无法读取大纲</text><text class="state-panel__copy">{{errorMessage}}</text><button class="primary-action" bindtap="loadPage">重新读取</button></view>
   <view class="state-panel" wx:elif="{{stopped}}"><text class="state-panel__title">本次生成已停止</text><text class="state-panel__copy">请返回课程进度页查看积分释放状态。</text><button class="primary-action" bindtap="goBack">查看课程进度</button></view>
   <view class="state-panel" wx:elif="{{completed}}"><text class="state-panel__title">大纲已确认</text><text class="state-panel__copy">课程正在根据你确认的大纲与模式生成。离开此页不会中断。</text><button class="primary-action" bindtap="goBack">查看课程进度</button></view>

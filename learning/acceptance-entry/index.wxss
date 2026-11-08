@@ -1,3 +1,4 @@
+@import "../../styles/account-form.wxss";
 .acceptance-entry { min-height: 100vh; box-sizing: border-box; padding: 88rpx 40rpx 56rpx; background: #f6f7f9; color: #17191c; }
 .entry-copy { display: flex; flex-direction: column; }
 .entry-eyebrow { color: #79808a; font-size: 26rpx; }
@@ -11,3 +12,5 @@
 .recording-panel__title { display: block; font-size: 34rpx; font-weight: 700; }
 .recording-panel__copy { display: block; margin: 18rpx 0 36rpx; color: #5f6670; font-size: 27rpx; line-height: 1.65; }
 .stop-action { width: 100%; background: #b44235; color: #fff; font-size: 31rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

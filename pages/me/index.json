@@ -4,5 +4,8 @@
   "enablePullDownRefresh": false,
   "backgroundColor": "#FAFAFA",
   "backgroundColorTop": "#FFF1E6",
-  "backgroundColorBottom": "#FAFAFA"
+  "backgroundColorBottom": "#FAFAFA",
+  "usingComponents": {
+    "streak-card": "/components/streak-card/index"
+  }
 }

@@ -1,9 +1,9 @@
 Page({
   data: {
     tools: [
-      { id: 'record', name: '学习记录', detail: '沉淀每次私课后的重点与反馈', tone: 'green' },
+      { id: 'record', name: '学习记录', detail: '沉淀每次课程后的重点与反馈', tone: 'green' },
       { id: 'practice', name: '课后练习', detail: '按当前学习计划领取练习内容', tone: 'yellow' },
-      { id: 'consult', name: '私课咨询', detail: '整理学习问题并提交给老师', tone: 'coral' }
+      { id: 'consult', name: '课程咨询', detail: '整理学习问题并提交给老师', tone: 'coral' }
     ]
   },
 

@@ -1,0 +1,58 @@
+<view class="ar-page">
+  <view wx:if="{{!loaded && !loadFailed}}">
+    <view class="ar-head"><view class="sk sk-line sk-short"></view><view class="sk ar-sk-title"></view></view>
+    <view class="ar-card surface"><view class="sk sk-line"></view><view class="sk sk-line sk-mid"></view></view>
+    <view class="ar-card surface"><view class="sk sk-line"></view><view class="sk sk-line sk-short"></view></view>
+  </view>
+
+  <view wx:elif="{{loadFailed}}" class="state-panel">
+    <text class="state-panel__title">测评报告暂时无法读取</text>
+    <text class="state-panel__copy">{{errorMessage}}</text>
+    <button class="state-panel__action" bindtap="load">重新加载</button>
+  </view>
+
+  <view wx:elif="{{!report}}" class="ar-card surface">
+    <text class="ar-title-sm">{{name}}</text>
+    <text class="ar-copy">学生这一轮还没有交卷，交卷后这里会显示成绩和逐题作答。</text>
+  </view>
+
+  <block wx:else>
+    <view class="ar-head">
+      <text class="ar-eyebrow">学生测评报告</text>
+      <text class="ar-title">{{report.scope.name || name}}</text>
+      <text class="ar-meta">{{report.multiRound ? report.roundLabel + ' · ' : ''}}{{report.roundResultLabel}}</text>
+      <text wx:if="{{report.notice}}" class="ar-notice">{{report.notice}}</text>
+    </view>
+
+    <view class="ar-card surface">
+      <text class="ar-label">{{report.isFinal === false ? '当前综合掌握度' : '综合掌握度'}}</text>
+      <view class="ar-score-row"><text class="ar-score">{{report.scoreLabel}}</text><text class="ar-band ar-{{report.bandTone}}">{{report.bandLabel}}</text></view>
+      <text class="ar-copy">掌握 {{report.masteredCount}} · 待巩固 {{report.reinforceCount}} · 未掌握 {{report.notMasteredCount}} · 待测 {{report.pendingCount}}</text>
+    </view>
+
+    <view wx:if="{{report.judgedTopics.length}}" class="ar-card surface">
+      <text class="ar-section">知识点诊断</text>
+      <view wx:for="{{report.judgedTopics}}" wx:key="topicId" class="ar-row">
+        <text class="ar-row-label">{{item.name}}<text wx:if="{{item.tierLabel}}" class="ar-tier"> {{item.tierLabel}}</text></text>
+        <text class="ar-row-value ar-{{item.tone}}">{{item.stateLabel}} {{item.rateLabel}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{report.review.length}}" class="ar-card surface">
+      <text class="ar-section">本轮题目与学生作答</text>
+      <view wx:for="{{report.review}}" wx:key="questionId" class="ar-review">
+        <view class="ar-review-head" data-index="{{index}}" bindtap="toggleReview">
+          <text class="ar-review-title">{{item.number}}. {{item.prompt}}</text>
+          <text class="ar-row-value ar-{{item.resultTone}}">{{item.resultLabel}}</text>
+        </view>
+        <view wx:if="{{openReview === index}}" class="ar-review-body">
+          <text wx:for="{{item.options}}" wx:for-item="option" wx:key="value" class="ar-option ar-option-{{option.tone}}">{{option.value}}、{{option.label}}</text>
+          <text class="ar-line">学生答案：{{item.selectedLabel}} · 正确答案：{{item.answer}}</text>
+          <text wx:if="{{item.explanation}}" class="ar-line"><text class="ar-key">解析</text> {{item.explanation}}</text>
+          <text wx:if="{{item.misconception}}" class="ar-line"><text class="ar-key">易错点</text> {{item.misconception}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>
+<dev-reset-fab />

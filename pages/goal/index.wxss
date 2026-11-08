@@ -1,0 +1,110 @@
+@import "../../styles/skeleton.wxss";
+@import "../../styles/bean-loader.wxss";
+/* 「目标」Tab。顶栏同其它 tab 页（左对齐大标题 + 连胜入口）；内容是白色圆角卡，主题橙 #FD7C02。
+   用固定逻辑 px 控制阅读密度（同学习目标 / 偏好两页）。导图本身在 components/goal-map。 */
+page { background: #FAFAFA; }
+.goal-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; font-size: 14px; line-height: 1.5; }
+.goal-topbar { position: fixed; top: 0; left: 0; z-index: 30; width: 100%; background: #FAFAFA; }
+.goal-topbar-inner { display: flex; align-items: center; box-sizing: content-box; padding: 0 18px 8px; }
+.goal-topbar-title { color: #24332D; font-size: 18px; font-weight: 700; letter-spacing: -.5px; line-height: 1; }
+.goal-scroll { height: 100vh; box-sizing: border-box; }
+.goal-shell { box-sizing: border-box; max-width: 680px; margin: 0 auto; padding: 4px 16px calc(110px + env(safe-area-inset-bottom)); }
+
+.tone-pending { --tone-dot: #B8C0BA; }
+.tone-mastered { --tone-dot: #4F9A68; }
+.tone-gap { --tone-dot: #E8643F; }
+.tone-root { --tone-dot: #D2451F; }
+
+.goal-card { margin-bottom: 14px; padding: 18px; border-radius: 22px; background: #FFF; box-shadow: 0 3px 14px rgba(56,75,64,.025); }
+.goal-card-title { display: block; color: #24332D; font-size: 16px; font-weight: 700; }
+.goal-card-sub { display: block; margin-top: 4px; color: #A0A9A2; font-size: 11px; line-height: 1.6; }
+.goal-sk-gap { margin-top: 12px; }
+.goal-sk-map { height: 320px; border-radius: 16px; }
+.goal-sk-row { height: 54px; margin-top: 10px; border-radius: 14px; }
+
+.goal-sample-banner { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 10px 14px; border-radius: 16px; background: #FFF0E2; }
+.goal-sample-tag { flex: none; padding: 1px 8px; border-radius: 999px; background: #FD7C02; color: #FFF; font-size: 11px; font-weight: 650; }
+.goal-sample-copy { flex: 1; min-width: 0; color: #B95500; font-size: 12px; }
+.goal-sample-action { flex: none; color: #FD7C02; font-size: 12px; font-weight: 650; }
+
+.goal-goal-card { background: linear-gradient(135deg, #FFFFFF 0%, #FFF7EF 100%); }
+.goal-goal-head { display: flex; align-items: center; justify-content: space-between; }
+.goal-goal-badge { display: flex; align-items: center; gap: 7px; color: #C46A12; font-size: 12px; font-weight: 650; }
+.goal-history-link { color: #8A958D; font-size: 12px; }
+.goal-ring { position: relative; width: 16px; height: 16px; box-sizing: border-box; border: 2px solid #FD7C02; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.goal-ring-dot { width: 6px; height: 6px; border-radius: 50%; background: #FD7C02; }
+.goal-ring.is-big { width: 46px; height: 46px; margin-bottom: 14px; border-width: 4px; }
+.goal-ring.is-big .goal-ring-dot { width: 16px; height: 16px; }
+.goal-goal-text { display: block; margin-top: 10px; font-size: 16px; font-weight: 650; line-height: 1.6; word-break: break-all; }
+.goal-goal-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+.goal-tag { padding: 3px 10px; border-radius: 999px; background: #F3F4F2; color: #66736A; font-size: 11px; }
+.goal-tag-state { background: #FFF0E2; color: #FD7C02; font-weight: 600; }
+.goal-tag-link { margin-left: auto; color: #FD7C02; font-size: 12px; }
+
+.goal-state { display: flex; flex-direction: column; align-items: center; padding: 28px 22px 24px; text-align: center; }
+.goal-state-title { display: block; font-size: 16px; font-weight: 700; }
+.goal-state-copy { display: block; margin-top: 6px; color: #8A958D; font-size: 12px; line-height: 1.75; }
+.goal-primary { padding: 10px 24px; border-radius: 999px; background: #FD7C02; color: #FFF; font-size: 14px; font-weight: 650; text-align: center; }
+.goal-state .goal-primary { margin-top: 18px; }
+.goal-primary-wide { margin-top: 16px; }
+.goal-primary:active, .goal-ghost-btn:active, .goal-course:active, .goal-history-item:active { opacity: .82; }
+.goal-ghost-btn { margin-top: 12px; padding: 10px 24px; border-radius: 999px; background: #FFF0E2; color: #FD7C02; font-size: 14px; font-weight: 650; text-align: center; }
+.goal-ghost-link { margin-top: 12px; color: #8A958D; font-size: 12px; }
+.goal-foot { display: block; margin-top: 10px; color: #A0A9A2; font-size: 11px; text-align: center; }
+
+.goal-steps { margin-top: 12px; }
+.goal-step { display: flex; gap: 12px; padding: 8px 0; }
+.goal-step-no { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #FFF0E2; color: #FD7C02; font-size: 12px; font-weight: 700; line-height: 24px; text-align: center; }
+.goal-step-copy { flex: 1; min-width: 0; }
+.goal-step-title { display: block; font-size: 14px; font-weight: 650; }
+.goal-step-desc { display: block; margin-top: 2px; color: #8A958D; font-size: 12px; }
+
+.goal-testing { display: flex; align-items: center; gap: 14px; }
+.goal-testing-copy { flex: 1; min-width: 0; }
+.goal-testing .goal-state-copy { margin-top: 2px; }
+.goal-beans { flex: none; width: 52px; margin-bottom: 0; }
+
+.goal-summary { display: flex; gap: 10px; margin-bottom: 14px; }
+.goal-summary-item { flex: 1; min-width: 0; padding: 14px 12px 12px; border-radius: 18px; background: #FFF; box-shadow: 0 3px 14px rgba(56,75,64,.025); }
+.goal-summary-num { display: block; color: var(--tone-dot); font-size: 24px; font-weight: 750; line-height: 1.2; }
+.goal-summary-label { display: block; margin-top: 4px; color: #8A958D; font-size: 11px; }
+/* 考试范围覆盖（2026-10-11） */
+.goal-scope { display: block; margin: -4px 4px 14px; color: #66736A; font-size: 12px; line-height: 1.6; }
+
+.goal-path-card { padding-bottom: 10px; }
+.goal-path-item { padding: 12px 0; border-bottom: 1px solid #F2F3F1; }
+.goal-path-item:last-child { border-bottom: 0; }
+.goal-path-head { display: flex; align-items: center; gap: 10px; }
+.goal-path-no { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #FFF0E2; color: #FD7C02; font-size: 12px; font-weight: 700; line-height: 24px; text-align: center; }
+.goal-path-no.is-root { background: #E8643F; color: #FFF; }
+.goal-path-label { flex: 1; min-width: 0; font-size: 14px; font-weight: 650; }
+.goal-root-tag { flex: none; padding: 2px 8px; border-radius: 999px; background: #FFE4DA; color: #9C2F14; font-size: 10.5px; font-weight: 600; }
+.goal-grade { flex: none; color: #A0A9A2; font-size: 11px; }
+.goal-path-courses { margin: 8px 0 0 34px; }
+.goal-course { display: flex; align-items: center; gap: 10px; margin-top: 6px; padding: 10px 12px; border-radius: 14px; background: #FFF6EC; }
+.goal-course-icon { position: relative; flex: none; width: 24px; height: 24px; border-radius: 7px; background: linear-gradient(145deg, #FFB25E, #FD7C02); }
+.goal-course-icon::after { content: ''; position: absolute; left: 9px; top: 7px; border-left: 8px solid #FFF; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+.goal-course-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 650; }
+.goal-course-go { flex: none; color: #FD7C02; font-size: 12px; }
+.goal-path-wait { display: block; margin: 6px 0 0 34px; color: #B3BBB5; font-size: 11px; }
+.goal-actions { padding: 0 2px; }
+
+.goal-sheet-mask { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 60; display: flex; align-items: flex-end; justify-content: center; background: rgba(24,32,28,.32); }
+.goal-sheet { box-sizing: border-box; width: 100%; max-width: 680px; padding: 10px 20px calc(20px + env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0; background: #FFF; }
+.goal-sheet-handle { width: 36px; height: 4px; margin: 0 auto 14px; border-radius: 2px; background: #E3E7E3; }
+.goal-history-empty { margin: 16px 0 8px; }
+.goal-history-list { max-height: 60vh; margin-top: 8px; }
+.goal-history-item { display: flex; align-items: center; gap: 12px; margin-top: 8px; padding: 12px 14px; border-radius: 14px; background: #F8F8F6; }
+.goal-history-item.is-current { background: #FFF6EC; }
+.goal-history-main { flex: 1; min-width: 0; }
+.goal-history-title { display: block; overflow: hidden; font-size: 14px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.goal-history-meta { display: block; margin-top: 2px; color: #8A958D; font-size: 11px; }
+.goal-chevron { flex: none; width: 7px; height: 7px; border-top: 1.5px solid #B8C0BA; border-right: 1.5px solid #B8C0BA; transform: rotate(45deg); }
+
+/* 平板、电脑大屏：放宽到 1040px 栏（同其它 tab 页） */
+@media (min-width: 450px) {
+  page { --lg-col: 1040px; }
+  .goal-shell { max-width: 1040px; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

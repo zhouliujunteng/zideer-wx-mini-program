@@ -46,7 +46,8 @@ function normalizeTask(task) {
 }
 
 Page({
-  data: { loading: true, failed: false, task: null },
+  // 第一次读到补学方案前只显示骨架；读到过一次后回到本页保留旧内容静默刷新。
+  data: { loading: true, loaded: false, failed: false, task: null },
 
   onLoad(options) { this.acceptanceId = String(options.acceptanceId || '') },
   onShow() { this.loadPage() },
@@ -57,14 +58,15 @@ Page({
   },
 
   async loadPage() {
-    this.setData({ loading: true, failed: false })
+    if (!this.data.loaded) this.setData({ loading: true, failed: false })
     try {
       const data = await loadCurrentRemediationTasks()
       const tasks = (data.tasks || []).map(normalizeTask)
       const task = tasks.find((item) => String(item.acceptanceId) === this.acceptanceId) || tasks[0] || null
-      this.setData({ task })
+      this.setData({ task, loaded: true, failed: false })
     } catch (error) {
-      this.setData({ failed: true })
+      // 已显示过的方案不因刷新失败被换成错误页。
+      if (!this.data.loaded) this.setData({ failed: true })
       wx.showToast({ title: error.message || '补学任务加载失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })

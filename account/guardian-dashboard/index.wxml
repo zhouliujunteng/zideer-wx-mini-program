@@ -1,16 +1,171 @@
-<view class="guardian-page">
-  <view class="guardian-skeleton skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">家长看板暂时无法加载</text><text class="state-panel__copy">网络恢复后可以重新读取孩子的学习摘要。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
-  <block wx:else>
-    <view class="guardian-head"><text class="guardian-eyebrow">家庭学习</text><text class="guardian-title">学生看板</text></view>
-    <view class="guardian-empty surface" wx:if="{{!current}}"><text class="guardian-empty__title">暂未绑定有效学生</text><text class="guardian-empty__copy">绑定生效后，孩子的诊断、预测、计划与积分摘要会显示在这里。</text></view>
-    <block wx:else>
-      <button class="child-switcher surface pressable" bindtap="chooseChild"><view class="child-avatar">{{current.initial}}</view><view class="child-copy"><text class="child-label">当前学生</text><text class="child-name">{{current.name}} · {{current.gradeLabel}}</text></view><text class="child-switcher__action">{{children.length > 1 ? '切换' : '已绑定'}} ›</text></button>
-      <view class="guardian-section"><view class="section-head"><text class="section-title">学习诊断</text><button class="section-link pressable" data-target="report" bindtap="openPage">查看报告</button></view><button class="summary-card surface pressable" data-target="report" bindtap="openPage"><text class="summary-card__status">{{current.reportStatus}}</text><text class="summary-card__copy">{{current.reportSummary}}</text><text class="summary-card__meta" wx:if="{{current.reportDate}}">{{current.reportDate}}</text></button></view>
-      <view class="guardian-grid"><button class="metric-card surface pressable" data-target="forecast" bindtap="openPage"><text class="metric-card__label">最新预测</text><text class="metric-card__value">{{current.predictionLabel}}</text><text class="metric-card__meta">{{current.predictionMeta}}</text></button><button class="metric-card surface pressable" data-target="credits" bindtap="openPage"><text class="metric-card__label">课程积分</text><text class="metric-card__value">{{current.credits}}</text><text class="metric-card__meta">冻结 {{current.frozenCredits}}</text></button></view>
-      <view class="guardian-section"><view class="section-head"><text class="section-title">当前计划</text><button class="section-link pressable" data-target="plans" bindtap="openPage">计划中心</button></view><button class="plan-row surface pressable" data-target="plans" bindtap="openPage"><view class="plan-row__copy"><text class="plan-row__title">{{current.planLabel}}</text><text class="plan-row__meta">{{current.planMeta}}</text></view><text class="plan-row__arrow">›</text></button></view>
-      <view class="guardian-section"><view class="section-head"><text class="section-title">快捷操作</text></view><view class="quick-list surface"><button class="quick-row pressable" data-target="learningFeed" bindtap="openPage"><text>孩子学习动态</text><text>›</text></button><button class="quick-row pressable" data-target="topicReports" bindtap="openPage"><text>知识点学习报告</text><text>›</text></button><button class="quick-row pressable" data-target="assessment" bindtap="openPage"><text>测评中心</text><text>›</text></button><button class="quick-row pressable" data-target="orders" bindtap="openPage"><text>订单与代付记录</text><text>›</text></button></view></view>
-    </block>
-  </block>
+<!-- 结构取自 UI 设计仓库 f40113a 的 M50 家长学生看板；数据来自「读取当前家长学生看板」（见 index.js） -->
+<view class="dashboard-page">
+  <view class="dashboard-ambient" aria-hidden="true"></view>
+  <view class="dashboard-topbar {{tabsSticky ? 'is-sticky' : ''}}">
+    <view class="dashboard-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="topbar-back-hit" bindtap="handleBack" aria-label="返回上一页" aria-role="button"><view class="back-chevron"></view></view>
+      <text class="topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学生看板</text>
+    </view>
+  </view>
+
+  <scroll-view class="dashboard-scroll" scroll-y="true" show-scrollbar="false" enhanced="{{true}}" bindscroll="handleDashboardScroll" style="padding-top: {{contentTop}}px;">
+    <view class="student-hero">
+      <!-- 第一次读到数据前：头像、姓名、年级位画骨架 -->
+      <view wx:if="{{!loaded && !failed}}" class="student-summary" aria-label="正在读取孩子信息">
+        <view class="student-avatar student-avatar-sk"></view>
+        <view class="student-copy"><view class="sk-hero sk-hero-name"></view><view class="sk-hero sk-hero-grade"></view></view>
+      </view>
+      <view wx:elif="{{student}}" class="student-summary" bindtap="openChildSwitcher" aria-role="button" aria-label="{{children.length > 1 ? '切换孩子' : '当前孩子'}}">
+        <view class="student-avatar">
+          <image wx:if="{{student.avatarSrc}}" src="{{student.avatarSrc}}" mode="aspectFill" aria-label="学生头像"></image>
+        </view>
+        <view class="student-copy">
+          <text class="student-name">{{student.name}}</text>
+          <text class="student-grade">{{student.grade}}</text>
+        </view>
+        <view wx:if="{{children.length > 1}}" class="student-switch-trigger"><view class="student-down-chevron"></view></view>
+      </view>
+    </view>
+
+    <view class="dashboard-panel">
+      <view wx:if="{{!loaded && failed}}" class="dashboard-state">
+        <text class="dashboard-state-title">学生看板暂时没有读到</text>
+        <text class="dashboard-state-copy">请检查网络后重试。</text>
+        <view class="dashboard-state-action" bindtap="retryLoad" aria-role="button">重新加载</view>
+      </view>
+      <view wx:elif="{{loaded && !student}}" class="dashboard-state">
+        <text class="dashboard-state-title">还没有绑定孩子</text>
+        <text class="dashboard-state-copy">向孩子要一个 8 位绑定码，绑定后就能看到孩子的学习时长、错题、验收和陪跑日程。</text>
+        <view class="dashboard-state-action" data-target="bind" bindtap="openPage" aria-role="button">去绑定学生</view>
+      </view>
+      <block wx:else>
+        <view class="dashboard-tabs">
+          <view wx:for="{{tabs}}" wx:key="id" class="dashboard-tab {{activeTab === item.id ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleTabChange" aria-role="button">
+            <text>{{item.label}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{activeTab === 'learning'}}" class="tab-content {{tabMotion}}">
+          <view class="section-heading"><text>学习数据</text></view>
+          <view class="learning-stats">
+            <block wx:if="{{loaded}}">
+              <view wx:for="{{student.learning.statCards}}" wx:key="label" class="learning-stat-card">
+                <view class="stat-card-header">
+                  <text class="stat-label">{{item.label}}</text>
+                  <view class="stat-icon stat-icon-{{item.tone}}"><text>{{item.icon}}</text></view>
+                </view>
+                <view class="stat-card-value-area"><text class="stat-value">{{item.value}}</text><text wx:if="{{item.valueUnit}}" class="stat-unit">{{item.valueUnit}}</text><text wx:if="{{item.suffixValue}}" class="stat-value stat-value-suffix">{{item.suffixValue}}</text><text wx:if="{{item.unit}}" class="stat-unit">{{item.unit}}</text></view>
+              </view>
+            </block>
+            <block wx:else>
+              <view wx:for="{{[0, 1]}}" wx:key="*this" class="learning-stat-card"><view class="sk sk-line sk-mid"></view><view class="sk stat-value-sk"></view></view>
+            </block>
+          </view>
+          <view class="section-heading learning-subsection-heading"><text>学科学习</text></view>
+          <view wx:if="{{!loaded}}" class="subject-list">
+            <view wx:for="{{[0, 1]}}" wx:key="*this" class="subject-card"><view class="subject-main"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view></view>
+          </view>
+          <view wx:elif="{{student.learning.subjects.length}}" class="subject-list">
+            <view wx:for="{{student.learning.subjects}}" wx:key="title" class="subject-card">
+              <view class="subject-main">
+                <view class="subject-card-header">
+                  <view class="subject-dot" style="background: {{item.color}};"></view>
+                  <text class="subject-name">{{item.title}}</text>
+                </view>
+                <view class="subject-card-body"><text class="subject-topic">{{item.topic}}</text></view>
+              </view>
+              <view class="subject-actions">
+                <text class="subject-status {{item.statusLabel === '学习中' ? 'subject-status-current' : ''}}">{{item.statusLabel}}</text>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="plain-empty">近 60 天还没有陪跑课或测评记录</view>
+        </view>
+
+        <view wx:if="{{activeTab === 'diagnosis'}}" class="tab-content {{tabMotion}}">
+          <view class="section-heading diagnosis-heading">
+            <text>学习诊断</text>
+            <picker wx:if="{{loaded}}" class="diagnosis-date-picker" mode="date" value="{{diagnosis.selectedDate}}" start="{{diagnosis.minDate}}" end="{{diagnosis.maxDate}}" bindchange="handleDiagnosisDateChange">
+              <view class="diagnosis-date-pill"><text>{{diagnosis.selectedDateLabel}}</text><view class="date-pill-chevron"></view></view>
+            </picker>
+          </view>
+          <view wx:if="{{!loaded}}" class="diagnosis-sections">
+            <view wx:for="{{[0, 1, 2]}}" wx:key="*this" class="diagnosis-list diagnosis-list-sk"><view class="sk sk-line sk-short"></view><view class="sk sk-line"></view></view>
+          </view>
+          <view wx:else class="diagnosis-sections">
+            <view wx:for="{{diagnosis.sections}}" wx:key="id" class="diagnosis-section">
+              <view class="diagnosis-section-heading diagnosis-heading-{{item.tone}}">
+                <view class="diagnosis-section-heading-copy"><text class="diagnosis-section-title">{{item.title}}</text><view wx:if="{{item.skeleton}}" class="sk sk-line diagnosis-summary-sk"></view><text wx:else class="diagnosis-section-summary">{{item.summary}}</text></view>
+                <view wx:if="{{item.more}}" class="diagnosis-section-more" data-target="{{item.more}}" bindtap="openPage">查看更多</view>
+              </view>
+              <!-- 课后作业那一块（课程服务另读）：读到前画骨架，读不到给重试 -->
+              <view wx:if="{{item.skeleton}}" class="diagnosis-list diagnosis-list-sk"><view class="sk sk-line sk-short"></view><view class="sk sk-line"></view></view>
+              <view wx:elif="{{item.failed}}" class="diagnosis-list"><text class="diagnosis-empty">课后作业暂时没有读到</text><view class="diagnosis-retry" bindtap="retryHomework" aria-role="button">重新读取</view></view>
+              <view wx:else class="diagnosis-list {{item.id === 'acceptance' ? 'diagnosis-list-acceptance' : ''}}">
+                <view wx:for="{{item.rows}}" wx:for-item="row" wx:key="id" class="diagnosis-row {{item.id === 'acceptance' ? 'diagnosis-row-acceptance' : ''}}">
+                  <text wx:if="{{row.number}}" class="diagnosis-row-number diagnosis-number-{{item.tone}}">{{row.number}}</text>
+                  <view class="diagnosis-row-copy"><text class="diagnosis-row-title">{{row.title}}</text><text class="diagnosis-row-detail">{{row.detail}}</text></view>
+                  <text wx:if="{{row.statusLabel}}" class="diagnosis-row-status {{row.statusLabel === '已完成' ? 'diagnosis-status-done' : ''}}">{{row.statusLabel}}</text>
+                </view>
+                <text wx:if="{{!item.rows.length}}" class="diagnosis-empty">当日暂无记录</text>
+                <view wx:if="{{item.id === 'acceptance' && diagnosis.audioDuration}}" class="audio-action diagnosis-audio-action" data-target="topicReports" bindtap="openPage"><view class="recording-info"><view class="recording-icon" aria-hidden="true"><view class="recording-icon-bar recording-icon-bar-short"></view><view class="recording-icon-bar recording-icon-bar-tall"></view><view class="recording-icon-bar recording-icon-bar-middle"></view></view><text class="audio-duration">{{diagnosis.audioDuration}}</text></view><text class="audio-label">查看复述原声</text></view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{activeTab === 'plan'}}" class="tab-content {{tabMotion}}">
+          <view class="section-heading"><text>当前计划</text></view>
+          <view class="plan-card">
+            <view wx:if="{{!loaded}}" class="plan-copy"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short"></view></view>
+            <view wx:elif="{{student.plan}}" class="plan-copy"><text class="plan-status">{{student.plan.title}}</text><text class="plan-detail">{{student.plan.detail}}</text></view>
+            <view wx:else class="plan-copy"><text class="plan-status">暂无学习计划</text><text class="plan-detail">孩子生成学习计划后会显示进度</text></view>
+          </view>
+          <view class="section-heading learning-subsection-heading"><text>近期日程</text></view>
+          <view class="schedule-card">
+            <view wx:if="{{!loaded}}" class="schedule-copy"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short"></view></view>
+            <view wx:elif="{{student.schedule}}" class="schedule-copy"><text class="schedule-title">{{student.schedule.course}}</text><text class="schedule-detail">{{student.schedule.detail}}</text></view>
+            <view wx:else class="schedule-copy"><text class="schedule-title">暂无预约</text><text class="schedule-detail">老师为孩子预约陪跑课后会显示在这里</text></view>
+          </view>
+        </view>
+
+        <view wx:if="{{activeTab === 'more'}}" class="tab-content {{tabMotion}}">
+          <view class="section-heading"><text>更多</text></view>
+          <view class="quick-card">
+            <view wx:for="{{quickActions}}" wx:key="id" class="quick-row" data-target="{{item.id}}" bindtap="openPage" aria-role="button">
+              <view class="quick-copy"><text class="quick-title">{{item.label}}</text><text class="quick-hint">{{item.hint}}</text></view>
+              <text class="plan-arrow">›</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{tabsSticky && student}}" class="sticky-dashboard-tabs" style="top: {{contentTop}}px;">
+    <view wx:for="{{tabs}}" wx:key="id" class="sticky-dashboard-tab {{activeTab === item.id ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleTabChange" aria-role="button">
+      <text>{{item.label}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{childSwitcherVisible}}" class="switcher-layer">
+    <view class="switcher-mask {{childSwitcherClosing ? 'is-closing' : ''}}" bindtap="closeChildSwitcher"></view>
+    <view class="switcher-sheet {{childSwitcherClosing ? 'is-closing' : ''}}">
+      <view class="sheet-handle"></view>
+      <view class="sheet-heading"><text class="sheet-title">切换孩子</text><view class="sheet-close" bindtap="closeChildSwitcher">×</view></view>
+      <text class="sheet-subtitle">选择要查看的孩子</text>
+      <input wx:if="{{showChildSearch}}" class="child-search" value="{{childSearch}}" placeholder="搜索孩子姓名或年级" placeholder-class="child-search__placeholder" bindinput="onChildSearch" />
+      <scroll-view scroll-y class="children-list">
+        <view wx:for="{{visibleChildren}}" wx:key="id" class="child-option" data-id="{{item.id}}" bindtap="selectChild">
+          <view class="option-avatar"><image wx:if="{{item.avatarSrc}}" src="{{item.avatarSrc}}" mode="aspectFill"></image></view>
+          <view class="option-copy"><text class="option-name">{{item.name}}</text><text class="option-grade">{{item.grade}}</text></view>
+          <text wx:if="{{item.id === student.id}}" class="current-pill">正在查看</text>
+          <view wx:else class="option-radio"></view>
+        </view>
+        <text wx:if="{{!visibleChildren.length}}" class="child-search__empty">没有找到这个孩子</text>
+      </scroll-view>
+      <view class="sheet-safe-space"></view>
+    </view>
+  </view>
 </view>
 <dev-reset-fab />

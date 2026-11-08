@@ -38,7 +38,8 @@ test('learning page exposes planning and creation without requiring an existing 
   assert.deepEqual(navigations, [
     { url: '/diagnosis/plans/index' },
     { url: '/diagnosis/plan-generation/index' },
-    { url: '/learning/library/index' }
+    // 「我的课程」旁的「课程库」是学生自己的课程库，不是会员公共课程
+    { url: '/learning/library/index?scope=mine' }
   ])
 })
 

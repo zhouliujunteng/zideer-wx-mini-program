@@ -1,0 +1,14 @@
+/* 「跳跳豆」加载动效（2026-10-11 用户从 6 版里选的 A）：三颗橙色小球依次弹跳、落地稍压扁。
+   用法：<view class="bean-loader" aria-hidden="true"><view></view><view></view><view></view></view>，小一号加 is-small。
+   网页端同一版在课程服务 components/portal/goal-diagnosis.module.css 的 .beans。 */
+.bean-loader { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 40px; margin-bottom: 12px; }
+.bean-loader view { width: 14px; height: 14px; border-radius: 50%; background: #FD7C02; animation: bean-jump 1.1s ease-in-out infinite; }
+.bean-loader view:nth-child(2) { animation-delay: .15s; opacity: .8; }
+.bean-loader view:nth-child(3) { animation-delay: .3s; opacity: .6; }
+.bean-loader.is-small { gap: 7px; height: 28px; margin-bottom: 6px; }
+.bean-loader.is-small view { width: 10px; height: 10px; }
+@keyframes bean-jump {
+  0%, 60%, 100% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(-18px) scale(.95, 1.08); }
+  40% { transform: translateY(0) scale(1.12, .85); }
+}

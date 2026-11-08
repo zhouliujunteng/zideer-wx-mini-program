@@ -1,0 +1,23 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.gm-map-card{box-shadow:0 3px 14px rgba(56,75,64,.025)}
+.gm-zoom-btn{width:28px;height:28px}
+.gm-zoom-text{min-width:40px}
+.gm-map-box{width:100%}
+.gm-arc{box-sizing:border-box}
+.gm-card{box-sizing:border-box}
+.gm-card-goal{box-shadow:0 6px 16px rgba(253,124,2,.25)}
+.gm-card-condition{box-shadow:0 2px 8px rgba(56,75,64,.05)}
+.gm-card.is-current{box-shadow:0 0 0 3px rgba(253,124,2,.22)}
+.gm-card-meta{height:18px}
+.gm-card-dot{width:6px;height:6px}
+.gm-sheet-mask{left:max(0px, 50% - var(--lg-col) / 2);right:max(0px, 50% - var(--lg-col) / 2);top:0;bottom:0;box-shadow:0 0 0 100vmax rgba(24,32,28,.32)}
+.gm-sheet{box-sizing:border-box;width:100%;max-width:680px;max-height:80vh}
+.gm-sheet-handle{width:36px;height:4px}
+.gm-sheet-title{min-width:0}
+.gm-course-icon{width:26px;height:26px}
+.gm-course-icon::after{left:10px;top:8px}
+.gm-course-title{min-width:0}
+.gm-map-box{min-height:460px}
+}

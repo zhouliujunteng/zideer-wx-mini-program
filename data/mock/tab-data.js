@@ -177,7 +177,7 @@ const homeModels = {
   member: {
     mode: 'member',
     student,
-    brand: '知鹿私课',
+    brand: '知鹿学习',
     notifications: { count: 3 },
     hero: {
       title: '今天继续学一点'
@@ -488,7 +488,7 @@ const meModel = {
     { value: '120', label: '我的金币', icon: '../../assets/me/coins.png', actionLabel: '兑换' }
   ],
   quickActions: [
-    { label: '我的订单', icon: '../../assets/me/quick-orders.svg' },
+    { label: '测评中心', icon: '../../assets/me/quick-assessment.svg' },
     { label: '消息中心', icon: '../../assets/me/quick-messages.svg', unreadCount: 3 },
     { label: '账户安全', icon: '../../assets/me/quick-security.svg' },
     { label: '家庭关系', icon: '../../assets/me/quick-family.svg' }
@@ -496,17 +496,16 @@ const meModel = {
   serviceGroups: [
     {
       title: '知鹿服务',
-      enterpriseService: {
-        title: '企微服务',
-        description: '联系课程顾问和真人服务',
-        hours: '9:00-18:00',
-        avatar: '../../assets/me/service-advisor.png'
-      },
       items: [
-        { title: '推广伙伴', description: '分享工具与奖励记录' },
-        { title: '身份与登录', description: '实名、微信和手机号身份' },
+        // 2026-10-10 起底栏「图谱」换成「目标」，知识图谱挪到这里（家长没有，见 live-tab-service）
+        { title: '知识图谱', description: '按知识点看掌握情况和前后置关系' },
+        { title: '推广伙伴', tag: '邀请码', description: '分享工具与奖励记录' },
+        { title: '身份与登录', description: '学生或家长身份、实名与手机号' },
         { title: '兑换码', description: '兑换课程积分、金币或体验权益' },
-        { title: '测评中心', description: '开始基础测评与查看测评记录' }
+        { title: '我的订单', description: '查看购买记录与支付状态' },
+        { title: '关于知鹿', description: '备案号、用户协议与隐私保护指引' },
+        // 帮助中心放在知鹿服务最后（2026-10-04 用户要求）：常见问题、操作指南，页内再进问题反馈
+        { title: '帮助与反馈', description: '常见问题、操作指南与问题反馈' }
       ]
     }
   ]

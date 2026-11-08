@@ -62,7 +62,8 @@ function buildResult(report, student) {
 }
 
 Page({
-  data: { loading: true, failed: false, result: null },
+  // 第一次读到验收结果前只显示骨架；读到过一次后回到本页保留旧内容静默刷新。
+  data: { loading: true, loaded: false, failed: false, result: null },
 
   onLoad(options) { this.reportId = String(options.reportId || '') },
   onShow() { this.loadPage() },
@@ -73,7 +74,7 @@ Page({
   },
 
   async loadPage() {
-    this.setData({ loading: true, failed: false })
+    if (!this.data.loaded) this.setData({ loading: true, failed: false })
     try {
       const payload = await loadAuthorizedTopicLearningReports()
       let result = null
@@ -84,9 +85,10 @@ Page({
           break
         }
       }
-      this.setData({ result })
+      this.setData({ result, loaded: true, failed: false })
     } catch (error) {
-      this.setData({ failed: true })
+      // 已显示过的结果不因刷新失败被换成错误页。
+      if (!this.data.loaded) this.setData({ failed: true })
       wx.showToast({ title: error.message || '验收结果加载失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })

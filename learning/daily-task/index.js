@@ -5,21 +5,24 @@ function statusLabel(status) {
 }
 
 Page({
-  data: { loading: true, failed: false, plan: null, tasks: [] },
+  // 第一次读到计划前只显示骨架；读到过一次后回到本页保留旧内容静默刷新。
+  data: { loading: true, loaded: false, failed: false, plan: null, tasks: [] },
   onLoad(options) { this.planId = String(options.planId || '') },
   onShow() { this.loadPage() },
   async onPullDownRefresh() { await this.loadPage(); wx.stopPullDownRefresh() },
   async loadPage() {
-    this.setData({ loading: true, failed: false })
+    if (!this.data.loaded) this.setData({ loading: true, failed: false })
     try {
       const data = await loadCurrentLearningPlans()
       const plans = data.plans || []
       const plan = plans.find((item) => String(item.id) === this.planId) || plans.find((item) => String(item.status || '').toLowerCase() === 'active') || plans[0]
       if (!plan) {
-        this.setData({ plan: null, tasks: [] })
+        this.setData({ plan: null, tasks: [], loaded: true, failed: false })
         return
       }
       this.setData({
+        loaded: true,
+        failed: false,
         plan,
         tasks: (plan.items || []).map((item) => ({
           ...item,
@@ -28,7 +31,8 @@ Page({
         }))
       })
     } catch (error) {
-      this.setData({ failed: true })
+      // 已显示过的计划不因刷新失败被换成错误页。
+      if (!this.data.loaded) this.setData({ failed: true })
       wx.showToast({ title: error.message || '学习任务加载失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })

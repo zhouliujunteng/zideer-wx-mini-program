@@ -1,0 +1,34 @@
+/* 提分记录：样式与工具页（score-tools/tool）同一套。 */
+@import "../../styles/skeleton.wxss";
+
+page { background: #FAFAFA; }
+
+.sh-page { min-height: 100vh; background: #FAFAFA; color: #24332D; }
+.sh-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: #FAFAFA; }
+.sh-topbar-inner { position: relative; display: flex; align-items: center; padding: 0 36rpx 8rpx; box-sizing: content-box; }
+.sh-back { display: flex; width: 44rpx; height: 44rpx; flex: 0 0 auto; align-items: center; justify-content: center; }
+.sh-back:active { opacity: .62; }
+.sh-back-icon { width: 22rpx; height: 22rpx; border-bottom: 3rpx solid #24332D; border-left: 3rpx solid #24332D; transform: rotate(45deg) scale(.72); }
+.sh-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; text-align: center; transform: translateX(-50%); white-space: nowrap; pointer-events: none; }
+
+.sh-content { padding: 0 32rpx calc(60rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.sh-item { margin-bottom: 20rpx; padding: 26rpx 28rpx; border-radius: 28rpx; background: #FFFFFF; }
+.sh-item:active { opacity: .8; }
+.sh-item .sk-line { margin-top: 14rpx; }
+.sh-item-head { display: flex; align-items: center; }
+.sh-tool { padding: 4rpx 16rpx; border-radius: 999rpx; background: #FFF1E2; color: #C9650A; font-size: 22rpx; font-weight: 700; }
+.sh-status { margin-left: 12rpx; padding: 4rpx 14rpx; border-radius: 999rpx; font-size: 20rpx; }
+.sh-status-queued, .sh-status-running { background: #FFF2DF; color: #D89037; }
+.sh-status-failed { background: #F0F1F0; color: #9BA29D; }
+.sh-credits { margin-left: 12rpx; color: #9AA59D; font-size: 21rpx; }
+.sh-time { margin-left: auto; color: #A0AAA3; font-size: 21rpx; }
+.sh-stem { display: -webkit-box; overflow: hidden; margin-top: 14rpx; color: #34423B; font-size: 25rpx; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.sh-footnote { display: block; margin-top: 10rpx; color: #A5AEA8; font-size: 21rpx; text-align: center; }
+
+.sh-state { margin-top: 20rpx; padding: 90rpx 36rpx; border-radius: 28rpx; background: #FFFFFF; text-align: center; }
+.sh-state-title { display: block; color: #24332D; font-size: 29rpx; font-weight: 700; line-height: 1.3; }
+.sh-state-copy { display: block; margin-top: 16rpx; color: #7E8A82; font-size: 23rpx; line-height: 1.6; }
+.sh-state-action { display: inline-flex; height: 72rpx; align-items: center; margin-top: 30rpx; padding: 0 44rpx; border-radius: 999rpx; background: linear-gradient(135deg, #FF9F43 0%, #FD7C02 100%); color: #FFFFFF; font-size: 25rpx; font-weight: 650; }
+.sh-state-action:active { opacity: .78; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

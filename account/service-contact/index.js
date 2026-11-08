@@ -6,6 +6,8 @@ Page({
   onLoad() { attachUiAssets(this) },
   data: {
     loading: true,
+    // 第一次读到服务入口前显示骨架；之后回到页面保留旧入口，后台静默刷新
+    loaded: false,
     failed: false,
     profileIncomplete: false,
     contacts: [],
@@ -22,12 +24,12 @@ Page({
   },
 
   async loadPage() {
-    this.setData({ loading: true, failed: false, profileIncomplete: false, openingContactId: '' })
+    this.setData({ loading: true, failed: false, openingContactId: '' })
     try {
       const result = await loadCurrentServiceContacts()
-      this.setData({ contacts: result.contacts, profileIncomplete: result.status === 'profile_incomplete' })
+      this.setData({ loaded: true, contacts: result.contacts, profileIncomplete: result.status === 'profile_incomplete' })
     } catch (error) {
-      this.setData({ failed: true })
+      if (!this.data.loaded) this.setData({ failed: true })
       wx.showToast({ title: error.message || '服务入口加载失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })

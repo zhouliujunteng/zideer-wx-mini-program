@@ -1,0 +1,39 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.plan-generation{min-height:100vh;padding:0 16px calc(env(safe-area-inset-bottom) + 26px)}
+.plan-generation__inner{padding-top:32px}
+.plan-generation__head{padding:0 4px}
+.plan-generation__eyebrow{font-size:13px;font-weight:700}
+.plan-generation__title{margin-top:7px;font-size:25px;font-weight:700}
+.plan-generation__copy{margin-top:8px;font-size:13px;line-height:1.55}
+.plan-form{margin-top:22px;padding:0 15px}
+.plan-form__field{padding:15px 0;border-bottom:0.5px solid var(--line)}
+.plan-form__field:last-child{border-bottom:0}
+.plan-form__label{font-size:15px;font-weight:700}
+.plan-form__hint{margin-top:4px;font-size:12px}
+.plan-form__textarea{width:100%;min-height:90px;margin-top:9px;font-size:15px;line-height:1.55}
+.plan-form__row{min-height:58px;gap:8px}
+.plan-form__row > view:first-child{min-width:0}
+.plan-form__number{width:62px;padding:6px 2px;border-bottom:0.5px solid var(--line-strong);font-size:16px;font-weight:700}
+.plan-form__unit{font-size:13px}
+.plan-form__date{min-height:37px;padding:9px 0 9px 10px;font-size:13px;font-weight:700}
+.plan-subjects{margin-top:24px;padding:0 4px}
+.plan-subjects__hint{margin-top:6px;font-size:13px;line-height:1.55}
+.plan-subjects__chips{gap:8px;margin-top:12px}
+.plan-subjects__chip{min-width:79px;min-height:38px;padding:0 9px;border:0.5px solid var(--line-strong);border-radius:4px;font-size:13px}
+.plan-subjects__chip--selected{border-color:var(--accent-deep);font-weight:700}
+.plan-generation__submit{width:100%;min-height:52px;margin-top:28px;border-radius:4px;font-size:16px;font-weight:700}
+.plan-generation__working{min-height:186px;margin-top:31px;padding:18px}
+.plan-generation__spinner{width:33px;height:33px;border:3px solid var(--accent-soft);border-top-color:var(--accent-deep);border-radius:50%}
+.plan-generation__working-title{margin-top:14px;font-size:16px;font-weight:700}
+.plan-generation__working-copy{margin-top:7px;font-size:13px;line-height:1.55}
+}

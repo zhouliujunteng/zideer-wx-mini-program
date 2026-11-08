@@ -1,0 +1,24 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.acceptance-entry{min-height:100vh;padding:52px 24px 33px}
+.entry-eyebrow{font-size:15px}
+.entry-title{margin-top:12px;font-size:28px;font-weight:700;line-height:1.2}
+.entry-detail{margin-top:16px;font-size:17px;line-height:1.7}
+.entry-checks{margin:43px 0;border-top:0.5px solid #e3e6ea}
+.entry-check{gap:12px;padding:16px 0;border-bottom:0.5px solid #e3e6ea;font-size:16px}
+.entry-check__mark{width:24px;height:24px;border-radius:50%;font-size:13px}
+.entry-action{width:100%;font-size:18px}
+.recording-panel{margin-top:33px;padding-top:24px;border-top:0.5px solid #e3e6ea}
+.recording-panel__title{font-size:20px;font-weight:700}
+.recording-panel__copy{margin:10px 0 21px;font-size:16px;line-height:1.65}
+.stop-action{width:100%;font-size:18px}
+}

@@ -1,11 +1,11 @@
-const { loadCurrentGrowthCenter, redeemCurrentStudentCode, createCurrentPromoterInvitation, generateCurrentPromoterPosterBackground, loadPublishedPromotionAssets, claimCurrentDailyCoinCheckin } = require('../../services/identity')
+const { loadCurrentGrowthCenter, redeemCurrentStudentCode, unlockDevelopmentReset, generateCurrentPromoterPosterBackground, loadPublishedPromotionAssets, claimCurrentDailyCoinCheckin } = require('../../services/identity')
 const { attachUiAssets } = require('../../services/ui-assets')
 
 const titles = {
   application: '推广伙伴与结算资格', dashboard: '推广伙伴工作台', clients: '直属用户',
-  'client-detail': '直属用户详情', 'share-tools': '推广工具', 'ai-poster': '智能推广海报',
+  'client-detail': '直属用户详情', 'ai-poster': '智能推广海报',
   'material-library': '平台宣传素材',
-  coins: '金币中心', 'coin-tasks': '金币任务', 'coin-withdrawal': '金币提现', redemption: '兑换码'
+  coins: '金币中心', 'coin-tasks': '金币任务', 'coin-withdrawal': '兑换记录', redemption: '兑换码'
 }
 
 function formatTime(value) {
@@ -22,16 +22,31 @@ function redemptionBenefitLabels(benefits) {
   const coins = Number(source.coin)
   if (Number.isFinite(credits) && credits > 0) labels.push(`课程积分 +${credits}`)
   if (Number.isFinite(coins) && coins > 0) labels.push(`金币 +${coins}`)
+  // 学习连胜道具卡（激活码可领，2026-09-25）
+  const freezeCards = Number(source.streak_freeze_card)
+  const reviveCards = Number(source.streak_revive_card)
+  if (Number.isFinite(freezeCards) && freezeCards > 0) labels.push(`冻结卡 +${freezeCards}`)
+  if (Number.isFinite(reviveCards) && reviveCards > 0) labels.push(`复活卡 +${reviveCards}`)
+  // 成就卡通用抽卡次数（2026-10-13，课程服务按兑换记录发放，任意卡可用）
+  const cardDraws = Number(source.achievement_card_draw)
+  if (Number.isFinite(cardDraws) && cardDraws > 0) labels.push(`成就卡抽卡次数 +${cardDraws}`)
   if (source.experience_product_access && source.experience_product_access.product_version_id) {
     labels.push('体验商品权益已开通')
   }
   return labels
 }
 
+const PARTNER_MODES = ['application', 'dashboard', 'clients', 'client-detail', 'ai-poster', 'material-library']
+const COIN_MODES = ['coins', 'coin-tasks', 'coin-withdrawal', 'redemption']
+
 Component({
+  // 卡片、状态面板等公共样式由所在页面引入的 styles/account-form.wxss 提供，这里让页面样式作用进组件。
+  options: { styleIsolation: 'apply-shared' },
   properties: { mode: { type: String, value: 'dashboard' } },
   data: {
-    loading: true,
+    // loaded：成长中心第一次读成功后为 true，之后刷新保留旧数据、后台静默更新；
+    // failed：只表示首次读取失败（显示重试），已读到过数据时刷新失败只提示。
+    loaded: false,
     failed: false,
     center: null,
     title: '',
@@ -40,30 +55,35 @@ Component({
     redemptionCode: '',
     redeeming: false,
     redemptionResult: null,
-    creatingInvitation: false,
-    invitationResult: null,
     posterTheme: '',
     generatingPoster: false,
     posterStatus: '',
     posterResult: null,
-    materialLoading: false,
-    materialFailed: false,
     materialStatus: '',
     materialAssets: [],
     checkingIn: false,
     checkinResult: null
   },
-  lifetimes: { attached() { attachUiAssets(this); this.loadPage() } },
+  lifetimes: {
+    attached() {
+      attachUiAssets(this)
+      // 标题与页面类型只由 mode 决定，首屏就显示，不等数据
+      const mode = this.data.mode
+      this.setData({
+        title: titles[mode] || '成长中心',
+        isPartnerPage: PARTNER_MODES.includes(mode),
+        isCoinPage: COIN_MODES.includes(mode)
+      })
+      this.loadPage()
+    }
+  },
   methods: {
     async loadPage() {
-      this.setData({ loading: true, failed: false, title: titles[this.data.mode] || '成长中心' })
+      if (!this.data.loaded) this.setData({ failed: false })
       try {
         const growth = await loadCurrentGrowthCenter()
         let materials = null
-        if (this.data.mode === 'material-library') {
-          this.setData({ materialLoading: true, materialFailed: false })
-          materials = await loadPublishedPromotionAssets()
-        }
+        if (this.data.mode === 'material-library') materials = await loadPublishedPromotionAssets()
         const center = {
           ...growth,
           invitations: (growth.invitations || []).map((item) => ({ ...item, timeLabel: formatTime(item.created_at) })),
@@ -76,19 +96,17 @@ Component({
         const selectedClientId = String(currentPage.options && currentPage.options.id || '')
         const selectedClient = (center.clients || []).find((item) => String(item.id) === selectedClientId) || null
         this.setData({
+          loaded: true,
+          failed: false,
           center,
           selectedClient,
           materialStatus: materials && materials.status || '',
-          materialAssets: materials && materials.assets || [],
-          isPartnerPage: ['application', 'dashboard', 'clients', 'client-detail', 'share-tools', 'ai-poster', 'material-library'].includes(this.data.mode),
-          isCoinPage: ['coins', 'coin-tasks', 'coin-withdrawal', 'redemption'].includes(this.data.mode)
+          materialAssets: materials && materials.assets || []
         })
       } catch (error) {
-        this.setData({ failed: true })
-        if (this.data.mode === 'material-library') this.setData({ materialFailed: true })
+        // 已经显示过数据时保留旧内容，只提示刷新失败
+        if (!this.data.loaded) this.setData({ failed: true })
         wx.showToast({ title: error.message || '数据加载失败', icon: 'none' })
-      } finally {
-        this.setData({ loading: false, materialLoading: false })
       }
     },
     navigate(event) {
@@ -98,23 +116,6 @@ Component({
     openClient(event) {
       const id = String(event.currentTarget.dataset.id || '')
       if (id) wx.navigateTo({ url: `/agent/client-detail/index?id=${encodeURIComponent(id)}` })
-    },
-    unavailable() {
-      wx.showToast({ title: '该操作依赖服务端写入流程，当前暂未开放。', icon: 'none' })
-    },
-    async createInvitation() {
-      if (this.data.creatingInvitation) return
-      this.setData({ creatingInvitation: true, invitationResult: null })
-      try {
-        const result = await createCurrentPromoterInvitation({ targetPath: '/pages/home/index', sceneType: 'share' })
-        this.setData({ invitationResult: result })
-        wx.setClipboardData({ data: result.sharePath, success: () => wx.showToast({ title: '邀请路径已复制', icon: 'success' }) })
-        await this.loadPage()
-      } catch (error) {
-        wx.showToast({ title: error.message || '邀请创建失败，请稍后重试。', icon: 'none' })
-      } finally {
-        this.setData({ creatingInvitation: false })
-      }
     },
     updatePosterTheme(event) {
       this.setData({ posterTheme: String(event.detail.value || ''), posterResult: null })
@@ -193,13 +194,18 @@ Component({
         wx.showToast({ title: '请输入兑换码。', icon: 'none' })
         return
       }
-      if (!Number.isSafeInteger(studentId) || studentId <= 0) {
-        wx.showToast({ title: '当前学生信息未就绪，请刷新后重试。', icon: 'none' })
-        return
-      }
 
       this.setData({ redeeming: true, redemptionResult: null })
       try {
+        // 与兑换码页一致：先问后端是不是「重置测试账号」的开启码（2026-09-28 用户规则），放在学生信息检查之前
+        if (await unlockDevelopmentReset(code)) {
+          this.setData({ redemptionCode: '', redemptionResult: { title: '已开启重置测试账号', message: '页面右下角会出现「重置测试账号」按钮，这台手机上登录的账号都能用。', benefits: [], recordNo: '' } })
+          return
+        }
+        if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+          wx.showToast({ title: '当前学生信息未就绪，请刷新后重试。', icon: 'none' })
+          return
+        }
         const result = await redeemCurrentStudentCode(code, studentId)
         this.setData({
           redemptionCode: '',

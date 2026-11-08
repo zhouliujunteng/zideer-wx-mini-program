@@ -2,9 +2,13 @@ const { loadCurrentNotifications, markCurrentNotificationRead } = require('../..
 const { buildMessagesModel, normalizeNotification, messageNavigationMetrics, handleBack, navigateNotification } = require('../../utils/message-view')
 
 Page({
-  data: { model: buildMessagesModel([]), notifications: [], loading: true, failed: false, category: 'all', query: '', openingId: null, statusBarHeight: 20, navigationBarHeight: 44, contentTop: 82 },
+  // 第一次读到通知前列表位只显示骨架；读到过一次后再回来保留旧消息，后台静默刷新。
+  data: { model: buildMessagesModel([]), notifications: [], loading: true, loaded: false, failed: false, category: 'all', query: '', openingId: null, statusBarHeight: 20, navigationBarHeight: 44, contentTop: 82 },
   onLoad(options = {}) {
-    this.setData({ ...messageNavigationMetrics(), category: options.category || 'all', query: options.query || '' })
+    const category = options.category || 'all'
+    const query = options.query || ''
+    // 标题按分类立即显示，不先闪「系统消息」
+    this.setData({ ...messageNavigationMetrics(), category, query, model: buildMessagesModel([], { category, query }) })
   },
   onShow() { this.disposed = false; return this.loadPage() },
   onUnload() { this.disposed = true },
@@ -15,9 +19,12 @@ Page({
     try {
       const notifications = (await loadCurrentNotifications()).map(normalizeNotification)
       if (this.disposed || requestId !== this.requestId) return
-      this.setData({ notifications, model: buildMessagesModel(notifications, this.data) })
+      this.setData({ notifications, loaded: true, model: buildMessagesModel(notifications, this.data) })
     } catch (error) {
-      if (!this.disposed && requestId === this.requestId) this.setData({ failed: true })
+      if (this.disposed || requestId !== this.requestId) return
+      // 已有消息时刷新失败只提示，不把旧消息换成错误页。
+      if (this.data.loaded) wx.showToast({ title: '消息刷新失败', icon: 'none' })
+      else this.setData({ failed: true })
     } finally {
       if (!this.disposed && requestId === this.requestId) this.setData({ loading: false })
     }
@@ -25,7 +32,7 @@ Page({
   async onPullDownRefresh() { await this.loadPage(); wx.stopPullDownRefresh() },
   handleBack() { handleBack() },
   async handleSystemTap(event) {
-    if (this.data.openingId !== null || this.data.loading || this.data.failed) return
+    if (this.data.openingId !== null || !this.data.loaded) return
     const id = Number(event.currentTarget.dataset.id)
     const item = this.data.notifications.find(notification => Number(notification.id) === id)
     if (!item) return

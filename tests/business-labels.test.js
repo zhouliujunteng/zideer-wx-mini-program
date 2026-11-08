@@ -8,8 +8,13 @@ test('known source, settlement and redemption codes have Chinese labels and unkn
   for (const value of ['redemption', 'purchase', 'manual', 'future_source']) assert.doesNotMatch(labels.sourceLabel(value), /[A-Za-z]/)
   for (const value of ['course_generation_freeze', 'course_generation_consume', 'course_generation_return', 'course_generation_failure_release', 'course_generation_limit_release', 'future_code']) assert.doesNotMatch(labels.businessLabel(value), /[A-Za-z]/)
   for (const value of ['active', 'pending', 'SUCCESS', 'succeeded', 'failed', 'future_status']) assert.doesNotMatch(labels.statusLabel(value), /[A-Za-z]/)
+  for (const value of ['guardian', 'teacher', 'GUARDIAN', 'Teacher', 'promoter', 'partner', 'student', 'user', 'future_role', '', null]) assert.doesNotMatch(labels.roleLabel(value), /[A-Za-z]/)
+  assert.deepEqual(['guardian', 'teacher', 'promoter'].map(labels.roleLabel), ['家长', '服务老师', '推广伙伴'])
   assert.equal(labels.statusLabel('已支付'), '已支付')
   assert.equal(labels.businessLabel('', 'freeze', 'coin'), '金币冻结')
+  // 邀请活动两边的积分明细：填码人与邀请人各有自己的说法，不能退回成笼统的「积分发放」
+  assert.equal(labels.businessLabel('invite_code', 'grant'), '通过绑定邀请码获得（限时活动）')
+  assert.equal(labels.businessLabel('invite_referrer', 'grant'), '好友填写你的邀请码获得（限时活动）')
 })
 
 test('templates do not print raw runtime business and status codes', () => {

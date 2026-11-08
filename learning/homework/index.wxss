@@ -1,0 +1,69 @@
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
+/* 课后作业：顶栏、底部按钮与课程详情（learning/agent-course）同一套；题目卡按主题橙 + 暖灰。
+   对错用橙（对）与暖红（错）区分，不用绿色（课程详情 2026-10-04 用户反馈「绿色不搭」）。 */
+page { background: #FAFAFA; }
+
+.hw-page { min-height: 100vh; background: #FAFAFA; color: #24332D; }
+.hw-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: #FAFAFA; }
+.hw-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.hw-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 34rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.hw-back { display: flex; flex: 0 0 auto; width: 54rpx; height: 54rpx; align-items: center; justify-content: center; border-radius: 50%; }
+.hw-back:active { background: #F0F2EF; }
+.hw-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+
+.hw-shell { padding: 0 32rpx calc(200rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.hw-head { margin-top: 12rpx; padding: 0 4rpx; }
+.hw-course { display: block; color: #24332D; font-size: 34rpx; font-weight: 750; line-height: 1.3; }
+.hw-sub { display: block; margin-top: 10rpx; color: #7E8A82; font-size: 24rpx; line-height: 1.5; }
+
+.hw-card { margin-top: 24rpx; padding: 28rpx 26rpx; border-radius: 28rpx; background: #FFFFFF; }
+.hw-card.is-wrong { box-shadow: inset 0 0 0 2rpx rgba(201, 79, 63, .22); }
+.hw-card-head { display: flex; align-items: center; gap: 12rpx; }
+.hw-number { color: #24332D; font-size: 26rpx; font-weight: 700; }
+.hw-type { padding: 4rpx 14rpx; border-radius: 999rpx; background: #FFF0E4; color: #F07A22; font-size: 20rpx; }
+.hw-mark { margin-left: auto; font-size: 22rpx; font-weight: 650; }
+.hw-mark.is-right { color: #FD7C02; }
+.hw-mark.is-wrong { color: #C94F3F; }
+.hw-prompt { display: block; margin-top: 18rpx; color: #24332D; font-size: 29rpx; line-height: 1.6; word-break: break-all; }
+
+.hw-options { margin-top: 20rpx; }
+.hw-options.is-judge { display: flex; gap: 18rpx; }
+.hw-options.is-judge .hw-option { flex: 1; margin-top: 0; }
+.hw-option { display: flex; margin-top: 14rpx; padding: 20rpx 22rpx; box-sizing: border-box; align-items: flex-start; border-radius: 20rpx; background: #F6F5F3; }
+.hw-option:active { opacity: .82; }
+.hw-option-letter { flex: 0 0 auto; width: 40rpx; height: 40rpx; margin-right: 18rpx; border-radius: 50%; background: #FFFFFF; color: #5E6A62; font-size: 22rpx; font-weight: 700; line-height: 40rpx; text-align: center; }
+.hw-option-label { flex: 1; min-width: 0; color: #24332D; font-size: 27rpx; line-height: 40rpx; word-break: break-all; }
+.hw-option.is-selected { background: #FFF1E6; box-shadow: inset 0 0 0 2rpx #FD7C02; }
+.hw-option.is-selected .hw-option-letter { background: #FD7C02; color: #FFFFFF; }
+.hw-option.is-right { background: #FFF1E6; box-shadow: inset 0 0 0 2rpx #FD7C02; }
+.hw-option.is-right .hw-option-letter { background: #FD7C02; color: #FFFFFF; }
+.hw-option.is-wrong { background: #FBEDEA; box-shadow: inset 0 0 0 2rpx rgba(201, 79, 63, .5); }
+.hw-option.is-wrong .hw-option-letter { background: #C94F3F; color: #FFFFFF; }
+
+.hw-explain { margin-top: 20rpx; padding: 20rpx 22rpx; border-radius: 20rpx; background: #FAF8F5; }
+.hw-explain-answer { display: block; color: #B95500; font-size: 24rpx; font-weight: 700; }
+.hw-explain-text { display: block; margin-top: 8rpx; color: #536158; font-size: 25rpx; line-height: 1.6; }
+
+.hw-result { display: flex; margin-top: 24rpx; padding: 30rpx 28rpx; align-items: center; border-radius: 28rpx; background: linear-gradient(135deg, #FFF3E6 0%, #FFFFFF 70%); }
+.hw-result-score { flex: 0 0 auto; color: #FD7C02; font-size: 60rpx; font-weight: 800; letter-spacing: -2rpx; }
+.hw-result-copy { flex: 1; min-width: 0; margin-left: 26rpx; }
+.hw-result-title { display: block; color: #24332D; font-size: 28rpx; font-weight: 700; }
+.hw-result-comment { display: block; margin-top: 8rpx; color: #7E8A82; font-size: 23rpx; line-height: 1.5; }
+
+.hw-button { display: inline-block; min-width: 260rpx; padding: 0 40rpx; border-radius: 999rpx; background: rgba(253, 124, 2, .12); color: #FD7C02; font-size: 27rpx; font-weight: 650; line-height: 84rpx; }
+.hw-button.is-primary { background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #FFFFFF; }
+.hw-button:active { opacity: .8; }
+.hw-spinner { width: 56rpx; height: 56rpx; margin: 0 auto 28rpx; box-sizing: border-box; border: 6rpx solid #FFE4C4; border-top-color: #FD7C02; border-radius: 50%; animation: hw-spin .8s linear infinite; }
+@keyframes hw-spin { to { transform: rotate(360deg); } }
+
+.hw-bottom { position: fixed; right: 0; bottom: 0; left: 0; z-index: 18; padding: 18rpx 28rpx calc(22rpx + env(safe-area-inset-bottom)); background: rgba(250, 250, 250, .96); }
+.hw-submit { width: 60%; margin: 0 auto; border-radius: 999rpx; background: rgba(253, 124, 2, .14); color: #FD7C02; font-size: 29rpx; font-weight: 650; line-height: 96rpx; text-align: center; }
+.hw-submit.is-ready { background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); box-shadow: 0 10rpx 22rpx rgba(253, 124, 2, .24); color: #FFFFFF; }
+.hw-submit.is-busy { opacity: .7; }
+.hw-submit:active { opacity: .82; }
+
+.hw-sk-option { height: 80rpx; margin-top: 14rpx; border-radius: 20rpx; }
+.hw-card .sk-line + .sk-line { margin-top: 18rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

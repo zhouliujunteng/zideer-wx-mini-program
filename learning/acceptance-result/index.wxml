@@ -1,5 +1,9 @@
 <view class="acceptance-page">
-  <view class="acceptance-skeleton skeleton" wx:if="{{loading}}"></view>
+  <view class="acceptance-skeleton" wx:if="{{loading}}">
+    <view class="acceptance-head"><view class="sk sk-line acc-sk-eyebrow"></view><view class="sk acc-sk-title"></view><view class="sk sk-line sk-mid acc-sk-meta"></view></view>
+    <view class="acceptance-status surface"><view class="sk sk-line sk-short"></view><view class="sk acc-sk-value"></view></view>
+    <view class="acceptance-section" wx:for="{{[0, 1]}}" wx:key="*this"><view class="sk sk-line acc-sk-section"></view><view class="sk sk-card"></view></view>
+  </view>
   <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">验收结果暂时无法加载</text><text class="state-panel__copy">请确认网络和登录状态后重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
   <view class="state-panel" wx:elif="{{!result}}"><view class="state-panel__mark">!</view><text class="state-panel__title">未找到这次验收</text><text class="state-panel__copy">该记录可能尚未生成，或当前身份已失去查看权限。</text><button class="state-panel__action pressable" bindtap="openReport">返回学习报告</button></view>
   <block wx:else>

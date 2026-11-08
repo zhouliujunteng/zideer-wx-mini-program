@@ -1,3 +1,5 @@
+@import "../../styles/skeleton.wxss";
+
 page { background: #FAFAFA; }
 
 .short-page { height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332d; }
@@ -47,6 +49,8 @@ page { background: #FAFAFA; }
 .short-question-heading { display: flex; flex-direction: column; }
 .short-question-type-pill { display: inline-flex; align-self: flex-start; align-items: center; height: 40rpx; padding: 0 15rpx; border-radius: 11rpx; font-size: 20rpx; font-weight: 650; line-height: 40rpx; }
 .short-question-type-pill.type-single { background: #EEF5FF; color: #7894BE; }
+.short-question-pills { display: flex; flex-wrap: wrap; align-items: center; gap: 12rpx; }
+.short-question-type-pill.is-saved { background: rgba(253, 124, 2, .1); color: #D9771C; }
 .short-question-title { display: block; margin-top: 28rpx; color: #24332d; font-size: 31rpx; font-weight: 700; line-height: 1.45; white-space: pre-wrap; }
 .short-option-list { margin-top: 34rpx; }
 .short-option { display: flex; align-items: center; justify-content: space-between; min-height: 92rpx; margin-top: 16rpx; padding: 18rpx 20rpx 18rpx 22rpx; box-sizing: border-box; border: 2rpx solid #F0F2EE; border-radius: 18rpx; background: #FAFBFA; transition: border-color .18s ease, background .18s ease, transform .18s ease; }
@@ -55,10 +59,19 @@ page { background: #FAFAFA; }
 .short-option.is-selected { border-color: rgba(253, 124, 2, .72); background: rgba(253, 124, 2, .06); }
 .short-option-copy { display: flex; min-width: 0; flex: 1; align-items: baseline; padding-right: 16rpx; }
 .short-option-key { flex: 0 0 auto; margin-right: 8rpx; color: #A1AAA3; font-size: 22rpx; line-height: 1.35; }
+.short-option-body { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.short-option-copy.has-figure { align-items: flex-start; }
 .short-option-label { min-width: 0; color: #34443A; font-size: 24rpx; font-weight: 600; line-height: 1.4; white-space: pre-wrap; }
 .short-option-mark { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 34rpx; height: 34rpx; border: 2rpx solid #D8DED9; border-radius: 50%; box-sizing: border-box; }
 .short-option.is-selected .short-option-mark { border-color: #FD7C02; }
 .short-option-mark-icon { width: 16rpx; height: 16rpx; border-radius: 50%; background: #FD7C02; }
+/* ── 题目配图：宽高比由 utils/question-figure.wxs 按原图算好（行内 width / padding-top 百分比），加载前是同尺寸浅灰底 ── */
+.short-figure { position: relative; height: 0; margin: 26rpx auto 0; overflow: hidden; border: 1rpx solid #EEF1EE; border-radius: 18rpx; background: #F4F6F4; box-sizing: border-box; }
+.short-figure-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.short-figure-failed { position: absolute; top: 0; left: 0; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 0 24rpx; box-sizing: border-box; color: #9AA49D; font-size: 21rpx; line-height: 1.5; text-align: center; }
+.short-figure-tip { display: block; margin-top: 12rpx; color: #A2ABA4; font-size: 19rpx; line-height: 1.5; text-align: center; }
+.short-option-figure { margin: 14rpx 0 0; border-radius: 14rpx; background: #fff; }
+.short-option-figure .short-figure-zoom { position: absolute; right: 10rpx; bottom: 10rpx; height: 40rpx; padding: 0 16rpx; border-radius: 999rpx; background: rgba(36, 51, 45, .56); color: #fff; font-size: 19rpx; line-height: 40rpx; }
 .short-question-hint { display: block; margin-top: 24rpx; color: #A2ABA4; font-size: 19rpx; line-height: 1.6; }
 
 /* ── 完成卡（设计师 complete-card）── */
@@ -67,30 +80,6 @@ page { background: #FAFAFA; }
 .short-complete-check { width: 32rpx; height: 54rpx; border-right: 8rpx solid #72B783; border-bottom: 8rpx solid #72B783; transform: rotate(45deg) translate(-6rpx, -6rpx); }
 .short-complete-title { display: block; margin-top: 26rpx; color: #24332d; font-size: 31rpx; font-weight: 700; line-height: 1.25; }
 .short-complete-subtitle { display: block; margin-top: 12rpx; color: #7D8981; font-size: 21rpx; line-height: 1.55; }
-.short-complete-notice { display: block; margin-top: 8rpx; color: #A2ABA4; font-size: 19rpx; line-height: 1.55; }
-
-/* ── 报告：综合掌握度 ── */
-.short-score-card { text-align: left; }
-.short-score { display: block; margin-top: 20rpx; font-size: 64rpx; font-weight: 700; line-height: 1.2; }
-.short-band { display: inline-flex; align-items: center; height: 48rpx; margin-top: 14rpx; padding: 0 22rpx; border-radius: 999rpx; font-size: 23rpx; font-weight: 650; }
-.short-score-meta { display: block; margin-top: 22rpx; color: #7D8981; font-size: 21rpx; line-height: 1.6; }
-.short-score.solid { color: #5FA873; } .short-band.solid { background: #EAF7EE; color: #5FA873; }
-.short-score.steady { color: #7894BE; } .short-band.steady { background: #EEF5FF; color: #7894BE; }
-.short-score.weak { color: #B88D62; } .short-band.weak { background: #FFF3E7; color: #B88D62; }
-.short-score.rebuild { color: #E36B55; } .short-band.rebuild { background: #FDF1ED; color: #E36B55; }
-.short-score.pending { color: #A2ABA4; } .short-band.pending { background: #F1F3F1; color: #A2ABA4; }
-
-/* ── 报告：知识点诊断 / 列表（设计师 summary-list）── */
-.short-summary-list { width: 100%; margin-top: 10rpx; text-align: left; }
-.short-summary-item { display: flex; align-items: baseline; justify-content: space-between; gap: 18rpx; padding: 22rpx 0; border-bottom: 1rpx solid #F0F2EE; }
-.short-summary-item:last-child { border-bottom: 0; padding-bottom: 8rpx; }
-.short-summary-label { flex: 0 1 auto; min-width: 0; color: #38473F; font-size: 24rpx; line-height: 1.5; }
-.short-summary-value { flex: 0 0 auto; color: #38473F; font-size: 21rpx; font-weight: 650; text-align: right; white-space: nowrap; }
-.short-summary-value.solid, .short-summary-value.mastered { color: #5FA873; }
-.short-summary-value.steady, .short-summary-value.reinforce { color: #7894BE; }
-.short-summary-value.weak, .short-summary-value.not_mastered { color: #B88D62; }
-.short-summary-value.rebuild { color: #E36B55; }
-.short-summary-value.pending { color: #A2ABA4; }
 
 /* ── 范围列表 ── */
 .short-entry-list { margin-top: 10rpx; }
@@ -99,6 +88,18 @@ page { background: #FAFAFA; }
 .short-entry-name { flex: 0 1 auto; min-width: 0; color: #38473F; font-size: 26rpx; font-weight: 600; line-height: 1.5; }
 .short-entry-action { flex: 0 0 auto; color: #FD7C02; font-size: 22rpx; font-weight: 650; white-space: nowrap; }
 
+.short-entry-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.short-entry-detail { margin-top: 6rpx; color: #9AA49D; font-size: 20rpx; line-height: 1.4; }
+.short-entry-action.is-disabled { color: #A2ABA4; }
+/* 比上次涨跌（同一范围做完过两次以上）：涨用绿、跌用灰红、持平用灰；范围行跟在说明后，记录行紧跟名称 */
+.short-entry-delta.up { color: #279D8B; }
+.short-entry-delta.down { color: #B76A72; }
+.short-entry-delta-pill { flex: 0 0 auto; margin-right: auto; padding: 4rpx 12rpx; border-radius: 999rpx; background: #F0F1F2; color: #858B94; font-size: 19rpx; font-weight: 650; line-height: 1.4; white-space: nowrap; }
+.short-entry-delta-pill.up { background: #EAF6F3; color: #279D8B; }
+.short-entry-delta-pill.down { background: #F7F0F1; color: #B76A72; }
+/* 做完整张卷后的「再测一次」：描边小按钮，和右侧「查看报告」并排 */
+.short-entry-retake { flex: 0 0 auto; padding: 8rpx 18rpx; border: 1rpx solid #FD7C02; border-radius: 999rpx; color: #FD7C02; font-size: 22rpx; font-weight: 650; line-height: 1.3; white-space: nowrap; }
+
 /* ── 底部操作栏（设计师 actionbar）── */
 .short-actionbar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 30; padding: 18rpx 28rpx calc(22rpx + env(safe-area-inset-bottom)); background: rgba(250, 250, 250, .96); }
 .short-action-row { display: flex; align-items: center; width: 100%; gap: 20rpx; }
@@ -106,6 +107,9 @@ page { background: #FAFAFA; }
 .short-prev-slot { flex: 0 0 0; overflow: hidden; transition: flex-grow .34s cubic-bezier(.22, .8, .24, 1), flex-basis .34s cubic-bezier(.22, .8, .24, 1); }
 .short-action-row.has-previous .short-prev-slot, .short-action-row.has-previous .short-next-slot { flex: 1 1 0; flex-basis: 0; overflow: visible; }
 .short-next-slot { flex: 1 1 0; transition: flex-grow .34s cubic-bezier(.22, .8, .24, 1), flex-basis .34s cubic-bezier(.22, .8, .24, 1); }
+/* 作答中的「上一题」：窄槽位，第 1 题收起（负边距抵掉行间距），从第 2 题起展开 */
+.short-back-slot { flex: 0 0 0; width: 0; min-width: 0; margin-right: -20rpx; overflow: hidden; box-sizing: border-box; transition: flex-basis .34s cubic-bezier(.22, .8, .24, 1), margin-right .34s cubic-bezier(.22, .8, .24, 1); }
+.short-action-row.has-back .short-back-slot { flex-basis: 156rpx; margin-right: 0; }
 .short-prev-action, .short-next-action { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 100%; min-width: 0; height: 96rpx; box-sizing: border-box; border-radius: 999rpx; font-size: 28rpx; font-weight: 650; line-height: 96rpx; white-space: nowrap; }
 .short-prev-action { margin: 0; padding: 0; border: 0; background: #fff; color: #65736A; }
 .short-next-action { margin: 0; padding: 0; border: 0; background: rgba(253, 124, 2, .14); color: #FD7C02; }
@@ -116,3 +120,13 @@ page { background: #FAFAFA; }
   0%, 100% { transform: scale(.82); opacity: .65; }
   50% { transform: scale(1.25); opacity: 1; }
 }
+
+/* 读取测评期间的骨架：与题号、进度条、选项、范围行同尺寸 */
+.short-count-sk { width: 120rpx; height: 44rpx; }
+.short-progress-sk { height: 20rpx; margin-top: 22rpx; border-radius: 999rpx; }
+.short-progress-meta-sk { height: 22rpx; margin-top: 18rpx; }
+.short-option-sk { height: 92rpx; margin-top: 16rpx; border-radius: 18rpx; }
+.short-entry-detail-sk { width: 88%; height: 20rpx; }
+.short-entry-action-sk { flex: none; width: 96rpx; height: 26rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -1,0 +1,95 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px;background:linear-gradient(90deg, #ECEEEB 25%, #F5F6F4 37%, #ECEEEB 63%);background-size:400% 100%}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.cr-back{background:#3E0B12;transform:rotateY(180deg)}
+.cb-frame{inset:13px;gap:10px;border:1px solid rgba(255, 214, 214, 0.55);border-radius:10px}
+.cb-tab{top:-2px;left:50%;width:57px;height:18px;margin-left:-29px;box-sizing:border-box;border:1px solid rgba(255, 214, 214, 0.55);border-top:none;border-radius:0 0 6px 6px;background:#3E0B12}
+.cb-line{height:0;border-top:1px solid rgba(255, 214, 214, 0.55)}
+.cb-line-long{width:74%}
+.cb-line-short{width:30%;height:6px;border:1px solid rgba(255, 214, 214, 0.55);border-radius:1px;margin-top:-4px}
+.cb-icon{width:18px;height:18px;border:1px solid rgba(255, 214, 214, 0.6);box-sizing:border-box}
+.cb-icon-book{width:21px;height:15px;border-radius:1px 1px 3px 3px}
+.cb-icon-book::after{left:50%;top:0;bottom:0;border-left:1px solid rgba(255, 214, 214, 0.6)}
+.cb-icon-star{width:13px;height:13px;border-radius:2px;transform:rotate(45deg)}
+.cb-icon-star::after{left:50%;top:50%;width:3px;height:3px;margin:-2px 0 0 -2px;border-radius:50%;background:rgba(255, 214, 214, 0.7)}
+.cb-flat{transform:none}
+page{background:#FFF9F2}
+.fs-page{height:100vh;background:linear-gradient(180deg, #FFEFE6 0%, #FFF9F2 144px, #FFFFFF 70%)}
+.fs-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);right:max(0px, 50% - var(--lg-col) / 2);box-sizing:content-box;padding-left:16px}
+.fs-round-button{box-sizing:border-box;border:0.5px solid rgba(0, 0, 0, 0.08);border-radius:50%;background:rgba(255, 255, 255, 0.92)}
+.fs-back-icon{width:9px;height:9px;margin-left:3px;border-bottom:2px solid #24332D;border-left:2px solid #24332D;transform:rotate(45deg)}
+.fs-topbar-title{left:50%;font-size:20px;font-weight:700;transform:translateX(-50%)}
+.fs-scroll{height:100vh;box-sizing:border-box}
+.fs-shell{padding:12px 21px calc(48px + env(safe-area-inset-bottom))}
+.fs-sk-hero{height:276px;border-radius:21px}
+.fs-sk-row{height:72px;margin:14px 0;border-radius:16px}
+.fs-hero{padding:24px 21px 21px;border-radius:21px;background:linear-gradient(150deg, #2B2F38 0%, #23262E 55%, #3E0B12 130%);box-shadow:0 14px 30px rgba(36, 40, 47, 0.25)}
+.fs-hero-glow{top:-72px;left:-48px;width:252px;height:252px;border-radius:50%;background:radial-gradient(circle, rgba(253, 124, 2, 0.42), rgba(253, 124, 2, 0) 70%)}
+.fs-hero-top{gap:18px}
+.fs-gems{width:90px;height:84px}
+.fs-gem{border-radius:6px;background:linear-gradient(135deg, #FFF1DC 0%, #FFB45E 45%, #FD7C02 100%);box-shadow:0 0 18px rgba(253, 124, 2, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.35)}
+.fs-gem-a{left:24px;top:13px;width:42px;height:42px;transform:rotate(45deg)}
+.fs-gem-b{left:0;top:42px;width:24px;height:24px;transform:rotate(30deg)}
+.fs-gem-c{left:64px;top:50px;width:20px;height:20px;transform:rotate(60deg)}
+@keyframes fs-float{0%, 100%{margin-top:0}50%{margin-top:-6px}}
+.fs-hero-label{font-size:15px}
+.fs-hero-count{font-size:57px;font-weight:800;line-height:1.05;letter-spacing:1px}
+.fs-progress{height:9px;margin-top:18px;border-radius:599px;background:rgba(255, 255, 255, 0.12)}
+.fs-progress-bar{height:100%;border-radius:599px;background:linear-gradient(90deg, #FFB45E, #FD7C02);box-shadow:0 0 9px rgba(253, 124, 2, 0.6)}
+.fs-progress-text{margin-top:8px;font-size:14px}
+.fs-exchange{gap:10px;height:57px;margin-top:19px;border-radius:14px;background:#FD7C02;font-size:19px;font-weight:800;box-shadow:0 9px 21px rgba(253, 124, 2, 0.35)}
+.fs-exchange:active{transform:scale(0.98)}
+.fs-exchange-cost{gap:4px;padding:3px 9px;border-radius:599px;background:rgba(0, 0, 0, 0.18);font-size:14px}
+.fs-mini-gem{width:9px;height:9px;border-radius:1px;background:#FFF1DC;transform:rotate(45deg)}
+.fs-exchange-off{background:rgba(255, 255, 255, 0.14);box-shadow:none}
+.fs-bonus{gap:13px;margin-top:14px;padding:15px 16px;border-radius:16px;background:#FFFFFF;box-shadow:0 6px 16px rgba(36, 51, 45, 0.08)}
+.fs-ticket-mini{width:38px;height:50px;border-radius:7px;background:linear-gradient(160deg, #FFB45E, #FD7C02);font-size:16px;font-weight:800;transform:rotate(-6deg)}
+.fs-bonus-copy{gap:3px;min-width:0}
+.fs-bonus-title{font-size:18px;font-weight:800}
+.fs-bonus-sub{font-size:14px}
+.fs-bonus-go{font-size:15px;font-weight:700}
+.fs-howto{margin-top:24px}
+.fs-howto-title{margin-bottom:12px;font-size:20px;font-weight:800}
+.fs-step{gap:12px;padding:13px 0;border-bottom:0.5px solid rgba(36, 51, 45, 0.06)}
+.fs-step-no{width:26px;height:26px;border-radius:50%;background:rgba(253, 124, 2, 0.12);font-size:14px;font-weight:800;line-height:26px;text-align:center}
+.fs-step-text{font-size:16px;line-height:1.6}
+.fs-state{padding-top:120px;text-align:center}
+.fs-state-title{font-size:19px;font-weight:700}
+.fs-state-copy{margin-top:8px;font-size:15px}
+.fs-state-action{margin-top:21px;padding:10px 28px;border-radius:599px;background:#FD7C02;font-size:16px;font-weight:700}
+.fs-fx{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2)}
+.fs-fx-mask{inset:0;background:rgba(20, 22, 28, 0)}
+.fs-fx-mask-on{background:rgba(20, 22, 28, 0.72)}
+.fs-shard{width:14px;height:14px;border-radius:3px;background:linear-gradient(135deg, #FFF1DC, #FD7C02);box-shadow:0 0 12px rgba(253, 124, 2, 0.8)}
+.fs-fx-card{transform-style:preserve-3d}
+.fs-fx-card.fs-hidden{transform:perspective(1200px) scale(0.2)}
+.fs-fx-card.fs-forge{transform:perspective(1200px) scale(1)}
+.fs-fx-card.fs-flip, .fs-fx-card.fs-done{transform:perspective(1200px) scale(1)}
+@keyframes fs-forge-shake{0%, 100%{margin-left:0}25%{margin-left:-5px}50%{margin-left:4px}75%{margin-left:-3px}}
+.fs-fx-flip{width:100%;height:100%;transform-style:preserve-3d}
+.fs-fx-backside{transform:rotateY(180deg)}
+.fs-fx-side{inset:0;border-radius:14px;box-shadow:0 0 36px rgba(253, 124, 2, 0.45), 0 18px 36px rgba(0, 0, 0, 0.35)}
+.fs-ticket{inset:0;background:radial-gradient(circle at 50% 35%, #FFD3A0 0%, #FD7C02 62%, #E06600 100%)}
+.fs-ticket-frame{inset:12px;border:1px dashed rgba(255, 255, 255, 0.6);border-radius:10px}
+.fs-ticket-kicker{font-size:19px;font-weight:700;letter-spacing:3px}
+.fs-ticket-plus{margin:3px 0;font-size:84px;font-weight:900;line-height:1;text-shadow:0 4px 14px rgba(150, 60, 0, 0.35)}
+.fs-ticket-sub{font-size:14px}
+.fs-fx-info{left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 72px);padding:0 28px;transform:translateY(14px)}
+.fs-fx-info-on{transform:translateY(0)}
+.fs-fx-title{font-size:24px;font-weight:800}
+.fs-fx-sub{margin-top:7px;font-size:15px}
+.fs-fx-actions{gap:12px;width:100%;margin-top:24px}
+.fs-fx-btn{height:55px;border-radius:14px;background:#FD7C02;font-size:18px;font-weight:800;line-height:55px;text-align:center}
+.fs-fx-btn-ghost{background:rgba(255, 255, 255, 0.14)}
+.fs-confetti{inset:0;width:100%;height:100%}
+.fs-fx-info{left:50%;right:auto;width:var(--lg-col, 450px);box-sizing:border-box;transform:translate(-50%, 14px)}
+.fs-fx-info-on{transform:translate(-50%, 0)}
+}

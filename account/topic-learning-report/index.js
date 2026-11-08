@@ -89,7 +89,8 @@ function buildReport(report, student) {
 }
 
 Page({
-  data: { loading: true, failed: false, students: [], currentIndex: 0, current: null, reports: [], selected: null, playingAssetId: null },
+  // 第一次读到报告前显示骨架；之后回到页面保留旧报告，后台静默刷新
+  data: { loading: true, loaded: false, failed: false, students: [], currentIndex: 0, current: null, reports: [], selected: null, playingAssetId: null },
 
   onLoad(options) { this.initialReportId = String(options.reportId || '') },
   onShow() { this.loadPage() },
@@ -112,11 +113,13 @@ Page({
       const currentIndex = Math.min(this.data.currentIndex, Math.max(students.length - 1, 0))
       const current = students[currentIndex] || null
       const reports = current ? current.reports.map((report) => buildReport(report, current)) : []
-      const selected = reports.find((item) => String(item.id) === this.initialReportId) || reports[0] || null
+      // 静默刷新时留在用户正在看的那份报告上
+      const keepId = this.initialReportId || (this.data.selected ? String(this.data.selected.id) : '')
+      const selected = reports.find((item) => String(item.id) === keepId) || reports[0] || null
       this.initialReportId = ''
-      this.setData({ students, currentIndex, current, reports, selected })
+      this.setData({ loaded: true, students, currentIndex, current, reports, selected })
     } catch (error) {
-      this.setData({ failed: true })
+      if (!this.data.loaded) this.setData({ failed: true })
       wx.showToast({ title: error.message || '学习报告加载失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })

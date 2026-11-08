@@ -1,3 +1,4 @@
+@import "../../styles/skeleton.wxss";
 page { background: #FAFAFA; }
 
 .profile-setup-page { height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332d; }
@@ -25,6 +26,10 @@ page { background: #FAFAFA; }
 .profile-setup-field-label { color: #536158; font-size: 23rpx; line-height: 1.2; }
 .profile-setup-required { margin-left: 5rpx; color: #FD7C02; font-size: 24rpx; line-height: 1; }
 .profile-setup-optional { margin-left: 10rpx; color: #AAB3AC; font-size: 20rpx; line-height: 1; }
+/* 实名认证后锁定的项（2026-09-26）：标签沿用「身份与登录」的状态胶囊；锁定的值换成次要文字色、没选中的性别淡出 */
+.profile-setup-verified { display: inline-flex; align-items: center; min-height: 34rpx; margin-left: 10rpx; padding: 0 12rpx; border-radius: 999rpx; background: rgba(253, 124, 2, .12); color: #FD7C02; font-size: 19rpx; line-height: 1; }
+.profile-setup-pill-picker.is-locked .profile-setup-value { color: #7E8A82; }
+.profile-gender-options.is-locked .profile-gender-option:not(.is-selected) { opacity: .45; }
 .profile-setup-pill-input, .profile-setup-pill-picker { display: flex; align-items: center; width: 100%; height: 92rpx; padding: 0 28rpx; box-sizing: border-box; border-radius: 999rpx; background: #fff; color: #24332d; font-size: 27rpx; line-height: 1.3; }
 .profile-setup-pill-input { height: 92rpx; }
 .profile-setup-pill-picker { justify-content: space-between; }
@@ -90,6 +95,7 @@ page { background: #FAFAFA; }
 }
 .profile-setup-error-wrap { max-height: 0; overflow: hidden; opacity: 0; transform: translateY(-6rpx); transition: max-height .24s ease, opacity .2s ease, transform .24s ease; }
 .profile-setup-error-wrap.is-visible { max-height: 48rpx; opacity: 1; transform: translateY(0); }
+.profile-setup-error-wrap-inset { padding-left: 8rpx; }
 .profile-setup-error { display: block; margin: 12rpx 8rpx 0; color: #E36B55; font-size: 20rpx; line-height: 1.2; }
 
 .profile-setup-region-row { display: flex; align-items: center; gap: 16rpx; }
@@ -148,6 +154,7 @@ page { background: #FAFAFA; }
 .profile-success-check { width: 46rpx; height: 76rpx; border-right: 10rpx solid #72B783; border-bottom: 10rpx solid #72B783; opacity: 0; transform: rotate(45deg) translate(-7rpx, -7rpx) scale(.72); animation: profile-success-check-fade .28s .2s ease-out forwards; }
 .profile-success-title { display: block; margin-top: 32rpx; color: #24332d; font-size: 36rpx; font-weight: 700; line-height: 1.25; animation: profile-success-copy-in .34s .16s ease-out both; }
 .profile-success-subtitle { display: block; margin-top: 14rpx; color: #7D8981; font-size: 22rpx; line-height: 1.5; animation: profile-success-copy-in .34s .24s ease-out both; }
+.profile-success-reward { display: block; margin-top: 18rpx; padding: 10rpx 24rpx; border-radius: 999rpx; background: #EAF7EE; color: #3F8C58; font-size: 24rpx; font-weight: 650; line-height: 1.4; animation: profile-success-copy-in .34s .28s ease-out both; }
 .profile-success-actionbar { position: absolute; right: 0; bottom: 0; left: 0; padding: 18rpx 28rpx calc(22rpx + env(safe-area-inset-bottom)); box-sizing: border-box; background: #fff; }
 .profile-success-button { display: flex; align-items: center; justify-content: center; width: 100%; height: 96rpx; margin: 0; padding: 0; border: 0; border-radius: 999rpx; background: rgba(253, 124, 2, .14); color: #FD7C02; font-size: 29rpx; font-weight: 650; line-height: 96rpx; animation: profile-success-copy-in .34s .32s ease-out both; }
 .profile-success-button::after { border: 0; }
@@ -206,3 +213,13 @@ page { background: #FAFAFA; }
 .profile-setup-grade-none-cross::before, .profile-setup-grade-none-cross::after { position: absolute; top: 50%; left: -1rpx; width: 16rpx; height: 3rpx; border-radius: 2rpx; background: #8E9992; content: ''; transform: rotate(45deg); transform-origin: center; }
 .profile-setup-grade-none-cross::after { transform: rotate(-45deg); }
 .profile-setup-grade-none.is-selected .profile-setup-grade-none-cross::before, .profile-setup-grade-none.is-selected .profile-setup-grade-none-cross::after { background: #fff; }
+
+/* 读取档案时身份卡位的骨架，比例与 .profile-role-pair 一致 */
+.profile-role-pair-sk { width: 100%; height: 0; padding-top: 82.63%; border-radius: 40rpx; }
+
+/* 从「身份与登录」切换身份：顶部说明条，及读到档案前的骨架 */
+.profile-switch-notice { margin: -12rpx 0 36rpx; padding: 22rpx 28rpx; border-radius: 28rpx; background: rgba(253, 124, 2, .08); color: #8A4B0F; font-size: 23rpx; line-height: 1.55; }
+.profile-switch-notice-sk { height: 88rpx; margin: -12rpx 0 36rpx; border-radius: 28rpx; }
+.profile-switch-field-sk { height: 92rpx; margin-top: 16rpx; border-radius: 999rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

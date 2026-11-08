@@ -1,0 +1,84 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.ac-face{box-sizing:border-box;width:100%;height:100%;padding:0 4px 4px;border-radius:9px}
+.ac-face-tag{height:24px;font-size:13px;font-weight:700;line-height:24px}
+.ac-face-art{min-height:0;border-radius:6px}
+.ac-face-image{width:100%;height:100%}
+.ac-face-placeholder{inset:0}
+.ac-face-placeholder-title{font-size:18px;font-weight:800;letter-spacing:1px}
+.ac-face-placeholder-no{margin-top:3px;font-size:13px;font-weight:700}
+.ac-badge{top:-8px;right:-8px;min-width:21px;height:21px;padding:0 4px;box-sizing:border-box;border:1px solid #FFFFFF;border-radius:599px;font-size:12px;font-weight:700;line-height:18px}
+.ac-lock{width:10px;height:13px}
+.ac-lock::before{left:1px;top:0;width:7px;height:7px;box-sizing:border-box;border:1px solid currentColor;border-bottom:none;border-radius:4px 4px 0 0}
+.ac-lock::after{left:0;bottom:0;width:10px;height:7px;border-radius:1px}
+.cr-back{transform:rotateY(180deg)}
+.cb-frame{inset:13px;gap:10px;border:1px solid rgba(255, 214, 214, 0.55);border-radius:10px}
+.cb-tab{top:-2px;left:50%;width:57px;height:18px;margin-left:-29px;box-sizing:border-box;border:1px solid rgba(255, 214, 214, 0.55);border-top:none;border-radius:0 0 6px 6px}
+.cb-line{height:0;border-top:1px solid rgba(255, 214, 214, 0.55)}
+.cb-line-long{width:74%}
+.cb-line-short{width:30%;height:6px;border:1px solid rgba(255, 214, 214, 0.55);border-radius:1px;margin-top:-4px}
+.cb-icon{width:18px;height:18px;border:1px solid rgba(255, 214, 214, 0.6);box-sizing:border-box}
+.cb-icon-book{width:21px;height:15px;border-radius:1px 1px 3px 3px}
+.cb-icon-book::after{left:50%;top:0;bottom:0;border-left:1px solid rgba(255, 214, 214, 0.6)}
+.cb-icon-star{width:13px;height:13px;border-radius:2px;transform:rotate(45deg)}
+.cb-icon-star::after{left:50%;top:50%;width:3px;height:3px;margin:-2px 0 0 -2px;border-radius:50%}
+.cb-flat{transform:none}
+.cr-root{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2)}
+.cr-mask{inset:0}
+.cr-glow{left:50%;width:360px;height:360px;margin-left:-180px;border-radius:50%}
+.cr-close{left:16px;box-sizing:border-box;border-radius:50%}
+.cr-close-x::before, .cr-close-x::after{left:50%;top:50%;width:13px;height:2px;margin:-2px 0 0 -7px;border-radius:1px;transform:rotate(45deg)}
+.cr-close-x::after{transform:rotate(-45deg)}
+.cr-fly{transform-origin:50% 50%;transform-style:preserve-3d}
+.cr-tilt, .cr-shake, .cr-flip{width:100%;height:100%;transform-style:preserve-3d}
+.cr-flipped{transform:rotateY(180deg)}
+.cr-side{inset:0;border-radius:14px;box-shadow:0 18px 36px rgba(20, 22, 30, 0.28)}
+.cr-front .ac-face{padding:0 8px 8px;border-radius:14px}
+.cr-tag{height:43px;font-size:19px;line-height:43px}
+.cr-front .ac-face-art{border-radius:9px}
+.cr-placeholder-title{font-size:33px}
+.cr-locked-badge{left:50%;bottom:14px;gap:6px;padding:6px 13px;border-radius:599px;font-size:13px;transform:translateX(-50%)}
+.cr-shine{inset:0}
+.cr-sweep{inset:0;border-radius:14px}
+.cr-sweep-band{left:-50%;top:-50%;width:200%;height:200%;transform:translate(-50%, -50%)}
+.cr-fan-card{transform-origin:50% 50%}
+.cr-fan-back{transform:none;box-shadow:0 7px 18px rgba(20, 10, 12, 0.35)}
+.cr-hint{left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 102px);font-size:16px;font-weight:700}
+.cr-confetti{inset:0;width:100%;height:100%}
+.cr-info{left:0;right:0;padding:0 24px;transform:translateY(14px)}
+.cr-info.cr-info-on{transform:translateY(0)}
+.cr-level-nav{gap:33px}
+.cr-level-no{min-width:57px;font-size:31px;font-weight:800}
+.cr-arrow{width:38px;height:38px}
+.cr-arrow::before{left:50%;top:50%;width:13px;height:13px;border-top:3px solid rgba(255, 255, 255, 0.9);border-left:3px solid rgba(255, 255, 255, 0.9);border-radius:1px}
+.cr-arrow-left::before{transform:translate(-30%, -50%) rotate(-45deg)}
+.cr-arrow-right::before{transform:translate(-70%, -50%) rotate(135deg)}
+.cr-dots{margin-top:12px;border-radius:6px}
+.cr-dot{width:31px;height:26px}
+.cr-check{width:12px;height:6px;margin-top:-4px;border-left:3px solid currentColor;border-bottom:3px solid currentColor;transform:rotate(-45deg)}
+.cr-prob{gap:8px;margin-top:16px}
+.cr-prob-label{font-size:15px}
+.cr-prob-value{font-size:26px;font-weight:800}
+.cr-boost{margin-top:6px;padding:4px 12px;border-radius:599px;font-size:13px}
+.cr-owned{margin-top:9px;font-size:14px}
+.cr-draw{width:100%;height:57px;margin-top:24px;border-radius:14px;font-size:19px;font-weight:700;line-height:57px;box-shadow:0 9px 21px rgba(253, 124, 2, 0.32)}
+.cr-draw:active{transform:scale(0.98)}
+.cr-dup{inset:0}
+.cr-shard{left:50%;top:50%;width:15px;height:15px;margin:-8px 0 0 -8px;border-radius:2px;box-shadow:0 0 7px rgba(253, 124, 2, 0.6)}
+.cr-shard-0{--dx:-102px;--dy:-126px}
+.cr-shard-1{--dx:96px;--dy:-138px}
+.cr-shard-2{--dx:-138px;--dy:-24px}
+.cr-shard-3{--dx:138px;--dy:-36px}
+.cr-shard-4{--dx:-90px;--dy:102px}
+.cr-shard-5{--dx:102px;--dy:96px}
+.cr-shard-6{--dx:-24px;--dy:-162px}
+.cr-shard-7{--dx:18px;--dy:150px}
+.cr-dup-chip{left:50%;bottom:-16px;gap:7px;padding:7px 15px;border-radius:599px;font-size:14px;font-weight:700;box-shadow:0 7px 16px rgba(0, 0, 0, 0.3);transform:translateX(-50%)}
+.cr-dup-gem{width:13px;height:13px;border-radius:2px;transform:rotate(45deg)}
+@keyframes cr-dup-in{from{opacity:0;transform:translateX(-50%) translateY(12px) scale(0.7)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+.cr-bonus-note{margin-top:9px;font-size:13px}
+.cr-draw-off{box-shadow:none}
+.cr-info{left:50%;right:auto;width:var(--lg-col, 450px);box-sizing:border-box;transform:translate(-50%, 14px)}
+.cr-info.cr-info-on{transform:translate(-50%, 0)}
+}

@@ -1,0 +1,36 @@
+/* 关于知鹿：顶栏、右上淡蓝氛围光、30rpx 小节标题、白色 36rpx 大圆角行卡片，照订单详情（commerce/order-detail）。 */
+page { background: #FAFAFA; }
+
+.about-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.about-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(125% 52% at 100% 0, rgba(201, 232, 255, .84) 0%, rgba(215, 239, 255, .48) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.about-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.about-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.about-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.about-back:active { background: #F0F2EF; }
+.about-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.about-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.about-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.about-shell { min-height: 100%; padding: 0 32rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+/* 品牌头：小程序图标（brand/app-icon.png，图标里自带「知鹿学习 iDeer」）、品牌名、口号 */
+.about-brand { display: flex; align-items: center; flex-direction: column; padding: 28rpx 0 8rpx; }
+.about-brand-logo { display: block; width: 180rpx; height: 180rpx; border-radius: 44rpx; background: #FB7804; box-shadow: 0 12rpx 32rpx rgba(253, 124, 2, .18); }
+.about-brand-name { margin-top: 26rpx; color: #24332D; font-size: 38rpx; font-weight: 700; letter-spacing: 2rpx; }
+.about-brand-slogan { margin-top: 10rpx; color: #7E8A82; font-size: 24rpx; }
+
+.about-section { margin-top: 38rpx; }
+.about-heading { padding: 0 4rpx; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.2; }
+.about-card { margin-top: 22rpx; padding: 6rpx 24rpx; border-radius: 36rpx; background: #fff; }
+
+.about-row { display: flex; align-items: center; justify-content: space-between; gap: 22rpx; padding: 28rpx 0; border-bottom: 2rpx solid #F0F3F0; font-size: 24rpx; line-height: 1.4; }
+.about-row:last-child { border-bottom: 0; }
+.about-row-label { flex: 0 0 auto; color: #7E8A82; }
+.about-row-value { display: flex; min-width: 0; align-items: center; justify-content: flex-end; color: #24332D; text-align: right; overflow-wrap: anywhere; }
+.about-copy { flex: 0 0 auto; margin-left: 14rpx; padding: 4rpx 14rpx; border-radius: 999rpx; background: #F1F3F1; color: #4A514C; font-size: 20rpx; }
+.about-row:active .about-copy { opacity: .6; }
+
+.about-link:active { opacity: .6; }
+.about-link-title { color: #24332D; font-size: 26rpx; font-weight: 600; }
+.about-chevron { flex: 0 0 auto; width: 14rpx; height: 14rpx; margin-right: 6rpx; border-top: 3rpx solid #B0B4BA; border-right: 3rpx solid #B0B4BA; transform: rotate(45deg); }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

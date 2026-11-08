@@ -1,0 +1,136 @@
+<!-- 申请成为推广伙伴（2026-09-29；10-13 起整个流程不刷脸）：基础核验 → 提交申请。说明卡与步骤标题是固定结构直接渲染；
+     申请状态、步骤进度等后端数据第一次读到前只画骨架，读失败显示错误与重试。 -->
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="apply-page">
+  <view class="apply-topbar">
+    <view class="apply-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="apply-back" bindtap="handleBack" role="button" aria-label="返回上一页"><view class="apply-back-icon"></view></view>
+      <text class="apply-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">申请成为推广伙伴</text>
+    </view>
+  </view>
+
+  <scroll-view class="apply-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="apply-shell">
+      <view class="apply-hero">
+        <image class="apply-hero-icon" src="{{UA.src(ui, '/assets/promotion/settlement-reward-bag.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+        <text class="apply-hero-title">成为知鹿推广伙伴</text>
+        <text class="apply-hero-copy">开通后签署《劳务费代扣代发协议》，推广奖励就能提现到银行卡。申请前要核验身份证，平台审核通过即开通。</text>
+      </view>
+
+      <view wx:if="{{loadState === 'failed'}}" class="apply-state">
+        <text class="apply-state-title">申请状态暂时无法加载</text>
+        <text class="apply-state-copy">{{loadError}}</text>
+        <view class="apply-state-action" bindtap="loadPage" role="button">重新加载</view>
+      </view>
+
+      <block wx:elif="{{loadState !== 'ready'}}">
+        <!-- 首次读到状态前：步骤条与步骤卡只画骨架 -->
+        <view class="apply-steps" aria-label="正在读取申请状态">
+          <view wx:for="{{steps}}" wx:key="id" class="apply-step"><view class="sk sk-round apply-sk-dot"></view><view class="sk sk-line apply-sk-step"></view></view>
+        </view>
+        <view class="apply-card">
+          <view class="sk sk-line sk-short"></view>
+          <view class="sk sk-line apply-sk-copy"></view>
+          <view class="sk apply-sk-input"></view>
+          <view class="sk apply-sk-input"></view>
+          <view class="sk apply-sk-button"></view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <!-- 已是推广伙伴 / 资格暂停 / 审核中 / 申请表单 -->
+        <view wx:if="{{state === 'active'}}" class="apply-result">
+          <view class="apply-result-mark is-success"><view class="apply-result-check"></view></view>
+          <text class="apply-result-title">你已是推广伙伴</text>
+          <text class="apply-result-copy">推广奖励可以在结算中心提现到银行卡或兑换课程积分。</text>
+          <view class="apply-primary" bindtap="handleGoSettlement" role="button">去结算中心</view>
+        </view>
+
+        <view wx:elif="{{state === 'suspended'}}" class="apply-result">
+          <view class="apply-result-mark is-warning">!</view>
+          <text class="apply-result-title">推广伙伴资格已暂停</text>
+          <text class="apply-result-copy">历史奖励与记录仍可查看；如需恢复，请联系客服。</text>
+          <view class="apply-primary" bindtap="handleService" role="button">{{serviceOpening ? '正在打开…' : '联系客服'}}</view>
+        </view>
+
+        <view wx:elif="{{state === 'submitted'}}" class="apply-result">
+          <view class="apply-result-mark is-pending"><view class="apply-result-clock"></view></view>
+          <text class="apply-result-title">申请审核中</text>
+          <text class="apply-result-copy">平台一般 1～2 个工作日内审核，结果会显示在这里；审核通过即开通推广伙伴。</text>
+          <view class="apply-rows">
+            <view wx:for="{{applicationRows}}" wx:key="id" class="apply-row">
+              <text class="apply-row-label">{{item.label}}</text>
+              <text class="apply-row-value">{{item.value}}</text>
+            </view>
+          </view>
+          <view class="apply-secondary" bindtap="handleService" role="button">{{serviceOpening ? '正在打开…' : '联系客服询问进度'}}</view>
+        </view>
+
+        <block wx:else>
+          <!-- 申请表单：两步 -->
+          <view wx:if="{{rejectNotice}}" class="apply-notice">
+            <view class="apply-notice-head">
+              <view class="apply-notice-icon" aria-hidden="true">!</view>
+              <text class="apply-notice-title">{{rejectNotice.title}}</text>
+              <text wx:if="{{rejectNotice.time}}" class="apply-notice-time">{{rejectNotice.time}}</text>
+            </view>
+            <text class="apply-notice-copy">{{rejectNotice.copy}}</text>
+            <text class="apply-notice-copy">修改后可以重新申请。</text>
+          </view>
+
+          <view class="apply-steps" aria-label="申请步骤">
+            <view wx:for="{{steps}}" wx:key="id" class="apply-step is-{{item.state}}">
+              <view class="apply-step-dot"><view wx:if="{{item.state === 'done'}}" class="apply-step-check"></view><text wx:else>{{item.number}}</text></view>
+              <text class="apply-step-title">{{item.title}}</text>
+              <text class="apply-step-copy">{{item.copy}}</text>
+            </view>
+          </view>
+
+          <!-- 1 基础核验 -->
+          <view class="apply-card {{step === 1 ? 'is-active' : ''}}">
+            <view class="apply-card-head">
+              <text class="apply-card-title">1 · 基础核验</text>
+              <text wx:if="{{step > 1}}" class="apply-badge is-done">已完成</text>
+            </view>
+            <block wx:if="{{step === 1}}">
+              <text class="apply-card-copy">{{basicHint}}</text>
+              <view class="apply-field">
+                <text class="apply-field-label">姓名</text>
+                <input class="apply-input" value="{{name}}" maxlength="50" placeholder="与身份证一致" placeholder-class="apply-placeholder" bindinput="handleNameInput" disabled="{{checking}}" />
+              </view>
+              <view class="apply-field">
+                <text class="apply-field-label">身份证号</text>
+                <input class="apply-input" type="idcard" value="{{idCard}}" maxlength="18" placeholder="18 位居民身份证号" placeholder-class="apply-placeholder" bindinput="handleIdInput" disabled="{{checking}}" />
+              </view>
+              <text wx:if="{{basicError}}" class="apply-error">{{basicError}}</text>
+              <view class="apply-primary {{checking ? 'is-disabled' : ''}}" bindtap="handleBasicCheck" role="button">{{checking ? '核验中…' : '核验身份'}}</view>
+              <text class="apply-privacy">身份证号只用于核验，平台不保存完整号码。</text>
+            </block>
+            <text wx:else class="apply-card-copy">{{basicDoneHint}}</text>
+          </view>
+
+          <!-- 2 提交申请 -->
+          <view class="apply-card {{step === 2 ? 'is-active' : 'is-todo'}}">
+            <view class="apply-card-head">
+              <text class="apply-card-title">2 · 提交申请</text>
+            </view>
+            <block wx:if="{{step === 2}}">
+              <view class="apply-field">
+                <text class="apply-field-label">联系手机号</text>
+                <input class="apply-input" type="number" value="{{phone}}" maxlength="11" placeholder="审核时客服联系你" placeholder-class="apply-placeholder" bindinput="handlePhoneInput" disabled="{{submitting}}" />
+              </view>
+              <view class="apply-field apply-field-top">
+                <text class="apply-field-label">申请说明（选填）</text>
+                <textarea class="apply-textarea" value="{{note}}" maxlength="{{noteMax}}" auto-height placeholder="比如你打算在哪里推广、面向哪些家长" placeholder-class="apply-placeholder" bindinput="handleNoteInput" disabled="{{submitting}}"></textarea>
+              </view>
+              <view class="apply-primary {{canSubmit ? '' : 'is-disabled'}}" bindtap="handleSubmit" role="button">{{submitting ? '提交中…' : '提交申请'}}</view>
+              <text class="apply-privacy">提交后平台审核，通过即开通推广伙伴；之后需签署《劳务费代扣代发协议》才能提现。</text>
+            </block>
+            <text wx:else class="apply-card-copy">完成基础核验后填写联系方式并提交。</text>
+          </view>
+        </block>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

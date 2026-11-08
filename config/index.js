@@ -1,11 +1,23 @@
 const PROJECT_ID = "ZJ2x09KOnm9";
 // OpenMAIC 的 HTTPS 课程站点。发布前需在微信公众平台同时配置 request 合法域名和业务域名。
 const COURSE_PORTAL_ORIGIN = "https://course.zideer.cn";
+// 官网。知识星河页面在小程序里用 web-view 打开，发布前需把 zideer.cn 配成业务域名。
+const SITE_ORIGIN = "https://zideer.cn";
 
 module.exports = {
   PROJECT_ID,
   COURSE_PORTAL_ORIGIN,
+  SITE_ORIGIN,
+  GALAXY_URL: `${SITE_ORIGIN}/galaxy.html?from=miniprogram`,
+  // 物理实验室（首页入口）：课程站上的静态页（课程服务 public/physics-lab/，源码在项目 physics-lab/），course.zideer.cn 已是业务域名。
+  PHYSICS_LAB_URL: `${COURSE_PORTAL_ORIGIN}/physics-lab/index.html`,
   GRAPHQL_URL: `https://zion-app.functorz.com/zero/${PROJECT_ID}/api/graphql-v2`,
+  // 小程序订阅消息模板（微信公众平台 › 功能 › 订阅消息 里选用后拿到的模板 ID）。
+  // 诊断会议开课提醒：模板 ID 与下面的提醒动作流都填上，会议准备页的「订阅通知」按钮才会出现——
+  // 只有前端授权、没有后端到点发送，等于答应了学生却不兑现，所以两样缺一不给按钮。
+  SUBSCRIBE_TEMPLATES: {
+    LIVE_MEETING_REMINDER: "",
+  },
   ZAI: {
     PROMOTION_POSTER_BACKGROUND: {
       id: "dp83vhtoy",
@@ -48,6 +60,35 @@ module.exports = {
     GET_CURRENT_LIVE_SCHEDULE: {
       id: "61446a3a-9c6c-223b-d29f-1057a9d09f78",
     },
+    GET_CURRENT_TEACHER_WORKSPACE: {
+      id: "b730d505-ee6c-4c33-8e04-e1d9e1762205",
+    },
+    BIND_STUDENT_AS_CURRENT_TEACHER: {
+      id: "01f2014e-3839-427a-91f6-f0a6df22e48a",
+    },
+    CREATE_TEACHER_AGENT_INVITE: {
+      id: "a5f0da8a-e42d-4136-940d-736f32655fe3",
+    },
+    GET_TEACHER_AGENT_INVITE: {
+      id: "e0238566-2dcd-407d-9642-f5dbe73e2184",
+    },
+    MARK_TEACHER_AGENT_SESSION: {
+      id: "e6967781-31db-4fe5-9fbd-c8447d55500a",
+    },
+    // 由 scripts/mp-teacher/deploy-teacher-student-flow.mjs 部署（2026-09-21 上线，见 docs/老师工作台学生详情与预约实施记录.md）。
+    TEACHER_STUDENT_SERVICE: {
+      id: "7658a68b-fc0b-e22d-0315-c825538eabb0",
+    },
+    // 陪跑直播间（消息记录 / 已读 / 老师插话）。由 scripts/mp-teacher/deploy-live-room.mjs 部署
+    // （2026-09-22 上线，见 docs/陪跑直播间等待与AI开场记录.md）。
+    // id 为空时直播间照常上课，只是没有已读状态、老师也插不了话。
+    LIVE_ROOM_SERVICE: {
+      id: "2eccfb35-3485-e73b-c037-1ee138bc60bb",
+    },
+    // 诊断会议开课提醒：记录学生的订阅、到点调微信 subscribeMessage.send。尚未部署。
+    LIVE_MEETING_REMINDER: {
+      id: "",
+    },
     GET_CURRENT_SERVICE_CONTACTS: {
       id: "6ff52f1d-697a-4325-803d-0bb85750ab25",
     },
@@ -86,6 +127,11 @@ module.exports = {
     },
     CREATE_SECURE_CREDIT_ORDER: {
       id: "be783e0e-6979-4349-b5db-91d4706ea7c8",
+    },
+    // 支付开关（2026-09-30）：游客、已登录用户都能调，只返回开 / 关（services/payment-switch.js）。
+    // 编号由 scripts/payment-switch/deploy-payment-switch-zion.mjs --apply 建好流程后自动回填；空着时按开着处理。
+    GET_PAYMENT_SWITCH: {
+      id: "23aa6bcd-a006-e2be-e1e0-3dc738a1cf8a",
     },
     SUBMIT_PROMOTER_ASSIGNMENT_REQUEST: {
       id: "b57b72da-b06f-4c11-af0b-a0ecbc518cd2",
@@ -150,9 +196,23 @@ module.exports = {
     GET_CURRENT_PUBLISHED_PROMOTION_ASSETS: {
       id: "ec11ac62-f933-4700-b6a4-0d00c0ef3294",
     },
-    // 每日学习打卡：当天有效课程学习满 5 分钟算一天，只读（2026-09-19）。
+    // 邀请码中心（2026-09-22）：取我的邀请码与小程序码、把码合成到海报、按码绑定推荐人、读推荐人。
+    // （对外叫「邀请码」，Zion 里的流名与字段仍是 promotion_code。）
+    PROMOTION_CODE_CENTER: {
+      id: "3a24592a-0357-a16d-4f66-28c9834c53a7",
+    },
+    // 每日学习打卡：当天学完一节课或费曼验收通过算一天（2026-09-25），另读冻结 / 复活日、道具卡与打卡金币。只读。
     GET_CURRENT_LEARNING_CHECKIN: {
       id: "8c5cc15b-e766-5512-fda2-16369afadb85",
+    },
+    // 使用学习连胜道具卡（冻结卡 / 复活卡，2026-09-25）：AF48，已登录用户调用。
+    USE_CURRENT_STREAK_CARD: {
+      id: "341f5a26-0a74-2486-cbed-776c6e5cf98e",
+    },
+    // 推广结算中心（2026-09-26）：AF49，已登录用户调用。整笔提现（开通推广伙伴后）、整笔兑换积分、我的结算记录。
+    // 编号由 scripts/promotion-settlement/deploy-promotion-settlement-zion.mjs 上线后写入；占位时页面提示「暂未开放」。
+    PROMOTION_SETTLEMENT_CENTER: {
+      id: "a0f3ab62-0a1c-a745-bfda-9faa6ddf1d57",
     },
     CLAIM_CURRENT_DAILY_COIN_CHECKIN: {
       id: "3c70dfba-adfb-41d7-a36b-08dad3c4fbe9",
