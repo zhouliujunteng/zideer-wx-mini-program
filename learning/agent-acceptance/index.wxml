@@ -112,8 +112,10 @@
     </view>
 
     <block wx:if="{{state === 'chat'}}">
-      <view class="agent-composer" style="bottom: {{composerBottomOffset}}px;">
-        <view class="agent-composer-bar {{draft ? 'is-input-active' : ''}} {{voiceRecognizing ? 'is-voice-active' : ''}}">
+      <!-- 打字框是多行 textarea：写长了自动换行、往上长，最多 5 行，再多在框里上下滑（原来是单行 input，字会横着溢出）。
+           键盘弹起时输入框自己抬到键盘上方（adjust-position=false）：交给系统顶起整页时，平板上收起键盘后页面会停在错位处、点不动 -->
+      <view class="agent-composer" style="bottom: {{keyboardHeight > 0 ? keyboardHeight : composerBottomOffset}}px;">
+        <view class="agent-composer-bar {{draft ? 'is-input-active' : ''}} {{voiceRecognizing ? 'is-voice-active' : ''}} {{!voiceMode && inputLines > 1 ? 'is-multiline' : ''}}">
           <view wx:if="{{voiceMode}}" class="agent-voice-button agent-keyboard-button" catchtap="handleKeyboardButtonTap" aria-role="button" aria-label="切换到键盘输入">
             <image class="agent-voice-icon" src="{{UA.src(ui, '../../assets/keyboard-icon.svg')}}" mode="aspectFit" aria-hidden="true"></image>
           </view>
@@ -132,18 +134,26 @@
           >
             <text>按住说话</text>
           </view>
-          <input
+          <textarea
             wx:else
-            class="agent-input"
+            class="agent-input acc-answer-input"
+            style="--lines: {{inputLines}};"
             value="{{draft}}"
             placeholder="用自己的话讲一讲…"
             placeholder-class="agent-input-placeholder"
             maxlength="1000"
+            fixed="{{true}}"
+            auto-height="{{false}}"
+            disable-default-padding="{{true}}"
+            adjust-position="{{false}}"
             cursor-spacing="24"
             show-confirm-bar="{{false}}"
             confirm-type="send"
             bindinput="handleInput"
             bindconfirm="handleSend"
+            bindlinechange="handleLineChange"
+            bindkeyboardheightchange="handleKeyboardHeightChange"
+            bindblur="handleInputBlur"
             disabled="{{sending}}"
           />
           <view class="agent-send-button {{draft && !voiceMode && !sending ? 'is-enabled' : ''}}" catchtap="handleSend" aria-role="button" aria-label="发送">

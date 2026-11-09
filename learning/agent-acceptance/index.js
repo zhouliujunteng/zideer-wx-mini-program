@@ -33,6 +33,9 @@ const VOICE_BYTES_PER_SECOND = 32000
 const VOICE_COUNTDOWN_SECONDS = 10
 // 与直播间记录同一招：scroll-top 给一个远大于记录高度的值，由 scroll-view 夹到真实底部；每次 +1 才会再滚
 const BOTTOM_SCROLL_REQUEST = 1000000
+// 打字框最多长到 5 行，再多在框里上下滑；一行大约多高（px）在 linechange 里量，量到之前按 21 算
+const MAX_INPUT_LINES = 5
+const DEFAULT_LINE_HEIGHT = 21
 
 function viewState(acceptance) {
   const status = acceptance.status
@@ -103,6 +106,8 @@ Page({
     contentTop: 64,
     composerBottomOffset: 52,
     listBottomPadding: 52,
+    keyboardHeight: 0,
+    inputLines: 1,
     // 复述为主：默认就是「按住说话」，要打字点左边的键盘
     voiceMode: true,
     voiceRecognizing: false,
@@ -150,6 +155,7 @@ Page({
   onHide() {
     this._isPageVisible = false
     this.abortVoiceInput()
+    if (this.data.keyboardHeight) this.setKeyboardHeight(0)
   },
 
   onUnload() {
@@ -186,7 +192,6 @@ Page({
     const acceptance = result.acceptance || {}
     const turns = (result.turns || []).map((turn, index) => ({ id: `t${index}`, role: turn.role, content: turn.content }))
     const state = viewState(acceptance)
-    const bottom = this.data.composerBottomOffset
     this.setData(Object.assign({
       loaded: true,
       loadFailed: false,
@@ -195,8 +200,42 @@ Page({
       state,
       result: resultCard(state, acceptance),
       turns,
-      listBottomPadding: state === 'chat' ? bottom + LIST_BOTTOM_GAP : bottom
+      listBottomPadding: this.listBottomPadding({ state })
     }, this.bottomScrollPatch()), () => this.repeatBottomScroll())
+  },
+
+  // 记录列表底部留白：输入框离底边的距离（键盘弹起时就是键盘高度）+ 输入框高度；打字框多一行就多留一行
+  listBottomPadding({ state = this.data.state, keyboardHeight = this.data.keyboardHeight, inputLines = this.data.inputLines } = {}) {
+    const bottom = this.data.composerBottomOffset
+    if (state !== 'chat') return bottom
+    const extraLines = this.data.voiceMode ? 0 : Math.max(0, inputLines - 1)
+    return (keyboardHeight > 0 ? keyboardHeight : bottom) + LIST_BOTTOM_GAP + extraLines * (this._lineHeight || DEFAULT_LINE_HEIGHT)
+  },
+
+  setKeyboardHeight(keyboardHeight) {
+    const patch = { keyboardHeight, listBottomPadding: this.listBottomPadding({ keyboardHeight }) }
+    // 键盘弹起后滚到最新一问，学生边看问题边打字
+    if (keyboardHeight > 0) Object.assign(patch, this.bottomScrollPatch())
+    this.setData(patch, keyboardHeight > 0 ? () => this.repeatBottomScroll() : undefined)
+  },
+
+  handleKeyboardHeightChange(event) {
+    const height = Math.max(0, Math.round(Number(event && event.detail && event.detail.height) || 0))
+    if (height !== this.data.keyboardHeight) this.setKeyboardHeight(height)
+  },
+
+  // 平板上点键盘的「收起」或点别处时，有的版本不报高度 0，失焦时也放回原位
+  handleInputBlur() {
+    if (this.data.keyboardHeight) this.setKeyboardHeight(0)
+  },
+
+  handleLineChange(event) {
+    const detail = (event && event.detail) || {}
+    const lineCount = Math.max(1, Number(detail.lineCount) || 1)
+    if (detail.height > 0 && lineCount <= MAX_INPUT_LINES) this._lineHeight = detail.height / lineCount
+    const inputLines = Math.min(MAX_INPUT_LINES, lineCount)
+    if (inputLines === this.data.inputLines) return
+    this.setData({ inputLines, listBottomPadding: this.listBottomPadding({ inputLines }) })
   },
 
   bottomScrollPatch() {
@@ -245,7 +284,11 @@ Page({
     // 先把学生的回答放进对话，等验收智能体回复。
     const turns = this.data.turns.concat({ id: `t${this.data.turns.length}`, role: 'user', content: answer })
     const patch = { turns, sending: true, typingLabel: '正在想下一个问题' }
-    if (fromDraft) patch.draft = ''
+    if (fromDraft) {
+      patch.draft = ''
+      patch.inputLines = 1
+      patch.listBottomPadding = this.listBottomPadding({ inputLines: 1 })
+    }
     this.setData(Object.assign(patch, this.bottomScrollPatch()), () => this.repeatBottomScroll())
     try {
       this.apply(await sendAgentCourseAcceptance(this.stageId, answer))
@@ -264,12 +307,17 @@ Page({
   handleVoiceButtonTap() {
     if (this.data.voiceRecognizing) return
     if (wx.hideKeyboard) wx.hideKeyboard()
-    this.setData({ voiceMode: true })
+    // 打字框随 wx:if 卸掉，不一定再报键盘高度 0：这里直接放回原位
+    this.setData({ voiceMode: true, keyboardHeight: 0 }, () => {
+      if (!this._isDestroyed) this.setData({ listBottomPadding: this.listBottomPadding() })
+    })
   },
 
   handleKeyboardButtonTap() {
     if (this.data.voiceRecognizing) return
-    this.setData({ voiceMode: false })
+    this.setData({ voiceMode: false }, () => {
+      if (!this._isDestroyed) this.setData({ listBottomPadding: this.listBottomPadding() })
+    })
   },
 
   handleSpeakTouchStart(event) {

@@ -74,6 +74,8 @@ page{height:100%}
 .agent-composer-bar.is-input-active{border-color:#E4E8E4;box-shadow:0 4px 14px rgba(39, 52, 43, .09)}
 .agent-composer-bar.is-voice-active{border-color:rgba(253, 124, 2, .52)}
 .agent-input{min-width:0;height:50px;margin:0 8px;font-size:17px;line-height:50px}
+.acc-answer-input{width:auto;height:calc(var(--lines, 1) * 25px);margin:12px 8px;padding:0;line-height:25px}
+.agent-composer-bar.is-multiline .agent-voice-button, .agent-composer-bar.is-multiline .agent-send-button{margin-bottom:6px}
 .agent-voice-button, .agent-send-button{width:37px;height:37px;border-radius:50%}
 .agent-voice-button.is-collapsing{width:0;margin-left:0;margin-right:0;transform:translateX(-15px)}
 .agent-voice-icon{width:30px;height:30px}

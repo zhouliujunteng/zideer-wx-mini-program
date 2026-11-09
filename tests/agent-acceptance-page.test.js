@@ -135,6 +135,32 @@ test('typing still works after switching to the keyboard', async () => {
   page.onUnload()
 })
 
+// 2026-11-09 用户反馈：打字框写长了字横着溢出；平板上键盘收起后卡住点不动。
+// 现在是多行打字框按行数往上长（最多 5 行），输入框自己跟着键盘高度走，收起 / 失焦 / 切回语音都放回原位。
+test('the typing box grows with its lines and follows the keyboard instead of pushing the page', async () => {
+  const { page, calls } = await openChat()
+  page.handleKeyboardButtonTap()
+  const base = page.data.listBottomPadding
+  page.handleKeyboardHeightChange({ detail: { height: 320 } })
+  assert.equal(page.data.keyboardHeight, 320)
+  assert.ok(page.data.listBottomPadding > base, '键盘弹起时记录底部让出键盘的高度')
+  page.handleLineChange({ detail: { lineCount: 3, height: 66 } })
+  assert.equal(page.data.inputLines, 3)
+  page.handleLineChange({ detail: { lineCount: 9, height: 198 } })
+  assert.equal(page.data.inputLines, 5, '最多长到 5 行，再多在框里滑')
+  page.handleInputBlur()
+  assert.equal(page.data.keyboardHeight, 0, '失焦就放回原位')
+  page.handleInput({ detail: { value: '很长的一段回答' } })
+  await page.handleSend()
+  assert.deepEqual(calls.sends, ['很长的一段回答'])
+  assert.equal(page.data.inputLines, 1, '发出去之后回到一行')
+  page.handleKeyboardHeightChange({ detail: { height: 300 } })
+  page.handleVoiceButtonTap()
+  assert.equal(page.data.keyboardHeight, 0, '切回按住说话时键盘位置清零')
+  assert.equal(page.data.listBottomPadding, base)
+  page.onUnload()
+})
+
 test('sliding up before letting go throws the recording away', async () => {
   const { page, calls } = await openChat()
   holdAndSpeak(page, calls, { moveTo: 600 })
@@ -258,5 +284,13 @@ test('the page is the student\'s diagnosis room: custom top bar, same bubbles an
   for (const icon of ['agent-voice', 'keyboard-icon', 'agent-send']) {
     assert.match(template, new RegExp(`UA\\.src\\(ui, '\\.\\./\\.\\./assets/${icon}\\.svg'\\)`))
   }
-  assert.ok(!/<textarea|class="acc-(composer|input|send)\b/.test(template), '旧的自绘输入框应已移除')
+  assert.ok(!/class="acc-(composer|input|send)\b/.test(template), '旧的自绘输入框应已移除')
+  // 打字框是多行 textarea（2026-11-09 用户反馈：单行 input 写长了字横着溢出；平板上键盘收起后卡住点不动）
+  assert.match(template, /<textarea[^>]*class="agent-input acc-answer-input"/)
+  assert.ok(!/<input\b/.test(template), '打字框不能再是单行 input')
+  for (const attr of ['fixed="{{true}}"', 'adjust-position="{{false}}"', 'bindlinechange="handleLineChange"', 'bindkeyboardheightchange="handleKeyboardHeightChange"', 'bindblur="handleInputBlur"']) {
+    assert.ok(template.includes(attr), `打字框缺少 ${attr}`)
+  }
+  assert.match(template, /class="agent-composer" style="bottom: \{\{keyboardHeight > 0 \? keyboardHeight : composerBottomOffset\}\}px;"/)
+  assert.match(style, /\.acc-answer-input \{[^}]*height: calc\(var\(--lines, 1\) \* 42rpx\);/)
 })
