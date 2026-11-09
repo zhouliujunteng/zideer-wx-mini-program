@@ -34,6 +34,7 @@ Page({
     diagnosis: null,
     stateText: '',
     question: null,
+    figureDimensions: {},
     selected: '',
     submitting: false,
     progress: { total: 0, settled: 0, dots: [] },
@@ -150,6 +151,7 @@ Page({
       return this.setData({
         view: 'question',
         question,
+        figureDimensions: {},
         selected: '',
         progress: progressView(diagnosis.map),
         digHint: deeper ? '这里有点卡，我们往前找找原因' : question.depth > 0 ? '正在往前检查基础' : ''
@@ -317,6 +319,17 @@ Page({
 
   toggleMapWhileTesting() {
     this.setData({ showMapWhileTesting: !this.data.showMapWhileTesting })
+  },
+
+  figureLoaded(event) {
+    const { url } = event.currentTarget.dataset
+    const { width, height } = event.detail || {}
+    const question = this.data.question
+    if (!question || !(width > 0 && height > 0)) return
+    const figures = (question.figures || []).concat(...(question.options || []).map((option) => option.figures || []))
+    // 换题后忽略上一题迟到的加载事件，缺失或过时的后台尺寸以实际图片为准。
+    if (!figures.some((figure) => figure.url === url)) return
+    this.setData({ figureDimensions: { ...this.data.figureDimensions, [url]: { width, height } } })
   },
 
   previewFigure(event) {

@@ -222,3 +222,34 @@ test('summaryView spells out how much of the exam scope was tested', () => {
   assert.equal(view({ label: '三年级上学期', units: 8, covered: 7, missing: ['第八单元'] }), '考试范围：三年级上学期共 8 个单元，测到 7 个（还没测：第八单元）')
   assert.equal(view(undefined), '')
 })
+
+test('goal question figures fit entirely inside ratio-sized boxes', () => {
+  const wxml = read('learning/goal-diagnosis/index.wxml')
+  assert.match(wxml, /<wxs module="QF" src="..\/..\/utils\/question-figure.wxs"/)
+  assert.equal((wxml.match(/mode="aspectFit"/g) || []).length, 2)
+  assert.equal((wxml.match(/bindload="figureLoaded"/g) || []).length, 2)
+  assert.doesNotMatch(wxml, /mode="widthFix"/)
+  assert.match(wxml, /QF.box\(figureDimensions\[item.url\] \|\| item, 1\)/)
+  assert.match(wxml, /QF.box\(figureDimensions\[figure.url\] \|\| figure, 1\)/)
+  const css = read('learning/goal-diagnosis/index.wxss')
+  assert.match(css, /\.gm-figure-box\s*\{[^}]*position: relative;[^}]*height: 0;/)
+  assert.match(css, /\.gm-figure\s*\{[^}]*position: absolute;[^}]*width: 100%; height: 100%;/)
+})
+
+test('loaded figure dimensions correct missing metadata and ignore events from previous questions', () => {
+  const vm = require('node:vm')
+  let definition
+  vm.runInNewContext(read('learning/goal-diagnosis/index.js'), {
+    Page: (page) => { definition = page }, require: () => ({})
+  })
+  const page = { ...definition, data: { question: { figures: [{ url: 'stem' }], options: [{ figures: [{ url: 'option' }] }] }, figureDimensions: {} }, setData(patch) { Object.assign(this.data, patch) } }
+  const loaded = (url, width, height) => page.figureLoaded({ currentTarget: { dataset: { url } }, detail: { width, height } })
+  loaded('stem', 800, 600)
+  loaded('option', 400, 800)
+  loaded('old-question', 800, 600)
+  loaded('stem', 0, 0)
+  assert.equal(JSON.stringify(page.data.figureDimensions), JSON.stringify({ stem: { width: 800, height: 600 }, option: { width: 400, height: 800 } }))
+  page.data.question = null
+  loaded('stem', 1, 1)
+  assert.equal(page.data.figureDimensions.stem.width, 800)
+})

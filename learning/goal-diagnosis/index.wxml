@@ -1,3 +1,4 @@
+<wxs module="QF" src="../../utils/question-figure.wxs" />
 <!-- 按目标测评 + 目标导图（2026-10-10）：围绕学习目标出题，错了就沿知识图谱往前挖；导图：目标 → 大条件 → 知识点 → 前置知识点。
      学生看不到题量。老师从学生详情进来（teacher）只读看导图。 -->
 
@@ -112,14 +113,22 @@
             <view wx:if="{{digHint}}" class="gm-dig"><view class="gm-dig-icon" aria-hidden="true"></view><text>{{digHint}}</text></view>
             <text class="gm-prompt" user-select>{{question.prompt}}</text>
             <view wx:if="{{question.figures && question.figures.length}}" class="gm-figures">
-              <image wx:for="{{question.figures}}" wx:key="url" class="gm-figure" src="{{item.url}}" mode="widthFix" data-url="{{item.url}}" bindtap="previewFigure" aria-label="{{item.alt || '题目配图'}}" />
+              <view wx:for="{{question.figures}}" wx:key="url" class="gm-figure-frame">
+                <view class="gm-figure-box" style="{{QF.box(figureDimensions[item.url] || item, 1)}}">
+                  <image class="gm-figure" src="{{item.url}}" mode="aspectFit" data-url="{{item.url}}" bindload="figureLoaded" bindtap="previewFigure" aria-label="{{item.alt || '题目配图'}}" />
+                </view>
+              </view>
             </view>
             <view class="gm-options">
               <view wx:for="{{question.options}}" wx:key="value" class="gm-option {{selected === item.value ? 'is-selected' : ''}}" data-value="{{item.value}}" bindtap="chooseOption" aria-role="radio" aria-checked="{{selected === item.value}}">
                 <view class="gm-option-letter">{{item.value}}</view>
                 <view class="gm-option-body">
                   <text class="gm-option-label">{{item.label}}</text>
-                  <image wx:for="{{item.figures}}" wx:key="url" wx:for-item="figure" class="gm-option-figure" src="{{figure.url}}" mode="widthFix" />
+                  <view wx:for="{{item.figures}}" wx:key="url" wx:for-item="figure" class="gm-option-figure-frame">
+                    <view class="gm-figure-box" style="{{QF.box(figureDimensions[figure.url] || figure, 1)}}">
+                      <image class="gm-figure" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" bindload="figureLoaded" aria-label="{{figure.alt || '选项配图'}}" />
+                    </view>
+                  </view>
                 </view>
               </view>
             </view>

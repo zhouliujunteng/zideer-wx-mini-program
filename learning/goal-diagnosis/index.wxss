@@ -70,7 +70,10 @@
 .gm-dig-icon { width: 10px; height: 10px; box-sizing: border-box; border-left: 2px solid #FD7C02; border-bottom: 2px solid #FD7C02; transform: rotate(-45deg) translate(1px, -1px); }
 .gm-prompt { display: block; margin-top: 14px; color: #24332D; font-size: 16px; line-height: 1.8; white-space: pre-wrap; word-break: break-all; }
 .gm-figures { margin-top: 12px; }
-.gm-figure { display: block; width: 100%; max-width: 420px; margin: 0 auto 8px; border-radius: 12px; }
+.gm-figure-frame { width: 100%; max-width: 420px; margin: 0 auto 8px; }
+/* 外框按原图比例占位，图片完整缩放，避免自动高度在真机上只显示局部。 */
+.gm-figure-box { position: relative; height: 0; margin: 0 auto; overflow: hidden; border-radius: 12px; }
+.gm-figure { position: absolute; top: 0; left: 0; display: block; width: 100%; height: 100%; }
 .gm-options { margin-top: 16px; }
 .gm-option { display: flex; align-items: flex-start; gap: 12px; margin-top: 10px; padding: 13px 14px; border: 1.5px solid #EEF0ED; border-radius: 16px; background: #FCFCFB; }
 .gm-option:active { opacity: .85; }
@@ -79,7 +82,8 @@
 .gm-option.is-selected .gm-option-letter { background: #FD7C02; color: #FFF; }
 .gm-option-body { flex: 1; min-width: 0; }
 .gm-option-label { display: block; color: #34423A; font-size: 15px; line-height: 1.6; word-break: break-all; }
-.gm-option-figure { display: block; width: 100%; max-width: 240px; margin-top: 6px; border-radius: 8px; }
+.gm-option-figure-frame { width: 100%; max-width: 240px; margin-top: 6px; }
+.gm-option-figure-frame .gm-figure-box { border-radius: 8px; }
 .gm-preparing { display: flex; flex-direction: column; align-items: center; padding-bottom: 22px; }
 .gm-preparing .sk { align-self: stretch; }
 .gm-sk-option { height: 50px; margin-top: 10px; border-radius: 16px; }
