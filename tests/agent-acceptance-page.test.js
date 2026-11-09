@@ -294,3 +294,26 @@ test('the page is the student\'s diagnosis room: custom top bar, same bubbles an
   assert.match(template, /class="agent-composer" style="bottom: \{\{keyboardHeight > 0 \? keyboardHeight : composerBottomOffset\}\}px;"/)
   assert.match(style, /\.acc-answer-input \{[^}]*height: calc\(var\(--lines, 1\) \* 42rpx\);/)
 })
+
+// 2026-11-09 用户反馈：最后一次回答存上了、结论没回来，课程页显示「验收中」，进来一发就提示次数已用完。
+// 进页面时最后一句是学生说的：自动接着要回复（次数满了服务端就直接出结论）；发送失败后的刷新不自动重试。
+test('opening a stalled acceptance asks the service to continue from the stored answer', async () => {
+  const stalled = reply('in_progress', [{ role: 'assistant', content: '偏旁有什么用？' }, { role: 'user', content: '偏旁表意思' }])
+  const settled = reply('ai_retry', [...stalled.turns, { role: 'assistant', content: '这次还差一点。' }])
+  const { page, calls } = await openChat({ loads: [stalled], sends: [settled] })
+  assert.deepEqual(calls.sends, [''], '空消息让服务端接着出回复或结论')
+  assert.equal(page.data.state, 'retry')
+  page.onUnload()
+})
+
+test('a failed answer does not trigger an automatic retry loop', async () => {
+  const stalled = reply('in_progress', [{ role: 'assistant', content: '什么是一元一次方程？' }, { role: 'user', content: '方程' }])
+  const { page, calls } = await openChat({ loads: [ASKED, stalled], sends: [new Error('回答没有发送成功')] })
+  page.handleKeyboardButtonTap()
+  page.handleInput({ detail: { value: '方程' } })
+  await page.handleSend()
+  await flush()
+  assert.deepEqual(calls.sends, ['方程'], '失败后只刷新，不自动再发')
+  assert.equal(page.data.draft, '方程')
+  page.onUnload()
+})

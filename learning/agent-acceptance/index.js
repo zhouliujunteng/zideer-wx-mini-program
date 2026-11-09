@@ -149,7 +149,7 @@ Page({
     const bridge = getRecorderBridge()
     if (bridge) bridge.attach(this)
     // 读到过就后台刷新；正在等验收智能体回复、或正在识别刚说的话时不打断。
-    if (!this.data.sending && !this._asrBusy) this.refresh()
+    if (!this.data.sending && !this._asrBusy) this.refresh({ resume: true })
   },
 
   onHide() {
@@ -170,12 +170,17 @@ Page({
     else wx.redirectTo({ url: `/learning/agent-course/index?stageId=${encodeURIComponent(this.stageId)}` })
   },
 
-  async refresh() {
+  // resume：进页面时，上次的回答存上了、回复没回来（最后一句是学生说的），自动接着要回复；
+  // 回答次数满了的那次就是直接出结论（2026-11-09 用户反馈：卡在「验收中」、一发就提示次数已用完）。
+  // 发送失败后的那次刷新不自动重试，免得连着失败；学生点发送就是重试，服务端不会把同一句再存一遍。
+  async refresh({ resume = false } = {}) {
     try {
       const result = await loadAgentCourseAcceptance(this.stageId)
       // 读的途中学生已经发出了回答：以那次回包为准，不拿这份旧的盖掉刚放上去的气泡
       if (this._isDestroyed || this.data.sending) return
       this.apply(result)
+      const last = this.data.turns[this.data.turns.length - 1]
+      if (resume && this.data.state === 'chat' && last && last.role === 'user') this.resume()
     } catch (error) {
       if (this._isDestroyed || this.data.loaded) return
       this.setData({ loadFailed: true, errorMessage: error && error.message || '验收状态暂时无法读取，请稍后重试。' })
@@ -263,6 +268,18 @@ Page({
       this.apply(await sendAgentCourseAcceptance(this.stageId, ''))
     } catch (error) {
       wx.showToast({ title: error && error.message || '验收暂时无法开始', icon: 'none', duration: 3000 })
+    } finally {
+      if (!this._isDestroyed) this.setData({ sending: false })
+    }
+  },
+
+  async resume() {
+    if (this.data.sending) return
+    this.setData({ sending: true, typingLabel: '正在接着刚才的回答' })
+    try {
+      this.apply(await sendAgentCourseAcceptance(this.stageId, ''))
+    } catch (error) {
+      if (!this._isDestroyed) wx.showToast({ title: error && error.message || '验收暂时无法继续，请稍后重试。', icon: 'none', duration: 3000 })
     } finally {
       if (!this._isDestroyed) this.setData({ sending: false })
     }
