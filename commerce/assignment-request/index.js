@@ -11,7 +11,9 @@ const statusLabels = {
 
 Page({
   data: {
-    loading: true,
+    // 第一次读到申请状态前显示骨架；读到过一次后回到页面、提交或撤回后都保留旧内容静默刷新。
+    loaded: false,
+    failed: false,
     submitting: false,
     request: null,
     attribution: null,
@@ -20,15 +22,15 @@ Page({
   onShow() { this.loadPage() },
   async onPullDownRefresh() { await this.loadPage(); wx.stopPullDownRefresh() },
   async loadPage() {
-    this.setData({ loading: true })
+    if (!this.data.loaded) this.setData({ failed: false })
     try {
       const data = await loadPromoterAssignmentRequest()
       const request = data.request ? { ...data.request, statusLabel: statusLabels[data.request.status] || data.request.status || '处理中' } : null
-      this.setData({ request, attribution: data.attribution || null })
+      this.setData({ request, attribution: data.attribution || null, loaded: true })
     } catch (error) {
+      // 首次读取失败不能落到申请表单：可能已有待处理申请或已建立归因。
+      if (!this.data.loaded) this.setData({ failed: true })
       wx.showToast({ title: error.message || '申请状态加载失败', icon: 'none' })
-    } finally {
-      this.setData({ loading: false })
     }
   },
   updateContact(event) { this.setData({ 'form.contact': event.detail.value }) },

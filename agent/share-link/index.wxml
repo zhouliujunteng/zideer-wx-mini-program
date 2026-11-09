@@ -1,0 +1,140 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="share-link-page">
+  <!-- 朋友圈单页模式：好友点开的，只放邀请说明，底部「前往小程序」由微信固定提供 -->
+  <view wx:if="{{loadState === 'timeline'}}" class="share-link-invite">
+    <view class="share-link-invite-icon">
+      <image wx:if="{{UA.src(ui, '/assets/brand/app-icon.png')}}" src="{{UA.src(ui, '/assets/brand/app-icon.png')}}" mode="aspectFill" aria-hidden="true"></image>
+    </view>
+    <text class="share-link-invite-title">好友邀请你来知鹿学习</text>
+    <text class="share-link-invite-copy">点击下方「前往小程序」打开知鹿学习，注册后会自动记下这次邀请。</text>
+  </view>
+
+  <block wx:else>
+    <view class="share-link-ambient" aria-hidden="true"><view class="share-link-ambient-ribbon"><view class="share-link-ambient-ribbon-inner"></view></view></view>
+    <view class="share-link-topbar">
+      <view class="share-link-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+        <view class="share-link-back" bindtap="handleBack" aria-label="返回" aria-role="button">
+          <view class="share-link-back-icon"></view>
+        </view>
+        <text class="share-link-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">小程序链接</text>
+      </view>
+    </view>
+
+    <!-- 指向真实胶囊的「···」：教程第 1 步就在这一页操作 -->
+    <view wx:if="{{loadState === 'ready' && !scrolled}}" class="share-link-pointer" style="left: {{pointerLeft}}px; top: {{pointerTop}}px;" aria-hidden="true">
+      <view class="share-link-pointer-arrow"></view>
+      <text class="share-link-pointer-text">第 1 步点这里</text>
+    </view>
+
+    <!-- 滚动区从顶栏下沿开始：顶栏透明，内容不从标题底下穿过 -->
+    <scroll-view class="share-link-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" style="top: {{statusBarHeight + navigationBarHeight}}px;" bindscroll="handleScroll">
+      <view class="share-link-content">
+        <view wx:if="{{loadState === 'failed'}}" class="share-link-state">
+          <text class="share-link-state-title">邀请码暂时无法加载</text>
+          <text class="share-link-state-copy">{{loadError}}</text>
+          <view class="share-link-state-action" bindtap="loadCode" aria-role="button">重新加载</view>
+        </view>
+
+        <block wx:else>
+          <view class="share-link-hero">
+            <text class="share-link-hero-title">用蓝色链接邀请好友</text>
+            <text class="share-link-hero-copy">在本页复制的小程序链接带着你的邀请码。好友点开就能进入知鹿学习，注册后你就是 TA 的推荐人。</text>
+            <view class="share-link-hero-sample" aria-hidden="true">
+              <view class="share-link-glyph is-blue"></view>
+              <text>#小程序://知鹿学习/…</text>
+            </view>
+            <view class="share-link-hero-code">
+              <text class="share-link-hero-code-label">已带上我的邀请码</text>
+              <view wx:if="{{loadState === 'ready'}}" class="share-link-hero-code-row" bindtap="copyCode" aria-role="button" aria-label="复制我的邀请码">
+                <text class="share-link-hero-code-value">{{code}}</text>
+                <text class="share-link-hero-code-copy">复制</text>
+              </view>
+              <view wx:else class="sk share-link-sk-code" aria-label="正在读取邀请码"></view>
+            </view>
+          </view>
+
+          <view class="share-link-step">
+            <view class="share-link-step-head">
+              <text class="share-link-step-no">1</text>
+              <view class="share-link-step-copy">
+                <text class="share-link-step-title">点本页右上角的「···」</text>
+                <text class="share-link-step-hint">一定要在这一页点，别的页面复制的链接不带你的邀请码</text>
+              </view>
+            </view>
+            <view class="share-link-figure" aria-hidden="true">
+              <view class="slf-phone-top">
+                <view class="slf-status"><text>9:41</text><view class="slf-status-icons"><view></view><view></view></view></view>
+                <view class="slf-bar">
+                  <view class="slf-back"></view>
+                  <text class="slf-bar-title">小程序链接</text>
+                  <view class="slf-capsule">
+                    <view class="slf-capsule-dots is-hot"><view></view><view></view><view></view></view>
+                    <view class="slf-capsule-divider"></view>
+                    <view class="slf-capsule-close"><view></view></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view class="share-link-step">
+            <view class="share-link-step-head">
+              <text class="share-link-step-no">2</text>
+              <view class="share-link-step-copy">
+                <text class="share-link-step-title">在弹出的菜单里点「复制链接」</text>
+                <text class="share-link-step-hint">没看到就在菜单里左右滑一滑</text>
+              </view>
+            </view>
+            <view class="share-link-figure is-menu" aria-hidden="true">
+              <view class="slf-sheet">
+                <view class="slf-sheet-head">
+                  <view class="slf-sheet-logo"></view>
+                  <text>知鹿学习</text>
+                </view>
+                <view class="slf-sheet-row">
+                  <view class="slf-sheet-item"><view class="slf-sheet-icon"><view class="slf-icon-send"></view></view><text>发送给朋友</text></view>
+                  <view class="slf-sheet-item"><view class="slf-sheet-icon"><view class="slf-icon-moments"></view></view><text>分享到朋友圈</text></view>
+                  <view class="slf-sheet-item is-hot"><view class="slf-sheet-icon"><view class="share-link-glyph is-white"></view></view><text>复制链接</text></view>
+                  <view class="slf-sheet-item"><view class="slf-sheet-icon"><view class="slf-icon-more"><view></view><view></view><view></view></view></view><text>更多</text></view>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view class="share-link-step">
+            <view class="share-link-step-head">
+              <text class="share-link-step-no">3</text>
+              <view class="share-link-step-copy">
+                <text class="share-link-step-title">粘贴发出去</text>
+                <text class="share-link-step-hint">发给好友、微信群，或贴进朋友圈文案；好友点蓝色链接直接打开知鹿学习</text>
+              </view>
+            </view>
+            <view class="share-link-figure is-chat" aria-hidden="true">
+              <view class="slf-chat-row">
+                <view class="slf-bubble is-mine">
+                  <text class="slf-bubble-text">一起来知鹿学习吧：</text>
+                  <text class="slf-link">#小程序://知鹿学习/Xk3v9QmT</text>
+                  <view class="slf-tap"></view>
+                </view>
+                <view class="slf-avatar is-mine"></view>
+              </view>
+              <view class="slf-chat-row is-friend">
+                <view class="slf-avatar"></view>
+                <view class="slf-bubble"><text class="slf-bubble-text">点开了，已经进来啦</text></view>
+              </view>
+            </view>
+          </view>
+
+          <view class="share-link-tips">
+            <text class="share-link-tips-title">小提示</text>
+            <text class="share-link-tip">好友点开链接后完成注册，就会记为你邀请的好友；好友已经有推荐人时不会改绑。</text>
+            <text class="share-link-tip">链接只能在微信里打开。发朋友圈也可以保存海报，让好友长按识别海报上的小程序码。</text>
+          </view>
+        </block>
+      </view>
+    </scroll-view>
+  </block>
+</view>
+<!-- 画「发送给朋友」卡片封面的离屏画布（services/share-cover.js） -->
+<canvas type="2d" id="share-cover-canvas" class="share-cover-canvas" aria-hidden="true"></canvas>
+<dev-reset-fab />

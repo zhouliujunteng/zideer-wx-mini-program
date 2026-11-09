@@ -1,2 +1,95 @@
-.commerce-page { min-height: 100vh; padding: 52rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); }.commerce-head { padding: 0 8rpx; }.commerce-eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }.commerce-title-row { display: flex; align-items: center; justify-content: space-between; gap: 24rpx; margin-top: 12rpx; }.commerce-title { display: block; font-size: 42rpx; font-weight: 700; }.commerce-link { min-height: 60rpx; color: var(--accent-deep); font-size: 23rpx; }.commerce-copy { display: block; margin-top: 12rpx; color: var(--muted); font-size: 22rpx; line-height: 1.55; }.commerce-skeleton { height: 260rpx; margin-top: 42rpx; }.product-list { margin-top: 34rpx; }.product-card { width: 100%; padding: 28rpx; margin-top: 18rpx; text-align: left; }.product-card__top { display: flex; align-items: baseline; justify-content: space-between; gap: 18rpx; }.product-card__name { min-width: 0; font-size: 29rpx; font-weight: 700; overflow-wrap: anywhere; }.product-card__amount { flex: none; color: var(--accent-deep); font-size: 31rpx; font-weight: 700; }.product-card__copy { display: block; margin-top: 14rpx; color: var(--ink-soft); font-size: 22rpx; line-height: 1.55; }.product-card__facts { display: flex; flex-wrap: wrap; gap: 12rpx 20rpx; margin-top: 22rpx; color: var(--green); font-size: 22rpx; font-weight: 600; }
-.product-card__price { display: flex; flex: none; align-items: baseline; gap: 10rpx; }.product-card__list { color: var(--muted); font-size: 22rpx; text-decoration: line-through; }.product-card__member { display: inline-block; margin-top: 12rpx; padding: 4rpx 14rpx; border-radius: 999rpx; background: #fff3dc; color: #9a6a1f; font-size: 21rpx; font-weight: 600; }.product-card__member.is-applied { background: #ffe4b0; color: #7a4d10; }
+@import "../../styles/skeleton.wxss";
+/* 积分包：没有设计稿，按设计师已做页面的规则——
+   课程积分页（commerce/entitlements，设计稿 M34）的氛围光、顶部余额、小节标题与白色大圆角卡片；
+   会员中心（E02）的档位选择与底部购买；品牌橙 #FD7C02 表示选中与价格。 */
+page { background: #FAFAFA; }
+
+.packs-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.packs-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; background: radial-gradient(125% 52% at 100% 0, rgba(201, 232, 255, .84) 0%, rgba(215, 239, 255, .48) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.packs-ambient-ribbon { position: absolute; top: -140rpx; left: -430rpx; width: 1480rpx; height: 720rpx; box-sizing: border-box; border: 24rpx solid rgba(255, 255, 255, .72); border-top-color: transparent; border-right-color: transparent; border-radius: 50%; opacity: .84; transform: rotate(-18deg); }
+.packs-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.packs-topbar.is-solid { background: rgba(250, 250, 250, .96); }
+.packs-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.packs-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.packs-back:active { background: #F0F2EF; }
+.packs-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.packs-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.packs-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.packs-shell { min-height: 100%; padding: 0 32rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.packs-shell.has-buy-bar { padding-bottom: calc(200rpx + env(safe-area-inset-bottom)); }
+
+/* 当前可用积分：与课程积分页同一套 */
+.packs-overview { display: flex; align-items: flex-start; justify-content: space-between; padding: 8rpx 8rpx 8rpx; }
+.packs-overview-copy { min-width: 0; flex: 1; }
+.balance-eyebrow { display: block; color: #24332D; font-size: 29rpx; font-weight: 700; line-height: 1.25; }
+.balance-value { display: block; margin-top: 14rpx; color: #24332D; font-size: 88rpx; font-weight: 500; letter-spacing: -2rpx; line-height: .95; }
+.balance-links { display: flex; align-items: center; padding-top: 16rpx; color: #98A49C; font-size: 21rpx; line-height: 1.2; }
+.balance-frozen { margin-right: 24rpx; }
+.balance-link { display: flex; align-items: center; padding: 6rpx 0; }
+.balance-link-icon { width: 12rpx; height: 12rpx; margin-left: 4rpx; border-top: 3rpx solid #AAB4AD; border-right: 3rpx solid #AAB4AD; transform: rotate(45deg); }
+.balance-icon { display: block; flex: 0 0 auto; width: 176rpx; height: 180rpx; margin: -4rpx 4rpx 0 16rpx; transform: rotate(8deg); }
+
+/* 会员价提示：会员中心的暖金色 */
+.member-strip { display: flex; align-items: center; margin-top: 24rpx; padding: 16rpx 24rpx; border: 2rpx solid #fff; border-radius: 28rpx; background: linear-gradient(105deg, #FFFDF8 0%, #FFF5E1 55%, #FFE8BA 100%); }
+.member-strip:active { opacity: .82; }
+.member-strip.is-member:active { opacity: 1; }
+.member-strip-crown { flex: 0 0 auto; width: 48rpx; height: 40rpx; margin-right: 14rpx; }
+.member-strip-copy { flex: 1; min-width: 0; color: #7A5424; font-size: 24rpx; font-weight: 600; line-height: 1.3; }
+.member-strip-action { flex: 0 0 auto; margin-left: 12rpx; color: #A0561A; font-size: 22rpx; }
+
+.packs-heading { display: flex; align-items: center; margin-top: 38rpx; padding: 0 4rpx; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.2; }
+
+/* 积分包卡片：两列，选中描橙边并在右上角打勾 */
+.packs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20rpx; margin-top: 20rpx; }
+.pack-card { position: relative; min-width: 0; min-height: 236rpx; padding: 26rpx 24rpx 22rpx; box-sizing: border-box; overflow: hidden; border: 3rpx solid transparent; border-radius: 32rpx; background: #fff; transition: border-color .16s ease, background-color .16s ease; }
+.pack-card:active { opacity: .86; }
+.pack-card.is-selected { border-color: #FD7C02; background: #FFF9F2; }
+.pack-check { position: absolute; top: 0; right: 0; display: flex; align-items: center; justify-content: center; width: 52rpx; height: 42rpx; border-radius: 0 26rpx 0 22rpx; background: #FD7C02; }
+.pack-check-mark { width: 18rpx; height: 9rpx; margin-top: -4rpx; box-sizing: border-box; border-bottom: 4rpx solid #fff; border-left: 4rpx solid #fff; transform: rotate(-45deg); }
+.pack-credits { display: flex; align-items: baseline; }
+.pack-credits-value { color: #24332D; font-size: 48rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1.1; }
+.pack-credits-unit { margin-left: 6rpx; color: #7E8A82; font-size: 22rpx; }
+.pack-name { display: block; margin-top: 6rpx; overflow: hidden; color: #8A958D; font-size: 22rpx; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.pack-price-row { display: flex; align-items: baseline; margin-top: 18rpx; color: #FD7C02; }
+.pack-yuan { margin-right: 2rpx; font-size: 22rpx; font-weight: 600; }
+.pack-price { font-size: 38rpx; font-weight: 700; line-height: 1.1; }
+.pack-list-price { margin-left: 10rpx; color: #A9B2AB; font-size: 21rpx; text-decoration: line-through; }
+.pack-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8rpx 12rpx; margin-top: 12rpx; }
+.pack-member-tag { padding: 4rpx 12rpx; border-radius: 999rpx; background: #FFF3DC; color: #9A6A1F; font-size: 19rpx; line-height: 1.4; }
+.pack-member-tag.is-applied { background: #FFE4B0; color: #7A4D10; }
+.pack-course { color: #7E8A82; font-size: 19rpx; line-height: 1.4; }
+
+/* 购买须知：选中积分包的规则（原商品详情页内容） */
+.packs-rules { margin-top: 20rpx; padding: 4rpx 26rpx; border-radius: 32rpx; background: #fff; }
+.packs-rules-intro { display: block; padding: 22rpx 0 18rpx; border-bottom: 2rpx solid #F0F3F0; color: #4F5E55; font-size: 23rpx; line-height: 1.6; }
+.packs-rule { display: flex; align-items: flex-start; justify-content: space-between; gap: 24rpx; padding: 24rpx 0; border-bottom: 2rpx solid #F0F3F0; color: #7E8A82; font-size: 23rpx; line-height: 1.5; }
+.packs-rule:last-child { border-bottom: 0; }
+.packs-rule-value { max-width: 64%; color: #24332D; text-align: right; overflow-wrap: anywhere; }
+.packs-note { display: block; margin: 18rpx 6rpx 0; color: #98A39B; font-size: 20rpx; line-height: 1.6; }
+
+.packs-state { display: flex; flex-direction: column; align-items: center; margin-top: 32rpx; padding: 64rpx 36rpx 56rpx; border-radius: 32rpx; background: #fff; text-align: center; }
+.packs-state-title { color: #24332D; font-size: 29rpx; font-weight: 650; line-height: 1.4; }
+.packs-state-copy { margin-top: 12rpx; color: #8A958D; font-size: 22rpx; line-height: 1.6; }
+.packs-state-action { margin-top: 28rpx; padding: 0 48rpx; height: 72rpx; border-radius: 999rpx; background: #F0F2EF; color: #4A514C; font-size: 25rpx; font-weight: 650; line-height: 72rpx; }
+.packs-state-action.is-primary { background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #fff; }
+.packs-state-link { margin-top: 22rpx; color: #8A958D; font-size: 22rpx; line-height: 1.4; text-decoration: underline; }
+
+/* 底部购买栏 */
+.buy-bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 18; display: flex; align-items: center; justify-content: space-between; gap: 24rpx; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .96); box-shadow: 0 -8rpx 24rpx rgba(36, 51, 45, .06); }
+.buy-bar-copy { min-width: 0; flex: 1; }
+.buy-bar-price { display: flex; align-items: baseline; color: #FD7C02; }
+.buy-bar-label { margin-right: 10rpx; color: #7E8A82; font-size: 22rpx; }
+.buy-bar-yuan { font-size: 24rpx; font-weight: 600; }
+.buy-bar-amount { margin-left: 2rpx; font-size: 44rpx; font-weight: 700; line-height: 1.1; }
+.buy-bar-sub { display: block; margin-top: 4rpx; overflow: hidden; color: #8A958D; font-size: 20rpx; text-overflow: ellipsis; white-space: nowrap; }
+.buy-button { flex: 0 0 auto; height: 88rpx; padding: 0 56rpx; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #fff; font-size: 28rpx; font-weight: 650; line-height: 88rpx; }
+.buy-button:active { opacity: .82; }
+
+/* 首次加载骨架 */
+.balance-value-skeleton { width: 200rpx; height: 80rpx; margin-top: 14rpx; }
+.pack-sk-credits { width: 150rpx; height: 50rpx; }
+.pack-card .pack-sk-name { height: 22rpx; margin-top: 16rpx; }
+.pack-sk-price { width: 120rpx; height: 40rpx; margin-top: 26rpx; }
+.pack-sk-rule { width: 220rpx; height: 24rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

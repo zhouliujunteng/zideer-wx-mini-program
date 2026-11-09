@@ -1,0 +1,73 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.topic-page{height:100vh}
+.topic-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
+.topic-ambient-ribbon{top:-84px;left:-258px;width:888px;height:432px;box-sizing:border-box;border:14px solid rgba(255, 255, 255, .72);border-top-color:transparent;border-right-color:transparent;border-radius:50%}
+.topic-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));box-sizing:border-box}
+.topic-topbar-inner{box-sizing:content-box;padding:0 19px 9px}
+.topic-back{width:32px;height:32px;border-radius:50%}
+.topic-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.topic-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.topic-scroll{height:100vh;box-sizing:border-box}
+.topic-shell{min-height:100%;padding:0 19px calc(28px + env(safe-area-inset-bottom));box-sizing:border-box}
+.topic-shell.has-bar{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
+.topic-hero{padding:4px 4px 7px}
+.topic-hero-copy{min-width:0}
+.topic-eyebrow{font-size:14px;font-weight:600;line-height:1.3}
+.topic-title{margin-top:7px;font-size:33px;font-weight:700;letter-spacing:-1px;line-height:1.2}
+.topic-hero-meta{gap:7px 8px;margin-top:13px}
+.topic-source{min-width:0;font-size:12px;line-height:1.3}
+.topic-art{width:100px;height:100px;margin:-4px 0 0 9px}
+.topic-art-orbit{top:16px;left:2px;width:96px;height:62px;box-sizing:border-box;border:3px solid rgba(101, 167, 233, .5);border-radius:50%}
+.topic-art-core{top:27px;left:28px;width:43px;height:43px;border-radius:50%;box-shadow:0 7px 16px rgba(253, 124, 2, .28)}
+.topic-art-dot{border-radius:50%}
+.topic-art-dot-a{top:18px;right:8px;width:13px;height:13px;box-shadow:0 0 0 3px rgba(101, 167, 233, .18)}
+.topic-art-dot-b{bottom:18px;left:7px;width:9px;height:9px;box-shadow:0 0 0 3px rgba(110, 181, 139, .18)}
+.topic-tag{padding:3px 9px;border-radius:599px;font-size:12px;font-weight:600;line-height:1.4}
+.topic-section{margin-top:22px}
+.topic-heading{padding:0 2px;font-size:18px;font-weight:700;line-height:1.2}
+.topic-heading-count{margin-left:7px;font-size:13px;font-weight:500}
+.topic-card{margin-top:13px;padding:3px 14px;border-radius:21px}
+.topic-card-text{padding:15px 16px}
+.topic-copy{font-size:15px;line-height:1.75}
+.topic-muted{font-size:14px;line-height:1.6}
+.topic-row{gap:12px;min-height:26px;padding:15px 0;border-bottom:1px solid #F0F3F0}
+.topic-row:last-child{border-bottom:0}
+.topic-row-copy{min-width:0}
+.topic-row-title{font-size:15px;font-weight:600;line-height:1.4}
+.topic-row-meta{margin-top:4px;font-size:12px;line-height:1.3}
+.topic-row-side{gap:8px}
+.topic-rate{font-size:13px}
+.topic-link{gap:10px;padding:15px 0;border-bottom:1px solid #F0F3F0}
+.topic-link:last-child{border-bottom:0}
+.topic-link-copy{min-width:0}
+.topic-link-head{gap:7px;min-width:0}
+.topic-link-title{min-width:0;font-size:16px;font-weight:600;line-height:1.4}
+.topic-link-grade{font-size:12px;font-weight:600}
+.topic-link-reason{margin-top:4px;font-size:13px;line-height:1.55}
+.topic-link-arrow{width:7px;height:7px;box-sizing:border-box;border-top:1px solid #B1BBB4;border-right:1px solid #B1BBB4}
+.topic-state-panel{padding:72px 14px 24px}
+.topic-state-title{font-size:19px;font-weight:600}
+.topic-state-copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.topic-state-action{height:45px;padding:0 26px;border-radius:599px;font-size:15px;font-weight:600}
+.topic-bar{right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);padding:10px 19px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -5px 14px rgba(36, 51, 45, .06)}
+.topic-bar-note{margin-bottom:8px;font-size:13px;line-height:1.5}
+.topic-button{width:100%;height:52px;margin:0;padding:0;border:0;border-radius:599px;font-size:16px;font-weight:650;line-height:52px}
+.topic-button::after{border:0}
+.topic-button.is-active{box-sizing:border-box;border:1px solid #F3D2B0;line-height:50px}
+.topic-button[disabled]{border:0 !important}
+.topic-sk-eyebrow{width:108px;height:15px}
+.topic-sk-title{width:192px;height:38px;margin-top:9px}
+.topic-sk-state{width:57px;height:21px;border-radius:599px}
+.topic-sk-line{margin-top:0}
+.topic-card-text .sk + .sk{margin-top:10px}
+}

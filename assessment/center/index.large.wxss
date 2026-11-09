@@ -1,0 +1,104 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px;background:linear-gradient(90deg, #ECEEEB 25%, #F5F6F4 37%, #ECEEEB 63%);background-size:400% 100%}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+page{background:#F7FAFC}
+.assessment-page{height:100vh;background:#F7FAFC}
+.assessment-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));box-sizing:border-box;background:#F7FAFC}
+.assessment-topbar-inner{box-sizing:content-box;padding:0 21px 9px}
+.assessment-back{width:26px;height:26px;margin-right:6px}
+.assessment-back-icon{width:12px;height:12px;border-bottom:1px solid #24332d;border-left:1px solid #24332d}
+.assessment-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.assessment-scroll{height:100vh;box-sizing:border-box;background:#F7FAFC}
+.assessment-shell{min-height:100%;padding:14px 19px 90px;box-sizing:border-box}
+.assessment-hero{min-height:126px;padding:13px 6px 8px;box-sizing:border-box;background:transparent}
+.assessment-hero-copy{min-width:0}
+.assessment-hero-title{max-width:234px;margin-top:13px;font-size:20px;font-weight:700;line-height:1.28}
+.assessment-hero-subtitle{max-width:234px;margin-top:9px;font-size:13px;line-height:1.45}
+.assessment-hero-visual{right:8px;bottom:6px;width:130px;height:126px}
+.report-shadow{right:8px;bottom:8px;width:98px;height:20px;border-radius:50%;background:rgba(86,139,184,.16);filter:blur(3px)}
+.report-sheet{top:10px;right:22px;width:79px;height:100px;padding:14px 9px;box-sizing:border-box;border:1px solid rgba(91,137,210,.24);border-radius:7px;background:rgba(255,255,255,.88);box-shadow:0 7px 14px rgba(99,137,184,.18)}
+.report-sheet-line{height:4px;border-radius:599px;background:#B9D4F4}
+.report-sheet-line-long{width:46px}
+.report-sheet-line-short{width:31px;margin-top:6px;background:#D8E6F6}
+.report-mini-chart{height:34px;margin-top:13px;padding:0 5px 4px;border-bottom:1px solid #D2E1F0;background:repeating-linear-gradient(to bottom, transparent 0, transparent 10px, #E9F1F8 10px, transparent 11px)}
+.report-mini-bar{width:7px;border-radius:3px 3px 0 0;background:#8DB7ED}
+.report-mini-bar-one{height:14px}
+.report-mini-bar-two{height:25px;background:#FDAD68}
+.report-mini-bar-three{height:20px;background:#9BCFB6}
+.report-sheet-check{right:9px;bottom:10px;width:12px;height:6px;border-bottom:2px solid #6EB58B;border-left:2px solid #6EB58B}
+.report-orbit{border:3px solid rgba(101,167,233,.62);border-radius:50%}
+.report-orbit-back{right:1px;bottom:13px;width:114px;height:25px;border-top-color:transparent;border-left-color:transparent}
+.report-orbit-front{right:0;bottom:24px;width:114px;height:28px;border-right-color:transparent;border-bottom-color:transparent}
+.stats-section{margin-top:16px}
+.stats-section-title{padding:0 2px}
+.assessment-stats-row{gap:8px;margin-top:10px}
+.assessment-stat{min-width:0;height:79px;padding:12px;box-sizing:border-box;border-radius:24px;background:#fff}
+.assessment-stat-icon{width:49px;height:49px;filter:drop-shadow(0 2px 3px rgba(54, 78, 92, .14))}
+.assessment-stat-copy{min-width:0;margin-left:10px}
+.assessment-stat-value{margin-top:2px;font-size:19px;font-weight:700;line-height:1}
+.assessment-stat-label{max-width:100%;font-size:11px;line-height:1}
+.assessment-section{margin-top:22px}
+.assessment-section-heading{padding:0 2px}
+.assessment-section-title{font-size:16px;font-weight:700;line-height:1.3}
+.assessment-section-subtitle{margin-top:5px;font-size:12px;line-height:1.35}
+.subject-list{margin-top:12px}
+.subject-card{width:calc((100% - 9px) / 2);min-height:122px;margin-top:9px;padding:14px;box-sizing:border-box;border-radius:24px;background:#fff}
+.subject-card:nth-child(-n + 2){margin-top:0}
+.subject-card-dot{top:13px;right:13px;width:7px;height:7px;border-radius:50%}
+.subject-copy{min-width:0}
+.subject-title-row{min-width:0}
+.subject-title{min-width:0;font-size:14px;font-weight:650;line-height:1.25}
+.subject-subtitle{margin-top:7px;font-size:11px;line-height:1.3}
+.subject-footer{margin-top:auto}
+.subject-footer-meta{min-width:0}
+.subject-status{padding:4px 7px;border-radius:599px;background:#F3F5F3;font-size:10px;line-height:1}
+.subject-status.in-progress{background:#FFF0E3}
+.subject-duration{min-width:0;margin-left:4px;font-size:10px;line-height:1}
+.subject-action{width:45px;height:25px;margin-left:4px;border-radius:599px;background:rgba(253,124,2,.11);font-size:10px;line-height:1}
+.history-section{margin-top:24px}
+.history-heading-copy{min-width:0}
+.history-count{margin-left:7px;font-size:12px;line-height:1.3}
+.history-link{font-size:11px;line-height:1}
+.history-link-arrow{width:6px;height:6px;margin-left:4px;box-sizing:border-box;border-top:1px solid #A0AAA3;border-right:1px solid #A0AAA3}
+.history-list{margin-top:12px}
+.history-card{min-height:79px;margin-top:8px;padding:14px;box-sizing:border-box;border-radius:24px;background:#fff}
+.history-card:first-child{margin-top:0}
+.history-copy{min-width:0}
+.history-subject{font-size:13px;font-weight:650;line-height:1.2}
+.history-subject-row{min-width:0;gap:6px}
+.history-subject-row .history-subject{min-width:0}
+.history-delta{padding:2px 7px;border-radius:599px;background:#F0F1F2;font-size:10px;font-weight:650;line-height:1.3}
+.history-delta.up{background:#EAF6F3}
+.history-delta.down{background:#F7F0F1}
+.history-detail{margin-top:4px;font-size:10px;line-height:1.2}
+.history-date{margin-top:4px;font-size:10px;line-height:1.2}
+.history-result{margin-left:6px}
+.history-result-arrow{width:7px;height:7px;box-sizing:border-box;border-top:1px solid #B1BBB4;border-right:1px solid #B1BBB4}
+.assessment-stat-value-sk{width:33px;height:19px;margin-top:2px}
+.subject-subtitle-sk{width:88%;height:12px}
+.subject-status-sk{width:50px;height:19px;border-radius:599px}
+.subject-action-sk{width:45px;height:25px;border-radius:599px}
+.history-count-sk{width:57px;height:12px;margin-left:7px}
+.assessment-load-failed{margin-top:12px;padding:28px 14px;border-radius:24px;background:#fff}
+.assessment-load-failed-text{font-size:14px;line-height:1.5}
+.assessment-load-failed-action{height:38px;margin-top:14px;padding:0 21px;border-radius:599px;background:rgba(253,124,2,.11);font-size:14px}
+.history-empty{margin-top:16px;padding:24px 4px 14px;font-size:14px;line-height:1.5}
+.goal-entry{gap:13px;margin-top:18px;padding:18px 16px;border-radius:24px;background:linear-gradient(135deg, #FFF 0%, #FFF4E8 100%);border:1px solid #FFE1C2;box-shadow:0 6px 18px rgba(253, 124, 2, .08)}
+.goal-entry-icon{width:50px;height:50px;border-radius:16px;background:#FD7C02}
+.goal-entry-ring{width:25px;height:25px;box-sizing:border-box;border:3px solid #FFF;border-radius:50%}
+.goal-entry-dot{width:7px;height:7px;border-radius:50%;background:#FFF}
+.goal-entry-copy{min-width:0}
+.goal-entry-title-row{gap:7px}
+.goal-entry-title{font-size:18px;font-weight:700}
+.goal-entry-badge{padding:1px 8px;border-radius:599px;background:#FD7C02;font-size:11px;font-weight:600;line-height:1.6}
+.goal-entry-desc{margin-top:4px;font-size:13px;line-height:1.55}
+.goal-entry-chevron{width:8px;height:8px;border-top:1px solid #C9A27C;border-right:1px solid #C9A27C}
+}

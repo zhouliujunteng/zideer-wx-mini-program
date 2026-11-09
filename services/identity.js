@@ -2,8 +2,11 @@ const config = require('../config/index')
 const { courseGenerationState, courseCreditState, courseTaskProgress } = require('../utils/course-state')
 const { isEnterpriseWechatContact } = require('../utils/customer-service')
 const display = require('../utils/business-labels')
-const { summarizeLearnerBaseline } = require('../utils/learner-baseline')
+const { summarizeLearnerBaseline, summarizeLearningPreference, summarizeLearningGoal, summarizeGoalMap } = require('../utils/learner-baseline')
 const { isAgentCourseId, normalizeAgentCourse } = require('../utils/agent-course-view')
+const { rememberAccountType, clearAccountType } = require('../utils/account-role')
+const { readDevResetCode, rememberDevResetCode, forgetDevResetCode } = require('../utils/dev-reset')
+const { assertPaymentOpen, paymentClosedMessage } = require('./payment-switch')
 
 const TOKEN_KEY = 'zion_runtime_token'
 let authRedirectInProgress = false
@@ -14,10 +17,42 @@ let sessionGeneration = 0
 
 function resetPhoneSessionVerification() { verifiedPhoneToken = ''; phoneVerificationFlight = null }
 
+// 未登录也能浏览的页面（2026-09-27 用户规则，按微信小程序平台规则：不能强制登录后才看得到功能）。
+// 在这些页面上发现没登录或登录失效，只作废本地凭证、把错误交给页面显示游客状态，不跳登录页。
+const GUEST_BROWSABLE_ROUTES = [
+  'account/help-center/index',
+  'account/help-guide/index',
+  'account/help-feedback/index',
+  'pages/splash/index',
+  'pages/home/index',
+  'pages/learning/index',
+  'pages/knowledge-universe/index',
+  'pages/knowledge-map/index',
+  'pages/goal/index',
+  'pages/me/index',
+  'learning/library/index',
+  // 家长「学习报告」：服务号报告卡片点进来时可能还没登录，页面自己显示登录提示（2026-10-07）
+  'account/parent-reports/index',
+  // 物理实验室：纯静态网页，不读任何数据，游客也能看（2026-10-08）
+  'score-tools/physics-lab/index',
+  'learning/custom-course-intro/index'
+]
+
 function createAuthenticationRequiredError() {
   const error = new Error('登录状态已失效，请重新登录。')
   error.code = 'AUTH_REQUIRED'
   return error
+}
+
+// 已登录、还没完善学习档案：要档案的数据读不到，页面据 code 提示去完善，不当成读取失败。
+function createProfileRequiredError(message = '请先完善学习资料。') {
+  const error = new Error(message)
+  error.code = 'PROFILE_REQUIRED'
+  return error
+}
+
+function isProfileRequired(error) {
+  return Boolean(error && error.code === 'PROFILE_REQUIRED')
 }
 
 function currentRoute() {
@@ -28,17 +63,24 @@ function currentRoute() {
 }
 
 function requireAuthentication() {
-  sessionGeneration += 1
-  wx.removeStorageSync(TOKEN_KEY)
-  resetPhoneSessionVerification()
-  if (typeof getApp === 'function') { const app = getApp(); if (app && app.globalData) app.globalData.user = null }
+  // 本来就没有凭证（游客）时没有会话可作废：不动 sessionGeneration，免得打断正在进行的登录
+  if (getStoredToken()) {
+    sessionGeneration += 1
+    wx.removeStorageSync(TOKEN_KEY)
+    // 失效后按游客浏览：底栏不再按上个账号的身份（家长四项）画
+    clearAccountType()
+    resetPhoneSessionVerification()
+    if (typeof getApp === 'function') { const app = getApp(); if (app && app.globalData) app.globalData.user = null }
+  }
 
   // All protected pages use this recovery path, so expired sessions do not
   // present themselves as business-data loading failures.
-  if (!authRedirectInProgress && currentRoute() !== 'pages/login/login') {
+  const route = currentRoute()
+  if (!authRedirectInProgress && route !== 'pages/login/login' && !GUEST_BROWSABLE_ROUTES.includes(route)) {
     authRedirectInProgress = true
     try {
-      wx.reLaunch({ url: '/pages/login/login' })
+      // 登录页打开后就放开：用户点「先随便看看」离开后，再进要登录的页面还能被带去登录
+      wx.reLaunch({ url: '/pages/login/login', complete: () => { authRedirectInProgress = false } })
     } catch (error) {
       authRedirectInProgress = false
     }
@@ -126,6 +168,12 @@ function request({ url, method = 'POST', data, header = {}, timeout, timeoutMess
 
 function getStoredToken() {
   return wx.getStorageSync(TOKEN_KEY) || ''
+}
+
+// 本机有没有登录凭证：没有就是游客，页面直接显示游客状态，不发要登录的请求。
+// 有凭证不代表一定有效，失效时由请求走 requireAuthentication 作废。
+function hasSession() {
+  return Boolean(getStoredToken())
 }
 
 async function getWechatLoginCode() {
@@ -288,9 +336,44 @@ async function invokeActionFlow(flow, args = {}, { timeout, expectedToken } = {}
   return parseActionFlowResult(data.result)
 }
 
+// 兑换码页先问后端：输入的是不是「重置测试账号」的开启码（2026-09-28 用户规则）。
+// 以游客身份调用、不带登录凭证：后端还是旧版本时，旧代码对游客一律报 DEV_RESET_FORBIDDEN，不会误重开当前账号。
+// 是开启码就在本机记住并返回 true；不是、或这一步出错都返回 false，兑换码照常走兑换。
+async function unlockDevelopmentReset(code) {
+  const normalized = String(code || '').trim().toUpperCase()
+  if (!/^[A-Z0-9-]{4,64}$/.test(normalized)) return false
+  try {
+    const response = await request({
+      url: config.GRAPHQL_URL,
+      data: {
+        query: `mutation CheckDevelopmentResetCode($args: Json!) { result: fz_invoke_action_flow_default_by_latest_version(actionFlowId: "${config.ACTION_FLOWS.RESET_DEVELOPMENT_ACCOUNT.id}", args: $args) }`,
+        variables: { args: { payload: { operation: 'check', code: normalized } } }
+      },
+      timeout: 8000
+    })
+    if (response.errors && response.errors.length) return false
+    const result = parseActionFlowResult(response.data && response.data.result)
+    if (!result || result.status !== 'unlocked') return false
+  } catch (error) {
+    return false
+  }
+  rememberDevResetCode(normalized)
+  return true
+}
+
 async function resetDevelopmentAccount() {
-  const result = await invokeActionFlow(config.ACTION_FLOWS.RESET_DEVELOPMENT_ACCOUNT, {}, { timeout: 20000 })
-  if (result && result.status && result.status !== 'reopened') throw new Error('开发账号重开未完成，请稍后重试。')
+  // 按钮只在本机开启后才显示；没有开启码说明开关被清掉了，不去打扰后端
+  const code = readDevResetCode()
+  if (!code) throw new Error('DEV_RESET_LOCKED')
+  let result
+  try {
+    result = await invokeActionFlow(config.ACTION_FLOWS.RESET_DEVELOPMENT_ACCOUNT, { payload: { operation: 'reset', code } }, { timeout: 20000 })
+  } catch (error) {
+    // 后端换了开启码：本机记的码作废，按钮随之消失，要在兑换码页重新输入
+    if (/DEV_RESET_FORBIDDEN/.test(String(error && error.message || ''))) forgetDevResetCode()
+    throw error
+  }
+  if (!result || result.status !== 'reopened') throw new Error('开发账号重开未完成，请稍后重试。')
 
   sessionGeneration += 1
   resetPhoneSessionVerification()
@@ -300,6 +383,8 @@ async function resetDevelopmentAccount() {
     if (app && app.globalData) app.globalData.user = null
   }
   wx.clearStorageSync()
+  // 清的是本地会话，不是开关：重新登录后这台手机照样能接着重置
+  rememberDevResetCode(code)
   return result
 }
 
@@ -318,19 +403,27 @@ async function membershipRequest(create = false, productVersionId = '') {
   } catch (error) {
     if (isAuthenticationRequired(error)) throw error
     const messages = { MEMBERSHIP_PROFILE_REQUIRED: '请先完成手机号登录和学习档案。', MEMBERSHIP_ORDER_CHANGED: '会员订单已变化，请重新查询。',
-      MEMBERSHIP_ALREADY_ACTIVE: '你已是会员，无需再次开通，可购买积分包补充积分。', MEMBERSHIP_TIER_UNAVAILABLE: '该会员等级已下架或价格已更新，请刷新后重新选择。' }
+      MEMBERSHIP_ALREADY_ACTIVE: '你已是会员，无需再次开通，可购买积分包补充积分。', MEMBERSHIP_TIER_UNAVAILABLE: '该会员等级已下架或价格已更新，请刷新后重新选择。',
+      MEMBERSHIP_TIER_NOT_HIGHER: '只能升级到比当前更高的会员等级，请刷新后重新选择。',
+      MEMBERSHIP_INVITE_REQUIRED: '开通会员需要先填写邀请码。',
+      // 支付开关关着（管理端「活动开关 → 会员与积分包支付」），后端拒绝下单
+      PAYMENT_DISABLED: paymentClosedMessage('membership') }
     const key = Object.keys(messages).find(key => String(error.message).includes(key))
-    throw new Error(key ? messages[key] : '会员状态暂时无法确认，请稍后重新查询。')
+    // code 让会员中心分辨「需要先填邀请码」，直接弹出填码框
+    throw Object.assign(new Error(key ? messages[key] : '会员状态暂时无法确认，请稍后重新查询。'), { code: key || '' })
   }
   if (getStoredToken() !== token) throw new Error('账号已变化，请重新打开会员页面。')
   if (!result || typeof result.eligible !== 'boolean' || !['active', 'inactive', 'expired', 'pending', 'refunded', 'closed'].includes(result.status)
     || !Array.isArray(result.tiers) || !result.tiers.every(tier => validMembershipTier(tier) && /^[1-9][0-9]*$/.test(String(tier.productVersionId)))
     || (result.tier && !validMembershipTier(result.tier))
     || (result.order && (!/^[1-9][0-9]*$/.test(String(result.order.orderId)) || !(Number(result.order.amount) > 0)))
+    || (result.pendingOrder && (!/^[1-9][0-9]*$/.test(String(result.pendingOrder.orderId)) || !(Number(result.pendingOrder.amount) > 0)))
     || (result.eligible && (!result.tier || (result.permanent !== true && !Number.isFinite(Date.parse(result.expiresAt)))))) {
     throw new Error('会员信息暂不可用，请重新查询。')
   }
-  return { ...result, order: result.order ? { ...result.order, statusLabel: orderStatusLabel(result.order.status) } : result.order }
+  // pendingOrder：会员升级时那笔还在待支付的订单（后端 2026-09-24 起返回；旧版后端没有，非会员时 order 就是它）。
+  return { ...result, order: result.order ? { ...result.order, statusLabel: orderStatusLabel(result.order.status) } : result.order,
+    pendingOrder: result.pendingOrder ? { ...result.pendingOrder, statusLabel: orderStatusLabel(result.pendingOrder.status) } : null }
 }
 
 async function loadCurrentMembership() { return membershipRequest(false) }
@@ -362,33 +455,27 @@ async function issueLearningEntry(courseInstanceId, targetScene, acceptanceId) {
   return url
 }
 
-// 小程序内打开课程：用当前登录向课程服务换一次性入场券（60 秒、单次有效），
-// web-view 打开即完成鉴权，不再需要回小程序确认学习设备。换券失败时回落到不含凭证的课程地址，
-// 由课程页面走原有的设备确认流程。
-async function createLearnerEntryUrl(reference, query) {
-  const token = await getRuntimeToken()
-  const origin = coursePortalOrigin()
-  const plainUrl = `${origin}/learn?${query}&layout=focus`
-  try {
-    const data = await request({
-      url: `${origin}/api/learn/device`,
-      data: { operation: 'handoff', ...reference },
-      header: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-      timeout: 15000
-    })
-    const ticket = data && data.ticket
-    if (getStoredToken() !== token || typeof ticket !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(ticket)) return plainUrl
-    return `${origin}/api/learn/entry?${query}&layout=focus&ticket=${ticket}`
-  } catch (error) {
-    return plainUrl
-  }
+// 小程序内打开课程：用当前登录向课程服务换一次性入场券（60 秒、单次有效），web-view 打开即完成鉴权。
+// 课程只能从小程序进入（2026-09-27 起没有「学习设备确认」）：换不到入场券就在课程页报错重试，
+// 不打开不带凭证的课程地址——那样只会看到「请从小程序进入课程」。
+const COURSE_ENTRY_ERRORS = {
+  LOGIN_REQUIRED: '登录已过期，请重新登录后进入课程。',
+  MEMBERSHIP_REQUIRED: '当前账号暂无会员课程学习权限。',
+  COURSE_ACCESS_DENIED: '当前学习账号暂不可访问这门课程。',
+  // 系列课按顺序学（2026-10-15）：课程服务 lib/course/agent-course-order.ts
+  COURSE_LOCKED: '系列课要按顺序学：先学完上一节并进入复述验收，这一节才会解锁。',
+  TRY_LATER: '操作过于频繁，请稍后重试。'
 }
 
-// 可复制/分享的课程地址：去掉一次性入场券，只保留课程定位。
-function courseShareUrl(launchUrl) {
-  return String(launchUrl || '')
-    .replace('/api/learn/entry?', '/learn?')
-    .replace(/&ticket=[A-Za-z0-9_-]*/, '')
+async function createLearnerEntryUrl(reference, query) {
+  const { statusCode, data } = await requestCourseApi('/api/learn/device', {
+    method: 'POST', data: { operation: 'handoff', ...reference }, timeout: 15000
+  })
+  const ticket = data.ticket
+  if (statusCode !== 200 || typeof ticket !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(ticket)) {
+    throw new Error(COURSE_ENTRY_ERRORS[data.code] || '课程入口暂时不可用，请稍后重试。')
+  }
+  return `${coursePortalOrigin()}/api/learn/entry?${query}&layout=focus&ticket=${ticket}`
 }
 
 async function createCourseLaunchUrl(courseInstanceId) {
@@ -399,26 +486,130 @@ async function createCourseLaunchUrl(courseInstanceId) {
   return createLearnerEntryUrl({ courseInstanceId: normalizedCourseInstanceId }, `course=${normalizedCourseInstanceId}`)
 }
 
-async function createAgentCourseLaunchUrl(stageId) {
+// sceneId：课程详情页点了某一页，课程服务从这一页开始（/learn?scene=）；不带时按学习进度续学。
+async function createAgentCourseLaunchUrl(stageId, sceneId = '') {
   if (!isAgentCourseId(stageId)) throw new Error('课程信息不完整，请刷新后重试。')
-  return createLearnerEntryUrl({ agentCourseId: stageId }, `agent=${stageId}`)
+  const scene = /^[A-Za-z0-9_-]{1,80}$/.test(String(sceneId || '')) ? `&scene=${sceneId}` : ''
+  return createLearnerEntryUrl({ agentCourseId: stageId }, `agent=${stageId}${scene}`)
 }
 
 // 智能体课程接口同时带登录态与智能体的匿名身份：后者用于把这台设备上刚生成的课程
 // 绑定到当前学习者（见课程服务 lib/course/agent-course-access.ts）。
-function requestAgentCourses(path, token) {
+function requestAgentCourses(path, token, options = {}) {
   const { readAgentCookieHeader } = require('./course-agent-service')
   const header = { authorization: `Bearer ${token}` }
   const cookie = readAgentCookieHeader()
   if (cookie) header.Cookie = cookie
+  if (options.data) header['content-type'] = 'application/json'
   return new Promise((resolve, reject) => wx.request({
-    url: `${coursePortalOrigin()}${path}`, method: 'GET', timeout: 15000, header,
+    url: `${coursePortalOrigin()}${path}`, method: options.method || 'GET', timeout: options.timeout || 15000, header,
+    ...(options.data ? { data: options.data } : {}),
     success(response) {
       if (getStoredToken() !== token) return reject(new Error('学习账号已变化，请重新打开课程。'))
       if (response.statusCode === 200 && response.data) return resolve(response.data)
-      const messages = { LOGIN_REQUIRED: '请重新登录后查看课程。', AGENT_COURSE_NOT_FOUND: '没有找到这门课程，可能还没有开始生成。', COURSE_ACCESS_DENIED: '当前学习账号暂不可访问这门课程。' }
+      const messages = {
+        LOGIN_REQUIRED: '请重新登录后查看课程。',
+        AGENT_COURSE_NOT_FOUND: '没有找到这门课程，可能还没有开始生成。',
+        COURSE_ACCESS_DENIED: '当前学习账号暂不可访问这门课程。',
+        COURSE_NOT_FINISHED: '这门课还没学完，学完全部内容后再来验收。',
+        // 测试快捷方式「标记学完，去验收」（课程服务核对「重置测试账号」开启码）
+        DEV_RESET_FORBIDDEN: '开启码已失效，请到「我的 → 兑换码」重新输入。',
+        COURSE_LOCKED: '系列课要按顺序学：先学完上一节并进入复述验收。',
+        DEV_RESET_UNAVAILABLE: '暂时核对不了开启码，请稍后重试。',
+        NOTHING_TO_LEARN: '这门课没有需要学的讲解页，不能验收。',
+        ACCEPTANCE_NOT_STARTED: '验收已结束，请重新开始验收。',
+        ACCEPTANCE_TOO_MANY_TURNS: '这次验收的回答次数已用完，请刷新查看结果。',
+        ACCEPTANCE_NOT_PENDING: '这门课已经核验过了，请刷新查看最新状态。',
+        NOT_TEACHER: '当前账号不是在职老师，无法核验。',
+        STUDENT_NOT_BOUND: '这位学生不在你的负责名单里。',
+        SUMMARY_REQUIRED: '请写一句需要重学的原因，学生会看到。',
+        // 学习安排（课程服务 lib/course/study-plan.ts）
+        PLAN_CHANGED: '学习安排刚被更新过，已刷新到最新，请再操作一次。',
+        PLAN_NOT_FOUND: '还没有学习安排，先选每天学习时长并自动排课。',
+        NOTHING_TO_SCHEDULE: '没有需要安排的课程：课程都学完了，或者还在生成中。',
+        NOTHING_TO_ADD: '这门课没学的部分都已经排进安排了。',
+        TASK_NOT_FOUND: '这条任务已经不在安排里了，请刷新后再试。',
+        COURSE_NOT_READY: '这门课还没生成好，生成好后才能排进安排。',
+        DAY_INVALID: '请选择今天或以后的日期。',
+        DAILY_MINUTES_INVALID: '请从 15 分钟到 2 小时里选一个每天学习时长。',
+        STUDY_WEEKDAYS_INVALID: '每周至少选一天学习。',
+        REST_DAYS_INVALID: '休息日要选今天起 90 天内的日期，最多 60 天。',
+        // 老师工作台「没完成任务」与催学的话（课程服务 lib/course/study-reminder.ts）
+        NOTHING_MISSED: '这位学生没有没学完的任务了。',
+        REMINDER_NOTE_FAILED: '这段话没有写好，请再点一次生成。',
+        STUDY_REMINDER_UNAVAILABLE: '没完成的任务暂时读不到，请稍后重试。',
+        STUDY_PLAN_UNAVAILABLE: '学习安排暂时无法读取，请稍后重试。',
+        // 学习偏好（课程服务 lib/course/learning-preference.ts）
+        PREFERENCE_TOO_MANY: '这一组选得太多了，去掉几个再保存。',
+        PREFERENCE_INVALID: '学习偏好的内容不对，请刷新后重新选择。',
+        NOTE_TOO_LONG: '补充说明太长了，删减一些再保存。',
+        LEARNING_PREFERENCE_UNAVAILABLE: '学习偏好暂时无法读取，请稍后重试。',
+        // 学习目标（课程服务 lib/course/learning-goal.ts）
+        GOAL_INVALID: '学习目标的内容不对，请刷新后重新填写。',
+        GOAL_TOO_LONG: '具体目标写得太长了，删减一些再保存。',
+        GOAL_DEADLINE_INVALID: '完成时间要选今天或以后的日期。',
+        LEARNING_GOAL_UNAVAILABLE: '学习目标暂时无法读取，请稍后重试。',
+        // 间隔复习小测（课程服务 lib/course/review-service.ts）
+        REVIEW_NOT_DUE: '这节课还没到复习的日子。',
+        REVIEW_NOT_FOUND: '这节课学完以后才会安排复习。',
+        REVIEW_NOT_STARTED: '今天的复习还没开始，请重新打开复习。',
+        ANSWERS_INVALID: '回答没有对上题目，请重新打开复习再答一遍。',
+        REVIEW_UNAVAILABLE: '复习暂时无法打开，请稍后重试。',
+        // 课后作业（课程服务 lib/course/homework）
+        HOMEWORK_NOT_FOUND: '这节课还没有课后作业，学完整节课后才会出题。',
+        HOMEWORK_NOT_READY: '练习题还没出好，请稍后再来做。',
+        CHOICES_INVALID: '答案没有对上题目，请刷新后再交一次。',
+        HOMEWORK_UNAVAILABLE: '课后作业暂时无法读取，请稍后重试。',
+        STUDENT_INVALID: '孩子信息不完整，请刷新后重试。',
+        // 家长学习成长报告（课程服务 lib/parent-report）
+        REPORT_NOT_FOUND: '这份报告找不到了，请刷新后重试。',
+        REPORT_NOT_READY: '报告还在生成，请稍后再试。',
+        REPORT_FILE_MISSING: '这份报告的文件已经不在了，请重新生成。',
+        REPORT_BUSY: '这份报告还在生成，生成好后才能删除。',
+        PARENT_REPORT_UNAVAILABLE: '报告暂时无法读取，请稍后重试。',
+        // 推送家长（课程服务 lib/mp-notice/event-service.ts）
+        NO_GUARDIAN: '这位学生还没有绑定家长，家长绑定后才能推送。',
+        PUSH_UNAVAILABLE: '服务号推送暂时用不了，可以先用「发给家长」发文件。',
+        PUSH_DISABLED: '服务号推送已在后台关闭，可以先用「发给家长」发文件。',
+        ZION_UNAVAILABLE: '学生的家长信息暂时读不到，请稍后重试。',
+        // 老师「今日学习」与每天发给学生的话（课程服务 lib/daily-learning）
+        DAILY_NOT_STUDIED: '学生今天还没有学习记录，学了之后再生成。',
+        DAILY_NOTE_FAILED: '这段话没有写好，请再点一次生成。',
+        DAILY_OVERVIEW_UNAVAILABLE: '孩子的测评和课程记录暂时读不到，请稍后再生成。',
+        DAILY_LEARNING_UNAVAILABLE: '今日学习暂时无法读取，请稍后重试。',
+        // 家长给没有微信的孩子建网页端账号（课程服务 lib/portal/child-accounts.ts）
+        GUARDIAN_VERIFICATION_REQUIRED: '请先完成实名认证，再给孩子创建网页端账号。',
+        GUARDIAN_AGE_UNKNOWN: '实名信息里没有出生日期，请重新提交一次实名认证。',
+        GUARDIAN_UNDERAGE: '年满 22 周岁的家长才能给孩子创建账号。',
+        PROFILE_REQUIRED: '请先完善你的资料。',
+        TOO_MANY_CHILDREN: '每位家长最多给 5 个孩子创建网页端账号。',
+        PROVIDER_LIMIT_REACHED: '已达到可绑定孩子的上限，需要更多名额请联系知鹿调整。',
+        CHILD_NAME_INVALID: '请填写孩子的称呼（20 个字以内）。',
+        CHILD_GRADE_INVALID: '请选择孩子的年级。',
+        CHILD_SEMESTER_INVALID: '请选择上学期或下学期。',
+        CHILD_TEXTBOOK_INVALID: '请选择孩子用的教材版本。',
+        CHILD_PROFILE_INVALID: '孩子的资料不完整，请检查后再提交。',
+        CHILD_SCHOOL_INVALID: '请填写孩子就读的学校。',
+        CHILD_REGION_INVALID: '请填写孩子所在的城市。',
+        CHILD_NOT_FOUND: '没有找到这个孩子，请刷新后重试。',
+        CHILD_NOT_READY: '这个孩子的账号还没创建完成，请重新创建一次。',
+        PASSWORD_REQUIRED: '请设置登录密码。',
+        PASSWORD_LENGTH: '密码要 8～64 位。',
+        PASSWORD_TOO_SIMPLE: '密码要同时包含字母和数字。',
+        PASSWORD_WHITESPACE: '密码里不能有空格。',
+        REQUEST_KEY_INVALID: '请重新打开本页后再试。',
+        CHILD_SERVICE_UNAVAILABLE: '孩子账号服务暂时不可用，请稍后重试。',
+        // 按目标测评（课程服务 lib/goal-diagnosis）
+        GOAL_REQUIRED: '先定一个学习目标，再围绕它测评。',
+        SUBJECT_REQUIRED: '这个目标是哪一门学科的？选一门再开始。',
+        DIAGNOSIS_NOT_FOUND: '没有找到这次测评，请刷新后重试。',
+        CHOICE_INVALID: '请先选一个答案。',
+        QUESTION_UNAVAILABLE: '这道题暂时读不到，请刷新后重试。',
+        KNOWLEDGE_UNAVAILABLE: '知识图谱暂时读不到，请稍后重试。',
+        GOAL_DIAGNOSIS_UNAVAILABLE: '测评暂时无法打开，请稍后重试。'
+      }
       const code = response.data && response.data.code
-      const error = new Error(messages[code] || '课程进度暂时无法读取，请稍后重试。')
+      const error = new Error(messages[code] || options.fallbackMessage || '课程进度暂时无法读取，请稍后重试。')
       error.code = code
       error.statusCode = response.statusCode
       reject(error)
@@ -427,11 +618,551 @@ function requestAgentCourses(path, token) {
   }))
 }
 
+// 智能体课程验收（课程服务 lib/course/agent-acceptance.ts）：学完 → 与验收智能体对话 → AI 通过后等老师核验。
+function assertStageId(stageId) {
+  if (!isAgentCourseId(stageId)) throw new Error('课程链接无效，请回到「我的课程」重新打开。')
+}
+
+async function loadAgentCourseAcceptance(stageId) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, { fallbackMessage: '验收状态暂时无法读取，请稍后重试。' })
+}
+
+/** message 为空：开始或继续验收（验收智能体先提问）。回答要等模型，超时放宽到 60 秒。 */
+async function sendAgentCourseAcceptance(stageId, message = '') {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, {
+    method: 'POST', data: { message: String(message || '') }, timeout: 60000, fallbackMessage: '验收暂时无法继续，请稍后重试。'
+  })
+}
+
+/** 间隔复习小测（课程服务 lib/course/review-service.ts）：到期时出题，今天做过返回结果。出题要等模型。 */
+async function loadAgentCourseReview(stageId) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/review`, token, {
+    timeout: 60000, fallbackMessage: '复习暂时无法打开，请稍后重试。'
+  })
+}
+
+/** 先看一眼这句是不是在答第 index 题（不记录）：{ kind, accepted, reply }。 */
+async function checkAgentCourseReviewAnswer(stageId, index, answer) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/review`, token, {
+    method: 'POST', data: { action: 'check', index: Number(index) || 0, answer: String(answer || '') }, timeout: 20000, fallbackMessage: '回答暂时没有发出去，请再发一次。'
+  })
+  return data && data.check || { accepted: true, kind: 'answer', reply: '' }
+}
+
+/** 交卷：answers 与题目一一对应；判分要等模型，超时放宽到 60 秒。 */
+async function submitAgentCourseReview(stageId, answers) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/review`, token, {
+    method: 'POST', data: { answers: (answers || []).map((answer) => String(answer || '')) }, timeout: 60000, fallbackMessage: '没有交上去，请再发一次。'
+  })
+}
+
+/**
+ * 课后作业（课程服务 lib/course/homework，2026-10-13）：整节学完后后台出 3～5 道练习题。
+ * 返回 { homework: { status: locked / preparing / ready / failed / done, questions, result } }；交卷前不带答案。
+ */
+async function loadAgentCourseHomework(stageId) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/homework`, token, {
+    timeout: 20000, fallbackMessage: '课后作业暂时无法读取，请稍后重试。'
+  })
+}
+
+/** 交卷：choices 与题目一一对应（'A'～'D'），服务端判分后返回带结果与解析的作业。 */
+async function submitAgentCourseHomework(stageId, choices) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/homework`, token, {
+    method: 'POST', data: { choices: (choices || []).map((choice) => String(choice || '')) }, timeout: 20000, fallbackMessage: '没有交上去，请再交一次。'
+  })
+}
+
+/** 出题失败时重新出题。 */
+async function retryAgentCourseHomework(stageId) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/homework`, token, {
+    method: 'POST', data: { action: 'retry' }, timeout: 20000, fallbackMessage: '没有重新出题，请稍后再试。'
+  })
+}
+
+/** 家长学生看板「作业动态」：一个绑定孩子最近 60 天的课后作业（课程服务按家长绑定校验）。 */
+async function loadGuardianHomework(studentProfileId) {
+  const id = String(studentProfileId || '')
+  if (!/^[1-9][0-9]*$/.test(id)) throw new Error('孩子信息不完整，请刷新后重试。')
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses(`/api/learn/guardian-homework?studentProfileId=${id}`, token, {
+    timeout: 20000, fallbackMessage: '课后作业暂时无法读取，请稍后重试。'
+  })
+  return Array.isArray(data && data.homework) ? data.homework : []
+}
+
+/**
+ * 测试快捷方式「标记学完，去验收」（2026-10-03 用户要求）：只在输入过「重置测试账号」开启码的手机上出现。
+ * 带上本机记住的开启码，课程服务找后端再核一遍，再把这门课每一页记成学完；开启码失效时清掉本机开关。
+ */
+async function finishAgentCourseForTest(stageId) {
+  assertStageId(stageId)
+  const code = readDevResetCode()
+  if (!code) throw new Error('请先在「我的 → 兑换码」输入开启码。')
+  const token = await getRuntimeToken()
+  try {
+    return await requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/test-finish`, token, {
+      method: 'POST', data: { code }, timeout: 30000, fallbackMessage: '没有标记成功，请稍后重试。'
+    })
+  } catch (error) {
+    if (error && error.code === 'DEV_RESET_FORBIDDEN') forgetDevResetCode()
+    throw error
+  }
+}
+
+/** 老师端：负责学生的智能体课程、学习进度与验收状态。 */
+async function loadTeacherStudentAgentCourses(studentProfileId) {
+  const id = String(studentProfileId || '')
+  if (!/^[1-9][0-9]*$/.test(id)) throw new Error('学生信息不完整，请返回重试。')
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/agent-courses?studentProfileId=${id}`, token, { fallbackMessage: '学生课程暂时无法读取，请稍后重试。' })
+}
+
+async function loadTeacherAgentAcceptance(stageId) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, { fallbackMessage: '验收记录暂时无法读取，请稍后重试。' })
+}
+
+/** result: passed（确认验收，知识点写进学生宇宙）/ remediation（需要重学，summary 必填）。 */
+async function reviewAgentCourseAcceptance(stageId, result, summary = '') {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, {
+    method: 'POST', data: { result, summary: String(summary || '') }, timeout: 30000, fallbackMessage: '核验没有提交成功，请稍后重试。'
+  })
+}
+
+/**
+ * 老师端「学习安排」（课程服务 lib/course/study-plan.ts）：每天学习时长、按天的学习任务与每门课的学习情况。
+ * 身份与负责关系由课程服务按老师自己的登录态校验，studentProfileId 只是目标。
+ */
+async function loadTeacherStudyPlan(studentProfileId) {
+  const id = String(studentProfileId || '')
+  if (!/^[1-9][0-9]*$/.test(id)) throw new Error('学生信息不完整，请返回重试。')
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/study-plan?studentProfileId=${id}`, token, { fallbackMessage: '学习安排暂时无法读取，请稍后重试。' })
+}
+
+/**
+ * 修改学习安排。change：
+ *   { action: 'auto', dailyMinutes, startDay, studyWeekdays?, restDays? }（自动排课，要等模型判断难度，超时放宽到 60 秒；
+ *     studyWeekdays 是 1–7（周一到周日）的学习日，restDays 是单独的休息日，不传沿用上次的）
+ *   { action: 'move', taskId, day } / { action: 'remove', taskId } / { action: 'add', stageId, day } / { action: 'clear' }
+ * revision 是页面读到的版本号，期间被别人改过时课程服务返回 PLAN_CHANGED。
+ */
+async function updateTeacherStudyPlan(studentProfileId, revision, change = {}) {
+  const id = String(studentProfileId || '')
+  if (!/^[1-9][0-9]*$/.test(id)) throw new Error('学生信息不完整，请返回重试。')
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/teacher/study-plan', token, {
+    method: 'POST',
+    data: { ...change, studentProfileId: id, revision: Number(revision) || 0 },
+    timeout: change.action === 'auto' ? 60000 : 20000,
+    fallbackMessage: '学习安排没有保存成功，请稍后重试。'
+  })
+}
+
+// 老师工作台「没完成任务」（2026-10-09）：负责的学生里前几天学习任务没学完的，没学完的页已带到今天（今天休息就是下一个学习日）。
+/** { today, alerts: [{ studentProfileId, taskCount, minutes, lastMissedDay, firstMissedDay, carryDay, titles }], failedCount } */
+async function loadTeacherStudyAlerts() {
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses('/api/teacher/study-alerts', token, { timeout: 30000, fallbackMessage: '没完成任务的学生暂时读不到，请稍后重试。' })
+  return {
+    today: typeof data.today === 'string' ? data.today : '',
+    failedCount: Number(data.failedCount) || 0,
+    alerts: (Array.isArray(data.alerts) ? data.alerts : []).filter((item) => item && item.studentProfileId).map((item) => ({
+      studentProfileId: String(item.studentProfileId),
+      taskCount: Number(item.taskCount) || 0,
+      minutes: Number(item.minutes) || 0,
+      lastMissedDay: String(item.lastMissedDay || ''),
+      firstMissedDay: String(item.firstMissedDay || ''),
+      carryDay: String(item.carryDay || ''),
+      titles: Array.isArray(item.titles) ? item.titles.map(String) : []
+    }))
+  }
+}
+
+/** 某个学生没学完的任务、已经带到哪天，以及老师今天生成的催学的话（没有为 null）。 */
+async function loadTeacherStudyReminder(studentProfileId) {
+  const id = teacherStudentId(studentProfileId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/study-reminder?studentProfileId=${id}`, token, { timeout: 20000, fallbackMessage: '没完成的任务暂时读不到，请稍后重试。' })
+}
+
+/** 生成（或重新生成）今天催学的话；要等模型写，最多等一分钟。 */
+async function createTeacherStudyReminder(studentProfileId) {
+  const id = teacherStudentId(studentProfileId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/teacher/study-reminder', token, {
+    method: 'POST',
+    data: { studentProfileId: id },
+    timeout: 60000,
+    fallbackMessage: '这段话暂时没有生成，请稍后重试。'
+  })
+}
+
+// 家长学习成长报告（2026-10-06）：老师在学生详情里给学生出报告，课程服务后台生成并留档（lib/parent-report）。
+function teacherStudentId(studentProfileId) {
+  const id = String(studentProfileId || '')
+  if (!/^[1-9][0-9]*$/.test(id)) throw new Error('学生信息不完整，请返回重试。')
+  return id
+}
+
+/** 给这个学生出过的全部报告（新的在前），每份带状态、出报告的老师、寄语与摘要。 */
+async function loadTeacherParentReports(studentProfileId) {
+  const id = teacherStudentId(studentProfileId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/parent-reports?studentProfileId=${id}`, token, { fallbackMessage: '报告记录暂时无法读取，请稍后重试。' })
+}
+
+/** 生成一份新报告：立即返回「生成中」的那一份；这个学生已有一份在生成就返回那一份。 */
+async function createTeacherParentReport(studentProfileId) {
+  const id = teacherStudentId(studentProfileId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/teacher/parent-reports', token, {
+    method: 'POST',
+    data: { studentProfileId: id },
+    fallbackMessage: '报告暂时无法生成，请稍后重试。'
+  })
+}
+
+// 老师「学习情况 › 今日学习」（2026-10-07）：学生今天学了什么；今天学过的，生成一段发给学生的话（一天一段，可重新生成）。
+/** 今天（北京时间）的学习事实，以及老师今天已经生成的那段话（没有为 null）。 */
+async function loadTeacherDailyLearning(studentProfileId) {
+  const id = teacherStudentId(studentProfileId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/daily-learning?studentProfileId=${id}`, token, { timeout: 20000, fallbackMessage: '今日学习暂时无法读取，请稍后重试。' })
+}
+
+/** 按今天的学习生成（或重新生成）发给学生的话；要等模型写，最多等一分钟。 */
+async function createTeacherDailyNote(studentProfileId) {
+  const id = teacherStudentId(studentProfileId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/teacher/daily-learning', token, {
+    method: 'POST',
+    data: { studentProfileId: id },
+    timeout: 60000,
+    fallbackMessage: '这段话暂时没有生成，请稍后重试。'
+  })
+}
+
+/**
+ * 下载一份报告的 PDF 到本地，返回本地文件路径（预览、发给家长都用它）。
+ * course.zideer.cn 只在 request 合法域名里，不在 downloadFile 里：用 request 取二进制再写文件（同 AI 海报）。
+ */
+async function downloadTeacherParentReport(studentProfileId, reportId) {
+  const id = teacherStudentId(studentProfileId)
+  if (!/^[a-f0-9]{32}$/.test(String(reportId || ''))) throw new Error('报告信息不完整，请刷新后重试。')
+  const token = await getRuntimeToken()
+  const filePath = `${wx.env.USER_DATA_PATH}/parent-report-${reportId}.pdf`
+  const data = await new Promise((resolve, reject) => wx.request({
+    url: `${coursePortalOrigin()}/api/teacher/parent-reports/${reportId}/file?studentProfileId=${id}`,
+    method: 'GET',
+    timeout: 60000,
+    responseType: 'arraybuffer',
+    header: { authorization: `Bearer ${token}` },
+    success(response) {
+      if (getStoredToken() !== token) return reject(new Error('登录账号已变化，请重新打开页面。'))
+      if (response.statusCode === 200 && response.data && response.data.byteLength > 64) return resolve(response.data)
+      const messages = { 403: '这位学生不在你的负责名单里。', 404: '这份报告找不到了，请刷新后重试。', 409: '报告还在生成，请稍后再试。', 410: '这份报告的文件已经不在了，请重新生成。' }
+      reject(new Error(messages[response.statusCode] || '报告暂时下载不了，请稍后重试。'))
+    },
+    fail(error) { reject(courseConnectionError(error)) }
+  }))
+  await new Promise((resolve, reject) => wx.getFileSystemManager().writeFile({
+    filePath,
+    data,
+    success: resolve,
+    fail: () => reject(new Error('报告没有保存到手机，请检查存储空间后重试。'))
+  }))
+  return filePath
+}
+
+/** 老师删除一份报告（2026-10-07）：删掉后老师、家长、服务号「学习报告」都看不到，留档仍在。 */
+async function deleteTeacherParentReport(studentProfileId, reportId) {
+  const id = teacherStudentId(studentProfileId)
+  if (!/^[a-f0-9]{32}$/.test(String(reportId || ''))) throw new Error('报告信息不完整，请刷新后重试。')
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/parent-reports/${reportId}?studentProfileId=${id}`, token, {
+    method: 'DELETE',
+    fallbackMessage: '报告没有删除成功，请稍后重试。'
+  })
+}
+
+/**
+ * 老师「推送家长」（2026-10-08）：把一份已生成的报告推到学生绑定的每位家长的服务号（学生综合素质评价结果通知）。
+ * 返回 { guardians, sent, waiting, failed }；同一份报告对同一位家长只推一次，再点只回结果。
+ */
+async function pushTeacherParentReport(studentProfileId, reportId) {
+  const id = teacherStudentId(studentProfileId)
+  if (!/^[a-f0-9]{32}$/.test(String(reportId || ''))) throw new Error('报告信息不完整，请刷新后重试。')
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses(`/api/teacher/parent-reports/${reportId}/push?studentProfileId=${id}`, token, {
+    method: 'POST',
+    data: {},
+    timeout: 20000,
+    fallbackMessage: '没有推送成功，请稍后重试。'
+  })
+  return data && data.push ? data.push : { guardians: 0, sent: 0, waiting: 0, failed: 0 }
+}
+
+/**
+ * 家长「学习报告」（account/parent-reports，2026-10-07）：绑定的孩子，以及老师给他们出的、没删掉的报告（新的在前）。
+ * 课程服务按登录账号现查家长绑定；顺带登记这个账号的微信 UnionID，服务号菜单「学习报告」据此认人。
+ */
+async function loadGuardianParentReports() {
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses('/api/learn/parent-reports', token, { timeout: 20000, fallbackMessage: '学习报告暂时无法读取，请稍后重试。' })
+  return {
+    students: Array.isArray(data.students) ? data.students : [],
+    reports: Array.isArray(data.reports) ? data.reports : []
+  }
+}
+
+/** 家长下载一份报告 PDF 到本地，返回本地路径（同老师端：用 request 取二进制再写文件）。 */
+async function downloadGuardianParentReport(reportId) {
+  if (!/^[a-f0-9]{32}$/.test(String(reportId || ''))) throw new Error('报告信息不完整，请刷新后重试。')
+  const token = await getRuntimeToken()
+  const filePath = `${wx.env.USER_DATA_PATH}/learning-report-${reportId}.pdf`
+  const data = await new Promise((resolve, reject) => wx.request({
+    url: `${coursePortalOrigin()}/api/learn/parent-reports/${reportId}/file`,
+    method: 'GET',
+    timeout: 60000,
+    responseType: 'arraybuffer',
+    header: { authorization: `Bearer ${token}` },
+    success(response) {
+      if (getStoredToken() !== token) return reject(new Error('登录账号已变化，请重新打开页面。'))
+      if (response.statusCode === 200 && response.data && response.data.byteLength > 64) return resolve(response.data)
+      const messages = { 401: '请重新登录后查看报告。', 404: '这份报告已被老师撤回，请刷新后查看。', 410: '这份报告的文件已经不在了，请联系老师重新出一份。' }
+      reject(new Error(messages[response.statusCode] || '报告暂时下载不了，请稍后重试。'))
+    },
+    fail(error) { reject(courseConnectionError(error)) }
+  }))
+  await new Promise((resolve, reject) => wx.getFileSystemManager().writeFile({
+    filePath,
+    data,
+    success: resolve,
+    fail: () => reject(new Error('报告没有保存到手机，请检查存储空间后重试。'))
+  }))
+  return filePath
+}
+
+/**
+ * 登记本账号的微信 UnionID（2026-10-07）：服务号菜单「学习报告」靠它认出点菜单的是哪个账号。
+ * app.js 登录状态下每天最多调一次；失败静默（只影响服务号认人，下次再登记）。
+ * 家长打开「学习报告」页时课程服务也会顺带登记。
+ */
+async function registerServiceAccountLink() {
+  // 直接用本机存的凭证，不走 getRuntimeToken：启动时那条会在凭证失效时把人带去登录页；这里失效了课程服务回 401，静默作罢
+  const token = getStoredToken()
+  if (!token) throw new Error('NOT_LOGGED_IN')
+  return requestAgentCourses('/api/learn/mp-link', token, { method: 'POST', data: {}, timeout: 15000, fallbackMessage: '' })
+}
+
+/**
+ * 学生的学习偏好（课程服务 lib/course/learning-preference.ts，2026-10-07）：「学习宇宙 › 学习偏好」读写自己的，
+ * 回包带内置提示词目录。诊断会议开场时随学习基本盘一起交给 AI 老师（loadLearnerBaseline）。
+ */
+async function loadLearningPreference() {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/learning-preference', token, { fallbackMessage: '学习偏好暂时无法读取，请稍后重试。' })
+}
+
+async function saveLearningPreference({ choices, note } = {}) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/learning-preference', token, {
+    method: 'POST',
+    data: { choices: choices || {}, note: String(note || '') },
+    fallbackMessage: '学习偏好没有保存成功，请稍后重试。'
+  })
+}
+
+/**
+ * 家长「我的孩子没有微信」（2026-10-09，课程服务 lib/portal/child-accounts.ts）：给孩子建网页端账号（登录名是孩子的 6 位编号，
+ * 密码家长设），列出建过的孩子，改孩子的网页端密码。家长身份、实名与 22 周岁、最多 5 个孩子都由后端判断。
+ * 服务商（2026-10-11）：list 多返回 provider = { limit, used }（used = 所有在用的绑定，含绑定码绑的），不查实名、不受 5 个限制。
+ */
+async function loadWebChildren() {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/guardian-children', token, {
+    method: 'POST', data: { operation: 'list' }, fallbackMessage: '孩子的网页端账号暂时读不到，请稍后重试。'
+  })
+}
+
+async function createWebChild(input = {}) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/guardian-children', token, {
+    method: 'POST',
+    timeout: 30000,
+    data: {
+      operation: 'create',
+      requestKey: String(input.requestKey || ''),
+      nickname: String(input.nickname || ''),
+      grade: Number(input.grade),
+      semester: String(input.semester || ''),
+      textbookVersion: String(input.textbookVersion || ''),
+      schoolName: String(input.schoolName || ''),
+      regionDetail: String(input.regionDetail || ''),
+      password: String(input.password || '')
+    },
+    fallbackMessage: '孩子的账号没有创建成功，请稍后重试。'
+  })
+}
+
+async function setWebChildPassword(studentProfileId, password) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/guardian-children', token, {
+    method: 'POST',
+    data: { operation: 'set_password', studentProfileId: String(studentProfileId || ''), password: String(password || '') },
+    fallbackMessage: '密码没有改成功，请稍后重试。'
+  })
+}
+
+/** 学生自己定的学习目标（课程服务 lib/course/learning-goal.ts）：「学习宇宙 › 我的学习目标」读写。 */
+async function loadLearningGoal() {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/learning-goal', token, { fallbackMessage: '学习目标暂时无法读取，请稍后重试。' })
+}
+
+async function saveLearningGoal({ direction, goal, deadline } = {}) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/learning-goal', token, {
+    method: 'POST',
+    data: { direction: String(direction || ''), goal: String(goal || ''), deadline: String(deadline || '') },
+    fallbackMessage: '学习目标没有保存成功，请稍后重试。'
+  })
+}
+
+/**
+ * 按目标测评（课程服务 lib/goal-diagnosis，2026-10-10 用户规则）：围绕学习目标出题，错了就沿知识图谱往前置知识点挖。
+ * loadGoalDiagnosis：目标 + 最近一次测评的导图；goalDiagnosis(operation, data)：start / read / answer / pause / resume。
+ */
+async function loadGoalDiagnosis() {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/goal-diagnosis', token, { fallbackMessage: '测评暂时无法打开，请稍后重试。' })
+}
+
+async function goalDiagnosis(operation, data = {}) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/goal-diagnosis', token, {
+    method: 'POST',
+    // start 时可能要先让模型认学科，留够时间
+    timeout: operation === 'start' ? 40000 : 20000,
+    data: { ...data, operation },
+    fallbackMessage: operation === 'answer' ? '答案没有提交成功，请再点一次。' : '测评暂时无法打开，请稍后重试。'
+  })
+}
+
+/**
+ * 诊断会议「朗读」（2026-10-10）：老师说的一句话交给课程服务 /api/learn/speech，用后台的语音合成（优先豆包 / 火山引擎）
+ * 读成 mp3，返回 ArrayBuffer。播放与本地缓存在 services/learn-speech.js。
+ */
+async function loadSpeechAudio(text) {
+  const token = await getRuntimeToken()
+  const messages = {
+    SPEECH_UNAVAILABLE: '朗读暂时用不了，请稍后再试。',
+    SPEECH_FAILED: '这句话没读出来，请再点一次。',
+    SPEECH_DAILY_LIMIT: '今天朗读的次数用完了，明天再来。',
+    SPEECH_TEXT_REQUIRED: '这句话没有可以朗读的文字。',
+    LOGIN_REQUIRED: '请重新登录后再试。'
+  }
+  return new Promise((resolve, reject) => wx.request({
+    url: `${coursePortalOrigin()}/api/learn/speech`,
+    method: 'POST',
+    timeout: 30000,
+    responseType: 'arraybuffer',
+    header: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    data: { text: String(text || '') },
+    success(response) {
+      const type = String((response.header && (response.header['content-type'] || response.header['Content-Type'])) || '')
+      if (response.statusCode === 200 && type.indexOf('audio/') === 0 && response.data && response.data.byteLength) return resolve(response.data)
+      let code = ''
+      try {
+        code = JSON.parse(String.fromCharCode.apply(null, new Uint8Array(response.data || new ArrayBuffer(0)))).code || ''
+      } catch (error) {
+        code = ''
+      }
+      const error = new Error(messages[code] || '这句话暂时读不出来，请稍后再试。')
+      error.code = code
+      reject(error)
+    },
+    fail() {
+      reject(new Error('网络不太稳定，朗读没有加载出来。'))
+    }
+  }))
+}
+
+/** 老师端学生详情：只读看学生最近一次按目标测评的导图。 */
+async function loadTeacherGoalDiagnosis(studentProfileId) {
+  const id = teacherStudentId(studentProfileId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/goal-diagnosis?studentProfileId=${id}`, token, { fallbackMessage: '目标导图暂时无法读取，请稍后重试。' })
+}
+
+/** 老师端学生详情：只读看学生的学习目标与偏好（回包的 goal），没设置时引导学生去「学习宇宙」完善。 */
+async function loadTeacherLearningPreference(studentProfileId) {
+  const id = teacherStudentId(studentProfileId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/teacher/learning-preference?studentProfileId=${id}`, token, { fallbackMessage: '学习偏好暂时无法读取，请稍后重试。' })
+}
+
+/** 学生「学习 › 学习任务」：老师排好的今天起 7 天的任务，前几天没学完的带到今天。 */
+async function loadStudyPlanDays() {
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses('/api/learn/study-plan', token, { fallbackMessage: '学习任务暂时无法读取，请稍后重试。' })
+  return {
+    today: typeof data.today === 'string' ? data.today : '',
+    dailyMinutes: Number(data.dailyMinutes) || 0,
+    days: (Array.isArray(data.days) ? data.days : []).map((day) => ({
+      day: String(day && day.day || ''),
+      // 老师设的休息日（每周学习日以外、或单独标的）
+      rest: Boolean(day && day.rest === true),
+      minutes: Number(day && day.minutes) || 0,
+      tasks: (Array.isArray(day && day.tasks) ? day.tasks : [])
+        .filter((task) => task && isAgentCourseId(task.stageId))
+        .map((task) => ({
+          id: String(task.id || ''),
+          // learn 学新课；review 间隔复习小测（2026-10-08，课程服务按复习卡现算）
+          kind: task.kind === 'review' ? 'review' : 'learn',
+          stageId: task.stageId,
+          title: String(task.title || '定制课程'),
+          pageLabel: String(task.pageLabel || ''),
+          minutes: Number(task.minutes) || 0,
+          progress: Math.max(0, Math.min(100, Number(task.progress) || 0)),
+          done: task.done === true,
+          started: task.started === true,
+          nextSceneId: /^[A-Za-z0-9_-]{1,80}$/.test(String(task.nextSceneId || '')) ? task.nextSceneId : '',
+          overdue: task.overdue === true,
+          subject: String(task.subject || '')
+        }))
+    }))
+  }
+}
+
 /** 「我的课程」里的智能体课程（含生成中的课程及进度），最新的在前。 */
 async function loadAgentCourses() {
   const token = await getRuntimeToken()
   const data = await requestAgentCourses('/api/learn/agent-courses', token)
-  return (Array.isArray(data.courses) ? data.courses : []).map(normalizeAgentCourse).filter(Boolean)
+  return (Array.isArray(data.courses) ? data.courses : [])
+    .map((raw) => { const course = normalizeAgentCourse(raw); return course && { ...course, coverUrl: courseCoverUrl(raw.coverUrl) } })
+    .filter(Boolean)
 }
 
 /** 课程链接进入后的实时生成进度。 */
@@ -466,11 +1197,43 @@ function courseConnectionError(error) {
   return new Error(messages[kind])
 }
 
-async function loadMemberCourseLibrary() {
+// 课程封面由课程服务按课程主题自动生成（见 OpenMAIC-sync lib/course/course-cover.ts），
+// 接口返回 /api/course-covers/<哈希>.jpg 相对路径；还没生成好时为空，前端显示占位底色。
+function courseCoverUrl(value) {
+  const text = typeof value === 'string' ? value : ''
+  return /^\/api\/course-covers\/[a-f0-9]{64}\.jpg$/.test(text) ? `${coursePortalOrigin()}${text}` : ''
+}
+
+/** 学习计划课程的封面：按课程内容标识批量读取；没有封面的由课程服务排队生成。 */
+async function loadCourseCovers(refs) {
+  const unique = Array.from(new Set((refs || []).filter((ref) => typeof ref === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(ref)))).slice(0, 50)
+  if (!unique.length) return {}
   const token = await getRuntimeToken()
   return new Promise((resolve, reject) => wx.request({
+    url: `${coursePortalOrigin()}/api/learn/course-covers`, method: 'POST', timeout: 15000,
+    header: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+    data: { refs: unique },
+    success(response) {
+      const covers = response.statusCode === 200 && response.data && response.data.covers
+      if (!covers || typeof covers !== 'object') return reject(new Error('课程封面暂时无法读取。'))
+      const result = {}
+      unique.forEach((ref) => { const url = courseCoverUrl(covers[ref]); if (url) result[ref] = url })
+      resolve(result)
+    },
+    fail(error) { reject(courseConnectionError(error)) }
+  }))
+}
+
+// 未登录也能看会员课程列表（2026-09-27 用户规则）：没有凭证（或凭证刚失效被作废）就不带凭证请求，
+// 课程服务按非会员返回；还没建学习档案的账号课程服务同样按非会员返回。
+async function loadMemberCourseLibrary() {
+  let token = ''
+  if (getStoredToken()) {
+    try { token = await getRuntimeToken() } catch (error) { if (!isAuthenticationRequired(error)) throw error }
+  }
+  return new Promise((resolve, reject) => wx.request({
     url: `${coursePortalOrigin()}/api/learn/library`, method: 'GET', timeout: 20000,
-    header: { authorization: `Bearer ${token}` },
+    header: token ? { authorization: `Bearer ${token}` } : {},
     success(response) {
       if (getStoredToken() !== token) return reject(new Error('学习账号已变化，请重新打开课程库。'))
       if (response.statusCode !== 200) {
@@ -483,25 +1246,56 @@ async function loadMemberCourseLibrary() {
       if (!Array.isArray(courses) || courses.some((course) => !course || !/^[a-f0-9]{32}$/.test(course.id) || typeof course.title !== 'string')) {
         return reject(new Error('课程库数据暂不可用，请稍后重试。'))
       }
-      resolve(courses.map((course) => ({ id: course.id, title: course.title, subject: String(course.subject || ''), grade: String(course.grade || '') })))
+      // isMember 由课程服务按当前账号给出，页面据此在点击时提前拦截非会员。
+      resolve(courses.map((course) => ({ id: course.id, title: course.title, subject: String(course.subject || ''), grade: String(course.grade || ''), isMember: course.isMember !== false, coverUrl: courseCoverUrl(course.coverUrl) })))
     },
     fail(error) { reject(courseConnectionError(error)) }
   }))
 }
 
-async function approveCourseDevice(code) {
-  const normalized = String(code || '').replace(/\s/g, '').toUpperCase()
-  if (!/^[A-F0-9]{12}$/.test(normalized)) throw new Error('请输入完整的12位设备确认码。')
+// 带当前登录凭证请求课程服务的学习端接口（/api/learn/**）。回 { statusCode, data }，由调用方按状态码解读；
+// 网络、域名、证书问题转成中文提示；请求期间切换了账号则放弃结果。
+async function requestCourseApi(path, { method = 'GET', data, timeout = 20000 } = {}) {
   const token = await getRuntimeToken()
+  const url = `${coursePortalOrigin()}${path}`
   return new Promise((resolve, reject) => wx.request({
-    url: `${coursePortalOrigin()}/api/learn/device`, method: 'POST', timeout: 20000,
+    url, method, timeout, data,
     header: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-    data: { operation: 'approve', code: normalized },
     success(response) {
-      if (getStoredToken() !== token) return reject(new Error('学习账号已变化，请回到课程页核对设备授权。'))
-      if (response.statusCode === 200 && response.data && response.data.approved === true) return resolve(true)
-      const messages = { 401: '登录已过期，请重新登录后确认。', 403: '当前账号无权学习这节课程。', 410: '确认码已过期，请在课程页面重新获取。', 429: '操作过于频繁，请稍后重试。' }
-      reject(new Error(messages[response.statusCode] || '设备确认失败，请稍后重试。'))
+      if (getStoredToken() !== token) return reject(new Error('学习账号已变化，请刷新后重试。'))
+      resolve({ statusCode: response.statusCode, data: response.data || {} })
+    },
+    fail(error) { reject(courseConnectionError(error)) }
+  }))
+}
+
+function multipartAscii(text) {
+  const bytes = new Uint8Array(text.length)
+  for (let i = 0; i < text.length; i += 1) bytes[i] = text.charCodeAt(i) & 0xff
+  return bytes
+}
+
+// 带当前登录凭证向课程服务上传一个文件（手拼 multipart/form-data，走 wx.request）：与诊断室传录音同一做法，
+// 不需要另配 uploadFile 合法域名。bytes 是 ArrayBuffer；文件名、类型只能是 ASCII。回 { statusCode, data }。
+async function requestCourseUpload(path, { bytes, fieldName = 'file', fileName = 'file.bin', contentType = 'application/octet-stream', timeout = 60000 } = {}) {
+  const token = await getRuntimeToken()
+  const boundary = `----zhiluUpload${Date.now().toString(16)}${Math.random().toString(16).slice(2, 8)}`
+  const head = multipartAscii(`--${boundary}\r\nContent-Disposition: form-data; name="${fieldName}"; filename="${fileName}"\r\nContent-Type: ${contentType}\r\n\r\n`)
+  const tail = multipartAscii(`\r\n--${boundary}--\r\n`)
+  const file = new Uint8Array(bytes)
+  const body = new Uint8Array(head.length + file.length + tail.length)
+  body.set(head, 0)
+  body.set(file, head.length)
+  body.set(tail, head.length + file.length)
+  return new Promise((resolve, reject) => wx.request({
+    url: `${coursePortalOrigin()}${path}`, method: 'POST', timeout,
+    header: { 'content-type': `multipart/form-data; boundary=${boundary}`, authorization: `Bearer ${token}` },
+    data: body.buffer, dataType: 'text', responseType: 'text',
+    success(response) {
+      if (getStoredToken() !== token) return reject(new Error('学习账号已变化，请刷新后重试。'))
+      let data = response.data
+      try { data = typeof data === 'string' ? JSON.parse(data) : data } catch (error) { data = {} }
+      resolve({ statusCode: response.statusCode, data: data || {} })
     },
     fail(error) { reject(courseConnectionError(error)) }
   }))
@@ -670,12 +1464,19 @@ function normalizeProfile(profile) {
     school_name: profile.school_name || '',
     textbook_version: profile.textbook_version || '',
     region_detail: profile.region_detail || '',
+    household_region: profile.household_region || '',
+    // 实名认证后按身份证锁定（2026-09-26 用户规则）：后端直接给身份证上的值，页面不让改
+    birthday_locked: profile.birthday_locked === true,
+    gender_locked: profile.gender_locked === true,
+    household_region_locked: profile.household_region_locked === true,
     profile_completed_at: profile.profile_completed_at || null
   }
 }
 
 function buildCurrentUser(userPrincipalId, profile) {
   const normalizedProfile = normalizeProfile(profile)
+  // 底栏按身份画四项或五项（家长没有「图谱」），每次读到档案都记下身份
+  if (normalizedProfile && normalizedProfile.profile_completed_at) rememberAccountType(normalizedProfile)
   return {
     userPrincipalId: userPrincipalId || null,
     phoneVerified: Boolean(verifiedPhoneToken && verifiedPhoneToken === getStoredToken()),
@@ -743,6 +1544,8 @@ function isWechatPaymentCancelled(error) {
 
 async function payWechatOrder(order) {
   const { orderId, amount, description } = normalizePaymentOrder(order)
+  // 支付开关关着就不发起支付：待支付订单的「继续支付」不经过下单流程，只能在这里拦（services/payment-switch.js）
+  await assertPaymentOpen()
   const token = await getRuntimeToken()
   let params
   try {
@@ -815,11 +1618,46 @@ async function restoreAuthenticatedUser() {
   }
 }
 
+// 当前访问状态（2026-09-27 用户规则：未登录也能浏览）：guest 未登录；profile 已登录、学习档案未完善；ready 已建档。
+// 读资料遇到网络等问题时按 ready 处理：交给各功能自己的读取给出错误，不把已登录的人当成游客。
+async function loadViewerAccess() {
+  if (!hasSession()) return 'guest'
+  try {
+    return (await loadCurrentUser()).profileCompleted ? 'ready' : 'profile'
+  } catch (error) {
+    return isAuthenticationRequired(error) ? 'guest' : 'ready'
+  }
+}
+
+// 读取失败是因为没登录 / 没建档：换成访问状态交给页面显示提示；别的失败返回空，照常当读取失败。
+function accessOfError(error) {
+  if (isAuthenticationRequired(error)) return 'guest'
+  if (isProfileRequired(error)) return 'profile'
+  return ''
+}
+
 function signOut() {
   sessionGeneration += 1
   wx.removeStorageSync(TOKEN_KEY)
+  clearAccountType()
   resetPhoneSessionVerification()
   authRedirectInProgress = false
+}
+
+// 学生切换为家长被后端拒绝（2026-09-25 用户规则）：报错以代码开头，换成页面能直接用的提示并带上 code
+const GUARDIAN_SWITCH_ERRORS = {
+  GUARDIAN_VERIFICATION_REQUIRED: '切换为家长需要先完成实名认证。',
+  GUARDIAN_UNDERAGE: '实名认证显示未满 22 周岁，不能切换为家长。',
+  GUARDIAN_AGE_UNKNOWN: '实名信息里没有出生日期，请重新提交一次实名认证。'
+}
+
+function guardianSwitchError(error) {
+  const matched = /GUARDIAN_(VERIFICATION_REQUIRED|UNDERAGE|AGE_UNKNOWN)/.exec(String(error && error.message || ''))
+  if (!matched) return null
+  const code = `GUARDIAN_${matched[1]}`
+  const wrapped = new Error(GUARDIAN_SWITCH_ERRORS[code])
+  wrapped.code = code
+  return wrapped
 }
 
 async function saveCurrentLearningProfile(form) {
@@ -844,23 +1682,33 @@ async function saveCurrentLearningProfile(form) {
     details.account_type = form.accountType
   }
   if (Object.prototype.hasOwnProperty.call(form, 'birthday')) details.birthday = form.birthday || null
-  if (Object.prototype.hasOwnProperty.call(form, 'gender')) {
+  // 性别、户籍地选填（2026-09-26 用户规则）：没选就不提交，不会清掉已存的
+  if (Object.prototype.hasOwnProperty.call(form, 'gender') && form.gender) {
     if (!['male', 'female'].includes(form.gender)) throw new Error('请选择性别。')
     details.gender = form.gender
   }
+  const householdRegion = String(form.householdRegion || '').trim()
+  if (householdRegion) details.household_region = householdRegion
   if (form.avatarPath) details.avatar_id = await uploadProfileAvatar(form.avatarPath, sessionToken)
   if (Object.keys(details).length) payload.personal_details = details
   if (!sessionToken || getStoredToken() !== sessionToken) throw new Error('登录账号已变化，请重新进入个人资料后保存。')
 
-  const userProfileId = parseActionFlowResult(
-    await invokeActionFlow(config.ACTION_FLOWS.SAVE_CURRENT_LEARNING_PROFILE, payload, { expectedToken: sessionToken })
-  )
+  let userProfileId
+  try {
+    userProfileId = parseActionFlowResult(
+      await invokeActionFlow(config.ACTION_FLOWS.SAVE_CURRENT_LEARNING_PROFILE, payload, { expectedToken: sessionToken })
+    )
+  } catch (error) {
+    throw guardianSwitchError(error) || error
+  }
   const profile = await invokeActionFlow(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PROFILE, {}, { expectedToken: sessionToken })
   if (getStoredToken() !== sessionToken) throw new Error('登录账号已变化，请重新读取个人资料。')
   const saved = normalizeProfile(parseActionFlowResult(profile))
   if (!saved || String(saved.id) !== String(userProfileId) || saved.nickname !== payload.nickname || Number(saved.current_grade) !== payload.grade || saved.semester !== payload.semester ||
-      (Object.prototype.hasOwnProperty.call(details, 'birthday') && saved.birthday !== (details.birthday || '')) ||
-      (Object.prototype.hasOwnProperty.call(details, 'gender') && saved.gender !== details.gender) ||
+      // 已实名的生日、性别、户籍地由后端按身份证写入，不跟提交值比
+      (Object.prototype.hasOwnProperty.call(details, 'birthday') && !saved.birthday_locked && saved.birthday !== (details.birthday || '')) ||
+      (Object.prototype.hasOwnProperty.call(details, 'gender') && !saved.gender_locked && saved.gender !== details.gender) ||
+      (details.household_region && !saved.household_region_locked && saved.household_region !== details.household_region) ||
       (details.account_type && saved.account_type !== details.account_type) ||
       (details.avatar_id && String(saved.avatar_id) !== String(details.avatar_id))) {
     throw new Error('保存结果未确认，请重新进入个人资料查看后再试。')
@@ -897,6 +1745,12 @@ function profileInitial(profile) {
   return profileDisplayName(profile).slice(0, 1)
 }
 
+// 头像是后端下发的签名地址，约两天过期，只在本次加载里用，不要存起来。
+function profileAvatarUrl(profile) {
+  if (!profile) return ''
+  return profile.avatar_url || profile.avatar && profile.avatar.url || ''
+}
+
 function profileGradeLabel(profile) {
   const grade = Number(profile.current_grade)
   if (grade >= 1 && grade <= 6) return `小学${grade}年级`
@@ -908,7 +1762,7 @@ function profileGradeLabel(profile) {
 async function loadCurrentStudentDashboardBase() {
   const currentUser = await loadCurrentUser()
   if (!currentUser.profileCompleted || !currentUser.profile) {
-    throw new Error('请先完善学习档案。')
+    throw createProfileRequiredError()
   }
 
   const profile = currentUser.profile
@@ -1021,7 +1875,7 @@ async function loadLearningDashboard() {
       canStartAcceptance: generationState.canStartAcceptance,
       courseStatus: generationState.courseStatus,
       stateLabel: done ? '已完成' : generationState.label,
-      coverUrl: typeof course.coverUrl === 'string' ? course.coverUrl : '',
+      contentVersionRef: String(course.contentVersionRef || ''),
       title: item.topicName || '学习任务',
       subject: item.subjectName || '学习计划',
       meta: item.subjectName || item.domainName || '课程学习',
@@ -1075,7 +1929,7 @@ async function loadLearningDashboard() {
         courseStatus: generationState.courseStatus,
         stateLabel: generationState.label,
         courseInstanceId: course ? String(course.id) : '',
-        coverUrl: typeof course?.coverUrl === 'string' ? course.coverUrl : '',
+        contentVersionRef: String(course && course.contentVersionRef || ''),
         title: item.topicName || '学习任务',
         meta: credits ? `${label} · ${credits}` : label,
         time: Number(item.sequenceNo) ? `第 ${item.sequenceNo} 项` : '学习任务',
@@ -1102,6 +1956,8 @@ function graphStatus(mastery) {
   const status = String(mastery && mastery.status || '').toLowerCase()
   if (status==='unknown' && mastery && mastery.lastAssessmentScore !== null && mastery.lastAssessmentScore !== undefined) return {key:'provisional',label:mastery.lastAssessmentScore===1?'初测答对，待复测':'初测答错，待复测'}
   if (status === 'assessed_stable') return { key: 'assessed_stable', label: '测评较稳' }
+  // AI 验收通过、等老师最终核验；老师核验通过后才是 mastered。
+  if (status === 'pending_teacher') return { key: 'pending_teacher', label: '待老师核验' }
   if (status === 'reinforce') return { key: 'weak', label: '待巩固' }
   if (['mastered', 'completed', 'passed'].includes(status)) return { key: 'mastered', label: '已掌握' }
   if (['learning', 'in_progress', 'planned'].includes(status)) return { key: 'learning', label: '计划中' }
@@ -1133,7 +1989,8 @@ const subjectNames = {
 function assessmentStatusLabel(status) {
   const labels = {
     draft: '进行中',
-    submitted: '已提交',
+    submitted: '已完成',
+    partial: '部分完成',
     analyzing: '分析中',
     analysis_failed: '分析失败',
     completed: '已完成'
@@ -1189,6 +2046,8 @@ async function loadAssessmentCenter() {
         name: scope.name,
         semester: scope.semester,
         questionCount: Number(scope.questionCount || 0),
+        roundCount: Number(scope.roundCount || 0),
+        completedRounds: Number(scope.completedRounds || 0),
         ready: Boolean(scope.ready),
         entry: scope.entry || { mode: 'unavailable' }
       }))
@@ -1511,6 +2370,399 @@ async function loadCurrentServiceContacts() {
   return { status: contacts.length ? 'ready' : payload.status, contacts }
 }
 
+// 老师工作台只认后台开通的有效老师档案；not_teacher / 未登录都按「不是老师」处理，入口不显示。
+async function loadCurrentTeacherWorkspace() {
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.GET_CURRENT_TEACHER_WORKSPACE
+  )) || {}
+
+  if (['not_teacher', 'unauthenticated', 'not_initialized'].includes(payload.status)) {
+    return { status: 'not_teacher', teacher: null, students: [] }
+  }
+  if (payload.status !== 'ready' || !payload.teacher) {
+    throw new Error('老师工作台暂时无法读取，请稍后重试。')
+  }
+
+  const students = (Array.isArray(payload.students) ? payload.students : [])
+    .filter((item) => item && item.studentProfileId)
+    .map((item) => ({
+      bindingId: String(item.bindingId || item.studentProfileId),
+      studentProfileId: String(item.studentProfileId),
+      name: String(item.name || '未命名学生').trim().slice(0, 40) || '未命名学生',
+      grade: item.grade || null,
+      publicId: String(item.publicId || ''),
+      avatarUrl: String(item.avatarUrl || ''),
+      boundAt: item.boundAt || ''
+    }))
+
+  return {
+    status: 'ready',
+    teacher: {
+      id: String(payload.teacher.id || ''),
+      name: String(payload.teacher.name || '老师').trim().slice(0, 40) || '老师',
+      teacherNo: String(payload.teacher.teacherNo || '')
+    },
+    students
+  }
+}
+
+// 老师凭学生的 6 位用户 ID 把学生加到自己名下；后端只认当前登录的有效老师，不能替他人操作。
+async function bindStudentAsCurrentTeacher(publicId) {
+  const code = String(publicId || '').trim()
+  if (!/^\d{6}$/.test(code)) throw new Error('请输入学生的 6 位用户 ID')
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.BIND_STUDENT_AS_CURRENT_TEACHER,
+    { publicId: code }
+  )) || {}
+  const status = String(payload.status || 'unavailable')
+  if (status === 'bound' || status === 'already_bound') {
+    const student = payload.student || {}
+    return {
+      status,
+      student: status === 'bound' ? {
+        name: String(student.name || '未命名学生').trim().slice(0, 40) || '未命名学生',
+        grade: student.grade || null,
+        publicId: String(student.publicId || code)
+      } : null
+    }
+  }
+  const messages = {
+    unauthenticated: '请先登录后再添加学生。',
+    not_initialized: '请先完成账号初始化。',
+    not_teacher: '只有服务老师可以添加学生。',
+    invalid_code: '请输入学生的 6 位用户 ID',
+    code_not_found: '没有找到这个用户 ID 对应的学生，请核对后重试。',
+    self_binding_forbidden: '不能把自己添加为学生。'
+  }
+  throw Object.assign(new Error(messages[status] || '添加学生失败，请稍后重试。'), { code: status })
+}
+
+// 老师侧的学生服务：读写绑定学生的学习档案、发起智能体邀请。
+// 后端「教师学生服务」按当前登录账号判定教师身份与绑定关系，前端传入的学生 id 只是目标，不是凭据。
+function teacherStudentFlow() {
+  const flow = config.ACTION_FLOWS.TEACHER_STUDENT_SERVICE
+  if (!flow || !flow.id) {
+    throw new Error('教师学生服务尚未部署，请先运行 scripts/mp-teacher/deploy-teacher-student-flow.mjs。')
+  }
+  return flow
+}
+
+const TEACHER_STUDENT_MESSAGES = {
+  unauthenticated: '请先登录后再操作。',
+  not_initialized: '请先完成账号初始化。',
+  not_teacher: '只有服务老师可以查看和修改学生档案。',
+  invalid_meeting_minutes: '会议时长需在 5 分钟到 8 小时之间。',
+  attempt_not_found: '没有找到这次测评，可能不属于这位学生。',
+  invalid_attempt: '测评记录无效，请返回重试。',
+  invalid_student: '学生信息不完整，请返回工作台重试。',
+  student_not_bound: '这名学生已不在你的名下。',
+  student_not_found: '没有找到这名学生的档案。',
+  invalid_profile: '请检查填写的内容。',
+  invalid_nickname: '请填写学生称呼。',
+  invalid_grade: '年级需要在 1 到 12 之间。',
+  invalid_school_stage: '请选择有效的学段。',
+  invalid_semester: '请选择有效的学期。',
+  invalid_textbook_version: '请选择有效的教材版本。',
+  empty_profile: '没有需要保存的改动。',
+  invalid_invite: '预约信息不完整，请刷新后重试。',
+  invite_not_found: '没有找到这条预约。',
+  invite_already_canceled: '这条预约已经取消过了。',
+  invalid_voice_file: '语音上传失败，请重新录制。',
+  invalid_voice_duration: '语音需要在 1 秒到 10 分钟之间。',
+  unsupported_operation: '暂不支持这个操作。',
+  INVALID_REQUEST: '请求格式不正确。'
+}
+
+function normalizeTeacherStudentProfile(profile) {
+  const value = profile || {}
+  return {
+    studentProfileId: String(value.studentProfileId || ''),
+    nickname: String(value.nickname || ''),
+    displayName: String(value.displayName || '未命名学生'),
+    grade: value.grade === null || value.grade === undefined ? null : Number(value.grade),
+    schoolStage: String(value.schoolStage || ''),
+    semester: String(value.semester || ''),
+    schoolName: String(value.schoolName || ''),
+    textbookVersion: String(value.textbookVersion || ''),
+    regionDetail: String(value.regionDetail || ''),
+    profileCompleted: Boolean(value.profileCompleted),
+    // 学生头像：带签名的临时地址，只用于老师端学生详情头部。
+    avatarUrl: /^https:\/\//.test(String(value.avatarUrl || '')) ? String(value.avatarUrl) : '',
+    updatedAt: value.updatedAt || ''
+  }
+}
+
+function normalizeTeacherAgentInvite(invite) {
+  const value = invite || {}
+  return {
+    inviteId: String(value.inviteId || ''),
+    subject: String(value.subject || ''),
+    scheduledOnlineAt: value.scheduledOnlineAt || '',
+    status: String(value.status || ''),
+    token: String(value.token || ''),
+    hasSession: Boolean(value.hasSession),
+    createdAt: value.createdAt || '',
+    // 课前语音：老师必须先录一段，学生进入对话时由 AI 客服先播这段。
+    hasVoice: Boolean(value.hasVoice),
+    voiceDurationMs: Number(value.voiceDurationMs || 0),
+    // 会议时长（分钟）与预约说明：2026-09-24 新增，老预约为空。
+    meetingMinutes: Number(value.meetingMinutes || 0),
+    meetingNote: String(value.meetingNote || ''),
+    // 一个学生同时只有最后发起的那条预约生效，后端算好后下发。
+    isLatest: Boolean(value.isLatest),
+    effective: Boolean(value.effective),
+    supersededBy: String(value.supersededBy || '')
+  }
+}
+
+function teacherStudentError(status) {
+  return Object.assign(new Error(TEACHER_STUDENT_MESSAGES[status] || '操作失败，请稍后重试。'), { code: status })
+}
+
+async function invokeTeacherStudentService(payload) {
+  return parseActionFlowResult(await invokeActionFlow(teacherStudentFlow(), { payload })) || {}
+}
+
+async function loadTeacherStudentProfile(studentProfileId) {
+  const result = await invokeTeacherStudentService({ operation: 'student.profile.get', studentProfileId: String(studentProfileId || '') })
+  if (result.status !== 'ready') throw teacherStudentError(String(result.status || 'unavailable'))
+  return {
+    profile: normalizeTeacherStudentProfile(result.profile),
+    invites: (Array.isArray(result.invites) ? result.invites : []).map(normalizeTeacherAgentInvite),
+    serverNow: result.serverNow || ''
+  }
+}
+
+// 老师查看负责学生的测评记录（「教师学生服务」student.assessments.list / student.assessment.read，只读）。
+async function loadTeacherStudentAssessments(studentProfileId) {
+  const result = await invokeTeacherStudentService({ operation: 'student.assessments.list', studentProfileId: String(studentProfileId || '') })
+  if (result.status !== 'ready') throw teacherStudentError(String(result.status || 'unavailable'))
+  return (Array.isArray(result.attempts) ? result.attempts : []).map((item) => ({
+    attemptId: String(item.attemptId || ''),
+    status: String(item.status || ''),
+    name: String(item.name || '测评记录'),
+    round: Number(item.round || 1),
+    roundCount: Number(item.roundCount || 1),
+    startedAt: String(item.startedAt || ''),
+    submittedAt: String(item.submittedAt || ''),
+    band: String(item.band || ''),
+    correctCount: Number(item.correctCount || 0),
+    answeredCount: Number(item.answeredCount || 0),
+    earnedMarks: Number(item.earnedMarks || 0),
+    possibleMarks: Number(item.possibleMarks || 0)
+  })).filter((item) => /^[1-9][0-9]*$/.test(item.attemptId))
+}
+
+async function loadTeacherStudentAssessment(studentProfileId, attemptId) {
+  const result = await invokeTeacherStudentService({ operation: 'student.assessment.read', studentProfileId: String(studentProfileId || ''), attemptId: String(attemptId || '') })
+  if (result.status !== 'ready' || !result.attempt) throw teacherStudentError(String(result.status || 'unavailable'))
+  return result.attempt
+}
+
+async function saveTeacherStudentProfile(studentProfileId, profile) {
+  const result = await invokeTeacherStudentService({
+    operation: 'student.profile.save',
+    studentProfileId: String(studentProfileId || ''),
+    profile: profile || {}
+  })
+  if (result.status !== 'saved') throw teacherStudentError(String(result.status || 'unavailable'))
+  return {
+    profile: normalizeTeacherStudentProfile(result.profile),
+    invites: (Array.isArray(result.invites) ? result.invites : []).map(normalizeTeacherAgentInvite)
+  }
+}
+
+// 老师课前语音：先把录音传进 Zion 文件存储拿到 fileId，再挂到这条预约上。
+// 与验收录音同一套上传通道（私有 ACL），学生端播放时由后端签发临时地址。
+async function uploadTeacherInviteVoice(filePath, durationMs) {
+  const normalizedDuration = Number(durationMs)
+  if (!filePath || !Number.isFinite(normalizedDuration) || normalizedDuration < 1000) {
+    throw new Error('录音时间过短，请至少说 1 秒。')
+  }
+  if (normalizedDuration > 10 * 60 * 1000) throw new Error('语音最长 10 分钟，请重新录制。')
+
+  const info = await getLocalFileInfo(filePath)
+  const sizeBytes = Number(info.size || 0)
+  if (!sizeBytes || sizeBytes > 25 * 1024 * 1024) {
+    throw new Error('录音文件必须在 25MB 以内，请重新录制。')
+  }
+  const audio = getAudioFormat(filePath)
+  const uploadData = await graphql(
+    `mutation GetInviteVoiceUploadUrl(
+      $md5: String!,
+      $format: MediaFormat!,
+      $name: String!,
+      $suffix: String!,
+      $sizeBytes: Int!,
+      $acl: CannedAccessControlList!
+    ) {
+      filePresignedUrl(
+        md5Base64: $md5,
+        format: $format,
+        name: $name,
+        suffix: $suffix,
+        sizeBytes: $sizeBytes,
+        acl: $acl
+      ) {
+        fileId uploadUrl uploadHeaders
+      }
+    }`,
+    {
+      md5: md5HexToBase64(info.digest),
+      format: audio.format,
+      name: `teacher-invite-voice-${Date.now()}.${audio.fileFormat}`,
+      suffix: audio.suffix,
+      sizeBytes,
+      acl: 'PRIVATE'
+    }
+  )
+  const presigned = uploadData && uploadData.filePresignedUrl
+  if (!presigned || !presigned.fileId || !presigned.uploadUrl) {
+    throw new Error('未获取到语音上传凭证，请稍后重试。')
+  }
+  const content = await readLocalFile(filePath)
+  await putBinary(presigned.uploadUrl, presigned.uploadHeaders, content.data)
+  return { fileId: String(presigned.fileId), sizeBytes, durationMs: Math.round(normalizedDuration) }
+}
+
+/** 预约创建后补写会议时长（分钟，5–480）与预约说明（≤60 字）。 */
+async function saveTeacherInviteDetails(studentProfileId, inviteId, meetingMinutes, meetingNote = '') {
+  const result = await invokeTeacherStudentService({
+    operation: 'invite.details.save',
+    studentProfileId: String(studentProfileId || ''),
+    inviteId: String(inviteId || ''),
+    meetingMinutes: Math.round(Number(meetingMinutes) || 0),
+    meetingNote: String(meetingNote || '').trim().slice(0, 60)
+  })
+  if (result.status !== 'details_saved') throw teacherStudentError(String(result.status || 'unavailable'))
+  return {
+    profile: normalizeTeacherStudentProfile(result.profile),
+    invites: (Array.isArray(result.invites) ? result.invites : []).map(normalizeTeacherAgentInvite)
+  }
+}
+
+async function saveTeacherInviteVoice(studentProfileId, inviteId, voiceFileId, voiceDurationMs) {
+  const result = await invokeTeacherStudentService({
+    operation: 'invite.voice.save',
+    studentProfileId: String(studentProfileId || ''),
+    inviteId: String(inviteId || ''),
+    voiceFileId: String(voiceFileId || ''),
+    voiceDurationMs: Math.round(Number(voiceDurationMs) || 0)
+  })
+  if (result.status !== 'voice_saved') throw teacherStudentError(String(result.status || 'unavailable'))
+  return {
+    profile: normalizeTeacherStudentProfile(result.profile),
+    invites: (Array.isArray(result.invites) ? result.invites : []).map(normalizeTeacherAgentInvite)
+  }
+}
+
+// 取消预约：取消最新那条后，之前发出去的所有分享链接一起失效（后端按「只有最新一条生效」判定）。
+async function cancelTeacherAgentInvite(studentProfileId, inviteId) {
+  const result = await invokeTeacherStudentService({
+    operation: 'invite.cancel',
+    studentProfileId: String(studentProfileId || ''),
+    inviteId: String(inviteId || '')
+  })
+  if (result.status !== 'canceled') throw teacherStudentError(String(result.status || 'unavailable'))
+  return {
+    profile: normalizeTeacherStudentProfile(result.profile),
+    invites: (Array.isArray(result.invites) ? result.invites : []).map(normalizeTeacherAgentInvite)
+  }
+}
+
+// 发起预约：后端校验「当前登录者是有效老师」且「该学生与其有 active 绑定」后才会生成 share_token。
+async function createTeacherAgentInvite({ studentProfileId, subjectLabel, scheduledOnlineAt }) {
+  const subject = String(subjectLabel || '').trim()
+  if (!subject) throw Object.assign(new Error('请选择本次陪跑的学科。'), { code: 'invalid_subject' })
+  const when = new Date(scheduledOnlineAt)
+  if (!scheduledOnlineAt || Number.isNaN(when.getTime())) {
+    throw Object.assign(new Error('请选择有效的上线时间。'), { code: 'invalid_schedule' })
+  }
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.CREATE_TEACHER_AGENT_INVITE,
+    { studentProfileId: String(studentProfileId || ''), subjectLabel: subject, scheduledOnlineAt: when.toISOString() }
+  )) || {}
+  if (payload.status === 'created' && payload.invite) {
+    const invite = payload.invite
+    return {
+      inviteId: String(invite.inviteId || ''),
+      token: String(invite.token || ''),
+      subject: String(invite.subject || subject),
+      scheduledOnlineAt: invite.scheduledOnlineAt || when.toISOString(),
+      status: String(invite.status || 'scheduled'),
+      studentProfileId: String(invite.studentProfileId || studentProfileId || ''),
+      studentName: String(invite.studentName || ''),
+      teacherName: String(invite.teacherName || '老师'),
+      createdAt: invite.createdAt || ''
+    }
+  }
+  const messages = {
+    unauthenticated: '请先登录后再发起预约。',
+    not_initialized: '请先完成账号初始化。',
+    not_teacher: '只有服务老师可以发起预约。',
+    invalid_student: '学生信息不完整，请返回工作台重试。',
+    invalid_subject: '请选择本次陪跑的学科。',
+    invalid_schedule: '请选择有效的上线时间。',
+    student_not_bound: '这名学生已不在你的名下。'
+  }
+  throw Object.assign(new Error(messages[payload.status] || '发起预约失败，请稍后重试。'), { code: String(payload.status || 'unavailable') })
+}
+
+// 学生本人打开分享页时读取邀请；后端只允许被邀请的学生本人读取，老师和家长都会拿到 not_your_invite。
+async function loadTeacherAgentInvite(token) {
+  const shareToken = String(token || '').trim()
+  if (!shareToken) throw Object.assign(new Error('邀请链接不完整。'), { code: 'not_found' })
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.GET_TEACHER_AGENT_INVITE,
+    { token: shareToken }
+  )) || {}
+  if (payload.status === 'ready' && payload.invite) {
+    const invite = payload.invite
+    return {
+      status: 'ready',
+      online: Boolean(payload.online),
+      // 'student' 学生本人 / 'guardian' 绑定了这名学生的家长（只能旁听）
+      viewer: String(payload.viewer || 'student'),
+      // 已结束的会议照样返回 ready：前端打开成只读的历史记录
+      closed: Boolean(payload.closed),
+      closedReason: String(payload.closedReason || ''),
+      closedAt: String(payload.closedAt || ''),
+      serverNow: payload.serverNow || '',
+      invite: {
+        inviteId: String(invite.inviteId || ''),
+        token: String(invite.token || shareToken),
+        subject: String(invite.subject || ''),
+        scheduledOnlineAt: invite.scheduledOnlineAt || '',
+        status: String(invite.status || ''),
+        sessionId: String(invite.sessionId || ''),
+        teacherName: String(invite.teacherName || '老师'),
+        // 老师的头像来自他自己的用户资料，学生端会议页与诊断室都要用
+        teacherAvatarUrl: String(invite.teacherAvatarUrl || ''),
+        voiceUrl: String(invite.voiceUrl || ''),
+        voiceDurationMs: Number(invite.voiceDurationMs || 0)
+      }
+    }
+  }
+  return {
+    status: String(payload.status || 'unavailable'),
+    online: false,
+    serverNow: payload.serverNow || '',
+    // 会议已结束时后端会带上原因：学生换设备打开看到的也是同一句话
+    closedReason: String(payload.closedReason || ''),
+    closedAt: String(payload.closedAt || ''),
+    invite: null
+  }
+}
+
+// 学生开始学习后把 OpenMAIC 会话回写到邀请上；失败不影响学习本身，由调用方决定是否忽略。
+async function markTeacherAgentSession(token, sessionId) {
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.MARK_TEACHER_AGENT_SESSION,
+    { token: String(token || '').trim(), sessionId: String(sessionId || '').trim() }
+  )) || {}
+  return { status: String(payload.status || 'unavailable'), sessionId: String(payload.sessionId || '') }
+}
+
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -1704,6 +2956,47 @@ function putBinary(url, header, data) {
   })
 }
 
+// 私有文件上传（推广结算的发票等，2026-09-26）：PDF 或常见图片，传到 Zion 私有存储，返回文件 id。
+// 读取时由动作流给约两天有效的签名地址；小程序本地不留地址。
+const PRIVATE_FILE_FORMATS = { pdf: 'PDF', jpg: 'JPG', jpeg: 'JPEG', png: 'PNG', webp: 'WEBP' }
+
+function privateFileExtension(value) {
+  const match = /\.([A-Za-z0-9]+)$/.exec(String(value || '').split('?')[0])
+  return match ? match[1].toLowerCase() : ''
+}
+
+async function uploadPrivateFile(filePath, { name = '', maxBytes = 10 * 1024 * 1024 } = {}) {
+  const extension = privateFileExtension(name) || privateFileExtension(filePath)
+  const format = PRIVATE_FILE_FORMATS[extension]
+  if (!filePath || !format) throw new Error('只支持 PDF、JPG、PNG 格式的文件。')
+  const info = await getLocalFileInfo(filePath)
+  const sizeBytes = Number(info.size || 0)
+  if (!sizeBytes) throw new Error('文件是空的，请重新选择。')
+  if (sizeBytes > maxBytes) throw new Error(`单个文件不能超过 ${Math.round(maxBytes / 1024 / 1024)}MB。`)
+  const md5Base64 = md5HexToBase64(info.digest)
+  const fileName = String(name || '').trim().slice(0, 80) || `file-${Date.now()}.${extension}`
+  const uploadData = await graphql(
+    `mutation GetPrivateFileUploadUrl(
+      $md5: String!,
+      $format: MediaFormat!,
+      $name: String!,
+      $suffix: String!,
+      $sizeBytes: Int!,
+      $acl: CannedAccessControlList!
+    ) {
+      filePresignedUrl(md5Base64: $md5, format: $format, name: $name, suffix: $suffix, sizeBytes: $sizeBytes, acl: $acl) {
+        fileId uploadUrl uploadHeaders
+      }
+    }`,
+    { md5: md5Base64, format, name: fileName, suffix: extension, sizeBytes, acl: 'PRIVATE' }
+  )
+  const presigned = uploadData && uploadData.filePresignedUrl
+  if (!presigned || !presigned.fileId || !presigned.uploadUrl) throw new Error('未获取到文件上传凭证，请稍后重试。')
+  const content = await readLocalFile(filePath)
+  await putBinary(presigned.uploadUrl, presigned.uploadHeaders, content.data)
+  return { fileId: String(presigned.fileId), name: fileName, format: extension === 'jpeg' ? 'jpg' : extension, sizeBytes }
+}
+
 function getImageSuffix(filePath) {
   const extension = String(filePath || '').split('.').pop().toUpperCase()
   if (extension === 'JPEG') return 'JPEG'
@@ -1821,7 +3114,7 @@ function buildKnowledgeMap(payload, selectedSubjectKey) {
   if (!payload || payload.status === 'unauthenticated') throw new Error('请先登录后查看知识图谱。')
   if (payload.status === 'dataset_unavailable') throw new Error('知识库正在准备，请稍后重试。')
   if (payload.status === 'semester_required') throw new Error('请在个人资料中选择上学期或下学期并保存。')
-  if (payload.status !== 'ready') throw new Error('请先完善学习档案后查看知识图谱。')
+  if (payload.status !== 'ready') throw createProfileRequiredError()
   if (payload.datasetKey !== 'china-k12-tokenmap-135386badef4') throw new Error('知识图谱数据源不匹配，请更新后重试。')
 
   const subjects = (payload.subjects || []).slice().sort((a, b) => Number(a.display_order || 0) - Number(b.display_order || 0))
@@ -1882,8 +3175,8 @@ function buildKnowledgeMap(payload, selectedSubjectKey) {
   const stats = { mastered: 0, learning: 0, weak: 0, unknown: 0 }
   nodes.forEach((node) => { stats[node.status] = (stats[node.status] || 0) + 1 })
   const diagnosticScopes=(payload.diagnostics||[]).filter(s=>s.scope&&s.scope.subject===activeSubjectKey)
-  const diagnosticScope=diagnosticScopes.find(s=>s.entry&&s.entry.mode==='resume')||diagnosticScopes.find(s=>s.entry&&s.entry.mode==='report')||diagnosticScopes[0]
-  const diagnostic=diagnosticScope?{...diagnosticScope.entry,scopeId:diagnosticScope.id,subject:activeSubjectKey}:{mode:'unavailable',subject:activeSubjectKey}
+  const diagnosticScope=diagnosticScopes.find(s=>s.entry&&s.entry.mode==='resume')||diagnosticScopes.find(s=>s.entry&&s.entry.mode==='continue')||diagnosticScopes.find(s=>s.entry&&s.entry.mode==='report')||diagnosticScopes.find(s=>s.entry&&s.entry.mode==='start')||diagnosticScopes[0]
+  const diagnostic=diagnosticScope?{...diagnosticScope.entry,scopeId:diagnosticScope.id,subject:activeSubjectKey,roundCount:diagnosticScope.roundCount||diagnosticScope.entry.roundCount||1,roundMinutes:diagnosticScope.roundMinutes||28}:{mode:'unavailable',subject:activeSubjectKey}
 
   return {
     diagnostic,
@@ -1908,7 +3201,7 @@ function buildKnowledgeMap(payload, selectedSubjectKey) {
   }
 }
 
-async function loadKnowledgeMap(subjectKey) {
+async function loadKnowledgeMapPayload() {
   let payload = parseActionFlowResult(await invokeActionFlow(config.ACTION_FLOWS.GET_CURRENT_STUDENT_KNOWLEDGE_MAP))
 
   // A newly authenticated WeChat account can reach this page before Zion has
@@ -1918,21 +3211,99 @@ async function loadKnowledgeMap(subjectKey) {
     await loadCurrentUser()
     payload = parseActionFlowResult(await invokeActionFlow(config.ACTION_FLOWS.GET_CURRENT_STUDENT_KNOWLEDGE_MAP))
   }
+  return payload
+}
 
-  return buildKnowledgeMap(payload, subjectKey)
+async function loadKnowledgeMap(subjectKey) {
+  return buildKnowledgeMap(await loadKnowledgeMapPayload(), subjectKey)
+}
+
+// 「宇宙」Tab：资料卡、学习概览与球面上的知识点。
+// 只有进入学习宇宙的知识点才上球：老师核验通过，或测评较稳（含摸底诊断判为掌握）。
+// 判定以后端 in_universe 为准；旧版后端没有这个字段时按同一规则从状态推。
+const UNIVERSE_CARD_LIMIT = 16
+function inUniverse(mastery) {
+  if (!mastery) return false
+  if (typeof mastery.in_universe === 'boolean') return mastery.in_universe
+  const key = graphStatus(mastery).key
+  return (key === 'mastered' && mastery.mastery_source !== 'ai_acceptance') || key === 'assessed_stable'
+}
+
+function buildKnowledgeUniverse(profile, payload, reportCount) {
+  // 地图读失败时只丢掉球面知识点和掌握数，资料卡照常显示。
+  const ready = payload && payload.status === 'ready'
+  const subjectNameById = {}
+  ;(ready && payload.subjects || []).forEach((item) => { subjectNameById[item.id] = item.display_name })
+  const masteryByTopic = {}
+  ;(ready && payload.masteries || []).forEach((item) => { masteryByTopic[item.knowledge_topic_id] = item })
+  const topics = (ready && payload.topics || [])
+    .filter((topic) => inUniverse(masteryByTopic[topic.id]))
+    .map((topic) => {
+      const mastery = masteryByTopic[topic.id]
+      return {
+        id: String(topic.id),
+        name: topic.display_name,
+        subject: subjectNameById[topic.subject_id] || '',
+        source: mastery.teacher_evidence_count > 0 || mastery.mastery_source === 'teacher_verified' ? 'teacher' : 'assessment',
+        evidenceCount: Number(mastery.evidence_count || 0),
+        centrality: Number(topic.centrality || 0)
+      }
+    })
+    // 老师核验过的排前面，其次按证据多少、知识点中心度。
+    .sort((a, b) => ((a.source === 'teacher' ? 0 : 1) - (b.source === 'teacher' ? 0 : 1)) || (b.evidenceCount - a.evidenceCount) || (b.centrality - a.centrality))
+    .map((topic) => ({ ...topic, status: 'mastered', statusText: topic.source === 'teacher' ? '老师核验' : '测评较稳' }))
+  const textbook = String(profile.textbook_version || '').replace(/教材$/, '')
+  const universe = ready && payload.universe || {}
+  return {
+    student: {
+      name: profileDisplayName(profile),
+      avatarText: profileInitial(profile),
+      avatarSrc: profile.avatar_url || '',
+      subtitle: [profileGradeLabel(profile), textbook].filter(Boolean).join(' · ')
+    },
+    mapReady: Boolean(ready),
+    learningOverview: [
+      { id: 'mastered', label: '累计掌握', value: ready ? String(Number(universe.masteredCount || 0)) : '—' },
+      { id: 'assessment', label: '测评报告', value: reportCount === null ? '—' : String(reportCount) },
+      { id: 'course', label: '课程验收', value: ready ? String(Number(universe.teacherEvidenceCount || 0)) : '—' }
+    ],
+    cards: topics.slice(0, UNIVERSE_CARD_LIMIT),
+    // 进入宇宙的知识点总数（含不在当前学期范围、没上球的）；宇宙页据此提示「还有多少没展示」。
+    universeTotal: ready ? Math.max(Number(universe.masteredCount || 0), topics.length) : null,
+    recentExplorations: topics.slice(0, 2)
+  }
+}
+
+async function loadKnowledgeUniverse() {
+  const [base, mapResult, reportResult] = await Promise.all([
+    loadCurrentStudentDashboardBase(),
+    loadKnowledgeMapPayload().then((value) => value, () => null),
+    loadCurrentDiagnosticReports().then((value) => value, () => null)
+  ])
+  return buildKnowledgeUniverse(base.profile, mapResult, reportResult ? reportResult.reports.length : null)
 }
 
 // 智能体备课用的学习基本盘：学习档案 + 全学科知识点掌握证据，压成紧凑摘要。
 // 两个读取各自容错：图谱失败时仍带上年级学期，由智能体通过摸底补齐。
+// 学习基本盘 = 学习宇宙（学习档案 + 知识图谱）+ 学生自己定的学习目标和学习偏好（2026-10-07 用户规则：
+// 老师生成课程前必须先看这些）。各读各的，目标、偏好读不到时标 unavailable，不拖累知识点那部分。
+// 偏好接口的回包里带着学习目标（goal），一次读两样。
 async function loadLearnerBaseline() {
-  const [profileResult, mapResult] = await Promise.allSettled([
+  // 按目标测评的目标导图（2026-10-10）：开场就交给老师 AI，定纲按导图的卡点来；读不到照常摸底
+  const [profileResult, mapResult, preferenceResult, goalMapResult] = await Promise.allSettled([
     invokeActionFlow(config.ACTION_FLOWS.GET_CURRENT_LEARNING_PROFILE),
-    invokeActionFlow(config.ACTION_FLOWS.GET_CURRENT_STUDENT_KNOWLEDGE_MAP)
+    invokeActionFlow(config.ACTION_FLOWS.GET_CURRENT_STUDENT_KNOWLEDGE_MAP),
+    loadLearningPreference(),
+    loadGoalDiagnosis()
   ])
   const profile = profileResult.status === 'fulfilled' ? normalizeProfile(parseActionFlowResult(profileResult.value)) : null
   const knowledgeMap = mapResult.status === 'fulfilled' ? parseActionFlowResult(mapResult.value) : null
   if (!profile && !knowledgeMap) throw (profileResult.reason || mapResult.reason || new Error('学习基本盘读取失败'))
-  return summarizeLearnerBaseline(profile, knowledgeMap)
+  return Object.assign(summarizeLearnerBaseline(profile, knowledgeMap), {
+    learningGoal: summarizeLearningGoal(preferenceResult.status === 'fulfilled' && preferenceResult.value ? preferenceResult.value.goal : null),
+    learningPreference: summarizeLearningPreference(preferenceResult.status === 'fulfilled' ? preferenceResult.value : null),
+    goalMap: summarizeGoalMap(goalMapResult.status === 'fulfilled' ? goalMapResult.value : null)
+  })
 }
 
 async function loadKnowledgeTopic(topicId) {
@@ -2105,6 +3476,101 @@ async function generateCurrentPromoterPosterBackground(theme, onStatus) {
   throw new Error('海报生成时间较长，请稍后重新进入查看。')
 }
 
+// ---- 邀请码中心（AF46，2026-09-22）----
+// 对外一律叫「邀请码」（2026-09-22 用户定名）；Zion 侧的动作流、表字段与本文件的标识符
+// 仍是 promotion_code / PROMOTION_CODE_*，改名只改给用户看的文案，不动后端契约。
+// 人人都有邀请码：首次调用时后端惰性建一条推广档案（状态 inactive）。
+// 小程序码由后端签发（扫码进首页，场景值带 pc=<邀请码>），前端不生成、不伪造。
+const PROMOTION_CODE_MESSAGES = {
+  unauthenticated: '请先登录后再使用邀请码。',
+  profile_incomplete: '请先完善学习档案后再绑定邀请码。',
+  invalid_code: '请填写邀请码。',
+  code_not_found: '邀请码不存在，请核对后重试。',
+  self_code: '不能填写自己的邀请码。',
+  invalid_asset: '海报不存在或已下架。',
+  poster_unavailable: '该海报暂时不能生成推广图。',
+  qrcode_unavailable: '小程序码生成失败，请稍后重试。',
+  promotion_code_unavailable: '邀请码分配失败，请稍后重试。',
+  bind_failed: '绑定失败，请稍后重试。'
+}
+
+// 确定性失败（再试一次结果也一样）：调用方据此丢掉待绑定线索，不让它在后续启动里反复冒出来。
+// profile_incomplete 不在其中——建档之后还能绑上。
+const TERMINAL_PROMOTION_CODE_STATUSES = ['invalid_code', 'code_not_found', 'self_code']
+
+function promotionCodeError(status) {
+  const error = new Error(PROMOTION_CODE_MESSAGES[status] || '邀请码服务暂时不可用，请稍后重试。')
+  error.promotionStatus = status
+  if (TERMINAL_PROMOTION_CODE_STATUSES.includes(status)) error.terminalReferral = true
+  return error
+}
+
+async function invokePromotionCodeCenter(payload) {
+  const result = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.PROMOTION_CODE_CENTER, { payload }, { timeout: 20000 }
+  )) || {}
+  const status = String(result.status || '')
+  if (status === 'ready' || status === 'already_attributed') return result
+  throw promotionCodeError(status)
+}
+
+function normalizePromoterView(promoter) {
+  if (!promoter) return null
+  return {
+    id: String(promoter.id || ''),
+    name: String(promoter.display_name || '') || '知鹿用户',
+    promotionCode: String(promoter.promotion_code || ''),
+    // 状态 active 表示已开通推广伙伴（可提现），普通用户是 inactive 但照样能拉人
+    partnerActive: String(promoter.status || '') === 'active',
+    qrUrl: String(promoter.qr_url || '')
+  }
+}
+
+/** 我的邀请码与小程序码。 */
+async function loadCurrentPromotionCode() {
+  const result = await invokePromotionCodeCenter({ operation: 'code' })
+  return normalizePromoterView(result.promoter)
+}
+
+/**
+ * 取海报原图与我的透明底小程序码（合成在小程序端做）。
+ * 两个地址都是后端签发的签名链接，约两天过期，拿到就用、别存起来。
+ */
+async function loadCurrentPromotionPosterParts(assetId) {
+  const id = Number(assetId)
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error('海报不存在或已下架。')
+  const result = await invokePromotionCodeCenter({ operation: 'poster', asset_id: id })
+  const posterUrl = String(result.poster_url || '')
+  const qrUrl = String(result.qr_url || '')
+  if (!posterUrl || !qrUrl) throw new Error('推广图生成失败，请稍后重试。')
+  return { posterUrl, qrUrl, promotionCode: String(result.promotion_code || '') }
+}
+
+/**
+ * 按邀请码绑定推荐人；已有推荐人时返回 alreadyBound，不覆盖。
+ * rewardCredits 是「填邀请码送积分」活动这次到账的积分：活动关着、已经领过或额度发完都是 0。
+ */
+async function bindCurrentPromotionCode(promotionCode) {
+  const code = String(promotionCode || '').trim().toUpperCase()
+  if (!code) throw promotionCodeError('invalid_code')
+  const result = await invokePromotionCodeCenter({ operation: 'bind', promotion_code: code })
+  const rewardCredits = Number(result.reward_credits)
+  return {
+    alreadyBound: result.status === 'already_attributed',
+    referrer: normalizePromoterView(result.referrer),
+    rewardCredits: Number.isFinite(rewardCredits) && rewardCredits > 0 ? rewardCredits : 0
+  }
+}
+
+/** 我的推荐人（谁把我带进来的）及其二维码；没有返回 null。 */
+async function loadCurrentReferrer() {
+  const result = await invokePromotionCodeCenter({ operation: 'referrer' })
+  return {
+    referrer: normalizePromoterView(result.referrer),
+    attributedAt: String(result.attributed_at || '')
+  }
+}
+
 async function loadPublishedPromotionAssets() {
   const payload = parseActionFlowResult(await invokeActionFlow(
     config.ACTION_FLOWS.GET_CURRENT_PUBLISHED_PROMOTION_ASSETS
@@ -2125,6 +3591,7 @@ async function loadPublishedPromotionAssets() {
       campaignKey: String(item.campaign_key || ''),
       copyText: String(item.copy_text || ''),
       publishedAt: item.published_at || '',
+      expiresAt: item.expires_at || '',
       coverImage: item.cover_image && item.cover_image.url ? {
         id: String(item.cover_image.id || ''), url: String(item.cover_image.url)
       } : null,
@@ -2141,18 +3608,95 @@ async function loadCurrentLearningCheckin() {
     config.ACTION_FLOWS.GET_CURRENT_LEARNING_CHECKIN, {}, { timeout: 10000 }
   )) || {}
   if (payload.status === 'unauthenticated') throw new Error('请先登录后查看学习打卡。')
-  if (payload.status === 'not_initialized') throw new Error('请先完善学习档案后查看学习打卡。')
+  if (payload.status === 'not_initialized') throw createProfileRequiredError('请先完善学习资料后查看学习打卡。')
   const dayPattern = /^\d{4}-\d{2}-\d{2}$/
   if (payload.status !== 'ready' || !dayPattern.test(String(payload.today || ''))) {
     throw new Error('学习打卡暂时无法读取，请稍后重试。')
   }
+  const days = (value) => (Array.isArray(value) ? value : []).map(String).filter((day) => dayPattern.test(day))
+  const today = payload.todayCheckin && typeof payload.todayCheckin === 'object' ? payload.todayCheckin : null
+  const reward = payload.reward && typeof payload.reward === 'object' ? payload.reward : {}
+  const revivable = payload.revivable && typeof payload.revivable === 'object' ? payload.revivable : null
   return {
     today: String(payload.today),
-    thresholdSeconds: wholeNumber(payload.thresholdSeconds),
-    todaySeconds: wholeNumber(payload.todaySeconds),
-    checkedDates: (Array.isArray(payload.checkedDates) ? payload.checkedDates : [])
-      .map(String).filter((day) => dayPattern.test(day))
+    checkedDates: days(payload.checkedDates),
+    // 冻结日（可以在未来）、复活补上的日子：受保护，接得上连胜但不计天数。
+    frozenDates: days(payload.frozenDates),
+    revivedDates: days(payload.revivedDates),
+    todayCheckin: today ? {
+      source: String(today.source || ''),
+      title: String(today.title || ''),
+      rewardCoins: Math.max(0, wholeNumber(today.rewardCoins))
+    } : null,
+    // 打卡金币按连续天数递增（2026-09-27）：nextCoins 是下一次打卡能拿多少，nextDay 说是今天还是明天。
+    reward: {
+      enabled: reward.enabled === true,
+      coins: Math.max(0, wholeNumber(reward.coins)),
+      nextDay: reward.nextDay === 'tomorrow' ? 'tomorrow' : 'today',
+      nextCoins: Math.max(0, wholeNumber(reward.nextCoins))
+    },
+    coinsEarned: Math.max(0, wholeNumber(payload.coinsEarned)),
+    cards: (Array.isArray(payload.cards) ? payload.cards : [])
+      .filter((card) => card && ['freeze', 'revive'].includes(card.type))
+      .map((card) => ({
+        type: card.type,
+        title: String(card.title || ''),
+        description: String(card.description || ''),
+        count: Math.max(0, wholeNumber(card.count)),
+        effectDays: Math.max(0, wholeNumber(card.effectDays)),
+        windowDays: Math.max(0, wholeNumber(card.windowDays)),
+        enabled: card.enabled === true
+      })),
+    cardRules: (Array.isArray(payload.cardRules) ? payload.cardRules : [])
+      .filter((rule) => rule && ['freeze', 'revive'].includes(rule.cardType))
+      .map((rule) => ({
+        cardType: rule.cardType,
+        trigger: rule.trigger === 'total_days' ? 'total_days' : 'streak_days',
+        days: Math.max(0, wholeNumber(rule.days)),
+        repeat: rule.repeat === 'every' ? 'every' : 'once',
+        count: Math.max(0, wholeNumber(rule.count))
+      }))
+      .filter((rule) => rule.days > 0 && rule.count > 0),
+    freezePlan: Array.isArray(payload.freezePlan) ? days(payload.freezePlan) : null,
+    revivable: revivable && Array.isArray(revivable.dates) ? { dates: days(revivable.dates) } : null
   }
+}
+
+// 使用学习连胜道具卡（AF48）：freeze 冻结接下来几天，revive 补回最近断掉的几天。
+// 同一次点击重试时复用同一个幂等键，不会扣两张卡。
+async function useCurrentStreakCard(cardType, idempotencyKey) {
+  if (!['freeze', 'revive'].includes(cardType)) throw new Error('道具卡无效，请刷新后重试。')
+  // 流程编号由 scripts/learning-streak/deploy-learning-streak-zion.mjs 上线后写进 config；还没写进来就是还没开放。
+  if (!/^[0-9a-f-]{36}$/i.test(String(config.ACTION_FLOWS.USE_CURRENT_STREAK_CARD.id || ''))) throw new Error('道具卡暂未开放，请稍后再试。')
+  const key = String(idempotencyKey || createStreakCardKey())
+  const payload = parseActionFlowResult(await invokeActionFlow(
+    config.ACTION_FLOWS.USE_CURRENT_STREAK_CARD,
+    { payload: { operation: 'use', card_type: cardType, idempotency_key: key } },
+    { timeout: 15000 }
+  )) || {}
+  const messages = {
+    unauthenticated: '请先登录后再使用道具卡。',
+    not_initialized: '请先完善学习档案。',
+    no_card: cardType === 'freeze' ? '冻结卡用完了。' : '复活卡用完了。',
+    card_disabled: '这种道具卡暂未开放。',
+    no_streak: '现在还没有连胜，不需要冻结。',
+    nothing_to_revive: '连胜没有断，暂时不需要复活卡。',
+    invalid: '请求无效，请刷新后重试。'
+  }
+  if (payload.status !== 'used') throw new Error(messages[payload.status] || '道具卡暂时无法使用，请稍后重试。')
+  return {
+    cardType: payload.card_type,
+    dates: (Array.isArray(payload.dates) ? payload.dates : []).map(String),
+    remaining: Math.max(0, wholeNumber(payload.remaining)),
+    streakDays: Math.max(0, wholeNumber(payload.streak_days)),
+    replayed: payload.replayed === true
+  }
+}
+
+function createStreakCardKey() {
+  const timestamp = Date.now().toString(36)
+  const random = Math.random().toString(36).slice(2, 14)
+  return `streak-card-${timestamp}-${random}`
 }
 
 async function claimCurrentDailyCoinCheckin() {
@@ -2283,7 +3827,8 @@ async function loadCurrentFamilyRelations() {
     self,
     students: (payload.students || []).map((relation) => ({
       ...relation,
-      student: relation.student_profile || null
+      student: relation.student_profile || null,
+      avatarUrl: profileAvatarUrl(relation.student_profile)
     })),
     guardians: payload.guardians || []
   }
@@ -2329,16 +3874,23 @@ async function bindCurrentGuardianToStudent(code) {
     unauthenticated: '请先登录后绑定学生。',
     not_initialized: '当前账号尚未完成初始化，请重新登录后重试。',
     guardian_verification_required: '请先完成家长实名认证。',
+    guardian_underage: `实名认证显示未满 ${payload.minAge || 22} 周岁，暂不能作为家长绑定学生。`,
+    guardian_age_unknown: '实名信息里没有出生日期，请重新提交一次实名认证。',
     invalid_code: '绑定码无效，请向学生重新获取。',
     expired: '绑定码已过期，请向学生重新获取。',
     already_used: '绑定码已被使用，请向学生重新获取。',
     self_binding_forbidden: '不能绑定自己的学生档案。',
     already_bound: '该学生已经在你的家庭关系中。',
-    relation_inactive: '该家庭关系当前不可用，请联系客服处理。'
+    relation_inactive: '该家庭关系当前不可用，请联系客服处理。',
+    // 服务商（2026-10-11）：绑定码绑的 + 建的网页端孩子合计到了后台设的上限
+    provider_limit_reached: `已绑定 ${payload.used || payload.limit || 0} 个孩子，达到上限 ${payload.limit || 0} 个，需要更多名额请联系知鹿调整。`
   }
 
   if (payload.status !== 'bound') {
-    throw new Error(messages[payload.status] || '绑定学生失败，请稍后重试。')
+    // 带上状态码：绑定页据 guardian_verification_required 切回「先完成实名认证」
+    const error = new Error(messages[payload.status] || '绑定学生失败，请稍后重试。')
+    error.status = payload.status
+    throw error
   }
 
   return payload.relation || null
@@ -2383,7 +3935,12 @@ async function submitCurrentGuardianIdentityVerification(form = {}) {
     if (identityVerificationFlight === flight) identityVerificationFlight = null
   }
 
-  if (!payload.success) throw new Error(payload.message || '实名认证未通过，请核对信息后重试。')
+  if (!payload.success) {
+    const error = new Error(payload.message || '实名认证未通过，请核对信息后重试。')
+    // identity_mismatch：已实名的账号填了另一个人的姓名或身份证号（推广伙伴申请页据此提示填实名那张证）
+    if (payload.verify === 'identity_mismatch') error.code = 'IDENTITY_MISMATCH'
+    throw error
+  }
 
   return {
     recordId: payload.recordId == null ? null : String(payload.recordId),
@@ -2397,21 +3954,27 @@ async function submitCurrentGuardianIdentityVerification(form = {}) {
   }
 }
 
-async function loadGuardianDashboard() {
+// 学生看板（2026-10-11 起）：后端先列名下全部孩子（称呼、年级、头像），只读 studentProfileId 那一个孩子的完整数据
+// （不传或不在名下就是第一个）；返回里只有那个孩子 detailLoaded = true。服务商名下孩子多，一次全读会超时。
+async function loadGuardianDashboard(studentProfileId) {
   const payload = parseActionFlowResult(await invokeActionFlow(
-    config.ACTION_FLOWS.GET_CURRENT_GUARDIAN_DASHBOARD
+    config.ACTION_FLOWS.GET_CURRENT_GUARDIAN_DASHBOARD,
+    { payload: studentProfileId ? { studentProfileId: String(studentProfileId) } : {} }
   )) || {}
 
   return {
     status: payload.status || 'no-active-children',
+    selectedStudentProfileId: payload.selected_student_profile_id == null ? null : String(payload.selected_student_profile_id),
     children: (payload.children || []).map((relation) => {
       const profile = relation.student_profile || {}
       return {
         relationId: relation.id,
+        detailLoaded: relation.detail_loaded === true,
         relationshipType: relation.relationship_type || 'guardian',
         effectiveAt: relation.effective_at || null,
         expiresAt: relation.expires_at || null,
         profile,
+        avatarUrl: profileAvatarUrl(profile),
         report: (profile.diagnostic_reports || [])[0] || null,
         prediction: (profile.score_predictions || [])[0] || null,
         plan: (profile.learning_plans || [])[0] || null,
@@ -2437,6 +4000,7 @@ async function loadGuardianLearningFeed() {
     children: (payload.children || []).map((relation) => ({
       relationId: relation.id,
       profile: relation.student_profile || {},
+      avatarUrl: profileAvatarUrl(relation.student_profile),
       state: relation.student_profile && relation.student_profile.current_learning_state || null,
       rollups: relation.student_profile && relation.student_profile.learning_time_rollups || []
     }))
@@ -2544,14 +4108,29 @@ async function createSecureCreditOrder(productVersionId, beneficiaryStudentId, i
   if (!Number.isSafeInteger(productVersion) || productVersion <= 0) throw new Error('商品版本无效，请返回商城重新选择。')
   if (!Number.isSafeInteger(beneficiary) || beneficiary <= 0) throw new Error('受益学生无效，请重新进入确认订单。')
 
-  const payload = parseActionFlowResult(await invokeActionFlow(
-    config.ACTION_FLOWS.CREATE_SECURE_CREDIT_ORDER,
-    {
-      product_version_id: productVersion,
-      beneficiary_student_id: beneficiary,
-      idempotency_key: idempotencyKey || createIdempotencyKey()
+  let payload
+  try {
+    payload = parseActionFlowResult(await invokeActionFlow(
+      config.ACTION_FLOWS.CREATE_SECURE_CREDIT_ORDER,
+      {
+        product_version_id: productVersion,
+        beneficiary_student_id: beneficiary,
+        idempotency_key: idempotencyKey || createIdempotencyKey()
+      }
+    )) || {}
+  } catch (error) {
+    // 后端：支付开关关着（管理端「活动开关 → 会员与积分包支付」）不能下单
+    if (/PAYMENT_DISABLED/.test(String(error && error.message || ''))) {
+      throw Object.assign(new Error(paymentClosedMessage('credits')), { code: 'PAYMENT_DISABLED' })
     }
-  )) || {}
+    // 后端：没有推荐人归因不能下单（「该学生尚未建立有效推广归因」）
+    if (/推广归因/.test(String(error && error.message || ''))) {
+      const wrapped = new Error('请先填写邀请码（有推荐人）后再购买积分包。')
+      wrapped.code = 'CREDIT_INVITE_REQUIRED'
+      throw wrapped
+    }
+    throw error
+  }
 
   if (!payload.order_id && !payload.orderId) throw new Error('订单创建未返回订单编号，请稍后在订单记录中确认。')
   return {
@@ -2596,20 +4175,63 @@ async function redeemCurrentStudentCode(code, beneficiaryStudentId, idempotencyK
   return payload
 }
 
-async function loadCurrentCreditAccount() {
+function ledgerProfileName(profile, fallback) {
+  return profile && (profile.nickname || profile.real_name) || fallback
+}
+
+// Who a ledger row was spent on, seen from the account being viewed. Empty when owner and beneficiary
+// are the same person (the ordinary case); otherwise names the child (guardian view) or the guardian
+// whose credits paid (child view).
+function ledgerCounterpartyLabel(item, targetId) {
+  const ownerId = item.learner_profile_id != null ? String(item.learner_profile_id) : targetId
+  const beneficiaryId = item.beneficiary_profile_id != null ? String(item.beneficiary_profile_id) : ownerId
+  if (beneficiaryId === ownerId) return ''
+  if (ownerId === targetId) return `使用人：${ledgerProfileName(item.beneficiary_profile, '孩子')}`
+  return `使用${ledgerProfileName(item.learner_profile, '家长')}的积分`
+}
+
+// 定制课程扣费（agent_course）与补扣欠款（agent_course_debt_repay）流水的说明：课程名；当时余额不够的，
+// 写清这节课多少积分、还欠多少（或已补扣）。流水的 business_ref 是课程编号，对应积分账户返回的 agentCourseCharges。
+function agentCourseLedgerDetail(item, charges) {
+  const type = item.business_type
+  if (type !== 'agent_course' && type !== 'agent_course_debt_repay') return ''
+  const charge = charges[item.business_ref]
+  const title = charge && charge.title ? `《${charge.title}》` : ''
+  if (type === 'agent_course_debt_repay') return title ? `${title}的欠款` : ''
+  if (!charge) return ''
+  const debt = Number(charge.debt_credits) || 0
+  if (!(debt > 0)) return title
+  const owed = Math.max(0, debt - (Number(charge.repaid_credits) || 0))
+  const state = owed > 0 ? `${roundedCredits(owed)} 待补扣` : '欠款已补扣'
+  return `${title}${title ? ' · ' : ''}本节 ${roundedCredits(charge.actual_credits)}，${state}`
+}
+
+// studentId is optional: a bound guardian passes a child's profile id to read that child's account.
+async function loadCurrentCreditAccount(studentId) {
+  const args = studentId ? { studentId: String(studentId) } : {}
   let payload
   try {
-    payload = parseActionFlowResult(await invokeActionFlow(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT)) || {}
+    payload = parseActionFlowResult(await invokeActionFlow(config.ACTION_FLOWS.GET_CURRENT_CREDIT_ACCOUNT, args)) || {}
   } catch (error) {
     const message = String(error && error.message || '')
     if (/polyglotexception|syntaxerror|missing close quote/i.test(message)) {
       throw new Error('课程积分服务配置异常，请联系管理员处理。')
     }
+    if (message.includes('STUDENT_NOT_AUTHORIZED')) throw new Error('没有查看该学生课程积分的权限。')
     throw error
   }
   const account = payload.account || {}
+  const targetId = payload.studentId != null ? String(payload.studentId) : ''
+  // 每节定制课程扣过一次（status charged）；同一节课没扣成的那几次（released）不显示在流水里
+  const agentCharges = {}
+  ;(payload.agentCourseCharges || []).forEach((row) => {
+    if (row && row.stage_id && row.status === 'charged') agentCharges[row.stage_id] = row
+  })
+  const viewerId = payload.viewerStudentId != null ? String(payload.viewerStudentId) : targetId
   return {
     studentId: payload.studentId || null,
+    viewer: { studentId: viewerId || null, isSelf: !targetId || viewerId === targetId },
+    student: payload.student ? { id: String(payload.student.id), name: ledgerProfileName(payload.student, '') } : null,
     account: {
       status: account.status || 'inactive',
       available: roundedCredits(account.available_credits),
@@ -2627,8 +4249,11 @@ async function loadCurrentCreditAccount() {
       ...item,
       creditsDisplay: roundedCredits(item.credits),
       businessLabel: display.businessLabel(item.business_type, item.entry_type),
-      occurredAtLabel: display.dateTimeLabel(item.occurred_at)
+      occurredAtLabel: display.dateTimeLabel(item.occurred_at),
+      counterpartyLabel: agentCourseLedgerDetail(item, agentCharges) || ledgerCounterpartyLabel(item, targetId)
     })),
+    // 定制课程余额不够时记下的欠款（还没补扣的部分）；之后账户再有积分会先自动补扣
+    debt: roundedCredits(payload.debt),
     orders: (payload.orders || []).map((item) => ({
       ...item,
       amountDisplay: decimalText(item.amount),
@@ -2663,15 +4288,19 @@ async function loadOrders() {
   return account.orders || []
 }
 
+// 买积分包只要有推荐人（2026-09-25 用户规则，与开通会员同一口径）：填过邀请码、扫码或分享卡片带来的都算，
+// 推荐人不必是已开通的推广伙伴（普通用户的邀请码对应的推广档案是 inactive）。下单时后端同样要求有推荐人归因。
 async function loadPurchaseEligibility() {
   const account = await loadCurrentCreditAccount()
   const attribution = account.attribution
   const promoter = attribution && attribution.promoter
   return {
-    eligible: Boolean(attribution && promoter && promoter.status === 'active'),
+    eligible: Boolean(attribution && promoter),
+    // 积分包页顶部显示当前可用积分（同一次读取，不另发请求）
+    balance: account.account,
     attribution,
     promoter: promoter ? {
-      name: promoter.display_name || '推广伙伴',
+      name: promoter.display_name || '邀请人',
       serviceContact: promoter.service_contact || '',
       promotionCode: promoter.promotion_code || ''
     } : null
@@ -2687,8 +4316,19 @@ async function loadOrderDetail(orderId) {
   return order
 }
 
+// 「我的」页等处的账号资料。还没完善学习档案的账号也照常返回（completed: false），
+// 页面据此提示去完善，积分、金币等账户信息照常显示，不把整页当成读取失败。
 async function loadMeDashboard() {
-  const { profile, student } = await loadCurrentStudentDashboardBase()
+  const currentUser = await loadCurrentUser()
+  const completed = Boolean(currentUser.profileCompleted && currentUser.profile)
+  const profile = currentUser.profile || {}
+  const student = completed ? {
+    id: profile.id,
+    name: profileDisplayName(profile),
+    relation: '本人',
+    initial: profileInitial(profile),
+    gradeLabel: profileGradeLabel(profile)
+  } : null
   let creditAccount = null
   try {
     creditAccount = await loadCurrentCreditAccount()
@@ -2697,17 +4337,20 @@ async function loadMeDashboard() {
   }
   return {
     profile: {
-      id: profile.id,
-      publicId: profile.public_id,
+      id: profile.id || null,
+      publicId: profile.public_id || '',
       displayName: profileDisplayName(profile),
       initial: profileInitial(profile),
       avatarUrl: profile.avatar_url || profile.avatar && profile.avatar.url || '',
       roleLabel: '学生本人',
-      gradeLabel: `${profileGradeLabel(profile)}${profile.textbook_version ? ` · ${profile.textbook_version}` : ''}`,
-      identityLabel: '学习档案完整'
+      accountType: profile.account_type === 'guardian' ? 'guardian' : 'student',
+      // 家长不显示年级（切换为家长后学生资料会保留，但不是家长自己的年级）
+      gradeLabel: !completed ? '' : profile.account_type === 'guardian' ? '家长' : `${profileGradeLabel(profile)}${profile.textbook_version ? ` · ${profile.textbook_version}` : ''}`,
+      identityLabel: completed ? '学习档案完整' : '学习资料未完善',
+      completed
     },
-    currentStudentId: student.id,
-    students: [student],
+    currentStudentId: student ? student.id : null,
+    students: student ? [student] : [],
     balances: creditAccount ? {
       coursePoints: creditAccount.account.available,
       frozenPoints: creditAccount.account.frozen
@@ -2743,7 +4386,11 @@ async function loadCurrentGrowthCenter() {
       expired: wholeNumber(coinAccount.expired_coins)
     },
     coinLedger: (payload.coinLedger || []).map(item => ({ ...item, businessLabel: display.businessLabel(item.business_type, item.entry_type, 'coin') })),
-    withdrawals: (payload.withdrawals || []).map(item => ({ ...item, statusLabel: display.statusLabel(item.status) })),
+    withdrawals: (payload.withdrawals || []).map(item => ({
+      ...item,
+      statusLabel: display.statusLabel(item.status, 'withdrawal'),
+      amountLabel: Number.isFinite(Number(item.net_amount)) ? `¥${Number(item.net_amount).toFixed(2)}` : ''
+    })),
     redemptionRecords: (payload.redemptionRecords || []).map(item => ({ ...item, statusLabel: display.statusLabel(item.status, 'redemption') })),
     rewards: partner.rewards || [],
     elections: partner.elections || [],
@@ -2762,6 +4409,7 @@ async function requestK12Assessment(payload) {
     scope_mismatch: '测评范围与当前年级、学期不一致，请重新选择。', bank_not_ready: '题库正在准备，请稍后再来。',
     revision_conflict: '答案状态已更新，请重新加载后继续。', answer_already_saved: '本题答案已经保存。',
     answers_required: '请先完成至少一道题。', attempt_not_found: '没有找到本人的测评记录。',
+    attempt_legacy: '这是旧版测评记录，请回到测评列表重新开始。',
     invalid_answer: '请检查答案格式。', invalid_question: '本题暂不可用，请重新加载。'
   }
   if (!result || !['ready', 'submitted'].includes(result.status)) {
@@ -2774,7 +4422,17 @@ async function requestK12Assessment(payload) {
 
 module.exports = {
   getStoredToken,
+  hasSession,
+  isProfileRequired,
+  loadViewerAccess,
+  accessOfError,
+  requestCourseApi,
+  requestCourseUpload,
   requestK12Assessment,
+  // 直播间等后加的服务自己组织调用，共用这里的动作流通道与登录态重试
+  invokeActionFlow,
+  parseActionFlowResult,
+  uploadPrivateFile,
   loadCurrentMembership,
   createMembershipOrder,
   resetPhoneSessionVerification,
@@ -2782,12 +4440,56 @@ module.exports = {
   restoreAuthenticatedUser,
   signOut,
   resetDevelopmentAccount,
+  unlockDevelopmentReset,
   loadCurrentUser,
   loadHomeDashboard,
   loadLearningDashboard,
   loadKnowledgeMap,
+  loadKnowledgeUniverse,
+  loadAgentCourseAcceptance,
+  sendAgentCourseAcceptance,
+  loadAgentCourseReview,
+  loadAgentCourseHomework,
+  submitAgentCourseHomework,
+  retryAgentCourseHomework,
+  loadGuardianHomework,
+  checkAgentCourseReviewAnswer,
+  submitAgentCourseReview,
+  finishAgentCourseForTest,
+  loadTeacherStudentAgentCourses,
+  loadTeacherAgentAcceptance,
+  reviewAgentCourseAcceptance,
+  loadTeacherStudyPlan,
+  updateTeacherStudyPlan,
+  loadTeacherStudyAlerts,
+  loadTeacherStudyReminder,
+  createTeacherStudyReminder,
+  loadTeacherParentReports,
+  createTeacherParentReport,
+  loadTeacherDailyLearning,
+  createTeacherDailyNote,
+  downloadTeacherParentReport,
+  deleteTeacherParentReport,
+  pushTeacherParentReport,
+  loadGuardianParentReports,
+  downloadGuardianParentReport,
+  registerServiceAccountLink,
+  loadStudyPlanDays,
+  buildKnowledgeUniverse,
   loadKnowledgeTopic,
   loadLearnerBaseline,
+  loadLearningPreference,
+  saveLearningPreference,
+  loadLearningGoal,
+  loadGoalDiagnosis,
+  loadSpeechAudio,
+  goalDiagnosis,
+  loadTeacherGoalDiagnosis,
+  loadWebChildren,
+  createWebChild,
+  setWebChildPassword,
+  saveLearningGoal,
+  loadTeacherLearningPreference,
   loadCreditProducts,
   loadCreditProduct,
   createSecureCreditOrder,
@@ -2826,14 +4528,26 @@ module.exports = {
   addCurrentTopicCandidate,
   removeCurrentTopicCandidate,
   loadCurrentServiceContacts,
+  loadCurrentTeacherWorkspace,
+  bindStudentAsCurrentTeacher,
+  loadTeacherStudentProfile,
+  loadTeacherStudentAssessments,
+  loadTeacherStudentAssessment,
+  saveTeacherStudentProfile,
+  cancelTeacherAgentInvite,
+  uploadTeacherInviteVoice,
+  saveTeacherInviteVoice,
+  saveTeacherInviteDetails,
+  createTeacherAgentInvite,
+  loadTeacherAgentInvite,
+  markTeacherAgentSession,
   createCourseLaunchUrl,
-  courseShareUrl,
   createLibraryCourseLaunchUrl,
   createAgentCourseLaunchUrl,
   loadAgentCourses,
   loadAgentCourse,
   loadMemberCourseLibrary,
-  approveCourseDevice,
+  loadCourseCovers,
   createAcceptanceLaunchUrl,
   createCurrentFeynmanAcceptance,
   uploadCurrentAcceptanceAudio,
@@ -2850,8 +4564,13 @@ module.exports = {
   loadCurrentGrowthCenter,
   generateCurrentPromoterPosterBackground,
   loadPublishedPromotionAssets,
+  loadCurrentPromotionCode,
+  loadCurrentPromotionPosterParts,
+  bindCurrentPromotionCode,
+  loadCurrentReferrer,
   claimCurrentDailyCoinCheckin,
   loadCurrentLearningCheckin,
+  useCurrentStreakCard,
   createCurrentPromoterInvitation,
   recordCurrentPromotionTouchAndAttribute,
   saveCurrentLearningProfile,

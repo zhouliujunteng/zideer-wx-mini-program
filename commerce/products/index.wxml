@@ -1,20 +1,101 @@
-<view class="commerce-page">
-  <view class="commerce-head">
-    <text class="commerce-eyebrow">课程积分</text>
-    <view class="commerce-title-row"><text class="commerce-title">商城</text><button class="commerce-link pressable" bindtap="openAccount">我的积分</button></view>
-    <text class="commerce-copy">商品价格、积分和服务规则以后台已发布版本为准。</text>
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 积分包（PRD M28）。没有设计稿：顶部余额与氛围取自课程积分页（M34），选包 → 看须知 → 底部购买取自会员中心（E02）。 -->
+<view class="packs-page">
+  <view class="packs-ambient" aria-hidden="true"><view class="packs-ambient-ribbon"></view></view>
+  <view class="packs-topbar {{topbarSolid ? 'is-solid' : ''}}">
+    <view class="packs-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="packs-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="packs-back-icon"></view></view>
+      <text class="packs-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">积分包</text>
+    </view>
   </view>
-  <view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">商城暂时没有加载出来</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
-  <view class="state-panel" wx:elif="{{!eligible}}"><view class="state-panel__mark">!</view><text class="state-panel__title">暂未获得购买资格</text><text class="state-panel__copy">需要先建立有效推广归因，服务端才会允许创建订单。</text><button class="state-panel__action pressable" bindtap="openEligibility">查看购买资格</button></view>
-  <view class="state-panel" wx:elif="{{!products.length}}"><view class="state-panel__mark">＋</view><text class="state-panel__title">暂无可购买商品</text><text class="state-panel__copy">管理员发布课程积分商品后，会在这里显示对应版本的价格和权益。</text></view>
-  <view class="product-list" wx:else>
-    <button class="product-card surface pressable" wx:for="{{products}}" wx:key="id" bindtap="openProduct" data-id="{{item.id}}">
-      <view class="product-card__top"><text class="product-card__name">{{item.name}}</text><view class="product-card__price"><text class="product-card__amount">¥{{item.payableAmount}}</text><text wx:if="{{item.memberPriceApplied}}" class="product-card__list">¥{{item.amount}}</text></view></view>
-      <text wx:if="{{item.memberPriceApplied}}" class="product-card__member is-applied">会员价</text><text wx:elif="{{item.memberAmount}}" class="product-card__member">会员价 ¥{{item.memberAmount}}</text>
-      <text class="product-card__copy">{{item.description}}</text>
-      <view class="product-card__facts"><text>{{item.credits}} 课程积分</text><text wx:if="{{item.estimatedCourseCount}}">约 {{item.estimatedCourseCount}} 节课程</text></view>
-    </button>
+
+  <scroll-view class="packs-scroll" scroll-y show-scrollbar="{{false}}" bindscroll="handleScroll" style="padding-top: {{contentTop}}px;">
+    <view class="packs-shell {{loaded && eligible && packs.length ? 'has-buy-bar' : ''}}">
+      <!-- 当前可用积分（固定标题直接画，数值读到前是骨架） -->
+      <view class="packs-overview">
+        <view class="packs-overview-copy">
+          <text class="balance-eyebrow">当前可用积分</text>
+          <view wx:if="{{!loaded && !failed}}" class="sk balance-value-skeleton"></view>
+          <text wx:elif="{{balance}}" class="balance-value">{{balance.available}}</text>
+          <view class="balance-links">
+            <text wx:if="{{balance && balance.frozen && balance.frozen !== '0'}}" class="balance-frozen">冻结中 {{balance.frozen}}</text>
+            <view class="balance-link" bindtap="openAccount" aria-role="button" aria-label="查看积分明细"><text>积分明细</text><view class="balance-link-icon"></view></view>
+          </view>
+        </view>
+        <image class="balance-icon" src="{{UA.src(ui, '/assets/commerce/course-points-star-generated.png')}}" mode="aspectFit" aria-hidden="true"></image>
+      </view>
+
+      <view class="packs-list" wx:if="{{!loaded && !failed}}">
+        <view class="packs-heading"><text>选择积分包</text></view>
+        <view class="packs-grid">
+          <view class="pack-card" wx:for="{{[1, 2, 3, 4]}}" wx:key="*this">
+            <view class="sk pack-sk-credits"></view><view class="sk sk-line sk-mid pack-sk-name"></view><view class="sk pack-sk-price"></view>
+          </view>
+        </view>
+        <view class="packs-heading"><text>购买须知</text></view>
+        <view class="packs-rules">
+          <view class="packs-rule" wx:for="{{['预计课程数', '有效期', '教师服务', '退款规则']}}" wx:key="*this"><text>{{item}}</text><view class="sk sk-line pack-sk-rule"></view></view>
+        </view>
+      </view>
+      <view class="packs-state" wx:elif="{{!loaded}}">
+        <text class="packs-state-title">积分包暂时没有加载出来</text>
+        <view class="packs-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+      </view>
+      <view class="packs-state" wx:elif="{{!eligible}}">
+        <text class="packs-state-title">填写邀请码后即可购买</text>
+        <text class="packs-state-copy">购买积分包需要先有推荐人：填写邀请你的人的邀请码，填写后不可更改。</text>
+        <view class="packs-state-action is-primary" bindtap="openInviteCode" aria-role="button">填写邀请码</view>
+        <view class="packs-state-link" bindtap="openEligibility" aria-role="button">没有邀请码？申请分配推广伙伴</view>
+      </view>
+      <view class="packs-state" wx:elif="{{!packs.length}}">
+        <text class="packs-state-title">积分包还没有上架</text>
+        <text class="packs-state-copy">上架后会在这里显示价格、积分和预计可生成的课程数。</text>
+      </view>
+
+      <block wx:else>
+        <view wx:if="{{buyerIsMember}}" class="member-strip is-member">
+          <image class="member-strip-crown" src="{{UA.src(ui, '/assets/me/membership-crown-matte.png')}}" mode="aspectFit" aria-hidden="true"></image>
+          <text class="member-strip-copy">你是知鹿会员，积分包按会员价购买</text>
+        </view>
+        <view wx:elif="{{memberOffer}}" class="member-strip" bindtap="openMembership" aria-role="button" aria-label="开通会员享会员价">
+          <image class="member-strip-crown" src="{{UA.src(ui, '/assets/me/membership-crown-matte.png')}}" mode="aspectFit" aria-hidden="true"></image>
+          <text class="member-strip-copy">开通会员，积分包享会员价</text>
+          <text class="member-strip-action">去看看 ›</text>
+        </view>
+
+        <view class="packs-heading"><text>选择积分包</text></view>
+        <view class="packs-grid">
+          <view wx:for="{{packs}}" wx:key="id" class="pack-card {{item.isSelected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="selectPack" aria-role="radio" aria-checked="{{item.isSelected}}" aria-label="{{item.name}}，{{item.credits}} 积分，{{item.price}} 元">
+            <view wx:if="{{item.isSelected}}" class="pack-check" aria-hidden="true"><view class="pack-check-mark"></view></view>
+            <view class="pack-credits"><text class="pack-credits-value">{{item.credits}}</text><text class="pack-credits-unit">积分</text></view>
+            <text class="pack-name">{{item.name}}</text>
+            <view class="pack-price-row">
+              <text class="pack-yuan">¥</text><text class="pack-price">{{item.price}}</text>
+              <text wx:if="{{item.listPrice}}" class="pack-list-price">¥{{item.listPrice}}</text>
+            </view>
+            <view class="pack-foot">
+              <text wx:if="{{item.memberTag}}" class="pack-member-tag {{item.memberApplied ? 'is-applied' : ''}}">{{item.memberTag}}</text>
+              <text wx:if="{{item.courseText}}" class="pack-course">{{item.courseText}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="packs-heading"><text>购买须知</text></view>
+        <view class="packs-rules">
+          <text wx:if="{{selected.description}}" class="packs-rules-intro">{{selected.description}}</text>
+          <view class="packs-rule" wx:for="{{selected.rows}}" wx:key="label"><text>{{item.label}}</text><text class="packs-rule-value">{{item.value}}</text></view>
+        </view>
+        <text class="packs-note">课程数量只是购买前的估算，课程积分按实际生成的课程内容结算；支付完成前不会发放积分。</text>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{loaded && eligible && selected}}" class="buy-bar">
+    <view class="buy-bar-copy">
+      <view class="buy-bar-price"><text class="buy-bar-label">合计</text><text class="buy-bar-yuan">¥</text><text class="buy-bar-amount">{{selected.price}}</text></view>
+      <text class="buy-bar-sub">{{selected.savedText || '获得 ' + selected.credits + ' 课程积分'}}</text>
+    </view>
+    <view class="buy-button" bindtap="buy" aria-role="button" aria-label="购买{{selected.name}}">立即购买</view>
   </view>
 </view>
 <dev-reset-fab />

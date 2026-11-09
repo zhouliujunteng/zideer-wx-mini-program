@@ -1,0 +1,66 @@
+@import "../../styles/skeleton.wxss";
+/* 定制课程介绍：没有设计稿，按设计师已做页面的规则——积分包 / 课程积分页的氛围光、自定义顶栏、小节标题与白色大圆角卡片，
+   会员中心的暖金色会员提示；文字 #24332D、次要 #7E8A82，主按钮 #FF9F43 → #FD7C02 渐变胶囊。 */
+page { background: #FAFAFA; }
+
+.custom-intro-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.custom-intro-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; background: radial-gradient(125% 52% at 100% 0, rgba(201, 232, 255, .84) 0%, rgba(215, 239, 255, .48) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.custom-intro-ambient-ribbon { position: absolute; top: -140rpx; left: -430rpx; width: 1480rpx; height: 720rpx; box-sizing: border-box; border: 24rpx solid rgba(255, 255, 255, .72); border-top-color: transparent; border-right-color: transparent; border-radius: 50%; opacity: .84; transform: rotate(-18deg); }
+.custom-intro-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.custom-intro-topbar.is-solid { background: rgba(250, 250, 250, .96); }
+.custom-intro-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.custom-intro-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.custom-intro-back:active { background: #F0F2EF; }
+.custom-intro-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.custom-intro-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.custom-intro-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.custom-intro-shell { min-height: 100%; padding: 0 32rpx calc(200rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+/* 开头 */
+.custom-intro-hero { padding: 24rpx 8rpx 8rpx; }
+.custom-intro-eyebrow { display: block; color: #FD7C02; font-size: 23rpx; font-weight: 700; line-height: 1.3; }
+.custom-intro-title { display: block; margin-top: 16rpx; color: #24332D; font-size: 50rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1.25; }
+.custom-intro-lead { display: block; margin-top: 20rpx; color: #5C6A61; font-size: 26rpx; line-height: 1.7; }
+
+/* 点进来的会员课程：会员中心的暖金色 */
+.custom-intro-course { display: flex; align-items: center; margin-top: 32rpx; padding: 24rpx 28rpx; border: 2rpx solid #fff; border-radius: 32rpx; background: linear-gradient(105deg, #FFFDF8 0%, #FFF5E1 55%, #FFE8BA 100%); }
+.custom-intro-course-crown { flex: 0 0 auto; width: 64rpx; height: 54rpx; margin-right: 20rpx; }
+.custom-intro-course-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; }
+.custom-intro-course-title { color: #5E3F17; font-size: 27rpx; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.custom-intro-course-sub { margin-top: 6rpx; color: #8C6A3C; font-size: 23rpx; line-height: 1.4; }
+.custom-intro-course-sk { height: 24rpx; margin-top: 12rpx; }
+
+.custom-intro-heading { display: flex; align-items: center; margin-top: 40rpx; padding: 0 4rpx; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.2; }
+.custom-intro-card { margin-top: 20rpx; padding: 8rpx 28rpx; border-radius: 32rpx; background: #fff; }
+
+/* 定制课程有什么不同 */
+.custom-intro-feature { display: flex; align-items: flex-start; gap: 22rpx; padding: 26rpx 0; border-bottom: 2rpx solid #F0F3F0; }
+.custom-intro-feature:last-child { border-bottom: 0; }
+.custom-intro-feature-index { flex: 0 0 auto; width: 56rpx; color: #FD7C02; font-size: 34rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1.2; }
+.custom-intro-feature-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; }
+.custom-intro-feature-title { color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.4; }
+.custom-intro-feature-text { margin-top: 8rpx; color: #7E8A82; font-size: 24rpx; line-height: 1.65; }
+
+/* 怎么开始：左侧编号连成一条线 */
+.custom-intro-step { display: flex; align-items: stretch; gap: 22rpx; }
+.custom-intro-step-rail { display: flex; flex: 0 0 auto; flex-direction: column; align-items: center; width: 44rpx; padding-top: 24rpx; }
+.custom-intro-step-dot { display: flex; align-items: center; justify-content: center; width: 44rpx; height: 44rpx; border-radius: 50%; background: #FFF2E8; color: #D86A02; font-size: 22rpx; font-weight: 700; line-height: 1; }
+.custom-intro-step-line { flex: 1; width: 3rpx; min-height: 24rpx; margin: 8rpx 0 -24rpx; border-radius: 999rpx; background: #F3E2D2; }
+.custom-intro-step-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; padding: 24rpx 0; }
+.custom-intro-step-title { color: #24332D; font-size: 27rpx; font-weight: 700; line-height: 44rpx; }
+.custom-intro-step-text { margin-top: 4rpx; color: #7E8A82; font-size: 24rpx; line-height: 1.65; }
+
+/* 开通会员 */
+.custom-intro-member { margin-top: 32rpx; padding: 28rpx; border: 2rpx solid #fff; border-radius: 32rpx; background: linear-gradient(105deg, #FFFDF8 0%, #FFF5E1 55%, #FFE8BA 100%); }
+.custom-intro-member-title { display: block; color: #5E3F17; font-size: 28rpx; font-weight: 700; line-height: 1.4; }
+.custom-intro-member-text { display: block; margin-top: 8rpx; color: #8C6A3C; font-size: 23rpx; line-height: 1.65; }
+
+/* 底部按钮 */
+.custom-intro-bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 18; display: flex; align-items: center; gap: 20rpx; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .96); box-shadow: 0 -8rpx 24rpx rgba(36, 51, 45, .06); }
+.custom-intro-secondary { flex: 0 0 auto; height: 88rpx; padding: 0 40rpx; border-radius: 999rpx; background: #F0F2EF; color: #4A514C; font-size: 28rpx; font-weight: 650; line-height: 88rpx; }
+.custom-intro-primary { flex: 1; min-width: 0; height: 88rpx; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #fff; font-size: 28rpx; font-weight: 650; line-height: 88rpx; text-align: center; }
+.custom-intro-secondary:active, .custom-intro-primary:active { opacity: .82; }
+.custom-intro-secondary-sk { flex: 0 0 auto; width: 200rpx; height: 88rpx; border-radius: 999rpx; }
+.custom-intro-primary-sk { flex: 1; height: 88rpx; border-radius: 999rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

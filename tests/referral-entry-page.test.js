@@ -1,60 +1,43 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
 
-const config = require('../config/index')
 const pages = []
+const routes = []
 const storage = new Map()
-
-function flowId(query) {
-  const match = String(query).match(/actionFlowId:\s*"([^"]+)"/)
-  return match ? match[1] : ''
-}
 
 global.Page = (definition) => pages.push(definition)
 global.wx = {
   getStorageSync(key) { return storage.get(key) || '' },
   setStorageSync(key, value) { storage.set(key, value) },
   removeStorageSync(key) { storage.delete(key) },
-  reLaunch() {},
-  switchTab() {},
-  request(options) {
-    if (require('./helpers/verified-phone-session')(options)) return
-    const id = flowId(options.data && options.data.query)
-    let result = null
-    if (id === config.ACTION_FLOWS.INITIALIZE_CURRENT_USER.id) result = 1201
-    if (id === config.ACTION_FLOWS.GET_CURRENT_LEARNING_PROFILE.id) {
-      result = { id: 2201, nickname: '测试用户', current_grade: 8, profile_completed_at: '2026-09-06T00:00:00.000Z' }
-    }
-    if (id === config.ACTION_FLOWS.RECORD_CURRENT_PROMOTION_TOUCH_AND_ATTRIBUTE.id) {
-      result = { status: 'deep_gift_granted', deep_gift: true, grant: { id: 3301, grantNo: 'DGR-test', status: 'available' }, touch: { id: 4401 } }
-    }
-    options.success({ statusCode: 200, data: { data: { result } } })
-  }
+  reLaunch(options) { routes.push(options.url) }
 }
 
 require('../pages/referral-entry/index')
 const definition = pages[0]
 
-function createInstance() {
-  return {
-    data: JSON.parse(JSON.stringify(definition.data)),
-    setData(update) { Object.assign(this.data, update) },
-    processReferral: definition.processReferral
-  }
+function open(options) {
+  storage.clear()
+  routes.length = 0
+  definition.onLoad(options)
 }
 
-test('referral entry recognizes a claimed deep-gift link without reporting attribution', async () => {
-  storage.clear()
+test('a shared invitation link keeps the invite and lands on the home tab, never on a full invitation page', () => {
   const token = 'z'.repeat(43)
-  storage.set('zion_runtime_token', 'test-runtime-token')
-  storage.set('pending_referral_context', { token, createdAt: Date.now() })
-  const page = createInstance()
+  open({ token })
+  // 线索留给首页在后台兑现；用户看到的是首页，不是「推广伙伴邀请」整页
+  assert.equal(storage.get('pending_referral_context').token, token)
+  assert.deepEqual(routes, ['/pages/home/index'])
+})
 
-  await definition.processReferral.call(page)
+test('a promotion code carried by the link is captured the same way', () => {
+  open({ pc: 'ZLA2B3C4D5' })
+  assert.equal(storage.get('pending_referral_context').code, 'ZLA2B3C4D5')
+  assert.deepEqual(routes, ['/pages/home/index'])
+})
 
-  assert.equal(page.data.completed, true)
-  assert.equal(page.data.isDeepGift, true)
-  assert.match(page.data.message, /深测资格已领取/)
-  assert.doesNotMatch(page.data.message, /归因/)
+test('opening the link without any invite still goes straight home and stores nothing', () => {
+  open({})
   assert.equal(storage.has('pending_referral_context'), false)
+  assert.deepEqual(routes, ['/pages/home/index'])
 })

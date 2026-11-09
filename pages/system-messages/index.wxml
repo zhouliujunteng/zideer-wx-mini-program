@@ -8,8 +8,14 @@
 
   <scroll-view class="system-messages-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
     <view class="system-messages-shell">
-      <view wx:if="{{loading}}" class="message-state">正在加载消息…</view>
-      <view wx:elif="{{failed}}" class="message-state"><text>消息暂时无法加载</text><button bindtap="loadPage">重新加载</button></view>
+      <!-- 第一次读到通知前只画骨架，不显示加载文案或空状态 -->
+      <view wx:if="{{!loaded && !failed}}" class="system-detail-list">
+        <view wx:for="{{[1, 2, 3, 4]}}" wx:key="*this" class="system-detail-row">
+          <view class="system-detail-main"><view class="sk sk-line sk-mid"></view><view class="sk sk-line"></view></view>
+          <view class="system-detail-meta"><view class="sk sk-line system-time-skeleton"></view></view>
+        </view>
+      </view>
+      <view wx:elif="{{!loaded}}" class="message-state"><text>消息暂时无法加载</text><button bindtap="loadPage">重新加载</button></view>
       <block wx:else>
       <view wx:if="{{model.systemMessages.length}}" class="system-detail-list">
         <view wx:for="{{model.systemMessages}}" wx:key="id" class="system-detail-row" data-id="{{item.id}}" bindtap="handleSystemTap">

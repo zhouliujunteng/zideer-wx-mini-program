@@ -1,0 +1,8 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.dev-reset-fab-wrap{right:calc(max(0px, 50% - var(--lg-col) / 2) + 14px);bottom:calc(79px + env(safe-area-inset-bottom))}
+.dev-reset-fab{min-width:88px;height:33px;padding:0 12px;box-sizing:border-box;border:1px solid rgba(180, 71, 37, .22);border-radius:599px;box-shadow:0 4px 14px rgba(87, 49, 32, .16);font-size:12px;line-height:1}
+.dev-reset-fab::after{border:0}
+.dev-reset-fab:active{transform:translateY(0.5px)}
+}

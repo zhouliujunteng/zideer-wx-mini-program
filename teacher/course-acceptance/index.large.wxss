@@ -1,0 +1,46 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.review-page{min-height:100vh;padding:24px 16px calc(env(safe-area-inset-bottom) + 28px);box-sizing:border-box}
+.review-head{padding:21px 19px;border-radius:14px}
+.review-sk-title{width:70%;height:28px;margin-top:9px}
+.review-eyebrow{font-size:13px;font-weight:700}
+.review-title{margin-top:7px;font-size:22px;font-weight:700;line-height:1.4}
+.review-status{margin-top:9px;padding:3px 10px;border-radius:599px;font-size:13px}
+.review-status-pending_teacher{font-weight:600}
+.review-card{margin-top:12px;padding:16px}
+.review-label{font-size:13px}
+.review-gap{margin-top:15px}
+.review-copy{margin-top:4px;font-size:15px;line-height:1.65}
+.review-topics{margin-top:3px}
+.review-topic{margin:6px 7px 0 0;padding:4px 10px;border-radius:599px;font-size:13px}
+.review-point{margin-top:7px}
+.review-point-mark{min-width:43px;margin-right:8px;padding:2px 7px;border-radius:599px;font-size:12px}
+.review-point-text{font-size:15px;line-height:1.55}
+.review-section-title{margin:24px 4px 0;font-size:16px;font-weight:650}
+.review-turn{padding:9px 0;border-bottom:0.5px solid var(--line)}
+.review-turn:last-child{border-bottom:0}
+.review-turn-role{font-size:12px}
+.review-turn-user .review-turn-role{font-weight:600}
+.review-turn-text{margin-top:3px;font-size:15px;line-height:1.6}
+.review-note{width:100%;min-height:72px;margin-top:8px;padding:10px 12px;box-sizing:border-box;border-radius:9px;font-size:15px;line-height:1.6}
+.review-pass{margin-top:16px;border-radius:26px;font-size:16px;font-weight:700}
+.review-reject{margin-top:10px;border-radius:26px;font-size:16px;font-weight:600;box-shadow:inset 0 0 0 1px var(--accent)}
+.review-pass::after, .review-reject::after{border:0}
+}

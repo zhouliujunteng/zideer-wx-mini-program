@@ -112,6 +112,41 @@ function ensureCourseAgentAccess(zionToken) {
   })
 }
 
+/**
+ * 登记「这个会话是我的」（2026-10-05，定制课程按节扣积分）：会话按设备匿名身份划分，课程服务建课时
+ * 要知道记在哪个学生的积分上。带本人 Zion 登录凭证 + 设备匿名 cookie，服务端核对会话属于这台设备后登记。
+ * 成功 resolve(true)；失败 reject（调用方下次发消息时再试）。
+ */
+function bindCourseAgentSessionLearner(sessionId, zionToken) {
+  if (!sessionId || !zionToken) return Promise.reject(new Error('缺少会话或登录凭证'))
+  return new Promise((resolve, reject) => {
+    const header = { 'content-type': 'application/json', Authorization: `Bearer ${zionToken}` }
+    const cookie = readAgentCookieHeader()
+    if (cookie) header.Cookie = cookie
+    wx.request({
+      url: `${COURSE_AGENT.origin}/api/learn/agent-session/learner`,
+      method: 'POST',
+      timeout: COURSE_AGENT.requestTimeoutMs,
+      header,
+      data: { sessionId: String(sessionId) },
+      success(response) {
+        storeCookieFromHeader(response.header)
+        const status = response.statusCode || 0
+        if (status >= 200 && status < 300 && response.data && response.data.success) {
+          resolve(true)
+          return
+        }
+        const error = new Error((response.data && response.data.code) || `登记会话失败（HTTP ${status}）`)
+        error.statusCode = status
+        reject(error)
+      },
+      fail(cause) {
+        reject(new Error((cause && cause.errMsg) || '网络连接失败'))
+      },
+    })
+  })
+}
+
 function clearCourseAgentAccess() {
   try {
     wx.removeStorageSync(COURSE_AGENT.storageKeys.access)
@@ -120,11 +155,24 @@ function clearCourseAgentAccess() {
   }
 }
 
-function requestJson(path, { method = 'GET', body, timeoutMs } = {}) {
+// 建会话、发话时带上本人 Zion 登录凭证（2026-10-06）：课程服务在同一个请求里把会话登记到学生名下，
+// 定制课程按节扣积分记在他身上（lib/course/agent-session-learner-header.ts）。单独的登记请求保留作兜底。
+function readLearnerAuthorization() {
+  try {
+    const token = String(wx.getStorageSync('zion_runtime_token') || '')
+    return token ? `Bearer ${token}` : ''
+  } catch {
+    return ''
+  }
+}
+
+function requestJson(path, { method = 'GET', body, timeoutMs, withLearner = false } = {}) {
   return new Promise((resolve, reject) => {
     const header = { 'content-type': 'application/json' }
     const cookie = readAgentCookieHeader()
     if (cookie) header.Cookie = cookie
+    const learner = withLearner ? readLearnerAuthorization() : ''
+    if (learner) header['X-Zhilu-Learner'] = learner
     wx.request({
       url: `${COURSE_AGENT.origin}${path}`,
       method,
@@ -156,13 +204,14 @@ function requestJson(path, { method = 'GET', body, timeoutMs } = {}) {
 function createCourseAgentSession({ prompt, skill } = {}) {
   const body = { prompt }
   if (skill) body.skill = skill
-  return requestJson('/api/agent/sessions', { method: 'POST', body })
+  return requestJson('/api/agent/sessions', { method: 'POST', body, withLearner: true })
 }
 
 function sendCourseAgentMessage(sessionId, text) {
   return requestJson(`/api/agent/sessions/${encodeURIComponent(sessionId)}/messages`, {
     method: 'POST',
     body: { text },
+    withLearner: true
   })
 }
 
@@ -424,6 +473,7 @@ module.exports = {
   recallCourseAgentSession,
   forgetCourseAgentSession,
   ensureCourseAgentAccess,
+  bindCourseAgentSessionLearner,
   clearCourseAgentAccess,
   readAgentCookieHeader,
   playMockCourseAgentTimeline,

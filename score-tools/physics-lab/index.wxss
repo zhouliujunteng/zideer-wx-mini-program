@@ -1,0 +1,7 @@
+@import "../../styles/account-form.wxss";
+
+.lab-host { min-height: 100vh; padding: 64rpx 32rpx; box-sizing: border-box; background: #f6f7f9; }
+.state-panel__secondary { margin-top: 20rpx; color: #22322B; background: transparent; font-size: 28rpx; }
+.state-panel__secondary::after { border: 0; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

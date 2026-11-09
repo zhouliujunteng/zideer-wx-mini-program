@@ -1,0 +1,50 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.generation-page{min-height:100vh;padding:28px 16px calc(env(safe-area-inset-bottom) + 28px)}
+.generation-head{padding:0 4px}
+.generation-head__eyebrow{font-size:13px;font-weight:700}
+.generation-head__title{margin-top:7px;font-size:25px;font-weight:700;line-height:1.4}
+.generation-head__meta{margin-top:7px;font-size:12px}
+.generation-state{margin-top:21px;padding:18px 4px;border-top:0.5px solid var(--line);border-bottom:0.5px solid var(--line)}
+.generation-state__indicator{width:9px;height:9px;border-radius:50%}
+.generation-state__title{margin-top:10px;font-size:18px;font-weight:700}
+.generation-state__copy{margin-top:7px;font-size:15px;line-height:1.6}
+.generation-info{margin-top:13px;padding:16px 4px}
+.generation-info__label{font-size:14px}
+.generation-info__value{margin-top:4px;font-size:15px;font-weight:700}
+.generation-info__note{margin-top:9px;font-size:14px;line-height:1.6}
+.generation-actions{grid-template-columns:repeat(2, minmax(0, 1fr));gap:9px;margin-top:24px}
+.generation-quote{border-top:0.5px solid var(--line)}
+.secondary-action, .primary-action{width:100%;min-height:52px;margin:0;padding:9px 7px;border-radius:4px;font-size:16px;line-height:1.5}
+.secondary-action::after, .primary-action::after{border:0}
+.secondary-action{border:0.5px solid var(--line)}
+.state-panel{padding:48px 9px}
+.state-panel__mark{margin-bottom:14px;font-size:24px;font-weight:700}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin-top:12px;font-size:15px;line-height:1.7}
+.state-panel__action{margin-top:19px;font-size:16px;border-radius:4px}
+.generation-background-note{font-size:15px;line-height:1.7;padding:7px 0}
+.gen-sk-eyebrow{width:72px;height:13px}
+.gen-sk-title{width:62%;height:33px;margin-top:8px}
+.gen-sk-meta{margin-top:8px;height:13px}
+.gen-sk-dot{width:9px;height:9px}
+.gen-sk-state{width:46%;height:24px;margin:10px 0 9px}
+.gen-sk-button{height:52px;border-radius:4px}
+}

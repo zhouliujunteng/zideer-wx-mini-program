@@ -1,4 +1,8 @@
 {
   "navigationStyle": "custom",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "streak-entry": "/components/streak-entry/index",
+    "card-reveal": "/components/card-reveal/index"
+  }
 }

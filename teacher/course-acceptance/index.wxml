@@ -1,0 +1,67 @@
+<view class="review-page">
+  <view wx:if="{{!loaded && !loadFailed}}">
+    <view class="review-head"><view class="sk sk-line sk-short"></view><view class="sk review-sk-title"></view></view>
+    <view class="review-card surface"><view class="sk sk-line"></view><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short"></view></view>
+  </view>
+
+  <view wx:elif="{{loadFailed}}" class="state-panel">
+    <text class="state-panel__title">验收记录暂时无法读取</text>
+    <text class="state-panel__copy">{{errorMessage}}</text>
+    <button class="state-panel__action" bindtap="retry">重新加载</button>
+  </view>
+
+  <block wx:else>
+    <view class="review-head">
+      <text class="review-eyebrow">课程核验</text>
+      <text class="review-title">{{course.title}}</text>
+      <text class="review-status review-status-{{acceptance.status}}">{{statusText}}</text>
+    </view>
+
+    <view class="review-card surface">
+      <text class="review-label">学习进度</text>
+      <text class="review-copy">{{acceptance.learning ? '已学 ' + acceptance.learning.completed + ' / ' + acceptance.learning.total + ' 部分' : '学习进度暂未读到'}}</text>
+      <block wx:if="{{acceptance.aiSummary}}">
+        <text class="review-label review-gap">AI 验收结论</text>
+        <text class="review-copy">{{acceptance.aiSummary}}</text>
+      </block>
+      <block wx:if="{{acceptance.grade}}">
+        <!-- 独立考官只看要点清单和学生自己说的话，逐条给结论 -->
+        <text class="review-label review-gap">要点逐条（讲清 {{gradePercent}}%，三分之二以上且没说错才通过）</text>
+        <view wx:for="{{acceptance.grade.points}}" wx:key="point" class="review-point">
+          <text class="review-point-mark review-point-{{item.result}}">{{item.result === 'covered' ? '讲清' : (item.result === 'partial' ? '一半' : '没讲到')}}</text>
+          <text class="review-point-text">{{item.point}}</text>
+        </view>
+        <view wx:for="{{acceptance.grade.misconceptions}}" wx:key="*this" class="review-point">
+          <text class="review-point-mark review-point-wrong">说错</text>
+          <text class="review-point-text">{{item}}</text>
+        </view>
+      </block>
+      <block wx:if="{{acceptance.status === 'pending_teacher' || acceptance.status === 'teacher_passed'}}">
+        <text class="review-label review-gap">{{acceptance.status === 'teacher_passed' ? '已进入学习宇宙的知识点' : '确认后进入学习宇宙的知识点'}}</text>
+        <view wx:if="{{acceptance.topics.length}}" class="review-topics"><text wx:for="{{acceptance.topics}}" wx:key="name" class="review-topic">{{item.subject}} · {{item.name}}</text></view>
+        <text wx:else class="review-copy review-muted">AI 没有在学生年级的知识库里认定到对应知识点</text>
+      </block>
+      <block wx:if="{{acceptance.teacherSummary}}">
+        <text class="review-label review-gap">{{acceptance.teacherName}}的核验意见</text>
+        <text class="review-copy">{{acceptance.teacherSummary}}</text>
+      </block>
+    </view>
+
+    <view class="review-section-title">验收对话</view>
+    <view wx:if="{{!turns.length}}" class="review-card surface"><text class="review-copy review-muted">学生还没有开始验收对话。</text></view>
+    <view wx:else class="review-card surface review-chat">
+      <view wx:for="{{turns}}" wx:key="id" class="review-turn review-turn-{{item.role}}">
+        <text class="review-turn-role">{{item.role === 'user' ? '学生' : 'AI'}}</text>
+        <text class="review-turn-text" user-select="true">{{item.content}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{acceptance.status === 'pending_teacher'}}" class="review-card surface review-actions">
+      <text class="review-label">核验意见（要求重学时必填，学生能看到）</text>
+      <textarea class="review-note" value="{{note}}" maxlength="500" auto-height="true" placeholder="例如：通分的步骤还不熟，回去再看第 3 页" bindinput="onNoteInput"></textarea>
+      <button class="review-pass" loading="{{submitting}}" disabled="{{submitting}}" bindtap="confirmPass">确认验收</button>
+      <button class="review-reject" disabled="{{submitting}}" bindtap="requestRemediation">需要重学</button>
+    </view>
+  </block>
+</view>
+<dev-reset-fab />

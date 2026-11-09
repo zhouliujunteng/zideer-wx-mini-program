@@ -1,0 +1,72 @@
+<!-- 学习宇宙 › 学习偏好（2026-10-07）：学生设置自己喜欢怎么学，老师定制课程前先读它和学习宇宙。
+     选项与每个选项背后的提示词由课程服务下发（utils/learning-preference.js）。 -->
+<view class="pref-page">
+  <view class="pref-ambient" aria-hidden="true"></view>
+  <view class="pref-topbar">
+    <view class="pref-topbar-inner" style="padding-top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
+      <view class="pref-back" bindtap="handleBack" aria-role="button" aria-label="返回上一页"><view class="pref-back-icon"></view></view>
+      <text class="pref-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学习偏好</text>
+    </view>
+  </view>
+
+  <scroll-view class="pref-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="pref-shell">
+      <view class="pref-heading">
+        <text class="pref-title">告诉老师你喜欢怎么学</text>
+        <text class="pref-subtitle">老师给你定制课程前，会先看你的学习宇宙和这里的学习偏好。随时可以回来修改。</text>
+      </view>
+
+      <block wx:if="{{state === 'ready'}}">
+        <!-- 读不到已保存的偏好时照样能选：提示一句，可以重新读取 -->
+        <view wx:if="{{readFailed}}" class="pref-read-notice" role="alert">
+          <text class="pref-read-notice-copy">之前保存的偏好暂时没读到，可以先选好再保存，保存后以这次为准。</text>
+          <view class="pref-read-retry" bindtap="retryRead" aria-role="button" aria-label="重新读取">重新读取</view>
+        </view>
+
+        <view wx:for="{{groups}}" wx:key="id" wx:for-item="group" class="pref-card">
+          <view class="pref-group-head">
+            <text class="pref-group-title">{{group.title}}</text>
+            <text class="pref-group-hint">{{group.hint}}</text>
+          </view>
+          <view class="pref-options">
+            <view wx:for="{{group.options}}" wx:key="id" class="pref-chip {{item.selected ? 'is-selected' : ''}}" data-group="{{group.id}}" data-option="{{item.id}}" bindtap="handleOptionTap" aria-role="{{group.max === 1 ? 'radio' : 'checkbox'}}" aria-checked="{{item.selected}}" aria-label="{{item.label}}">{{item.label}}</view>
+          </view>
+        </view>
+
+        <view class="pref-card">
+          <view class="pref-group-head">
+            <text class="pref-group-title">我还想说<text class="pref-optional">选填</text></text>
+          </view>
+          <textarea class="pref-note" placeholder="{{notePlaceholder}}" placeholder-class="pref-note-placeholder" maxlength="{{noteLimit}}" value="{{note}}" bindinput="handleNoteInput" disabled="{{saving}}" auto-height="{{false}}" cursor-spacing="96" adjust-position="{{true}}" aria-label="补充说明" />
+          <view class="pref-note-count"><text>{{noteLength}} / {{noteLimit}}</text></view>
+        </view>
+
+        <view class="pref-card pref-preview">
+          <text class="pref-preview-title">老师会看到</text>
+          <block wx:if="{{preview.length}}">
+            <view wx:for="{{preview}}" wx:key="id" class="pref-preview-line">
+              <text class="pref-preview-label">{{item.title}}</text>
+              <text class="pref-preview-text">{{item.text}}</text>
+            </view>
+          </block>
+          <text wx:else class="pref-preview-empty">还没有选择。没设置也没关系，老师会在诊断会议里先问问你喜欢怎么学。</text>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view wx:for="{{skeletonGroups}}" wx:key="*this" class="pref-card">
+          <view class="sk sk-line sk-short"></view>
+          <view class="pref-options pref-options-sk">
+            <view wx:for="{{item}}" wx:key="*this" wx:for-item="width" class="sk pref-chip-sk" style="width: {{width}}px;"></view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{state === 'ready'}}" class="pref-footer">
+    <view wx:if="{{saveError}}" class="pref-save-error" role="alert">{{saveError}}</view>
+    <button class="pref-save" bindtap="save" loading="{{saving}}" disabled="{{saving || !dirty}}">{{saving ? '正在保存' : dirty ? '保存学习偏好' : hasSaved ? '已保存' : '选好后保存'}}</button>
+  </view>
+</view>
+<dev-reset-fab />

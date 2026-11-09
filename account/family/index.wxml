@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <view class="family-page">
   <view class="family-ambient" aria-hidden="true"><view class="family-ambient-ribbon"></view></view>
   <view class="family-topbar">
@@ -9,13 +10,6 @@
 
   <scroll-view class="family-scroll" scroll-y style="padding-top: {{contentTop}}px;">
     <view class="family-shell">
-      <view wx:if="{{loading}}" class="family-state"><text>正在读取家庭关系…</text></view>
-      <view wx:elif="{{failed}}" class="family-state">
-        <text>家庭关系暂时无法加载</text>
-        <view class="family-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
-      </view>
-
-      <block wx:else>
         <view class="family-pair-card">
           <view class="family-pair-half" bindtap="openBindingCode" aria-role="button" aria-label="我是学生，生成绑定码">
             <text class="family-pair-eyebrow">我是学生</text>
@@ -30,15 +24,28 @@
           </view>
         </view>
 
+        <!-- 绑定入口固定显示；关系列表第一次读到前画骨架，首次失败给重试 -->
+        <view wx:if="{{!loaded && failed}}" class="family-state">
+          <text>家庭关系暂时无法加载</text>
+          <view class="family-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+        </view>
+        <block wx:else>
+
         <view class="family-section">
           <view class="family-section-head">
             <text class="family-section-title">我绑定的学生</text>
-            <text wx:if="{{students.length}}" class="family-section-link" bindtap="openGuardianDashboard" aria-role="button">查看看板 ›</text>
+            <text wx:if="{{loaded && students.length}}" class="family-section-link" bindtap="openGuardianDashboard" aria-role="button">查看看板 ›</text>
           </view>
           <view class="family-list-card">
-            <view wx:if="{{students.length}}">
+            <view wx:if="{{!loaded}}">
+              <view class="family-member" wx:for="{{[1, 2]}}" wx:key="*this">
+                <view class="sk sk-round family-avatar-sk"></view>
+                <view class="family-member-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view>
+              </view>
+            </view>
+            <view wx:elif="{{students.length}}">
               <view class="family-member" wx:for="{{students}}" wx:key="id" bindtap="openGuardianDashboard" aria-role="button">
-                <view class="family-avatar"><text>{{item.initial}}</text></view>
+                <view class="family-avatar"><image class="family-avatar-photo" src="{{UA.avatar(ui, item.avatarUrl)}}" mode="aspectFill"></image></view>
                 <view class="family-member-copy">
                   <text class="family-member-name">{{item.name}}</text>
                   <text class="family-member-meta">{{item.relationLabel}} · {{item.gradeLabel}}</text>
@@ -55,7 +62,13 @@
             <text class="family-section-title">我的监护关系</text>
           </view>
           <view class="family-list-card">
-            <view wx:if="{{guardians.length}}">
+            <view wx:if="{{!loaded}}">
+              <view class="family-member" wx:for="{{[1]}}" wx:key="*this">
+                <view class="sk sk-round family-avatar-sk"></view>
+                <view class="family-member-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view>
+              </view>
+            </view>
+            <view wx:elif="{{guardians.length}}">
               <view class="family-member" wx:for="{{guardians}}" wx:key="id">
                 <view class="family-avatar family-avatar-guardian"><text>家</text></view>
                 <view class="family-member-copy">
@@ -68,7 +81,7 @@
             <view wx:else class="family-empty"><text>暂未绑定监护人</text><text>由家长在「绑定学生」中完成绑定。</text></view>
           </view>
         </view>
-      </block>
+        </block>
     </view>
   </scroll-view>
 </view>

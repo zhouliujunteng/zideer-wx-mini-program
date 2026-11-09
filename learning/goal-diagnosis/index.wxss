@@ -1,0 +1,124 @@
+@import "../../styles/skeleton.wxss";
+@import "../../styles/learning-plan-form.wxss";
+@import "../../styles/bean-loader.wxss";
+/* 按目标测评 + 目标导图：外框沿用「学习目标 / 学习偏好」两页（learning-plan-form.wxss），本页只加 gm-*。
+   导图卡片的尺寸、字号要和 utils/goal-map.js 的 CARD 一致（那边按这些数字估算折行和卡片高度）。 */
+
+/* ---------- 状态色（导图卡片、图例、进度点共用） ---------- */
+.tone-pending { --tone-bg: #F4F5F3; --tone-line: #E3E7E3; --tone-dot: #B8C0BA; --tone-ink: #66736A; }
+.tone-testing { --tone-bg: #FFF6EC; --tone-line: #FFC48A; --tone-dot: #FD7C02; --tone-ink: #B95500; }
+.tone-mastered { --tone-bg: #EEF6F0; --tone-line: #CFE5D5; --tone-dot: #4F9A68; --tone-ink: #2F5E3F; }
+.tone-shaky { --tone-bg: #FFF7E3; --tone-line: #F2D99A; --tone-dot: #D99A17; --tone-ink: #8A6210; }
+.tone-gap { --tone-bg: #FFF0EB; --tone-line: #F6C2B1; --tone-dot: #E8643F; --tone-ink: #A8432A; }
+.tone-root { --tone-bg: #FFE4DA; --tone-line: #E8643F; --tone-dot: #D2451F; --tone-ink: #9C2F14; }
+.tone-untested { --tone-bg: #F7F8F6; --tone-line: #D9DEDA; --tone-dot: #C9D0CB; --tone-ink: #8A958D; }
+.tone-goal { --tone-bg: #FD7C02; --tone-line: #FD7C02; --tone-dot: #FFFFFF; --tone-ink: #FFFFFF; }
+
+/* ---------- 目标卡 ---------- */
+.gm-goal-card { background: linear-gradient(135deg, #FFFFFF 0%, #FFF7EF 100%); }
+.gm-goal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.gm-goal-badge { display: flex; align-items: center; gap: 7px; color: #C46A12; font-size: 12px; font-weight: 650; }
+.gm-goal-ring { position: relative; width: 16px; height: 16px; box-sizing: border-box; border: 2px solid #FD7C02; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.gm-goal-ring-dot { width: 6px; height: 6px; border-radius: 50%; background: #FD7C02; }
+.gm-goal-ring.is-big { width: 46px; height: 46px; border-width: 4px; }
+.gm-goal-ring.is-big .gm-goal-ring-dot { width: 16px; height: 16px; }
+.gm-state-chip { flex: none; padding: 3px 10px; border-radius: 999px; background: #FFF0E2; color: #FD7C02; font-size: 11px; font-weight: 600; }
+.gm-goal-text { display: block; margin-top: 10px; color: #24332D; font-size: 16px; font-weight: 650; line-height: 1.6; word-break: break-all; }
+.gm-goal-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+.gm-tag { padding: 3px 10px; border-radius: 999px; background: #F3F4F2; color: #66736A; font-size: 11px; }
+.gm-tag-link { margin-left: auto; color: #FD7C02; font-size: 12px; }
+.gm-sk-gap { margin-top: 12px; }
+.gm-sk-map { height: 300px; border-radius: 16px; }
+
+/* ---------- 各种状态卡 ---------- */
+.gm-state { display: flex; flex-direction: column; align-items: center; padding: 28px 22px 24px; text-align: center; }
+.gm-hero-icon { margin-bottom: 14px; }
+.gm-state-title { display: block; color: #24332D; font-size: 16px; font-weight: 700; }
+.gm-state-copy { display: block; margin-top: 8px; color: #8A958D; font-size: 12px; line-height: 1.75; }
+.gm-primary-inline { margin-top: 18px; padding: 10px 26px; border-radius: 999px; background: #FD7C02; color: #FFF; font-size: 14px; font-weight: 650; }
+.gm-primary-inline:active, .gm-ghost-btn:active { opacity: .8; }
+.gm-ghost-btn { margin-top: 16px; padding: 8px 22px; border-radius: 999px; background: #FFF0E2; color: #FD7C02; font-size: 13px; font-weight: 600; text-align: center; }
+
+.gm-intro-title { display: block; color: #24332D; font-size: 16px; font-weight: 700; }
+.gm-steps { margin-top: 16px; }
+.gm-step { display: flex; gap: 12px; padding: 10px 0; }
+.gm-step-no { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #FFF0E2; color: #FD7C02; font-size: 12px; font-weight: 700; line-height: 24px; text-align: center; }
+.gm-step-copy { flex: 1; min-width: 0; }
+.gm-step-title { display: block; color: #34423A; font-size: 14px; font-weight: 650; }
+.gm-step-desc { display: block; margin-top: 2px; color: #8A958D; font-size: 12px; line-height: 1.6; }
+.gm-intro-foot { display: block; margin-top: 10px; padding-top: 12px; border-top: 1px solid #F0F1EF; color: #A0A9A2; font-size: 11px; }
+
+/* 拆目标中、准备下一题：跳跳豆（styles/bean-loader.wxss） */
+.gm-planning { display: flex; flex-direction: column; align-items: center; padding: 30px 22px 22px; text-align: center; }
+.gm-planning-lines { align-self: stretch; margin-top: 18px; }
+.gm-planning-lines .sk { margin-top: 10px; }
+
+/* ---------- 答题 ---------- */
+.gm-progress { display: flex; align-items: center; gap: 10px; margin: 2px 2px 12px; }
+.gm-progress-dots { display: flex; gap: 5px; }
+.gm-progress-dot { width: 18px; height: 6px; border-radius: 3px; background: var(--tone-dot); }
+.gm-progress-dot.tone-pending { background: #E3E7E3; }
+.gm-progress-text { flex: 1; min-width: 0; color: #8A958D; font-size: 12px; }
+.gm-progress-link { flex: none; color: #FD7C02; font-size: 12px; font-weight: 600; }
+
+.gm-question { padding-top: 16px; }
+.gm-path { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.gm-path-item { color: #A0A9A2; font-size: 11px; }
+.gm-path-item.is-last { color: #C46A12; font-weight: 650; }
+.gm-path-sep { width: 5px; height: 5px; border-top: 1.2px solid #C5CCC7; border-right: 1.2px solid #C5CCC7; transform: rotate(45deg); }
+.gm-dig { display: flex; align-items: center; gap: 6px; margin-top: 10px; padding: 7px 12px; border-radius: 12px; background: #FFF6EC; color: #B95500; font-size: 12px; }
+.gm-dig-icon { width: 10px; height: 10px; box-sizing: border-box; border-left: 2px solid #FD7C02; border-bottom: 2px solid #FD7C02; transform: rotate(-45deg) translate(1px, -1px); }
+.gm-prompt { display: block; margin-top: 14px; color: #24332D; font-size: 16px; line-height: 1.8; white-space: pre-wrap; word-break: break-all; }
+.gm-figures { margin-top: 12px; }
+.gm-figure-frame { width: 100%; max-width: 420px; margin: 0 auto 8px; }
+/* 外框按原图比例占位，图片完整缩放，避免自动高度在真机上只显示局部。 */
+.gm-figure-box { position: relative; height: 0; margin: 0 auto; overflow: hidden; border-radius: 12px; }
+.gm-figure { position: absolute; top: 0; left: 0; display: block; width: 100%; height: 100%; }
+.gm-options { margin-top: 16px; }
+.gm-option { display: flex; align-items: flex-start; gap: 12px; margin-top: 10px; padding: 13px 14px; border: 1.5px solid #EEF0ED; border-radius: 16px; background: #FCFCFB; }
+.gm-option:active { opacity: .85; }
+.gm-option.is-selected { border-color: #FD7C02; background: #FFF6EC; }
+.gm-option-letter { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #F1F2F0; color: #66736A; font-size: 12px; font-weight: 700; line-height: 24px; text-align: center; }
+.gm-option.is-selected .gm-option-letter { background: #FD7C02; color: #FFF; }
+.gm-option-body { flex: 1; min-width: 0; }
+.gm-option-label { display: block; color: #34423A; font-size: 15px; line-height: 1.6; word-break: break-all; }
+.gm-option-figure-frame { width: 100%; max-width: 240px; margin-top: 6px; }
+.gm-option-figure-frame .gm-figure-box { border-radius: 8px; }
+.gm-preparing { display: flex; flex-direction: column; align-items: center; padding-bottom: 22px; }
+.gm-preparing .sk { align-self: stretch; }
+.gm-sk-option { height: 50px; margin-top: 10px; border-radius: 16px; }
+.gm-pause { margin: 4px auto 0; padding: 10px; color: #8A958D; font-size: 12px; text-align: center; text-decoration: underline; text-underline-offset: 3px; }
+
+.gm-answer-row { display: flex; gap: 10px; max-width: 644px; margin: 0 auto; }
+.gm-dont-know { flex: none; width: 104px; min-height: 48px; margin: 0; padding: 0; border-radius: 999px; background: #FFF; color: #66736A; font-size: 15px; font-weight: 600; line-height: 48px; border: 1px solid #E3E7E3; }
+.gm-dont-know::after { border: none; }
+.gm-footer .gm-dont-know[disabled] { background: #FFF; color: #B8C0BA; }
+.gm-confirm { flex: 1; }
+.gm-secondary { width: 100%; max-width: 644px; min-height: 48px; margin: 0 auto; border-radius: 999px; background: #FFF0E2; color: #FD7C02; font-size: 15px; font-weight: 650; line-height: 48px; }
+.gm-secondary::after { border: none; }
+
+/* ---------- 结果 ---------- */
+.gm-summary { display: flex; gap: 10px; margin-bottom: 14px; }
+.gm-summary-item { flex: 1; min-width: 0; padding: 14px 12px 12px; border-radius: 18px; background: #FFF; box-shadow: 0 3px 14px rgba(56,75,64,.025); }
+.gm-summary-num { display: block; color: var(--tone-dot); font-size: 24px; font-weight: 750; line-height: 1.2; }
+.gm-summary-label { display: block; margin-top: 4px; color: #8A958D; font-size: 11px; }
+.gm-paused-note { margin-bottom: 14px; padding: 10px 14px; border-radius: 14px; background: #F3F4F2; color: #66736A; font-size: 12px; line-height: 1.6; }
+
+.gm-list-card { padding-bottom: 12px; }
+.gm-list-title { display: block; color: #24332D; font-size: 15px; font-weight: 700; }
+.gm-list-sub { display: block; margin-top: 4px; color: #A0A9A2; font-size: 11px; }
+.gm-root-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 11px 12px; border-radius: 14px; background: #FFF0EB; }
+.gm-root-mark { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #D2451F; box-shadow: 0 0 0 4px rgba(210,69,31,.14); }
+.gm-root-label { flex: 1; min-width: 0; color: #9C2F14; font-size: 14px; font-weight: 650; }
+.gm-root-grade { flex: none; color: #A0A9A2; font-size: 11px; }
+.gm-path-steps { position: relative; margin-top: 8px; }
+.gm-path-step { position: relative; display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+.gm-path-step + .gm-path-step::before { content: ''; position: absolute; left: 11px; top: -9px; height: 18px; border-left: 2px dotted #FFC48A; }
+.gm-path-step-no { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #FFF0E2; color: #FD7C02; font-size: 12px; font-weight: 700; line-height: 24px; text-align: center; }
+.gm-path-step-no.is-root { background: #E8643F; color: #FFF; }
+.gm-path-step-label { flex: 1; min-width: 0; color: #34423A; font-size: 14px; }
+.gm-list-foot { display: block; margin-top: 8px; padding-top: 10px; border-top: 1px solid #F0F1EF; color: #A0A9A2; font-size: 11px; line-height: 1.6; }
+
+.gm-card-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--tone-dot); }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

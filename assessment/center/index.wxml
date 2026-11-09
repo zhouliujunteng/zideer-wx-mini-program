@@ -38,17 +38,43 @@
             <image class="assessment-stat-icon" src="{{UA.src(ui, item.icon)}}" mode="aspectFit"></image>
             <view class="assessment-stat-copy">
               <text class="assessment-stat-label">{{item.label}}</text>
-              <text class="assessment-stat-value {{item.numberTone}}">{{item.value}}</text>
+              <text wx:if="{{loaded}}" class="assessment-stat-value {{item.numberTone}}">{{item.value}}</text>
+              <view wx:else class="sk assessment-stat-value-sk"></view>
             </view>
           </view>
         </view>
       </view>
 
+      <!-- 按目标测评（2026-10-10）：主入口，排在整科摸底前面 -->
+      <view class="goal-entry" bindtap="openGoalDiagnosis" aria-role="button" aria-label="按目标测评">
+        <view class="goal-entry-icon" aria-hidden="true"><view class="goal-entry-ring"><view class="goal-entry-dot"></view></view></view>
+        <view class="goal-entry-copy">
+          <view class="goal-entry-title-row"><text class="goal-entry-title">按目标测评</text><text class="goal-entry-badge">推荐</text></view>
+          <text class="goal-entry-desc">围绕你的学习目标出题，做错的地方往前找原因，生成目标导图</text>
+        </view>
+        <view class="goal-entry-chevron" aria-hidden="true"></view>
+      </view>
+
       <view class="assessment-section">
         <view class="assessment-section-heading assessment-section-heading-stacked">
           <text class="assessment-section-title">{{model.basicSection.title}}</text>
+          <text wx:if="{{model.basicSection.subtitle}}" class="assessment-section-subtitle">{{model.basicSection.subtitle}}</text>
         </view>
-        <view class="subject-list">
+        <!-- 第一次读取失败：给出重试，不显示空列表 -->
+        <view wx:if="{{!loaded && loadFailed}}" class="assessment-load-failed">
+          <text class="assessment-load-failed-text">测评中心暂时没有加载出来</text>
+          <view class="assessment-load-failed-action" bindtap="retryLoad">重新加载</view>
+        </view>
+        <view wx:elif="{{!loaded}}" class="subject-list">
+          <view wx:for="{{[1, 2, 3, 4]}}" wx:key="*this" class="subject-card">
+            <view class="subject-copy">
+              <view class="sk sk-line sk-mid"></view>
+              <view class="sk sk-line subject-subtitle-sk"></view>
+              <view class="subject-footer"><view class="sk subject-status-sk"></view><view class="sk subject-action-sk"></view></view>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="subject-list">
           <view wx:for="{{model.subjects}}" wx:key="key" class="subject-card {{item.disabled ? 'subject-card-disabled' : ''}}" data-type="subject" data-subject-key="{{item.key}}" bindtap="handleAction">
             <view class="subject-copy">
               <view class="subject-title-row">
@@ -71,14 +97,24 @@
         <view class="assessment-section-heading">
           <view class="history-heading-copy">
             <text class="assessment-section-title">{{model.history.title}}</text>
-            <text class="history-count">{{model.history.countLabel}}</text>
+            <text wx:if="{{loaded}}" class="history-count">{{model.history.countLabel}}</text>
+            <view wx:elif="{{!loadFailed}}" class="sk sk-inline history-count-sk"></view>
           </view>
           <view class="history-link" data-type="history" bindtap="handleAction"><text>{{model.history.actionLabel}}</text><view class="history-link-arrow"></view></view>
         </view>
-        <view class="history-list">
-          <view wx:for="{{model.history.records}}" wx:key="id" class="history-card" data-type="history" data-subject-key="{{item.subjectKey}}" bindtap="handleAction">
+        <view wx:if="{{!loaded && !loadFailed}}" class="history-list">
+          <view wx:for="{{[1, 2]}}" wx:key="*this" class="history-card">
+            <view class="history-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view>
+          </view>
+        </view>
+        <text wx:elif="{{loaded && !model.history.records.length}}" class="history-empty">完成一轮测评后，结论会记录在这里。</text>
+        <view wx:elif="{{loaded}}" class="history-list">
+          <view wx:for="{{model.history.records}}" wx:key="id" class="history-card" data-type="record" data-attempt-id="{{item.id}}" bindtap="handleAction">
             <view class="history-copy">
-              <text class="history-subject">{{item.subject}}</text>
+              <view class="history-subject-row">
+                <text class="history-subject">{{item.subject}}</text>
+                <text wx:if="{{item.deltaLabel}}" class="history-delta {{item.deltaTone}}">{{item.deltaLabel}}</text>
+              </view>
               <text class="history-detail">{{item.detail}}</text>
               <text class="history-date">{{item.date}}</text>
             </view>

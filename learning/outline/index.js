@@ -17,6 +17,7 @@ function viewChapter(item) {
 }
 function viewDraft(draft) { return { ...draft, outlines: draft.outlines.map(viewChapter) } }
 Page({
+  // 大纲读到前只显示章节骨架，不显示「正在读取」文案；本页只在进入时读取一次。
   data: { loading: true, failed: false, saving: false, dirty: false, draft: null, errorMessage: '', completed: false, stopped: false, typeNames: Object.values(types), difficultyNames: ['简单', '中等', '困难'] },
   onLoad(options = {}) { this.courseInstanceId = String(options.courseInstanceId || ''); this._active = true; return this.loadPage() },
   onShow() { this._active = true; if (this._hiddenWhileLoading) { this._hiddenWhileLoading = false; return this.loadPage() } },

@@ -1,6 +1,6 @@
 <view class="page-shell">
   <view class="topline">
-    <text class="brand">知鹿私课</text>
+    <text class="brand">知鹿学习</text>
     <button class="profile-trigger" bindtap="openProfile" aria-label="查看个人资料">我</button>
   </view>
 
@@ -28,7 +28,7 @@
   <view class="course-list" wx:if="{{!loading && !hasActivePlan}}">
     <view class="section-heading">
       <text class="section-title">课程介绍</text>
-      <text class="section-note">选择适合的私课</text>
+      <text class="section-note">选择适合的课程</text>
     </view>
     <view class="course-card" wx:for="{{courses}}" wx:key="id">
       <view class="course-mark">知</view>

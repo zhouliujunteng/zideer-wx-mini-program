@@ -1,0 +1,131 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="application-page">
+  <view class="application-topbar {{isScrolled ? 'is-scrolled' : ''}}">
+    <view class="application-topbar-surface" style="opacity: {{topbarProgress}};"></view>
+    <view class="application-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="application-back" bindtap="handleBack" aria-label="返回我的结算记录" aria-role="button">
+        <view class="application-back-icon" style="opacity: {{topbarWhiteOpacity}};"></view>
+        <view class="application-back-icon application-back-icon-dark" style="opacity: {{topbarProgress}};"></view>
+      </view>
+      <text class="application-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px; opacity: {{topbarWhiteOpacity}};">{{title}}</text>
+      <text class="application-topbar-title application-topbar-title-dark" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px; opacity: {{topbarProgress}};">{{title}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="application-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscroll="handleScroll">
+    <view class="application-shell" style="padding-top: {{contentTop}}px;">
+      <image class="application-ambient-icon" src="{{UA.src(ui, '/assets/promotion/settlement-reward-bag.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+
+      <view class="application-state" wx:if="{{loadState === 'failed'}}">
+        <text class="application-state-title">结算详情暂时无法加载</text>
+        <text class="application-state-copy">{{loadError}}</text>
+        <view class="application-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:elif="{{loadState !== 'ready'}}">
+        <!-- 首次读到详情前：状态卡与明细卡骨架 -->
+        <view class="application-hero">
+          <view class="sk sk-line sk-mid"></view>
+          <view class="sk application-sk-value"></view>
+          <view class="sk sk-line sk-short application-sk-meta"></view>
+        </view>
+        <view class="application-card">
+          <view wx:for="{{[0, 1, 2]}}" wx:key="*this" class="application-row"><view class="sk sk-line sk-short"></view><view class="sk sk-line application-sk-row"></view></view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="application-hero">
+          <view class="application-hero-head">
+            <text class="application-hero-title">{{detail.title}}</text>
+            <text class="application-status application-status-{{detail.statusTone}}">{{detail.statusLabel}}</text>
+          </view>
+          <text class="application-hero-label">{{detail.heroLabel}}</text>
+          <view class="application-hero-value"><text>{{detail.heroValue}}</text><text wx:if="{{detail.credits}}" class="application-hero-unit">积分</text></view>
+          <view class="application-hero-meta" bindtap="handleCopyNo" aria-role="button" aria-label="复制申请编号">
+            <text>申请编号 {{detail.requestNo}}</text><text class="application-copy">复制</text>
+          </view>
+        </view>
+
+        <view class="application-card">
+          <text class="application-card-title">处理进度</text>
+          <view class="application-steps">
+            <view wx:for="{{detail.steps}}" wx:key="id" class="application-step application-step-{{item.state}}">
+              <view class="application-step-dot" aria-hidden="true"></view>
+              <view class="application-step-copy">
+                <text class="application-step-label">{{item.label}}</text>
+                <text class="application-step-time">{{item.time || (item.state === 'current' ? '等待平台处理' : '')}}</text>
+              </view>
+            </view>
+          </view>
+          <view wx:if="{{detail.rejectReason}}" class="application-callout application-callout-rejected">
+            <text class="application-callout-title">驳回原因</text>
+            <text class="application-callout-copy">{{detail.rejectReason}}</text>
+            <text class="application-callout-copy">奖励已退回，可修改后在「奖励结算」重新提交提现。</text>
+          </view>
+          <view wx:if="{{detail.processNote}}" class="application-callout">
+            <text class="application-callout-title">平台说明</text>
+            <text class="application-callout-copy">{{detail.processNote}}</text>
+          </view>
+        </view>
+
+        <view class="application-card">
+          <text class="application-card-title">金额明细</text>
+          <view wx:for="{{detail.amountRows}}" wx:key="id" class="application-row">
+            <text class="application-row-label">{{item.label}}</text>
+            <text class="application-row-value {{item.strong ? 'is-strong' : ''}}">{{item.value}}</text>
+          </view>
+          <block wx:if="{{detail.settledRows.length}}">
+            <view class="application-divider"></view>
+            <view wx:for="{{detail.settledRows}}" wx:key="id" class="application-row">
+              <text class="application-row-label">{{item.label}}</text>
+              <text class="application-row-value {{item.strong ? 'is-strong' : ''}}">{{item.value}}</text>
+            </view>
+          </block>
+        </view>
+
+        <view wx:if="{{detail.bankRows.length}}" class="application-card">
+          <text class="application-card-title">收款信息</text>
+          <view wx:for="{{detail.bankRows}}" wx:key="id" class="application-row">
+            <text class="application-row-label">{{item.label}}</text>
+            <text class="application-row-value">{{item.value}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{!detail.credits}}" class="application-card">
+          <text class="application-card-title">发票</text>
+          <view wx:if="{{detail.invoices.length}}" class="application-files">
+            <view wx:for="{{detail.invoices}}" wx:key="id" class="application-file" data-id="{{item.id}}" data-group="invoices" bindtap="handleOpenFile" aria-role="button" aria-label="查看{{item.name}}">
+              <image wx:if="{{item.isImage}}" class="application-file-image" src="{{item.url}}" mode="aspectFill"></image>
+              <view wx:else class="application-file-pdf"><text class="application-file-pdf-badge">PDF</text><text class="application-file-name">{{openingFileId === item.id ? '正在打开…' : item.name}}</text></view>
+            </view>
+          </view>
+          <text wx:else class="application-empty">未上传发票</text>
+        </view>
+
+        <view wx:if="{{!detail.credits}}" class="application-card">
+          <text class="application-card-title">支付凭证</text>
+          <view wx:if="{{detail.proofs.length}}" class="application-files">
+            <view wx:for="{{detail.proofs}}" wx:key="id" class="application-file" data-id="{{item.id}}" data-group="proofs" bindtap="handleOpenFile" aria-role="button" aria-label="查看{{item.name}}">
+              <image wx:if="{{item.isImage}}" class="application-file-image" src="{{item.url}}" mode="aspectFill"></image>
+              <view wx:else class="application-file-pdf"><text class="application-file-pdf-badge">PDF</text><text class="application-file-name">{{openingFileId === item.id ? '正在打开…' : item.name}}</text></view>
+            </view>
+          </view>
+          <text wx:else class="application-empty">{{detail.statusKey === 'paid' ? '平台暂未上传支付凭证' : '打款后平台会在这里上传支付凭证'}}</text>
+        </view>
+
+        <view class="application-entry-card" bindtap="handleService" aria-role="button" aria-label="联系企业微信客服">
+          <view class="application-entry-icon" aria-hidden="true">
+            <image src="{{UA.src(ui, '/assets/icons/headphones.svg')}}" mode="aspectFit"></image>
+          </view>
+          <view class="application-entry-copy">
+            <text class="application-entry-title">结算问题找客服</text>
+            <text class="application-entry-meta">{{serviceOpening ? '正在打开…' : serviceMeta}}</text>
+          </view>
+          <view class="application-arrow" aria-hidden="true"></view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

@@ -1,0 +1,168 @@
+<view class="plan-root">
+  <view class="plan-ambient" aria-hidden="true"></view>
+  <view class="plan-topbar">
+    <view class="plan-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="plan-back" bindtap="handleBack" aria-label="返回上一页" aria-role="button"><view class="plan-back-icon"></view></view>
+      <text class="plan-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学习安排</text>
+    </view>
+  </view>
+
+  <scroll-view class="plan-page" scroll-y show-scrollbar="false" enhanced="{{true}}" style="padding-top: {{contentTop}}px;" refresher-enabled="{{true}}" refresher-default-style="white" refresher-background="transparent" refresher-triggered="{{refreshing}}" bindrefresherrefresh="handleRefresh">
+    <view class="plan-hero">
+      <text wx:if="{{studentName}}" class="plan-hero-name">{{studentName}}的每日学习</text>
+      <text wx:else class="plan-hero-name">每日学习</text>
+      <text wx:if="{{loadState === 'ready'}}" class="plan-hero-meta">{{summaryText}}</text>
+      <view wx:elif="{{loadState === 'loading'}}" class="sk plan-hero-meta-sk"></view>
+    </view>
+
+    <view class="plan-panel">
+      <view wx:if="{{loadState === 'failed'}}" class="card empty-card">
+        <text class="empty-title">学习安排暂时没有读到</text>
+        <text class="empty-copy">{{loadError}}</text>
+        <view class="empty-retry" bindtap="load" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:else>
+        <!-- 每天学习时长：6 档固定选项，和学生在服务群里确认好再选 -->
+        <view class="section-heading"><text>每天学习多长时间</text><text class="section-caption">和学生在服务群里确认好再选</text></view>
+        <view class="minute-grid">
+          <view wx:for="{{minuteOptions}}" wx:key="minutes" class="minute-chip {{selectedMinutes === item.minutes ? 'is-selected' : ''}}" data-minutes="{{item.minutes}}" bindtap="selectMinutes" aria-role="button" aria-label="每天{{item.label}}">
+            <text class="minute-chip-label">{{item.label}}</text>
+            <text wx:if="{{item.note}}" class="minute-chip-note">{{item.note}}</text>
+          </view>
+        </view>
+
+        <!-- 每周学习日与休息日（2026-10-09）：只往学习日里排，补学也只带到学习日 -->
+        <view class="section-heading section-gap"><text>每周哪几天学习</text><text class="section-caption">{{weekdaysCaption}}</text></view>
+        <view class="weekday-row">
+          <view wx:for="{{weekdayOptions}}" wx:key="value" class="weekday-chip {{item.selected ? 'is-selected' : ''}}" data-value="{{item.value}}" bindtap="toggleWeekday" aria-role="button" aria-label="周{{item.label}}{{item.selected ? '学习' : '休息'}}">{{item.label}}</view>
+        </view>
+        <view class="section-heading section-gap">
+          <text>单独休息的日子</text>
+          <picker mode="date" value="{{restPickerDay}}" start="{{today}}" end="{{maxRestDay}}" disabled="{{loadState !== 'ready'}}" bindchange="addRestDay">
+            <view class="heading-action" aria-role="button">+ 添加休息日</view>
+          </picker>
+        </view>
+        <view wx:if="{{restDayItems.length}}" class="rest-list">
+          <view wx:for="{{restDayItems}}" wx:key="day" class="rest-chip" data-day="{{item.day}}" bindtap="removeRestDay" aria-role="button" aria-label="取消{{item.text}}休息">
+            <text>{{item.text}}</text><text class="rest-chip-close" aria-hidden="true">×</text>
+          </view>
+        </view>
+        <text wx:else class="section-note rest-empty">学生某天有事不学（考试、出游），在这里标出来，那天不排任务。</text>
+        <view wx:if="{{hasPlan && scheduleTouched}}" class="notice notice-warn schedule-notice">学习日或休息日改了，点「重新自动排课」后才会按新的安排排。</view>
+
+        <view class="section-heading section-gap"><text>从哪天开始</text></view>
+        <picker mode="date" value="{{startDay}}" start="{{today}}" end="{{maxStartDay}}" disabled="{{loadState !== 'ready'}}" bindchange="handleStartDay">
+          <view class="option-row">
+            <text wx:if="{{loadState === 'ready'}}" class="option-row-text">{{startDayText}}</text>
+            <view wx:else class="sk sk-line option-row-sk"></view>
+            <view class="option-chevron" aria-hidden="true"></view>
+          </view>
+        </picker>
+
+        <view class="primary-button {{busy ? 'is-busy' : ''}} {{loadState === 'ready' && selectedMinutes && schedulableCount ? '' : 'is-muted'}}" bindtap="handleAuto" aria-role="button">{{hasPlan ? '重新自动排课' : '自动排课'}}</view>
+        <!-- 排好之后：把今天起的安排画成长图，发到学习群 -->
+        <view wx:if="{{hasPlan && days.length}}" class="export-button {{exporting ? 'is-busy' : ''}}" bindtap="handleExport" aria-role="button">{{exporting ? '正在生成图片…' : '导出图片，发到学习群'}}</view>
+        <text class="section-note">把学生还没学完的课程按难度从基础到进阶、先修的课在前排好，按每天学习时长放进每个学习日（休息的日子不排）；太长的课会按页分到几天学。</text>
+
+        <!-- 每日学习任务 -->
+        <view class="section-heading section-gap">
+          <text>每日学习任务</text>
+          <view wx:if="{{hasPlan}}" class="heading-action" bindtap="openAddSheet" aria-role="button">添加任务</view>
+        </view>
+
+        <block wx:if="{{loadState === 'loading'}}">
+          <view wx:for="{{[1, 2]}}" wx:key="*this" class="card day-card">
+            <view class="sk sk-line sk-mid"></view>
+            <view class="task-sk"><view class="sk sk-line"></view><view class="sk sk-line sk-short"></view></view>
+          </view>
+        </block>
+        <block wx:else>
+          <view wx:if="{{reviewCount}}" class="notice">学完的 {{reviewCount}} 门课会按遗忘规律安排复习（每次约 5 分钟，排在当天最前面、算进每天学习时长）。复习是自动安排的，不能改日期或移除。</view>
+          <view wx:if="{{overdueCount}}" class="notice notice-warn">学生前几天有 {{overdueCount}} 项任务没学完，已经带到{{carryDayText}}。想重新分配，可以从今天起重新自动排课。</view>
+          <view wx:if="{{hasPlan && unscheduledCount}}" class="notice">有 {{unscheduledCount}} 门课程还没排进来（新生成的，或被移除的），可以重新自动排课，或用「添加任务」放到某一天。</view>
+          <view wx:if="{{!courseCount}}" class="card empty-card">
+            <text class="empty-title">学生还没有生成好的课程</text>
+            <text class="empty-copy">和学生定制的课程生成好之后，就能在这里排进每天的学习任务。</text>
+          </view>
+          <view wx:elif="{{!days.length}}" class="card empty-card">
+            <text class="empty-copy">{{hasPlan ? '今天起还没有学习任务。' : '还没有学习安排。'}}选好每天学习时长后点「{{hasPlan ? '重新自动排课' : '自动排课'}}」，学生还没学完的课程会排进每一天。</text>
+          </view>
+          <view wx:for="{{days}}" wx:for-item="day" wx:key="day" class="card day-card {{day.isToday ? 'is-today' : ''}}">
+            <view class="day-heading">
+              <text class="day-title">{{day.title}}</text>
+              <text class="day-minutes {{day.overBudget ? 'is-over' : ''}}">{{day.minutesText}}</text>
+            </view>
+            <view wx:for="{{day.tasks}}" wx:for-item="task" wx:key="id" class="task-row">
+              <view class="task-bar task-bar-{{task.stateTone}}" aria-hidden="true"></view>
+              <view class="task-copy">
+                <view class="task-heading">
+                  <text class="task-title">{{task.title}}</text>
+                  <text class="task-state task-state-{{task.stateTone}}">{{task.stateText}}</text>
+                </view>
+                <text class="task-meta">{{task.meta}}</text>
+                <view wx:if="{{task.state !== 'done' && !task.isReview}}" class="task-actions">
+                  <picker mode="date" value="{{task.pickerDay}}" start="{{today}}" end="{{maxMoveDay}}" data-task-id="{{task.id}}" data-day="{{task.day}}" data-overdue="{{task.overdue}}" bindchange="handleMoveTask">
+                    <view class="task-action" aria-role="button">改日期</view>
+                  </picker>
+                  <view class="task-action task-action-danger" data-task-id="{{task.id}}" data-title="{{task.title}}" data-page-label="{{task.pageLabel}}" data-day="{{task.day}}" data-overdue="{{task.overdue}}" bindtap="handleRemoveTask" aria-role="button">移除</view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view wx:if="{{days.length}}" class="clear-link" bindtap="handleClear" aria-role="button">清空今天起的安排</view>
+        </block>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 添加任务：底部弹出 -->
+  <view wx:if="{{sheetVisible}}" class="sheet-layer {{sheetClosing ? 'is-closing' : ''}}" catchtap="closeAddSheet">
+    <view class="sheet" catchtap="stopTap" aria-modal="true" aria-label="添加学习任务">
+      <view class="sheet-handle" aria-hidden="true"></view>
+      <view class="sheet-header">
+        <text class="sheet-title">添加学习任务</text>
+        <view class="sheet-close" bindtap="closeAddSheet" aria-role="button" aria-label="关闭">×</view>
+      </view>
+      <scroll-view class="sheet-scroll" scroll-y enhanced show-scrollbar="false">
+        <text class="sheet-label">选择课程</text>
+        <view wx:for="{{addableCourses}}" wx:key="stageId" class="course-option {{addStageId === item.stageId ? 'is-selected' : ''}}" data-stage-id="{{item.stageId}}" bindtap="chooseAddCourse" aria-role="button">
+          <view class="course-option-radio" aria-hidden="true"></view>
+          <view class="course-option-copy">
+            <text class="course-option-title">{{item.title}}</text>
+            <text class="course-option-meta">{{item.meta}}</text>
+          </view>
+        </view>
+        <text class="sheet-label sheet-gap">放在哪天</text>
+        <picker mode="date" value="{{addDay}}" start="{{today}}" end="{{maxMoveDay}}" bindchange="handleAddDay">
+          <view class="option-row"><text class="option-row-text">{{addDayText}}</text><view class="option-chevron" aria-hidden="true"></view></view>
+        </picker>
+        <text wx:if="{{addError}}" class="sheet-error">{{addError}}</text>
+        <text class="section-note sheet-note">这门课还没学、也还没排进安排的页，会一起放到这一天。</text>
+      </scroll-view>
+      <view class="primary-button sheet-submit {{busy ? 'is-busy' : ''}}" bindtap="submitAdd" aria-role="button">{{busy ? '添加中…' : '添加到这天'}}</view>
+    </view>
+  </view>
+
+  <!-- 自动排课进度：请求期间渐近走向 90%，返回后走满再收起；盖住整页，排课期间点不到别的 -->
+  <view wx:if="{{progressVisible}}" class="progress-layer {{progressClosing ? 'is-closing' : ''}}" catchtap="stopTap" catchtouchmove="stopTap">
+    <view class="progress-card" aria-label="{{progressPercent === 100 ? '排好了' : '正在排课'}}，{{progressPercent}}%">
+      <view class="progress-heading">
+        <text class="progress-title">{{progressPercent === 100 ? '排好了' : '正在排课'}}</text>
+        <text class="progress-percent">{{progressPercent}}%</text>
+      </view>
+      <view class="progress-track" aria-hidden="true"><view class="progress-fill" style="width: {{progressPercent}}%;"></view></view>
+      <view class="progress-steps">
+        <view wx:for="{{progressSteps}}" wx:key="*this" class="progress-step {{index < progressStage ? 'is-done' : ''}} {{index === progressStage ? 'is-active' : ''}}">
+          <view class="progress-step-dot" aria-hidden="true"></view>
+          <text>{{item}}</text>
+        </view>
+      </view>
+      <text class="progress-note">要先判断每门课的难度和先后顺序，课程多时会久一点。</text>
+    </view>
+  </view>
+
+  <!-- 导出排课图片用的画布：放在屏幕外，尺寸在 JS 里按图片大小设 -->
+  <canvas type="2d" id="planExportCanvas" class="plan-export-canvas" aria-hidden="true"></canvas>
+</view>
+<dev-reset-fab />

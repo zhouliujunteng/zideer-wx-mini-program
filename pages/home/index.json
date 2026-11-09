@@ -1,4 +1,8 @@
 {
   "navigationStyle": "custom",
-  "disableScroll": true
+  "disableScroll": true,
+  "usingComponents": {
+    "streak-entry": "/components/streak-entry/index",
+    "favorite-guide": "/components/favorite-guide/index"
+  }
 }

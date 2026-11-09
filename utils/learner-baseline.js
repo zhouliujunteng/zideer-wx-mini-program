@@ -104,4 +104,83 @@ function summarizeLearnerBaseline(profile, knowledgeMap) {
   }
 }
 
-module.exports = { summarizeLearnerBaseline, masteryBucket, gradeLabel }
+/**
+ * 学生在「学习宇宙 › 学习偏好」里自己设置的偏好（课程服务 /api/learn/learning-preference 的回包）→
+ * 附进学习基本盘的一段。text 是课程服务按内置提示词拼好的原话，AI 老师照着排课、写每页要求。
+ * 读不到时如实标 unavailable，不当成「没设置」。
+ */
+function summarizeLearningPreference(view) {
+  if (!view || (view.status !== 'set' && view.status !== 'empty')) {
+    return { status: 'unavailable', note: '学习偏好暂时没读到：会议里问一句他喜欢怎么学。' }
+  }
+  if (view.status === 'empty') {
+    return { status: 'empty', note: '他还没有设置学习偏好。' }
+  }
+  return {
+    status: 'set',
+    labels: (Array.isArray(view.labels) ? view.labels : []).map(String).slice(0, 16),
+    text: String(view.text || '')
+  }
+}
+
+/**
+ * 学生在「学习宇宙 › 我的学习目标」里自己定的目标（偏好接口回包里的 goal）→ 附进学习基本盘的一段。
+ * text 是课程服务拼好的原话（方向、具体目标、完成时间与还剩几天）。读不到如实标 unavailable。
+ */
+function summarizeLearningGoal(view) {
+  if (!view || (view.status !== 'set' && view.status !== 'empty')) {
+    return { status: 'unavailable', note: '学习目标暂时没读到：会议里问一句他想达到什么目标。' }
+  }
+  if (view.status === 'empty') return { status: 'empty', note: '他还没有定学习目标。' }
+  return { status: 'set', summary: String(view.summary || ''), text: String(view.text || '') }
+}
+
+// 按目标测评的目标导图（2026-10-10 用户规则）：诊断会议开场就交给老师 AI，定纲直接按导图的卡点来，不再从头摸底。
+// view = 课程服务 GET /api/learn/goal-diagnosis 的回包。只放知识点名、编号、年级和状态，不含题目与答案。
+const GOAL_NODE_STATE = { mastered: '已掌握', shaky: '需巩固', gap: '卡点', root_gap: '根源卡点', pending: '待测', testing: '测了一部分', untested: '暂未测' }
+const GOAL_LIST_LIMIT = 12
+
+function summarizeGoalMap(view) {
+  if (!view || typeof view !== 'object') return { status: 'unavailable', note: '目标导图暂时没读到：照常摸底。' }
+  const diagnosis = view.diagnosis
+  if (!diagnosis || !diagnosis.map || diagnosis.status === 'failed' || diagnosis.status === 'planning') {
+    return { status: 'none', note: '他还没有按目标测评过。' }
+  }
+  const nodes = Array.isArray(diagnosis.map.nodes) ? diagnosis.map.nodes : []
+  const summary = diagnosis.map.summary || {}
+  const topics = {}
+  nodes.forEach((node) => {
+    if (node.kind !== 'topic' || node.alias || !node.topicId || topics[node.topicId]) return
+    topics[node.topicId] = node
+  })
+  const list = Object.keys(topics).map((id) => topics[id])
+  const pick = (states) => list.filter((node) => states.indexOf(node.status) >= 0).slice(0, GOAL_LIST_LIMIT)
+  const brief = (node) => ({ id: Number(node.topicId), name: node.label, grade: node.gradeLabel || '' })
+  const courses = []
+  list.forEach((node) => {
+    const titles = (node.courses || []).map((course) => course.title).filter(Boolean)
+    if (titles.length) courses.push({ id: Number(node.topicId), name: node.label, courses: titles })
+  })
+  return {
+    status: 'set',
+    subject: String(diagnosis.subjectName || ''),
+    goal: String((diagnosis.goal && (diagnosis.goal.title || diagnosis.goal.text)) || ''),
+    state: diagnosis.status === 'finished' ? '已测完' : diagnosis.status === 'active' ? '测评中' : '测了一部分',
+    // 学习目标改过了：这张导图是按旧目标测的，只作参考
+    goalChanged: Boolean(view.goalChanged),
+    conditions: nodes.filter((node) => node.kind === 'condition').map((node) => ({ title: node.label, state: GOAL_NODE_STATE[node.status] || '' })),
+    rootGaps: (summary.rootGaps || []).map((item) => ({ id: Number(item.topicId), name: item.label, grade: item.gradeLabel || '' })),
+    studyOrder: (summary.path || []).map((item) => ({ id: Number(item.topicId), name: item.label, root: Boolean(item.root) })),
+    gaps: pick(['gap', 'root_gap', 'shaky']).map((node) => Object.assign(brief(node), { state: GOAL_NODE_STATE[node.status] })),
+    mastered: pick(['mastered']).map(brief),
+    untested: pick(['pending', 'testing', 'untested']).map(brief),
+    // 考试类目标：本学期单元测到了几个、还有哪些单元没测（2026-10-11）
+    examScope: summary.scope && Number(summary.scope.units)
+      ? { label: String(summary.scope.label || ''), units: Number(summary.scope.units), covered: Number(summary.scope.covered) || 0, missing: (summary.scope.missing || []).slice(0, GOAL_LIST_LIMIT) }
+      : null,
+    // 已经给这些卡点做过的定制课（不要重复排）
+    coursesDone: courses.slice(0, GOAL_LIST_LIMIT)
+  }
+}
+
+module.exports = { summarizeLearnerBaseline, summarizeLearningPreference, summarizeLearningGoal, summarizeGoalMap, masteryBucket, gradeLabel }

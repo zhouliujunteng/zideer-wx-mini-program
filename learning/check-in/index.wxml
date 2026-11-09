@@ -1,29 +1,44 @@
 <wxs module="UA" src="../../utils/ui-asset.wxs" />
-<!-- 结构取自 UI 设计仓库 b5cc5ab 的每日学习打卡页（E05）；数据来自「读取当前学生学习打卡」动作流，开发调试面板未移植。 -->
+<!-- 结构取自 UI 设计仓库 b5cc5ab 的每日学习打卡页（E05）；数据来自「读取当前学生学习打卡」动作流，开发调试面板未移植。
+     2026-09-25：打卡改为学完一节课或费曼验收通过；新增今日打卡任务、连胜金币、冻结卡 / 复活卡与日历上的冻结、补回效果。 -->
 <view class="checkin-page">
-  <view class="checkin-topbar {{model.hero.tone === 'idle' ? 'checkin-topbar-idle' : ''}}">
+  <view class="checkin-topbar {{model.hero.tone !== 'active' ? 'checkin-topbar-idle' : ''}}">
     <view class="checkin-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
       <view class="checkin-back" bindtap="handleBack" aria-role="button" aria-label="返回学习">
         <view class="checkin-back-icon"></view>
       </view>
-      <text class="checkin-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{model.header.title}}</text>
+      <text class="checkin-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学习连胜</text>
     </view>
     <view class="checkin-share-button" style="top: {{shareTop}}px; right: {{shareRight}}px; width: {{shareSize}}px; height: {{shareSize}}px;" bindtap="handleShare" aria-role="button" aria-label="分享学习连胜">
       <image class="share-glyph-svg" src="{{UA.src(ui, '/learning/assets/check-in/share.svg')}}" mode="aspectFit"></image>
     </view>
   </view>
 
-  <view wx:if="{{loadState !== 'ready'}}" class="checkin-state" style="padding-top: {{contentTop}}px;">
-    <text wx:if="{{loadState === 'loading'}}" class="checkin-state-copy">正在读取学习打卡…</text>
-    <block wx:else><text class="checkin-state-title">学习打卡暂时无法读取</text><text class="checkin-state-copy">{{loadError}}</text><view class="checkin-state-action" bindtap="loadCheckIn" role="button">重新加载</view></block>
+  <!-- 第一次读到打卡数据前：连胜天数、今日进度、统计与日历位只显示骨架，不显示 0 天或读取中文案。 -->
+  <view wx:if="{{loadState === 'loading'}}" class="checkin-skeleton" aria-hidden="true">
+    <view class="checkin-sk-stage" style="height: {{heroStageHeight}}px;">
+      <view class="checkin-sk-hero"><view class="sk sk-line checkin-sk-label"></view><view class="sk checkin-sk-number"></view><view class="sk sk-line checkin-sk-label"></view></view>
+    </view>
+    <view class="checkin-shell">
+      <view class="today-task-card"><view class="today-task-row"><view class="sk sk-line sk-mid"></view></view></view>
+      <view class="calendar-month-header"><view class="sk checkin-sk-month"></view></view>
+      <view class="checkin-stat-grid">
+        <view class="checkin-stat-card" wx:for="{{[0, 1]}}" wx:key="*this"><view class="sk sk-round checkin-sk-icon"></view><view class="checkin-stat-copy checkin-sk-copy"><view class="sk checkin-sk-value"></view><view class="sk sk-line sk-mid"></view></view></view>
+      </view>
+      <view class="sk checkin-sk-calendar"></view>
+      <view class="streak-props"><view class="streak-props-cards"><view class="prop-card" wx:for="{{[0, 1]}}" wx:key="*this"><view class="sk checkin-sk-prop"></view></view></view></view>
+    </view>
+  </view>
+  <view wx:elif="{{loadState !== 'ready'}}" class="checkin-state" style="padding-top: {{contentTop}}px;">
+    <text class="checkin-state-title">学习打卡暂时无法读取</text><text class="checkin-state-copy">{{loadError}}</text><view class="checkin-state-action" bindtap="loadCheckIn" role="button">重新加载</view>
   </view>
 
   <scroll-view wx:if="{{loadState === 'ready'}}" class="checkin-scroll" scroll-y>
-    <view class="checkin-stage {{model.hero.tone === 'idle' ? 'checkin-stage-idle' : ''}}" style="height: {{heroStageHeight}}px;">
+    <view class="checkin-stage checkin-stage-{{model.hero.tone}}" style="height: {{heroStageHeight}}px;">
       <view class="corner-pixel-grid" aria-hidden="true">
-        <view wx:for="{{model.hero.cornerSquares}}" wx:key="id" class="corner-pixel" style="left: {{item.x}}rpx; bottom: {{item.bottom}}rpx; opacity: {{model.hero.tone === 'active' ? item.activeOpacity : item.opacity}};"></view>
+        <view wx:for="{{model.hero.cornerSquares}}" wx:key="id" class="corner-pixel" style="--pixel-x: {{item.x}}; --pixel-bottom: {{item.bottom}}; opacity: {{model.hero.tone === 'active' ? item.activeOpacity : item.opacity}};"></view>
       </view>
-      <view class="checkin-hero {{model.hero.tone === 'idle' ? 'checkin-hero-idle' : 'checkin-hero-active'}}">
+      <view class="checkin-hero checkin-hero-{{model.hero.tone}}">
         <view class="hero-copy">
           <text class="hero-label">{{model.hero.label}}</text>
           <view class="hero-number-row">
@@ -31,11 +46,30 @@
             <text class="hero-number-unit">天</text>
           </view>
           <text class="hero-state">{{model.hero.stateLabel}}</text>
+          <!-- 连胜赚到的金币（打卡送金币累计）。 -->
+          <view wx:if="{{model.streak.coinsEarned}}" class="hero-coins">
+            <image class="hero-coins-icon" src="{{UA.src(ui, '/learning/assets/check-in/coin.svg')}}" mode="aspectFit"></image>
+            <text>连胜已赚 {{model.streak.coinsEarned}} 金币</text>
+          </view>
         </view>
+        <view wx:if="{{model.hero.tone === 'frozen'}}" class="hero-frost" aria-hidden="true"></view>
         <image class="hero-spark-svg" src="{{UA.src(ui, model.hero.animationSrc)}}" mode="aspectFit"></image>
       </view>
     </view>
     <view class="checkin-shell">
+      <!-- 今日打卡：一行任务，学完一节课或通过一次费曼验收；做完自动打上对勾，不用点按钮。
+           打卡金币按连续天数递增（2026-09-27）：右边先放今天（打过卡是明天）能拿多少金币。 -->
+      <view class="today-task-card">
+        <view class="today-task-row" bindtap="handleTaskTap" aria-role="button">
+          <text class="today-task-label">{{model.task.label}}</text>
+          <view class="today-task-end">
+            <text wx:if="{{model.task.coinHint}}" class="today-task-coins">{{model.task.coinHint}}</text>
+            <view wx:if="{{model.task.complete}}" class="today-task-done" aria-label="已完成"></view>
+            <text wx:else class="today-task-right">{{model.task.action}}</text>
+          </view>
+        </view>
+      </view>
+
       <view class="calendar-month-header">
         <text class="calendar-month-label">{{model.calendar.monthLabel}}</text>
         <view class="calendar-month-actions">
@@ -63,17 +97,36 @@
         </view>
       </view>
 
-      <view class="calendar-card-wrap {{calendarTransitionClass}}" style="height: {{model.calendar.height}}rpx;">
+      <view class="calendar-card-wrap {{calendarTransitionClass}}" style="--calendar-height: {{model.calendar.height}};">
         <view class="calendar-card">
           <view class="calendar-weekday-row">
             <text wx:for="{{model.calendar.weekdayLabels}}" wx:key="*this" class="calendar-weekday">{{item}}</text>
           </view>
           <view class="calendar-grid">
             <view wx:for="{{model.calendar.days}}" wx:key="id" class="calendar-cell {{!item.isInMonth ? 'calendar-cell-outside' : ''}}" data-index="{{index}}" bindtap="handleDayTap">
-              <view class="calendar-day-mark {{item.isChecked ? 'calendar-day-mark-checked' : ''}} {{item.isToday ? 'calendar-day-mark-today' : ''}} {{item.isRunStart ? 'calendar-day-mark-run-start' : ''}} {{item.isRunMiddle ? 'calendar-day-mark-run-middle' : ''}} {{item.isRunEnd ? 'calendar-day-mark-run-end' : ''}}">
-                <text class="calendar-day-number {{item.isToday && item.isChecked ? 'calendar-day-number-today-checked' : ''}}">{{item.isInMonth ? item.date : ''}}</text>
+              <view class="calendar-day-mark {{item.isMarked ? 'calendar-day-mark-kept' : ''}} {{item.isChecked ? 'calendar-day-mark-checked' : ''}} {{item.isFrozen ? 'calendar-day-mark-frozen' : ''}} {{item.isFrozen && item.isFuture ? 'calendar-day-mark-ahead' : ''}} {{item.isRevived ? 'calendar-day-mark-revived' : ''}} {{item.isFresh ? 'calendar-day-mark-fresh' : ''}} {{item.isToday ? 'calendar-day-mark-today' : ''}}">
+                <text class="calendar-day-number">{{item.isInMonth ? item.date : ''}}</text>
               </view>
             </view>
+          </view>
+        </view>
+      </view>
+      <!-- 这个月用过道具卡才显示图例。 -->
+      <view wx:if="{{model.calendar.legend.frozen || model.calendar.legend.revived}}" class="calendar-legend">
+        <view class="calendar-legend-item"><view class="calendar-legend-dot calendar-legend-dot-checked"></view><text>打卡</text></view>
+        <view wx:if="{{model.calendar.legend.frozen}}" class="calendar-legend-item"><view class="calendar-legend-dot calendar-legend-dot-frozen"></view><text>冻结</text></view>
+        <view wx:if="{{model.calendar.legend.revived}}" class="calendar-legend-item"><view class="calendar-legend-dot calendar-legend-dot-revived"></view><text>补回</text></view>
+      </view>
+
+      <!-- 连胜道具：只放两张卡牌，有卡点亮、没卡灰色，右上角是张数；点卡牌看说明、确认使用。 -->
+      <view class="streak-props">
+        <view class="streak-props-cards">
+          <view wx:for="{{model.cards}}" wx:key="type" class="prop-card prop-card-{{item.type}} {{item.lit ? 'prop-card-lit' : 'prop-card-off'}}" data-type="{{item.type}}" bindtap="handleCardTap" aria-role="button" aria-label="{{item.title}}，还有{{item.count}}张">
+            <view class="prop-card-art">
+              <image class="prop-card-image" src="{{UA.src(ui, item.iconSrc)}}" mode="aspectFit"></image>
+              <text class="prop-card-count">{{item.count}}</text>
+            </view>
+            <text class="prop-card-label">{{item.title}}</text>
           </view>
         </view>
       </view>
@@ -149,6 +202,44 @@
       </view>
       <view class="share-sheet-cancel" bindtap="handleCloseShareSheet">取消</view>
     </view>
+  </view>
+
+  <view wx:if="{{cardSheet}}" class="card-mask {{cardSheetClosing ? 'card-mask-closing' : ''}}" bindtap="handleCloseCardSheet">
+    <view class="card-sheet card-sheet-{{cardSheet.type}}" catchtap="noop">
+      <view class="success-sheet-handle"></view>
+      <view class="card-sheet-hero">
+        <view class="card-sheet-icon-wrap"><image class="card-sheet-icon" src="{{UA.src(ui, cardSheet.iconSrc)}}" mode="aspectFit"></image></view>
+        <view class="card-sheet-copy">
+          <text class="card-sheet-title">{{cardSheet.title}}</text>
+          <text class="card-sheet-count">还有 {{cardSheet.count}} 张</text>
+        </view>
+      </view>
+      <text class="card-sheet-desc">{{cardSheet.description}}</text>
+      <view wx:if="{{cardSheet.usable}}" class="card-sheet-plan">
+        <text class="card-sheet-plan-title">{{cardSheet.type === 'freeze' ? '这次会冻结' : '这次会补回'}}</text>
+        <view class="card-sheet-days">
+          <view wx:for="{{cardSheet.days}}" wx:key="id" class="card-sheet-day">
+            <text class="card-sheet-day-date">{{item.label}}</text>
+            <text class="card-sheet-day-week">{{item.weekday}}</text>
+          </view>
+        </view>
+        <text class="card-sheet-note">{{cardSheet.type === 'freeze' ? '冻结的日子不打卡也不会断连胜，但不计入连续天数。' : '补回的日子把连胜接上，但不计入连续天数。'}}</text>
+      </view>
+      <view wx:else class="card-sheet-reason">{{cardSheet.reason}}</view>
+      <view wx:if="{{cardSheet.howToGet.length}}" class="card-sheet-how">
+        <text class="card-sheet-how-title">怎么获得</text>
+        <text wx:for="{{cardSheet.howToGet}}" wx:key="*this" class="card-sheet-how-item">· {{item}}</text>
+      </view>
+      <view class="card-sheet-actions">
+        <view wx:if="{{cardSheet.usable}}" class="card-sheet-confirm {{usingCard ? 'card-sheet-confirm-busy' : ''}}" bindtap="handleConfirmUseCard" aria-role="button">{{usingCard ? '正在使用…' : '确认使用'}}</view>
+        <view class="card-sheet-cancel" bindtap="handleCloseCardSheet" aria-role="button">{{cardSheet.usable ? '先不用' : '知道了'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 用卡后的全屏效果：冻结卡飘雪，复活卡火花。 -->
+  <view wx:if="{{cardEffect}}" class="card-effect card-effect-{{cardEffect}}" aria-hidden="true">
+    <view wx:for="{{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}}" wx:key="*this" class="card-effect-particle card-effect-particle-{{item}}"></view>
   </view>
 
 </view>

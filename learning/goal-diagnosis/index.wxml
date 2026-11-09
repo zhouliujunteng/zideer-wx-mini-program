@@ -1,0 +1,215 @@
+<wxs module="QF" src="../../utils/question-figure.wxs" />
+<!-- 按目标测评 + 目标导图（2026-10-10）：围绕学习目标出题，错了就沿知识图谱往前挖；导图：目标 → 大条件 → 知识点 → 前置知识点。
+     学生看不到题量。老师从学生详情进来（teacher）只读看导图。 -->
+
+
+<view class="pref-page">
+  <view class="pref-ambient" aria-hidden="true"></view>
+  <view class="pref-topbar">
+    <view class="pref-topbar-inner" style="padding-top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
+      <view class="pref-back" bindtap="handleBack" aria-role="button" aria-label="返回上一页"><view class="pref-back-icon"></view></view>
+      <text class="pref-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{teacher ? '学生目标导图' : '按目标测评'}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="pref-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="pref-shell">
+
+      <!-- 骨架 -->
+      <block wx:if="{{view === 'loading'}}">
+        <view class="pref-card gm-goal-card">
+          <view class="sk sk-line sk-short"></view>
+          <view class="sk sk-line sk-mid gm-sk-gap"></view>
+          <view class="sk sk-line sk-short gm-sk-gap"></view>
+        </view>
+        <view class="pref-card"><view class="sk gm-sk-map"></view></view>
+      </block>
+
+      <view wx:elif="{{view === 'failed'}}" class="pref-card gm-state">
+        <text class="gm-state-title">没有打开</text>
+        <text class="gm-state-copy">{{loadError}}</text>
+        <view class="gm-ghost-btn" bindtap="retryLoad" aria-role="button">重新读取</view>
+      </view>
+
+      <block wx:else>
+        <!-- 目标卡 -->
+        <view wx:if="{{goal || diagnosis}}" class="pref-card gm-goal-card">
+          <view class="gm-goal-head">
+            <view class="gm-goal-badge"><view class="gm-goal-ring"><view class="gm-goal-ring-dot"></view></view><text>{{teacher ? '学生的学习目标' : '我的学习目标'}}</text></view>
+            <text wx:if="{{stateText && view === 'result'}}" class="gm-state-chip">{{stateText}}</text>
+          </view>
+          <text class="gm-goal-text">{{diagnosis ? diagnosis.goal.text : goal.text}}</text>
+          <view class="gm-goal-tags">
+            <text wx:if="{{diagnosis && diagnosis.subjectName}}" class="gm-tag">{{diagnosis.subjectName}}</text>
+            <text wx:if="{{goal && goal.direction}}" class="gm-tag">{{goal.direction}}</text>
+            <text wx:if="{{goal && goal.deadline}}" class="gm-tag">{{goal.deadline}} 前</text>
+            <text wx:if="{{!teacher && goal}}" class="gm-tag-link" bindtap="openGoal" aria-role="button">改目标</text>
+          </view>
+        </view>
+
+        <view wx:if="{{actionError}}" class="pref-read-notice" role="alert"><text class="pref-read-notice-copy">{{actionError}}</text></view>
+
+        <!-- 还没定目标 -->
+        <view wx:if="{{view === 'no_goal'}}" class="pref-card gm-state">
+          <block wx:if="{{teacher}}">
+            <text class="gm-state-title">学生还没做按目标测评</text>
+            <text class="gm-state-copy">可以提醒学生在「学习宇宙 › 我的学习目标」定好目标，保存后就能围绕目标测一轮，导图会出现在这里。</text>
+          </block>
+          <block wx:else>
+            <view class="gm-hero-icon" aria-hidden="true"><view class="gm-goal-ring is-big"><view class="gm-goal-ring-dot"></view></view></view>
+            <text class="gm-state-title">先定一个学习目标</text>
+            <text class="gm-state-copy">测评会围绕你的目标出题：先看实现目标要具备哪些条件，再一个个找出卡在哪里。</text>
+            <view class="gm-primary-inline" bindtap="openGoal" aria-role="button">去定目标</view>
+          </block>
+        </view>
+
+        <view wx:elif="{{view === 'intro'}}" class="pref-card gm-intro">
+          <text class="gm-intro-title">{{goalChanged ? '目标改过了，按新目标测一轮' : '围绕你的目标，做一轮测评'}}</text>
+          <view class="gm-steps">
+            <view class="gm-step"><view class="gm-step-no">1</view><view class="gm-step-copy"><text class="gm-step-title">拆解目标</text><text class="gm-step-desc">看看实现这个目标，要具备哪几个条件</text></view></view>
+            <view class="gm-step"><view class="gm-step-no">2</view><view class="gm-step-copy"><text class="gm-step-title">边做边找卡点</text><text class="gm-step-desc">做错或不会的题，会往前检查它需要的基础</text></view></view>
+            <view class="gm-step"><view class="gm-step-no">3</view><view class="gm-step-copy"><text class="gm-step-title">生成目标导图</text><text class="gm-step-desc">哪些已经会了、卡在哪里、先补什么，一张图看清</text></view></view>
+          </view>
+          <text class="gm-intro-foot">不用一次做完，随时可以先停下，下次接着测。</text>
+        </view>
+
+        <view wx:elif="{{view === 'subject'}}" class="pref-card">
+          <view class="pref-group-head"><text class="pref-group-title">这个目标是哪一门学科的？</text><text class="pref-group-hint">选 1 项</text></view>
+          <view class="pref-options">
+            <view wx:for="{{subjects}}" wx:key="code" class="pref-chip {{pickedSubject === item.code ? 'is-selected' : ''}}" data-code="{{item.code}}" bindtap="pickSubject" aria-role="radio" aria-checked="{{pickedSubject === item.code}}">{{item.name}}</view>
+          </view>
+        </view>
+
+        <view wx:elif="{{view === 'planning'}}" class="pref-card gm-planning">
+          <view class="bean-loader" aria-hidden="true"><view></view><view></view><view></view></view>
+          <text class="gm-state-title">正在拆解你的目标</text>
+          <text class="gm-state-copy">在知识图谱里找实现这个目标需要的条件，马上开始。</text>
+          <view class="gm-planning-lines"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view>
+        </view>
+
+        <view wx:elif="{{view === 'plan_failed'}}" class="pref-card gm-state">
+          <text class="gm-state-title">目标没有拆好</text>
+          <text class="gm-state-copy">可能是网络或服务忙，再试一次就好。也可以把目标写得具体一点，比如「期末数学函数部分不丢分」。</text>
+          <view class="gm-primary-inline" bindtap="resumeTest" aria-role="button">再试一次</view>
+        </view>
+
+        <block wx:elif="{{view === 'question' || view === 'preparing'}}">
+          <view class="gm-progress">
+            <view class="gm-progress-dots">
+              <view wx:for="{{progress.dots}}" wx:key="id" class="gm-progress-dot tone-{{item.tone}}"></view>
+            </view>
+            <text class="gm-progress-text">已探明 {{progress.settled}} / {{progress.total}} 个条件</text>
+            <text class="gm-progress-link" bindtap="toggleMapWhileTesting" aria-role="button">{{showMapWhileTesting ? '收起导图' : '看导图'}}</text>
+          </view>
+          <goal-map wx:if="{{showMapWhileTesting && diagnosis.map}}" nodes="{{diagnosis.map.nodes}}" height="{{360}}" />
+
+          <view wx:if="{{view === 'question'}}" class="pref-card gm-question">
+            <view class="gm-path">
+              <block wx:for="{{question.path}}" wx:key="index">
+                <text class="gm-path-item {{index === question.path.length - 1 ? 'is-last' : ''}}">{{item}}</text>
+                <view wx:if="{{index < question.path.length - 1}}" class="gm-path-sep" aria-hidden="true"></view>
+              </block>
+            </view>
+            <view wx:if="{{digHint}}" class="gm-dig"><view class="gm-dig-icon" aria-hidden="true"></view><text>{{digHint}}</text></view>
+            <text class="gm-prompt" user-select>{{question.prompt}}</text>
+            <view wx:if="{{question.figures && question.figures.length}}" class="gm-figures">
+              <view wx:for="{{question.figures}}" wx:key="url" class="gm-figure-frame">
+                <view class="gm-figure-box" style="{{QF.box(figureDimensions[item.url] || item, 1)}}">
+                  <image class="gm-figure" src="{{item.url}}" mode="aspectFit" data-url="{{item.url}}" bindload="figureLoaded" bindtap="previewFigure" aria-label="{{item.alt || '题目配图'}}" />
+                </view>
+              </view>
+            </view>
+            <view class="gm-options">
+              <view wx:for="{{question.options}}" wx:key="value" class="gm-option {{selected === item.value ? 'is-selected' : ''}}" data-value="{{item.value}}" bindtap="chooseOption" aria-role="radio" aria-checked="{{selected === item.value}}">
+                <view class="gm-option-letter">{{item.value}}</view>
+                <view class="gm-option-body">
+                  <text class="gm-option-label">{{item.label}}</text>
+                  <view wx:for="{{item.figures}}" wx:key="url" wx:for-item="figure" class="gm-option-figure-frame">
+                    <view class="gm-figure-box" style="{{QF.box(figureDimensions[figure.url] || figure, 1)}}">
+                      <image class="gm-figure" src="{{figure.url}}" mode="aspectFit" data-url="{{figure.url}}" bindload="figureLoaded" aria-label="{{figure.alt || '选项配图'}}" />
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view wx:else class="pref-card gm-question gm-preparing">
+            <view class="bean-loader is-small" aria-hidden="true"><view></view><view></view><view></view></view>
+            <text class="gm-state-copy">正在准备下一题…</text>
+            <view class="sk sk-line sk-mid gm-sk-gap"></view>
+            <view class="sk gm-sk-option"></view><view class="sk gm-sk-option"></view><view class="sk gm-sk-option"></view>
+          </view>
+
+          <view class="gm-pause" bindtap="pauseHere" aria-role="button">先到这里，下次接着测</view>
+        </block>
+
+        <block wx:elif="{{view === 'result'}}">
+          <view class="gm-summary">
+            <view class="gm-summary-item tone-mastered"><text class="gm-summary-num">{{summary.mastered}}</text><text class="gm-summary-label">已掌握的知识点</text></view>
+            <view class="gm-summary-item tone-gap"><text class="gm-summary-num">{{summary.gaps}}</text><text class="gm-summary-label">卡点</text></view>
+            <view class="gm-summary-item tone-root"><text class="gm-summary-num">{{summary.roots.length}}</text><text class="gm-summary-label">根源卡点</text></view>
+          </view>
+
+          <view wx:if="{{diagnosis.status === 'paused'}}" class="gm-paused-note">
+            <text>{{diagnosis.pauseReason === 'round_cap' ? '这一轮先测到这里，剩下的条件下次接着测。' : '测到一半先停下了，导图里灰色的条件还没测。'}}</text>
+          </view>
+
+          <goal-map wx:if="{{diagnosis.map}}" nodes="{{diagnosis.map.nodes}}" teacher="{{teacher}}" bind:course="openCourse" />
+
+          <view wx:if="{{summary.roots.length}}" class="pref-card gm-list-card">
+            <text class="gm-list-title">根源卡点</text>
+            <text class="gm-list-sub">往前挖到底，问题出在这些基础上</text>
+            <view wx:for="{{summary.roots}}" wx:key="id" class="gm-root-row">
+              <view class="gm-root-mark" aria-hidden="true"></view>
+              <text class="gm-root-label">{{item.label}}</text>
+              <text wx:if="{{item.gradeLabel}}" class="gm-root-grade">{{item.gradeLabel}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{summary.path.length}}" class="pref-card gm-list-card">
+            <text class="gm-list-title">建议的补习顺序</text>
+            <text class="gm-list-sub">从最底下的基础补起，一步步回到目标</text>
+            <view class="gm-path-steps">
+              <view wx:for="{{summary.path}}" wx:key="id" class="gm-path-step">
+                <view class="gm-path-step-no {{item.root ? 'is-root' : ''}}">{{item.step}}</view>
+                <text class="gm-path-step-label">{{item.label}}</text>
+                <text wx:if="{{item.gradeLabel}}" class="gm-root-grade">{{item.gradeLabel}}</text>
+              </view>
+            </view>
+            <text wx:if="{{!teacher}}" class="gm-list-foot">老师定制课程时会先看这张导图，课程会从这些地方补起。</text>
+          </view>
+
+          <view wx:if="{{!summary.path.length && diagnosis.status === 'finished'}}" class="pref-card gm-state">
+            <text class="gm-state-title">这一轮没有发现卡点</text>
+            <text class="gm-state-copy">围绕这个目标的条件都掌握得不错。可以把目标定得更高一点，再测一轮。</text>
+          </view>
+        </block>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 底部按钮 -->
+  <view wx:if="{{!teacher && (view === 'intro' || view === 'subject' || view === 'question' || (view === 'result' && diagnosis))}}" class="pref-footer gm-footer">
+    <block wx:if="{{view === 'intro'}}">
+      <button class="pref-save" bindtap="handleStart" loading="{{busy}}" disabled="{{busy}}">{{busy ? '正在准备' : '开始测评'}}</button>
+    </block>
+    <block wx:elif="{{view === 'subject'}}">
+      <button class="pref-save" bindtap="confirmSubject" loading="{{busy}}" disabled="{{busy || !pickedSubject}}">开始测评</button>
+    </block>
+    <block wx:elif="{{view === 'question'}}">
+      <view class="gm-answer-row">
+        <button class="gm-dont-know" bindtap="submitDontKnow" disabled="{{submitting}}">不会</button>
+        <button class="pref-save gm-confirm" bindtap="submitChoice" loading="{{submitting}}" disabled="{{submitting || !selected}}">确定</button>
+      </view>
+    </block>
+    <block wx:elif="{{diagnosis.status === 'paused'}}">
+      <button class="pref-save" bindtap="resumeTest" loading="{{busy}}" disabled="{{busy}}">继续测评</button>
+    </block>
+    <block wx:else>
+      <button class="gm-secondary" bindtap="handleRestart" disabled="{{busy}}">重新测一次</button>
+    </block>
+  </view>
+
+</view>
+<dev-reset-fab />

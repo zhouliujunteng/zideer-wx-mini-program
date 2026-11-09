@@ -1,0 +1,53 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+page{height:100%}
+.ws-root{width:100%;height:100vh;flex-direction:column}
+.ws-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:312px}
+.ws-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
+.ws-topbar-inner{padding:0 19px 9px}
+.ws-back{flex:0 0 auto;width:32px;height:32px;border-radius:50%}
+.ws-back-icon{width:13px;height:13px;border-bottom:2px solid #FFFFFF;border-left:2px solid #FFFFFF}
+.ws-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.ws-header{flex:0 0 auto;padding:0 19px 33px}
+.ws-search{height:50px;margin-top:10px;padding:0 16px;border-radius:599px}
+.ws-search-icon{width:18px;height:18px;margin-right:8px;flex:0 0 18px}
+.ws-search-input{min-width:0;height:50px;flex:1;font-size:15px;line-height:50px}
+.ws-search-clear{width:24px;height:24px;margin-left:7px;flex:0 0 24px;border-radius:50%;font-size:16px;font-weight:300;line-height:1}
+.ws-panel{min-height:0;margin-top:-15px;flex:1;flex-direction:column;border-radius:15px 15px 0 0}
+.ws-heading{flex:0 0 auto;padding:20px 19px 12px;font-size:16px;font-weight:700;line-height:1.25}
+.ws-heading-title{gap:7px}
+.section-caption{font-size:12px;font-weight:400}
+.heading-action{padding:6px 14px;border-radius:599px;font-size:13px;font-weight:600}
+.ws-list{height:0;flex:1}
+.ws-list-inner{padding:0 16px calc(28px + env(safe-area-inset-bottom))}
+.ws-state{padding:20px 16px 0}
+.card{border:0;border-radius:16px}
+.student-row{margin-bottom:9px;padding:14px 15px}
+.student-avatar{width:50px;height:50px;flex:0 0 50px;border-radius:50%}
+.student-copy{min-width:0;margin-left:13px;flex:1}
+.student-name{font-size:16px;font-weight:600;line-height:1.35}
+.student-meta{margin-top:3px;font-size:12px;line-height:1.4}
+.student-date{flex:none;margin-left:9px;font-size:12px}
+.student-arrow{width:8px;height:8px;margin:0 3px 0 10px;flex:0 0 8px;border-top:1px solid #B3BBB5;border-right:1px solid #B3BBB5}
+.section-note{margin-top:4px;font-size:12px;line-height:1.6}
+.ws-tabs{flex:0 0 auto;gap:8px;padding:0 19px 12px}
+.ws-tab{height:36px;padding:0 15px;border-radius:599px;font-size:13px;font-weight:600}
+.ws-tab-count{min-width:19px;height:19px;margin-left:6px;padding:0 4px;border-radius:599px;font-size:11px;line-height:19px}
+.behind-warning{margin-bottom:9px;padding:10px 13px;border-radius:13px;font-size:12px;line-height:1.6}
+.empty-card{padding:33px 19px;flex-direction:column}
+.empty-title{font-size:16px;font-weight:600}
+.empty-copy{margin-top:7px;font-size:13px;line-height:1.6}
+.empty-retry{margin-top:14px;padding:8px 21px;border-radius:599px;font-size:13px;font-weight:600}
+.empty-primary{height:45px;margin-top:16px;padding:0 31px;border-radius:599px;font-size:15px;font-weight:600}
+.student-avatar-sk{width:50px;height:50px;flex:0 0 50px}
+.student-meta-sk{margin-top:8px;height:13px}
+}

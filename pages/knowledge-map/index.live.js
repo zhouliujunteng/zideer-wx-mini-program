@@ -27,7 +27,7 @@ Page({
   },
 
   async onShow() {
-    syncTab(this, 2)
+    syncTab(this, 3)
     if (!this.data.nodes.length) await this.loadPage()
   },
 

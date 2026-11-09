@@ -1,0 +1,60 @@
+<view class="support-page">
+  <view class="support-ambient" aria-hidden="true"></view>
+  <view class="support-topbar">
+    <view class="support-topbar-inner" style="padding-top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
+      <view class="support-back" bindtap="handleBack" aria-role="button" aria-label="返回上一页"><view class="support-back-icon"></view></view>
+      <text class="support-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">问题反馈</text>
+    </view>
+  </view>
+  <scroll-view class="support-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="support-shell">
+      <view class="feedback-column">
+        <block wx:if="{{!receipt}}">
+          <view class="section-heading"><text class="section-title">问题反馈</text><text class="section-subtitle">告诉我们遇到的问题，一起让学习更顺畅</text></view>
+          <view class="feedback-card">
+            <text class="field-label">问题类型</text>
+            <view class="category-options">
+              <button wx:for="{{categoryLabels}}" wx:key="*this" class="category-chip {{categoryIndex === index ? 'is-selected' : ''}}" data-index="{{index}}" bindtap="selectCategory" disabled="{{uploading}}" aria-pressed="{{categoryIndex === index}}">{{item}}</button>
+            </view>
+            <view class="description-heading"><text class="field-label">问题描述<text class="optional">选填</text></text></view>
+            <textarea class="feedback-input" placeholder="请告诉我们具体页面和操作，例如：进入课程后横过来，画面被裁切了。" placeholder-class="feedback-placeholder" maxlength="1000" value="{{description}}" bindinput="descriptionChanged" disabled="{{uploading}}" auto-height="{{false}}" cursor-spacing="32" adjust-position="{{true}}" aria-label="问题描述" />
+            <view class="description-count"><text>{{description.length}} / 1000</text></view>
+            <view class="diagnostics-row">
+              <view class="diagnostics-copy"><text class="field-label">附带诊断信息</text><text class="field-hint">帮助我们了解设备与显示情况</text></view>
+              <switch class="diagnostics-switch" checked="{{includeDiagnostics}}" color="#FD7C02" bindchange="diagnosticsChanged" disabled="{{uploading}}" aria-label="附带诊断信息" />
+            </view>
+            <view class="device-row"><text class="device-label">当前设备</text><text class="device-value">{{device}}</text></view>
+          </view>
+          <view class="privacy-note"><text class="privacy-dot"></text><text>仅在提交时上传，不含聊天、课程内容或登录凭证。反馈会关联你的账号，方便排查。</text></view>
+          <view wx:if="{{error}}" class="feedback-error" role="alert">{{error}}</view>
+          <button class="submit" bindtap="submit" loading="{{uploading}}" disabled="{{uploading}}">{{uploading ? '正在提交' : error ? '重新提交' : '提交反馈'}}</button>
+          <text class="submit-caption">提交后可获得反馈编号，方便与老师沟通</text>
+        </block>
+        <view class="success-card" wx:else>
+          <view class="success-mark" aria-hidden="true"><view class="success-check"></view></view>
+          <text class="success-title">反馈已收到</text>
+          <text class="success-description">谢谢你的反馈，我们会尽快排查。
+与老师沟通时，可以提供下面的反馈编号。</text>
+          <view class="receipt-box"><text class="receipt-label">反馈编号</text><text class="receipt" selectable>{{receipt}}</text></view>
+          <button class="submit" bindtap="copyReceipt">复制反馈编号</button>
+        </view>
+      </view>
+      <view class="help-column">
+        <view class="section-heading help-heading"><text class="section-title">常见问题</text></view>
+        <view class="help-card">
+          <view class="help-title" bindtap="toggleHelp" aria-role="button" aria-expanded="{{helpOpen}}">
+            <view class="help-title-copy"><text class="help-kicker">平板显示</text><text class="help-question">画面太小或横竖屏错位？</text></view>
+            <view class="chevron {{helpOpen ? 'is-open' : ''}}"></view>
+          </view>
+          <view wx:if="{{helpOpen}}" class="help-body">
+            <view class="help-step"><text class="step-number">1</text><view><text class="step-title">退出分屏或浮窗</text><text class="step-copy">先回到完整窗口，再重新进入课程。</text></view></view>
+            <view class="help-step"><text class="step-number">2</text><view><text class="step-title">检查微信的横屏设置</text><text class="step-copy">如果横屏中仍套着竖向窄窗口，请检查平板系统针对微信的显示设置。</text></view></view>
+            <view class="oppo-note"><text class="oppo-title">OPPO Pad Mini 已验证的方法</text><text>设置 → 显示与亮度 → 应用横屏显示 → 微信 → 原始布局</text><text class="oppo-caution">修改会关闭微信，请先退出课程。其他机型以实际设置为准。</text></view>
+          </view>
+        </view>
+        <view class="help-footer"><text class="help-footer-title">诊断信息包含什么？</text><text>设备型号、系统与微信版本，以及最近的窗口变化和错误类型。小程序最多附带近 24 小时内的 40 条记录。</text><text>也可以关闭「附带诊断信息」，仅提交问题描述。</text></view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

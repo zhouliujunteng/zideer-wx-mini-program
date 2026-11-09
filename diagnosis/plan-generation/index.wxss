@@ -1,3 +1,4 @@
+@import "../../styles/account-form.wxss";
 .plan-generation { min-height: 100vh; padding: 0 28rpx calc(env(safe-area-inset-bottom) + 44rpx); }
 .plan-generation__inner { padding-top: 54rpx; }
 .plan-generation__head { padding: 0 8rpx; }
@@ -27,3 +28,5 @@
 .plan-generation__working-copy { display: block; margin-top: 12rpx; color: var(--muted); font-size: 22rpx; line-height: 1.55; }
 @keyframes plan-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .plan-generation__spinner { animation-duration: 0.01ms; animation-iteration-count: 1; } }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

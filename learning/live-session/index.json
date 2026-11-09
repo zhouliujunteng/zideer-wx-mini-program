@@ -1,4 +1,4 @@
 {
-  "navigationBarTitleText": "真人陪跑详情",
-  "enablePullDownRefresh": true
+  "navigationStyle": "custom",
+  "usingComponents": {}
 }

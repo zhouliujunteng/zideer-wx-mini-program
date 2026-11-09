@@ -59,7 +59,7 @@ test('new student without benefit accounts gets zero-balance accounts created be
   assert.equal(ops.find(op => op.name === 'GrantRedemptionCredit').variables.id, 302)
   assert.equal(ops.find(op => op.name === 'GrantRedemptionCoin').variables.id, 402)
   // result 产自 vm 沙箱（跨 context 原型不同），用 JSON 文本对比
-  assert.equal(JSON.stringify(state.result), JSON.stringify({ok: true, replayed: false, redemption_record_id: 1, benefits: {course_credit: 10, coin: 50, experience_product_access: null}}))
+  assert.equal(JSON.stringify(state.result), JSON.stringify({ok: true, replayed: false, redemption_record_id: 1, benefits: {course_credit: 10, coin: 50, experience_product_access: null, streak_freeze_card: 0, streak_revive_card: 0, achievement_card_draw: 0}}))
 })
 
 test('students with existing accounts skip the ensure inserts entirely', () => {

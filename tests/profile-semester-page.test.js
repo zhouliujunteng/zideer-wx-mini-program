@@ -3,11 +3,12 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const vm = require('node:vm')
 const profileForm = require('../utils/profile-form')
+const accountSwitch = require('../utils/account-switch')
 function pageFor(semester) {
   let definition
   vm.runInNewContext(fs.readFileSync(require.resolve('../pages/profile-setup/index.js'), 'utf8'), {
     Page: value => { definition = value },
-    require: name => name.includes('profile-form') ? profileForm : name.includes('identity') ? {loadCurrentUser:async()=>({profile:{id:1,current_grade:7,semester}}),isAuthenticationRequired:()=>false} : {},
+    require: name => name.includes('profile-form') ? profileForm : name.includes('account-switch') ? accountSwitch : name.includes('identity') ? {loadCurrentUser:async()=>({profile:{id:1,current_grade:7,semester}}),isAuthenticationRequired:()=>false} : name.includes('referral-context') ? {postProfileUrl:()=>'/pages/home/index',readPendingReferral:()=>null,clearPendingReferral(){}} : {},
     wx: {showToast(){}}, setTimeout, clearTimeout
   })
   return {...definition, isEditing:true, data:JSON.parse(JSON.stringify(definition.data)),setData(values){for(const [key,value] of Object.entries(values)){const keys=key.split('.');let obj=this.data;while(keys.length>1)obj=obj[keys.shift()];obj[keys[0]]=value}}}

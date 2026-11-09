@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
+require('./helpers/allow-diagnosis-room-entry')
 
 const servicePath = require.resolve('../services/course-agent-service.js')
 
@@ -62,7 +63,7 @@ test('event stream subscribes chunks on the RequestTask, not the request options
 
 // ---------- 页面：服务端预加载技能的 read 不应提前结束“发送中” ----------
 
-const pagePath = require.resolve('../pages/agent-chat/index.js')
+const pagePath = require.resolve('../pages/diagnosis-room/index.js')
 
 test('assistant tool-call messages keep the reply pending until session_end', async () => {
   delete require.cache[pagePath]

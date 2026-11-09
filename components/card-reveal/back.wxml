@@ -1,0 +1,12 @@
+<!-- 成就卡背面（主卡与扇形里的 5 张共用）：深色底、细线内框、顶部小卡扣、几道横线和两个小图标，照用户录屏里的卡背 -->
+<view class="cb-frame">
+  <view class="cb-tab"></view>
+  <view class="cb-icon cb-icon-book"></view>
+  <view class="cb-line cb-line-long"></view>
+  <view class="cb-line cb-line-short"></view>
+  <view class="cb-line cb-line-long"></view>
+  <view class="cb-line cb-line-short"></view>
+  <view class="cb-icon cb-icon-star"></view>
+  <view class="cb-line cb-line-long"></view>
+  <view class="cb-line cb-line-short"></view>
+</view>

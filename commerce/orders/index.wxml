@@ -1,2 +1,55 @@
-<view class="orders-page"><view class="orders-head"><text class="orders-eyebrow">购买记录</text><text class="orders-title">订单</text></view><view class="orders-tabs"><button class="orders-tab {{status === 'all' ? 'is-active' : ''}}" data-status="all" bindtap="chooseStatus">全部</button><button class="orders-tab {{status === '待支付' ? 'is-active' : ''}}" data-status="待支付" bindtap="chooseStatus">待支付</button><button class="orders-tab {{status === '已支付' ? 'is-active' : ''}}" data-status="已支付" bindtap="chooseStatus">已支付</button></view><view class="commerce-skeleton skeleton" wx:if="{{loading}}"></view><view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">订单暂时无法加载</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view><view class="order-empty surface" wx:elif="{{!orders.length}}">暂时没有订单记录</view><view class="order-list" wx:else><button class="order-card surface pressable" wx:for="{{orders}}" wx:key="id" wx:if="{{status === 'all' || status === item.status}}" data-id="{{item.id}}" bindtap="openOrder"><view class="order-card__head"><text>{{item.title}}</text><text class="order-card__status">{{item.statusLabel}}</text></view><text class="order-card__student">受益学生：{{item.beneficiaryName}}</text><view class="order-card__foot"><text>{{item.order_no || '订单处理中'}}</text><text>¥{{item.amountDisplay}}</text></view></button></view></view>
+<!-- 订单记录：整页照设计师「结算明细」，条目照课程积分明细（M34）；见 index.js。 -->
+<view class="orders-page">
+  <view class="orders-topbar">
+    <view class="orders-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="orders-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="orders-back-icon"></view></view>
+      <text class="orders-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">订单记录</text>
+    </view>
+  </view>
+
+  <view class="orders-shell" style="padding-top: {{contentTop}}px;">
+    <view class="orders-state" wx:if="{{failed && !loaded}}">
+      <text class="orders-state-title">订单暂时无法加载</text>
+      <text class="orders-state-copy">请检查网络后重新加载。</text>
+      <view class="orders-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+    </view>
+
+    <view wx:else class="orders-module">
+      <view class="orders-tabs" aria-label="订单筛选">
+        <view wx:for="{{orderTabs}}" wx:key="id" class="orders-tab {{item.isSelected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleTab" aria-role="button">{{item.label}}</view>
+      </view>
+
+      <!-- 首次读到订单前：月份行 + 订单行骨架，不先闪空状态 -->
+      <view wx:if="{{!loaded && !failed}}" class="orders-sk-card" aria-label="订单加载中">
+        <view class="sk sk-line orders-sk-month"></view>
+        <view wx:for="{{[0, 1, 2, 3]}}" wx:key="*this" class="order-item">
+          <view class="order-copy">
+            <view class="order-title-row"><view class="sk sk-line orders-sk-title"></view><view class="sk sk-line orders-sk-amount"></view></view>
+            <view class="sk sk-line orders-sk-detail"></view>
+            <view class="order-meta"><view class="sk sk-line orders-sk-time"></view><view class="sk orders-sk-status"></view></view>
+          </view>
+        </view>
+      </view>
+
+      <scroll-view wx:else class="orders-list-card" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" style="height: {{recordsHeight}}px; max-height: {{recordsHeight}}px;">
+        <view wx:if="{{recordGroups.length}}">
+          <view wx:for="{{recordGroups}}" wx:for-item="group" wx:key="monthKey" class="order-group">
+            <view class="order-month"><text>{{group.monthLabel}}</text></view>
+            <view wx:for="{{group.records}}" wx:for-item="record" wx:key="id" class="order-item" data-id="{{record.id}}" bindtap="openOrder" aria-role="button" aria-label="查看订单 {{record.title}}">
+              <view class="order-copy">
+                <view class="order-title-row"><text class="order-title">{{record.title}}</text><text class="order-amount {{record.tone}}">{{record.amount}}</text></view>
+                <text class="order-detail">{{record.detail}}</text>
+                <view class="order-meta"><text>{{record.time}}</text><text class="order-status {{record.tone}}">{{record.statusLabel}}</text></view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="orders-empty">
+          <text>{{activeTabId === 'all' ? '暂时没有订单记录' : '没有' + activeTabId + '的订单'}}</text>
+          <text>购买积分包或开通会员后，订单会按时间展示在这里。</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>
 <dev-reset-fab />

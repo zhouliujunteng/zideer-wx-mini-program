@@ -1,0 +1,16 @@
+/* 与 M40 会议准备页共用同一套视觉，样式只在 learning/live-session/index.wxss 里维护一份。 */
+@import "../live-session/index.wxss";
+
+/* 进入诊断室左边的两个提醒按钮：同一行、同高度，白底描边，不抢主按钮 */
+/* 只有提醒按钮在的时候才改排布；会议开始后提醒消失，主按钮回到原来居中的胶囊 */
+.invite-actions.has-reminders { gap: 16rpx; padding-right: 32rpx; padding-left: 32rpx; }
+.invite-reminder-button { display: flex; flex: none; align-items: center; justify-content: center; height: 96rpx; padding: 0 28rpx; box-sizing: border-box; border: 2rpx solid #E3E7E4; border-radius: 999rpx; background: #FFFFFF; color: #2E3D35; font-size: 26rpx; font-weight: 600; white-space: nowrap; }
+.invite-reminder-button:active { opacity: .78; }
+.invite-reminder-button.is-done { border-color: #FFD9B4; background: #FFF4EA; color: #B95500; }
+/* 图标在前、文字在后；图标是后端素材（ui_asset），颜色画在 svg 里 */
+.invite-reminder-icon { flex: none; width: 32rpx; height: 32rpx; margin-right: 8rpx; }
+/* 添加到日历：蓝色，和图标同一个蓝 */
+.invite-reminder-button.is-calendar { border-color: #BFD8FB; background: #F2F7FF; color: #2F80ED; }
+.invite-actions.has-reminders .live-session-primary-button { flex: 1; min-width: 0; padding: 0 24rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

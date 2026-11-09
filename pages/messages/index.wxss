@@ -1,3 +1,4 @@
+@import "../../styles/skeleton.wxss";
 page { background: #FAFAFA; }
 
 .messages-page { height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332d; }
@@ -74,3 +75,10 @@ page { background: #FAFAFA; }
 .message-state button { margin-top: 24rpx; border-radius: 999rpx; background: #fff0e2; color: #FD7C02; font-size: 26rpx; }
 .message-state button::after { border: 0; }
 .messages-shell { padding-bottom: calc(80rpx + env(safe-area-inset-bottom)); }
+
+/* 首次加载骨架：按「系统消息」汇总行的形状 */
+.message-summary-skeleton { display: flex; align-items: center; min-height: 118rpx; margin-top: 26rpx; padding: 22rpx 24rpx; box-sizing: border-box; border-radius: 28rpx; background: #fff; }
+.message-summary-skeleton-icon { flex: none; width: 72rpx; height: 72rpx; margin-right: 20rpx; }
+.message-summary-skeleton-copy { flex: 1; min-width: 0; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

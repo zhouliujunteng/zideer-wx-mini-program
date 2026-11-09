@@ -1,0 +1,36 @@
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
+.review-page { min-height: 100vh; padding: 40rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); box-sizing: border-box; }
+.review-head { padding: 36rpx 32rpx; border-radius: 24rpx; background: var(--accent-soft); }
+.review-sk-title { width: 70%; height: 48rpx; margin-top: 16rpx; }
+.review-eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }
+.review-title { display: block; margin-top: 12rpx; color: var(--ink); font-size: 38rpx; font-weight: 700; line-height: 1.4; }
+.review-status { display: inline-block; margin-top: 16rpx; padding: 6rpx 18rpx; border-radius: 999rpx; background: #FFFFFF; color: var(--ink-soft); font-size: 22rpx; }
+.review-status-pending_teacher { background: var(--accent); color: #FFFFFF; font-weight: 600; }
+.review-status-teacher_passed { background: #E8F5EC; color: #2F7A4F; }
+.review-card { margin-top: 20rpx; padding: 28rpx; }
+.review-label { display: block; color: var(--muted); font-size: 22rpx; }
+.review-gap { margin-top: 26rpx; }
+.review-copy { display: block; margin-top: 8rpx; color: var(--ink); font-size: 26rpx; line-height: 1.65; }
+.review-muted { color: var(--muted); }
+.review-topics { display: flex; flex-wrap: wrap; margin-top: 6rpx; }
+.review-topic { margin: 10rpx 12rpx 0 0; padding: 8rpx 18rpx; border-radius: 999rpx; background: #F3F5F2; color: var(--ink); font-size: 23rpx; }
+.review-point { display: flex; align-items: flex-start; margin-top: 12rpx; }
+.review-point-mark { flex: none; min-width: 72rpx; margin-right: 14rpx; padding: 4rpx 12rpx; border-radius: 999rpx; font-size: 21rpx; text-align: center; }
+.review-point-covered { background: #E6F2EA; color: #2F7A4B; }
+.review-point-partial { background: #FFF1DE; color: #B06A10; }
+.review-point-missed, .review-point-wrong { background: #FBE8E2; color: #B4532A; }
+.review-point-text { flex: 1; color: var(--ink); font-size: 25rpx; line-height: 1.55; }
+.review-section-title { margin: 40rpx 8rpx 0; color: var(--ink); font-size: 28rpx; font-weight: 650; }
+.review-turn { padding: 16rpx 0; border-bottom: 1rpx solid var(--line); }
+.review-turn:last-child { border-bottom: 0; }
+.review-turn-role { display: block; color: var(--muted); font-size: 21rpx; }
+.review-turn-user .review-turn-role { color: var(--accent-deep); font-weight: 600; }
+.review-turn-text { display: block; margin-top: 6rpx; color: var(--ink); font-size: 26rpx; line-height: 1.6; white-space: pre-wrap; }
+.review-note { width: 100%; min-height: 120rpx; margin-top: 14rpx; padding: 18rpx 20rpx; box-sizing: border-box; border-radius: 16rpx; background: #F6F7F5; color: var(--ink); font-size: 25rpx; line-height: 1.6; }
+.review-pass { margin-top: 28rpx; border-radius: 44rpx; background: var(--accent); color: #FFFFFF; font-size: 28rpx; font-weight: 700; }
+.review-reject { margin-top: 18rpx; border-radius: 44rpx; background: #FFFFFF; color: var(--accent-deep); font-size: 28rpx; font-weight: 600; box-shadow: inset 0 0 0 2rpx var(--accent); }
+.review-pass::after, .review-reject::after { border: 0; }
+.review-pass[disabled], .review-reject[disabled] { opacity: .6; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

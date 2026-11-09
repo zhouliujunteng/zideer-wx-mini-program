@@ -1,0 +1,155 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="universe-page {{tabletLayout ? 'tablet-universe' : ''}} {{tabletLayout.sidebar ? 'tablet-universe-sidebar' : ''}}">
+  <view class="universe-topbar {{topbarSolid ? 'universe-topbar-solid' : ''}}">
+    <view class="universe-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <text class="universe-topbar-title">学习宇宙</text>
+      <text wx:if="{{stressLabel}}" class="universe-stress-tag">{{stressLabel}}</text>
+    </view>
+    <streak-entry top="{{streakEntryTop}}" right="{{streakEntryRight}}" size="{{menuButtonHeight}}" />
+  </view>
+
+  <view class="universe-pixel-field" aria-hidden="true">
+    <view wx:for="{{pixelModules}}" wx:key="id" class="universe-pixel-module" style="right: {{item.right * rpxUnit}}px; top: {{item.top * rpxUnit}}px; opacity: {{item.opacity}};"></view>
+  </view>
+
+  <view class="universe-visual" style="top: {{contentTop}}px; bottom: {{visualBottom}}px; {{tabletLayout ? 'width: ' + tabletLayout.stageWidth + 'px;' : ''}}" catchtouchstart="handleGlobeTouchStart" catchtouchmove="handleGlobeTouchMove" catchtouchend="handleGlobeTouchEnd" catchtouchcancel="handleGlobeTouchEnd">
+    <canvas id="learning-globe" type="webgl" class="universe-globe-canvas" style="width: {{globeSize}}px; height: {{globeSize}}px; left: {{globeLeft}}px; top: {{globeTop}}px;" disable-scroll="true"></canvas>
+  </view>
+
+  <block wx:for="{{globeCards}}" wx:key="id">
+    <cover-view class="universe-card-anchor" style="left: {{item.pointX}}px; top: {{item.pointPageY}}px; opacity: {{item.anchorOpacity}};"></cover-view>
+    <cover-view class="universe-knowledge-card {{item.opacity < 0.08 ? 'universe-card-inactive' : ''}}" style="left: {{item.x}}px; top: {{item.pageY}}px; opacity: {{item.opacity}}; transform: translate(-50%, -50%) scale({{item.scale}});" data-id="{{item.id}}" catchtap="selectKnowledgeCard" aria-label="{{item.name}}">
+      <cover-view class="universe-card-copy">
+        <cover-view class="universe-card-name" style="font-size: {{(item.nameSize || 25) * rpxUnit}}px;">{{item.name}}</cover-view>
+        <cover-view class="universe-card-subject">{{item.subject}}</cover-view>
+      </cover-view>
+    </cover-view>
+  </block>
+
+  <!-- 统计行：球上只挂少量知识点，告诉学生一共掌握了多少、当前展示了多少；跟随面板上沿，面板拉到顶时隐藏 -->
+  <view wx:if="{{!sheetExpanded && !loadFailed && (!loaded || statText)}}" class="universe-stat" style="top: {{(tabletLayout ? tabletLayout.visualEnd : sheetTop) - 34}}px; {{tabletLayout ? 'width: ' + tabletLayout.stageWidth + 'px;' : ''}}">
+    <text wx:if="{{loaded}}" class="universe-stat-text">{{statText}}</text>
+    <view wx:else class="sk universe-stat-sk"></view>
+  </view>
+
+  <scroll-view scroll-y="{{!!tabletLayout}}" class="universe-sheet" style="top: {{sheetTop}}px; {{tabletLayout ? 'left: ' + tabletLayout.panelLeft + 'px; width: ' + tabletLayout.panelWidth + 'px; height: ' + tabletLayout.panelHeight + 'px;' : ''}}" bindtouchstart="handleSheetTouchStart" bindtouchmove="handleSheetTouchMove" bindtouchend="handleSheetTouchEnd" bindtouchcancel="handleSheetTouchEnd">
+    <view class="universe-sheet-handle-zone"><view class="universe-sheet-handle"></view></view>
+
+    <view class="tablet-universe-summary">
+    <!-- access：未登录、没完善学习资料（2026-09-27 起未登录也能浏览），没有学习宇宙可读，引导去登录 / 去完善 -->
+    <view wx:if="{{loadFailed}}" class="universe-error-card">
+      <text class="universe-error-title">学习宇宙暂时没有读到</text>
+      <text class="universe-error-copy">{{loadError}}</text>
+      <view class="universe-error-retry" bindtap="retryUniverse" role="button" aria-label="重新加载学习宇宙">重试</view>
+    </view>
+    <view wx:elif="{{access}}" class="universe-error-card">
+      <text class="universe-error-title">{{access === 'guest' ? '登录后点亮你的学习宇宙' : '请先完善学习资料'}}</text>
+      <text class="universe-error-copy">测评较稳的知识点，或课程通过老师核验后，会进入你的学习宇宙。</text>
+      <view class="universe-error-retry" bindtap="openAccessStep" role="button" aria-label="{{access === 'guest' ? '去登录' : '去完善学习资料'}}">{{access === 'guest' ? '去登录' : '去完善'}}</view>
+    </view>
+    <block wx:else>
+    <view class="universe-profile-card">
+      <block wx:if="{{loaded}}">
+        <image class="universe-profile-avatar" src="{{UA.avatar(ui, model.student.avatarSrc)}}" mode="aspectFill"></image>
+        <view class="universe-profile-copy"><text class="universe-profile-name">{{model.student.name}}</text><text wx:if="{{model.student.subtitle}}" class="universe-profile-subtitle">{{model.student.subtitle}}</text></view>
+      </block>
+      <block wx:else>
+        <view class="sk sk-round universe-profile-avatar-skeleton"></view>
+        <view class="universe-profile-copy"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short universe-skeleton-gap"></view></view>
+      </block>
+    </view>
+
+    <!-- 老师备课先看（2026-10-07）：学习目标 + 学习偏好，学生自己填，老师定制课程前先看这两项。家长账号不显示。 -->
+    <view wx:if="{{!guardianAccount}}" class="universe-plan-card">
+      <view class="universe-plan-head">
+        <view class="universe-plan-badge"><view class="universe-plan-badge-dot"></view><text>老师备课先看</text></view>
+        <text class="universe-plan-tip">定制课程前，老师会先看这几项</text>
+      </view>
+      <view class="universe-plan-rows">
+        <view class="universe-plan-row" bindtap="openLearningGoal" aria-role="button" aria-label="我的学习目标">
+          <view class="universe-plan-icon" aria-hidden="true"><view class="universe-goal-ring"><view class="universe-goal-dot"></view></view></view>
+          <view class="universe-plan-copy">
+            <view class="universe-plan-title-row"><text class="universe-plan-title">我的学习目标</text><text wx:if="{{planState === 'ready' && goalDeadline}}" class="universe-plan-deadline">{{goalDeadline}}</text></view>
+            <text wx:if="{{planState === 'ready'}}" class="universe-plan-summary {{goalSummary ? '' : 'is-empty'}}">{{goalSummary || '还没定，写下你想达到的目标'}}</text>
+            <text wx:elif="{{planState === 'failed'}}" class="universe-plan-summary is-empty">暂时没读到，点开填写</text>
+            <view wx:else class="sk sk-line sk-mid universe-plan-sk"></view>
+          </view>
+          <view wx:if="{{planState === 'ready' && !goalSummary}}" class="universe-plan-action">去填写</view>
+          <view wx:else class="universe-plan-chevron" aria-hidden="true"></view>
+        </view>
+        <view class="universe-plan-divider"></view>
+        <view class="universe-plan-row" bindtap="openLearningPreference" aria-role="button" aria-label="我的学习偏好">
+          <view class="universe-plan-icon" aria-hidden="true">
+            <view class="universe-slider"><view class="universe-slider-knob universe-slider-knob-1"></view></view>
+            <view class="universe-slider"><view class="universe-slider-knob universe-slider-knob-2"></view></view>
+            <view class="universe-slider"><view class="universe-slider-knob universe-slider-knob-3"></view></view>
+          </view>
+          <view class="universe-plan-copy">
+            <text class="universe-plan-title">我的学习偏好</text>
+            <view wx:if="{{planState === 'ready' && preferenceTags.length}}" class="universe-plan-tags">
+              <text wx:for="{{preferenceTags}}" wx:key="*this" class="universe-plan-tag">{{item}}</text>
+              <text wx:if="{{preferenceMore}}" class="universe-plan-tag is-more">+{{preferenceMore}}</text>
+            </view>
+            <text wx:elif="{{planState === 'ready'}}" class="universe-plan-summary {{preferenceSummary ? '' : 'is-empty'}}">{{preferenceSummary || '还没设置，告诉老师你喜欢怎么学'}}</text>
+            <text wx:elif="{{planState === 'failed'}}" class="universe-plan-summary is-empty">暂时没读到，点开设置</text>
+            <view wx:else class="sk sk-line sk-mid universe-plan-sk"></view>
+          </view>
+          <view wx:if="{{planState === 'ready' && !preferenceSummary}}" class="universe-plan-action">去设置</view>
+          <view wx:else class="universe-plan-chevron" aria-hidden="true"></view>
+        </view>
+        <view class="universe-plan-divider"></view>
+        <!-- 目标导图（2026-10-10）：按目标测评测出的卡点，点开接着测或看导图 -->
+        <view class="universe-plan-row" bindtap="openGoalDiagnosis" aria-role="button" aria-label="目标导图">
+          <view class="universe-plan-icon" aria-hidden="true">
+            <view class="universe-tree"><view class="universe-tree-node universe-tree-root"></view><view class="universe-tree-stem"></view><view class="universe-tree-node universe-tree-leaf-1"></view><view class="universe-tree-node universe-tree-leaf-2"></view></view>
+          </view>
+          <view class="universe-plan-copy">
+            <text class="universe-plan-title">目标导图</text>
+            <text wx:if="{{goalMapState === 'ready'}}" class="universe-plan-summary {{goalMapEmpty ? 'is-empty' : ''}}">{{goalMapSummary}}</text>
+            <text wx:elif="{{goalMapState === 'failed'}}" class="universe-plan-summary is-empty">暂时没读到，点开查看</text>
+            <view wx:else class="sk sk-line sk-mid universe-plan-sk"></view>
+          </view>
+          <view wx:if="{{goalMapState === 'ready' && goalMapAction}}" class="universe-plan-action">{{goalMapAction}}</view>
+          <view wx:else class="universe-plan-chevron" aria-hidden="true"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="universe-overview-section">
+      <text class="universe-overview-title">学习概览</text>
+      <view class="universe-overview-module">
+        <view wx:for="{{loaded ? model.learningOverview : skeletonOverview}}" wx:key="id" class="universe-overview-item">
+          <text wx:if="{{loaded}}" class="universe-overview-value">{{item.value}}</text>
+          <view wx:else class="sk universe-overview-value-skeleton"></view>
+          <text class="universe-overview-label">{{item.label}}</text>
+          <view wx:if="{{index < 2}}" class="universe-overview-divider"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="universe-recent-section">
+      <text class="universe-recent-title">最近探索</text>
+      <view class="universe-recent-module">
+        <block wx:if="{{loaded}}">
+          <view wx:for="{{model.recentExplorations}}" wx:key="id" class="universe-recent-row">
+            <view class="universe-recent-copy">
+              <text class="universe-recent-name" style="font-size: {{(item.nameSize || 24) * rpxUnit}}px;">{{item.name}}</text>
+              <text class="universe-recent-subject">{{item.subject}}</text>
+            </view>
+            <view class="universe-recent-status universe-status-{{item.status}}">
+              <view class="universe-status-dot"></view>
+              <text class="universe-status-label">{{item.statusText}}</text>
+            </view>
+          </view>
+          <text wx:if="{{model.recentExplorations.length === 0}}" class="universe-recent-empty">{{model.mapReady ? '测评较稳的知识点，或课程通过老师核验后，会进入你的学习宇宙。' : '知识点暂时没有读到，稍后再来看看。'}}</text>
+        </block>
+        <block wx:else>
+          <view wx:for="{{[0, 1]}}" wx:key="*this" class="universe-recent-row"><view class="universe-recent-copy universe-recent-skeleton"><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short universe-skeleton-gap"></view></view></view>
+        </block>
+      </view>
+    </view>
+    </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

@@ -1,0 +1,129 @@
+/* 海报详情：样式取自设计仓库 package-promotion/pages/poster-detail（295f610），
+   只保留本页实际用到的规则；朋友圈直发按钮（小程序不支持）未移植。 */
+@import "../../styles/skeleton.wxss";
+
+page { background: #FAFAFA; }
+
+.poster-detail-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.poster-detail-topbar { position: fixed; top: 0; right: 0; left: 0; z-index: 20; box-sizing: border-box; background: #FAFAFA; }
+.poster-detail-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 8rpx; }
+.poster-detail-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 44rpx; height: 44rpx; margin-right: 10rpx; }
+.poster-detail-back:active { opacity: .65; }
+.poster-detail-back-icon { width: 20rpx; height: 20rpx; border-bottom: 3rpx solid #24332D; border-left: 3rpx solid #24332D; transform: rotate(45deg) scale(.72); }
+.poster-detail-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+
+.poster-detail-state { padding-right: 36rpx; padding-left: 36rpx; text-align: center; }
+/* 骨架：海报预览块 + 下方标题与活动信息行 */
+.poster-detail-sk-wrap { display: flex; flex-direction: column; align-items: center; }
+.poster-detail-sk-poster { max-width: 100%; border-radius: 28rpx; }
+.poster-detail-sk-copy { width: 100%; margin-top: 40rpx; text-align: left; }
+.poster-detail-sk-title { height: 34rpx; margin-bottom: 22rpx; }
+.poster-detail-state-title { display: block; margin-top: 120rpx; color: #24332D; font-size: 32rpx; font-weight: 600; }
+.poster-detail-state-copy { display: block; margin: 22rpx 0 32rpx; color: #7D877F; font-size: 25rpx; line-height: 1.6; }
+.poster-detail-state-action { display: inline-flex; height: 76rpx; align-items: center; padding: 0 44rpx; border-radius: 20rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; }
+.poster-detail-state-action:active { opacity: .78; }
+
+/* 朋友圈单页落地：好友点开分享卡片时只看到邀请说明，底部「前往小程序」由微信固定提供 */
+.poster-detail-invite { display: flex; flex-direction: column; align-items: center; box-sizing: border-box; padding: 160rpx 56rpx 0; text-align: center; }
+.poster-detail-invite-icon { width: 144rpx; height: 144rpx; overflow: hidden; border-radius: 36rpx; background: #F1EFEA; }
+.poster-detail-invite-icon image { display: block; width: 100%; height: 100%; }
+.poster-detail-invite-title { display: block; margin-top: 40rpx; color: #24332D; font-size: 36rpx; font-weight: 700; }
+.poster-detail-invite-copy { display: block; margin-top: 20rpx; color: #7D877F; font-size: 26rpx; line-height: 1.7; }
+
+.poster-detail-stage { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: flex-start; justify-content: center; box-sizing: border-box; overflow: hidden; background: #FAFAFA; }
+.poster-detail-preview { position: relative; display: flex; flex: 0 0 auto; align-items: center; justify-content: center; overflow: hidden; border-radius: 28rpx; background: #E8E8E8; color: #A5AAA7; font-size: 21rpx; letter-spacing: 2rpx; max-width: calc(100% - 72rpx); max-height: 100%; }
+.poster-detail-image, .poster-detail-placeholder { display: block; width: 100%; height: 100%; }
+.poster-detail-placeholder { background: linear-gradient(145deg, #EDEDEC 0%, #E4E6E4 52%, #DCDFDA 100%); }
+.poster-detail-preview-copy { position: absolute; top: 50%; left: 50%; color: #A5AAA7; font-size: 21rpx; letter-spacing: 2rpx; transform: translate(-50%, -50%); }
+
+.poster-detail-sheet { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 16; overflow: hidden; padding: 0 32rpx; box-sizing: border-box; border-radius: 44rpx 44rpx 0 0; background: #FAFAFA; box-shadow: 0 -12rpx 38rpx rgba(36, 51, 45, .10); transition: none; will-change: top; }
+.poster-detail-sheet.is-transitioning { transition: top .42s cubic-bezier(.22, .8, .24, 1); }
+.poster-detail-sheet-handle { display: flex; height: 54rpx; align-items: center; justify-content: center; }
+.poster-detail-sheet-handle view { width: 74rpx; height: 8rpx; border-radius: 999rpx; background: #D8DFDA; }
+.poster-detail-sheet-summary { display: flex; min-height: 82rpx; align-items: flex-start; justify-content: space-between; }
+.poster-detail-sheet-summary-copy { display: flex; min-width: 0; flex-direction: column; padding-right: 18rpx; }
+.poster-detail-sheet-title { display: -webkit-box; overflow: hidden; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.35; word-break: break-word; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.poster-detail-sheet-meta { display: flex; min-width: 0; flex-direction: column; gap: 10rpx; margin-top: 26rpx; }
+.poster-detail-sheet-meta-row { display: flex; min-width: 0; align-items: center; }
+.poster-detail-sheet-meta-icon { display: block; flex: 0 0 auto; width: 34rpx; height: 34rpx; margin-right: 12rpx; }
+.poster-detail-sheet-meta-item { min-width: 0; overflow: hidden; color: #7D8981; font-size: 20rpx; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.poster-detail-sheet-content { padding-bottom: 132rpx; }
+.poster-detail-ended-note { display: flex; align-items: center; justify-content: center; height: 74rpx; margin-top: 20rpx; border-radius: 999rpx; background: #F0F1F0; color: #8B958E; font-size: 22rpx; }
+.poster-detail-notices { margin-top: 20rpx; }
+.poster-detail-notice-item { display: flex; flex-direction: column; }
+.poster-detail-notice-item + .poster-detail-notice-item { margin-top: 20rpx; }
+.poster-detail-notice-title { color: #4B584F; font-size: 21rpx; font-weight: 700; line-height: 1.3; }
+.poster-detail-notice-copy { margin-top: 6rpx; color: #AAB2AC; font-size: 18rpx; line-height: 1.5; }
+.poster-detail-notice-action { display: inline-flex; height: 52rpx; margin-top: 14rpx; align-self: flex-start; align-items: center; padding: 0 24rpx; border: 1rpx solid #E1E6E1; border-radius: 999rpx; color: #5F6B63; font-size: 20rpx; }
+.poster-detail-notice-action:active { opacity: .7; }
+
+.poster-detail-actionbar { position: absolute; right: 0; bottom: 0; left: 0; z-index: 18; min-height: 108rpx; padding: 14rpx 32rpx calc(16rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-top: 1rpx solid #E9EDE9; background: rgba(250, 250, 250, .98); }
+.poster-detail-actionbar-actions { display: flex; align-items: center; justify-content: space-between; gap: 24rpx; }
+.poster-detail-promote-button { display: flex; min-width: 0; flex: 1; align-items: center; justify-content: center; height: 78rpx; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 27rpx; font-weight: 700; letter-spacing: 1rpx; }
+.poster-detail-promote-button:active { opacity: .72; }
+.poster-detail-share-action { position: relative; display: flex; width: 154rpx; height: 78rpx; flex: 0 0 auto; flex-direction: column; align-items: center; justify-content: center; color: #7C8780; font-size: 18rpx; line-height: 1.2; }
+.poster-detail-share-action:active { opacity: .68; }
+.poster-detail-actionbar-icon { display: block; width: 48rpx; height: 48rpx; margin-bottom: 6rpx; }
+.poster-detail-actionbar-label { display: block; white-space: nowrap; }
+.poster-detail-native-share { position: absolute; top: 0; right: 0; bottom: 24rpx; left: 0; z-index: 2; padding: 0; border: 0; opacity: 0; background: transparent; }
+.poster-detail-native-share::after { display: none; }
+
+.promotion-share-mask { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; overflow: hidden; background: rgba(25, 31, 28, .72); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: promotion-share-mask-enter .34s ease-out both; }
+.promotion-share-mask-closing { pointer-events: none; animation: promotion-share-mask-exit .32s ease-in both; }
+.promotion-share-poster-stage { position: absolute; top: 0; right: 0; bottom: 366rpx; left: 0; display: flex; padding: calc(42rpx + env(safe-area-inset-top)) 28rpx 20rpx; align-items: center; justify-content: center; box-sizing: border-box; }
+.promotion-share-mask.has-promotion-code .promotion-share-poster-stage { bottom: 540rpx; }
+.promotion-share-poster-card { position: relative; z-index: 1; flex: 0 0 auto; overflow: hidden; border-radius: 26rpx; background: #E8E8E8; animation: promotion-share-poster-enter .24s cubic-bezier(.22,.75,.3,1) both; }
+.promotion-share-mask-closing .promotion-share-poster-card { animation: promotion-share-poster-exit .24s ease-in both; }
+.promotion-share-poster-image, .promotion-share-poster-placeholder { display: block; width: 100%; height: 100%; }
+.promotion-share-poster-placeholder { background: linear-gradient(145deg, #EDEDEC 0%, #E4E6E4 52%, #DCDFDA 100%); }
+.promotion-share-sheet { position: absolute; right: 0; bottom: 0; left: 0; padding: 24rpx 38rpx calc(36rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 34rpx 34rpx 0 0; background: #FFFFFF; animation: promotion-share-sheet-enter .4s cubic-bezier(.22,.75,.3,1) both; }
+.promotion-share-mask-closing .promotion-share-sheet { animation: promotion-share-sheet-exit .32s ease-in both; }
+.promotion-share-sheet-header { display: flex; height: 50rpx; align-items: center; justify-content: center; }
+.promotion-share-sheet-title { color: #2F3D36; font-size: 26rpx; font-weight: 750; line-height: 1.2; }
+.promotion-share-sheet-note { margin-top: 24rpx; color: #A3ABA5; font-size: 19rpx; text-align: center; }
+.promotion-share-code-float { position: absolute; right: 38rpx; bottom: calc(462rpx + env(safe-area-inset-bottom)); left: 38rpx; z-index: 3; padding: 22rpx 22rpx 20rpx; box-sizing: border-box; border: 1rpx solid #EEF1EE; border-radius: 32rpx; background: #FFFFFF; }
+.promotion-share-code-title { display: block; color: #9AA39D; font-size: 20rpx; font-weight: 700; line-height: 1.3; }
+.promotion-share-code-row { display: flex; align-items: center; justify-content: space-between; margin-top: 9rpx; }
+.promotion-share-code-value { overflow: hidden; color: #24332D; font-size: 30rpx; font-weight: 700; letter-spacing: 1rpx; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.promotion-share-code-copy { display: flex; width: 48rpx; height: 48rpx; flex: 0 0 auto; align-items: center; justify-content: center; margin-left: 20rpx; border-radius: 50%; background: #FFFFFF; }
+.promotion-share-code-copy:active { opacity: .68; }
+.promotion-share-code-copy-icon { position: relative; width: 24rpx; height: 24rpx; border: 2rpx solid #6F7C73; border-radius: 5rpx; box-sizing: border-box; }
+.promotion-share-code-copy-icon::before { position: absolute; top: -7rpx; left: -7rpx; width: 24rpx; height: 24rpx; border: 2rpx solid #6F7C73; border-radius: 5rpx; background: #FFFFFF; box-sizing: border-box; content: ''; }
+.promotion-share-code-copy.is-copied .promotion-share-code-copy-icon { width: 28rpx; height: 16rpx; border: 0; border-bottom: 4rpx solid #6F7C73; border-left: 4rpx solid #6F7C73; border-radius: 0; transform: translateY(-3rpx) rotate(-45deg); }
+.promotion-share-code-copy.is-copied .promotion-share-code-copy-icon::before { display: none; }
+.promotion-share-actions { display: flex; gap: 26rpx; margin: 24rpx auto 0; justify-content: center; }
+.promotion-share-action { position: relative; display: flex; flex: 0 0 128rpx; align-items: center; flex-direction: column; color: #59655E; font-size: 22rpx; line-height: 1.2; }
+.promotion-share-action:active { opacity: .7; }
+.promotion-share-action-icon { display: flex; width: 80rpx; height: 80rpx; margin-bottom: 16rpx; align-items: center; justify-content: center; border-radius: 50%; background: #F1F2F1; }
+.promotion-share-action-icon image { display: block; width: 72%; height: 72%; }
+/* 「复制链接」图标：两节链环（样式画，不占图片素材）。与旁边「保存海报」的 SVG 同色 #7E8981；
+   链环是细长斜条，外框比保存图标的图形略大（56rpx）、线宽 5rpx，放在一起看才一样大、一样粗 */
+.promotion-share-link-glyph { position: relative; width: 56rpx; height: 56rpx; transform: rotate(-45deg); }
+.promotion-share-link-glyph::before, .promotion-share-link-glyph::after { position: absolute; top: 18rpx; width: 31rpx; height: 20rpx; box-sizing: border-box; border: 5rpx solid #7E8981; border-radius: 10rpx; content: ''; }
+.promotion-share-link-glyph::before { left: 1rpx; }
+.promotion-share-link-glyph::after { right: 1rpx; }
+.promotion-share-action-friend .promotion-share-action-icon { background: transparent; }
+.promotion-share-action-friend .promotion-share-action-icon image { width: 100%; height: 100%; }
+.promotion-share-native-button { position: absolute; top: 0; right: 0; bottom: 20rpx; left: 0; z-index: 2; padding: 0; border: 0; opacity: 0; background: transparent; }
+.promotion-share-native-button::after { display: none; }
+.promotion-share-sheet-cancel { display: flex; height: 54rpx; margin-top: 40rpx; align-items: center; justify-content: center; color: #77817B; font-size: 24rpx; line-height: 54rpx; }
+
+@keyframes promotion-share-mask-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes promotion-share-mask-exit { from { opacity: 1; } to { opacity: 0; } }
+@keyframes promotion-share-poster-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes promotion-share-poster-exit { from { opacity: 1; } to { opacity: 0; } }
+@keyframes promotion-share-sheet-enter { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes promotion-share-sheet-exit { from { transform: translateY(0); } to { transform: translateY(100%); } }
+
+@media (max-width: 350px) {
+  .poster-detail-sheet { padding-right: 28rpx; padding-left: 28rpx; }
+  .poster-detail-preview { max-width: calc(100% - 56rpx); }
+}
+
+/* 离屏画布：移出可视区但仍然参与渲染，createSelectorQuery 才拿得到节点 */
+.promotion-share-canvas { position: fixed; top: 0; left: -9999px; width: 1px; height: 1px; }
+
+/* 合成中/失败时的提示条：合成图由服务端出，右下角已经画好小程序码，这里只在没拿到时提示。 */
+.promotion-share-qr-pending { position: absolute; right: 24rpx; bottom: 24rpx; max-width: 70%; padding: 10rpx 18rpx; border-radius: 999rpx; background: rgba(0, 0, 0, .55); color: #FFFFFF; font-size: 20rpx; line-height: 1.3; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

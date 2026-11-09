@@ -1,0 +1,49 @@
+/* 「设为星标 / 添加到桌面」引导：卡片挂在胶囊下方，右边与胶囊对齐；卡片、箭头、光圈的位置由组件按胶囊实际坐标给（行内 px）。
+   主题橙 #FD7C02；菜单示意图与「小程序链接」页同一画法（样式画，不占图片素材）。 */
+.fg-mask { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 1000; background: rgba(24, 28, 26, .5); animation: fg-fade .2s ease-out both; }
+.fg-mask.is-closing { animation: fg-fade-out .2s ease-in both; }
+
+/* 胶囊「···」外的一圈光圈：原生胶囊画在最上层，光圈比它大一圈露在外面 */
+.fg-ring { position: fixed; box-sizing: border-box; border: 4rpx solid #FD7C02; border-radius: 50%; animation: fg-pulse 1.6s ease-out infinite; pointer-events: none; }
+
+.fg-card { position: fixed; width: 620rpx; max-width: calc(100vw - 48rpx); padding: 40rpx 36rpx 32rpx; box-sizing: border-box; border-radius: 36rpx; background: #FFFFFF; color: #24332D; box-shadow: 0 30rpx 80rpx rgba(24, 28, 26, .22); animation: fg-pop .32s cubic-bezier(.2, 1.2, .4, 1) both; transform-origin: 90% 0; }
+.fg-arrow { position: absolute; top: -12rpx; width: 28rpx; height: 28rpx; border-radius: 4rpx; background: #FFFFFF; transform: rotate(45deg); }
+.fg-title { display: block; color: #24332D; font-size: 34rpx; font-weight: 700; line-height: 1.35; }
+.fg-subtitle { display: block; margin-top: 10rpx; color: #6B766F; font-size: 24rpx; line-height: 1.55; }
+
+/* 菜单示意 */
+.fg-menu { display: flex; justify-content: space-around; margin-top: 24rpx; padding: 22rpx 8rpx 18rpx; border-radius: 22rpx; background: #F4F5F4; }
+.fg-menu-item { display: flex; width: 25%; flex-direction: column; align-items: center; color: #5E6360; font-size: 19rpx; line-height: 1.3; white-space: nowrap; }
+.fg-menu-icon { display: flex; width: 80rpx; height: 80rpx; align-items: center; justify-content: center; margin-bottom: 10rpx; border-radius: 20rpx; background: #FFFFFF; color: #5E6360; }
+.fg-menu-item.is-hot { color: #C25A02; font-weight: 600; }
+.fg-menu-item.is-hot .fg-menu-icon { background: #FD7C02; color: #FFFFFF; box-shadow: 0 0 0 6rpx rgba(253, 124, 2, .22); }
+
+/* 图标（样式画） */
+.fg-icon-send { width: 28rpx; height: 28rpx; box-sizing: border-box; border: 4rpx solid currentColor; border-radius: 50% 50% 50% 8rpx; }
+.fg-icon-star { width: 34rpx; height: 34rpx; background: currentColor; clip-path: polygon(50% 2%, 62% 36%, 98% 37%, 69% 59%, 80% 94%, 50% 73%, 20% 94%, 31% 59%, 2% 37%, 38% 36%); }
+.fg-icon-desktop { position: relative; width: 32rpx; height: 32rpx; box-sizing: border-box; border: 4rpx solid currentColor; border-radius: 9rpx; }
+.fg-icon-desktop::before, .fg-icon-desktop::after { position: absolute; top: 50%; left: 50%; border-radius: 2rpx; background: currentColor; content: ''; transform: translate(-50%, -50%); }
+.fg-icon-desktop::before { width: 14rpx; height: 4rpx; }
+.fg-icon-desktop::after { width: 4rpx; height: 14rpx; }
+.fg-icon-more { display: flex; gap: 6rpx; }
+.fg-icon-more view { width: 8rpx; height: 8rpx; border-radius: 50%; background: currentColor; }
+
+/* 两种做法的说明 */
+.fg-option { display: flex; align-items: flex-start; gap: 18rpx; margin-top: 24rpx; }
+.fg-option-badge { display: flex; flex: 0 0 56rpx; height: 56rpx; align-items: center; justify-content: center; border-radius: 16rpx; background: #FFF1E3; color: #FD7C02; }
+.fg-option-copy { display: flex; min-width: 0; flex-direction: column; }
+.fg-option-title { color: #24332D; font-size: 27rpx; font-weight: 600; line-height: 1.4; }
+.fg-option-hint { margin-top: 4rpx; color: #7D877F; font-size: 22rpx; line-height: 1.55; }
+
+.fg-actions { display: flex; gap: 18rpx; margin-top: 32rpx; }
+.fg-secondary, .fg-primary { display: flex; height: 80rpx; flex: 1; align-items: center; justify-content: center; border-radius: 999rpx; font-size: 27rpx; font-weight: 600; }
+.fg-secondary { background: #F2F3F2; color: #6B766F; }
+.fg-primary { background: #FD7C02; color: #FFFFFF; }
+.fg-secondary:active, .fg-primary:active { opacity: .8; }
+
+@keyframes fg-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fg-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fg-pop { from { opacity: 0; transform: scale(.9) translateY(-12rpx); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes fg-pulse { 0% { opacity: 1; transform: scale(.8); } 100% { opacity: 0; transform: scale(1.3); } }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

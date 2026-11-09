@@ -1,0 +1,85 @@
+<view class="report-root">
+  <view class="report-ambient" aria-hidden="true"></view>
+  <view class="report-topbar">
+    <view class="report-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="report-back" bindtap="handleBack" aria-label="返回上一页" aria-role="button"><view class="report-back-icon"></view></view>
+      <text class="report-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">家长学习报告</text>
+    </view>
+  </view>
+
+  <scroll-view class="report-page" scroll-y show-scrollbar="false" enhanced="{{true}}" style="padding-top: {{contentTop}}px;" refresher-enabled="{{true}}" refresher-default-style="white" refresher-background="transparent" refresher-triggered="{{refreshing}}" bindrefresherrefresh="handleRefresh">
+    <view class="report-hero">
+      <text wx:if="{{studentName}}" class="report-hero-name">{{studentName}}的学习成长报告</text>
+      <text wx:else class="report-hero-name">学习成长报告</text>
+      <text wx:if="{{loadState === 'ready'}}" class="report-hero-meta">{{reports.length ? '已出过 ' + reports.length + ' 份，每份都有留档' : '还没有出过报告'}}</text>
+      <view wx:elif="{{loadState === 'loading'}}" class="sk report-hero-meta-sk"></view>
+    </view>
+
+    <view class="report-panel">
+      <!-- 生成新报告：标题旁一个小按钮，下面一行说明 -->
+      <view class="section-heading">
+        <text>报告记录</text>
+        <view class="create-button {{creating || generating ? 'is-busy' : ''}} {{loadState === 'ready' ? '' : 'is-muted'}}" bindtap="handleCreate" aria-role="button">{{generating ? '生成中…' : (creating ? '正在开始…' : '生成新报告')}}</view>
+      </view>
+      <text class="section-lead">报告含测评、学习、学习前后对比、攻克难点，以及发给家长和学生的两段话；约 1 分钟生成，每份都留档。</text>
+
+      <view wx:if="{{loadState === 'failed'}}" class="card empty-card">
+        <text class="empty-title">报告记录暂时没有读到</text>
+        <text class="empty-copy">{{loadError}}</text>
+        <view class="empty-retry" bindtap="load" aria-role="button">重新加载</view>
+      </view>
+      <block wx:elif="{{loadState === 'loading'}}">
+        <view wx:for="{{[1, 2]}}" wx:key="*this" class="card item-card">
+          <view class="sk sk-line sk-mid"></view>
+          <view class="item-sk"><view class="sk sk-line"></view><view class="sk sk-line sk-short"></view></view>
+        </view>
+      </block>
+      <view wx:elif="{{!reports.length}}" class="card empty-card">
+        <text class="empty-title">还没有出过报告</text>
+        <text class="empty-copy">点上面的「生成新报告」，生成好的报告会留在这里，随时可以再发给家长。</text>
+      </view>
+      <block wx:else>
+        <view wx:for="{{reports}}" wx:key="id" class="card item-card">
+          <view class="item-heading">
+            <text class="item-time">{{item.timeText}}</text>
+            <text class="item-state item-state-{{item.statusTone}}">{{item.statusLabel}}</text>
+          </view>
+          <text class="item-meta">{{item.byText}}{{item.sizeText ? ' · ' + item.sizeText : ''}}</text>
+
+          <view wx:if="{{item.status === 'generating'}}" class="item-progress">
+            <view class="item-progress-bar"><view class="item-progress-fill"></view></view>
+            <text class="item-progress-text">正在整理测评和课程、写给家长和学生的话，大约 1 分钟</text>
+          </view>
+          <block wx:elif="{{item.status === 'failed'}}">
+            <text class="item-error">{{item.errorText}}</text>
+            <view class="item-actions"><view class="item-action is-quiet {{workingId === item.id && workingAction === 'delete' ? 'is-busy' : ''}}" data-id="{{item.id}}" bindtap="handleDelete" aria-role="button">{{workingId === item.id && workingAction === 'delete' ? '正在删除…' : '删除'}}</view></view>
+          </block>
+          <block wx:else>
+            <view wx:if="{{item.chips.length}}" class="item-chips">
+              <text wx:for="{{item.chips}}" wx:for-item="chip" wx:key="text" class="item-chip {{chip.tone === 'up' ? 'is-up' : ''}}">{{chip.text}}</text>
+            </view>
+            <view wx:if="{{item.parentNote}}" class="item-note" data-id="{{item.id}}" data-kind="parent" bindtap="handleCopy" aria-role="button" aria-label="复制发给家长的话">
+              <view class="item-note-head"><text class="item-note-label">发给家长的话</text><text class="item-note-copy">点击复制</text></view>
+              <text class="item-note-text" user-select="{{true}}">{{item.parentNote}}</text>
+            </view>
+            <view wx:if="{{item.studentNote}}" class="item-note is-student" data-id="{{item.id}}" data-kind="student" bindtap="handleCopy" aria-role="button" aria-label="复制发给学生的话">
+              <view class="item-note-head"><text class="item-note-label">发给学生的话</text><text class="item-note-copy">点击复制</text></view>
+              <text class="item-note-text" user-select="{{true}}">{{item.studentNote}}</text>
+            </view>
+            <view class="item-actions">
+              <!-- 删除（2026-10-07）：删掉后家长端、服务号「学习报告」也不再出现 -->
+              <view class="item-action is-quiet {{workingId === item.id && workingAction === 'delete' ? 'is-busy' : ''}}" data-id="{{item.id}}" bindtap="handleDelete" aria-role="button">{{workingId === item.id && workingAction === 'delete' ? '正在删除…' : '删除'}}</view>
+              <view class="item-action {{workingId === item.id && workingAction === 'preview' ? 'is-busy' : ''}}" data-id="{{item.id}}" bindtap="handlePreview" aria-role="button">{{workingId === item.id && workingAction === 'preview' ? '正在打开…' : '预览'}}</view>
+              <!-- 推送家长（2026-10-08）：推到家长的服务号；「发给家长」是转发 PDF 文件到微信聊天 -->
+              <view wx:if="{{pushEnabled}}" class="item-action {{item.pushed ? 'is-done' : ''}} {{workingId === item.id && workingAction === 'push' ? 'is-busy' : ''}}" data-id="{{item.id}}" bindtap="handlePush" aria-role="button">{{workingId === item.id && workingAction === 'push' ? '正在推送…' : (item.pushed ? '已推送' : '推送家长')}}</view>
+              <view class="item-action is-primary {{workingId === item.id && workingAction === 'share' ? 'is-busy' : ''}}" data-id="{{item.id}}" bindtap="handleShare" aria-role="button">{{workingId === item.id && workingAction === 'share' ? '正在准备…' : '发给家长'}}</view>
+            </view>
+            <text wx:if="{{item.pushText}}" class="item-push">{{item.pushText}}</text>
+          </block>
+        </view>
+      </block>
+      <text class="section-note">报告按生成那一刻的测评与学习记录出，之后孩子有新的测评和课程，可以再生成一份新的。家长在小程序「学习报告」和服务号菜单里能看到这里的报告，删掉的就看不到了。</text>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

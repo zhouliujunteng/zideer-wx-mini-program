@@ -1,0 +1,284 @@
+<!-- 操作指南（帮助与反馈 → 操作指南）：每一步画一块示意屏，要点的位置描橙边，并循环播放点按动画（波纹 + 按下）。
+     示意屏由 account/help-center/content.js 的 figure.blocks 描述，这里按 type 画。 -->
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<template name="tap">
+  <view class="hg-tap" aria-hidden="true"><view class="hg-tap-ring"></view><view class="hg-tap-ring is-late"></view><view class="hg-tap-dot"></view></view>
+  <text class="hg-tag {{tagSide === 'left' ? 'is-left' : ''}}" aria-hidden="true">{{tag || '点这里'}}</text>
+</template>
+
+<view class="hg-page">
+  <view class="hg-ambient" aria-hidden="true"></view>
+  <!-- 顶栏：往下滑就换成浅色底，标题不和内容叠在一起 -->
+  <view class="hg-topbar {{topbarSolid ? 'is-solid' : ''}}">
+    <view class="hg-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="hg-back" bindtap="handleBack" hover-class="hg-back-pressed" aria-label="返回" aria-role="button"><view class="hg-back-icon"></view></view>
+      <text class="hg-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">操作指南</text>
+    </view>
+  </view>
+  <!-- 分享：放在微信胶囊左边（位置按胶囊实际坐标，只在 onLoad 读一次），样式照测评报告页 -->
+  <view wx:if="{{guide}}" class="hg-share-button" style="top: {{shareButtonTop}}px; right: {{shareButtonRight}}px; width: {{shareButtonSize}}px; height: {{shareButtonSize}}px;" bindtap="openShare" hover-class="hg-share-button-pressed" aria-role="button" aria-label="分享这份操作指南">
+    <image src="{{UA.src(ui, '/assets/assessment-report/share.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+  </view>
+  <!-- 复制小程序链接：指向真实胶囊的「···」，链接打开的就是这一页（带指南编号） -->
+  <view wx:if="{{copyHintVisible}}" class="hg-copy-hint-layer" bindtap="hideCopyHint">
+    <view class="hg-copy-pointer" style="left: {{pointerLeft}}px; top: {{pointerTop}}px;">
+      <view class="hg-copy-pointer-arrow"></view>
+      <view class="hg-copy-pointer-bubble"><text class="hg-copy-pointer-title">点「···」，再点「复制链接」</text><text class="hg-copy-pointer-copy">好友在微信里点链接，直接打开这份指南</text></view>
+    </view>
+  </view>
+
+  <scroll-view class="hg-scroll" scroll-y show-scrollbar="{{false}}" enhanced="{{true}}" style="padding-top: {{contentTop}}px;" bindscroll="handleScroll">
+    <view class="hg-shell">
+      <view wx:if="{{!guide}}" class="hg-missing">
+        <text class="hg-missing-title">这份指南找不到了</text>
+        <text class="hg-missing-copy">可能已经更新，回到帮助与反馈看看其他内容。</text>
+        <view class="hg-missing-action" bindtap="openHelpCenter" hover-class="hg-button-pressed" aria-role="button">回到帮助与反馈</view>
+      </view>
+
+      <block wx:else>
+        <view class="hg-hero">
+          <image wx:if="{{UA.src(ui, guide.iconPath)}}" class="hg-hero-art" src="{{UA.src(ui, guide.iconPath)}}" mode="aspectFit" aria-hidden="true"></image>
+          <view wx:else class="sk hg-hero-art"></view>
+          <text class="hg-hero-title">{{guide.title}}</text>
+          <text class="hg-hero-summary">{{guide.summary}}</text>
+          <view class="hg-hero-meta"><view class="hg-hero-dot"></view><text>共 {{guide.steps.length}} 步 · 橙色圈圈就是要点的地方</text></view>
+        </view>
+
+        <view wx:for="{{guide.steps}}" wx:for-item="step" wx:for-index="stepIndex" wx:key="title" class="hg-step" style="animation-delay: {{stepIndex * 90}}ms;">
+          <view class="hg-step-head">
+            <text class="hg-step-no">{{stepIndex + 1}}</text>
+            <view class="hg-step-copy">
+              <text class="hg-step-title">{{step.title}}</text>
+              <text wx:if="{{step.hint}}" class="hg-step-hint">{{step.hint}}</text>
+            </view>
+          </view>
+
+          <!-- 竖屏手机示意：机身 → 屏幕（灵动岛、状态栏、顶栏、内容、底栏、底部横条），弹窗盖住整块屏幕 -->
+          <view wx:if="{{step.figure}}" class="hg-figure" aria-hidden="true">
+            <view class="hg-stage">
+            <view class="hg-phone">
+            <view class="hg-phone-screen">
+              <view class="hg-phone-island"></view>
+              <view class="hg-phone-status"><text>9:41</text><view class="hg-phone-battery"></view></view>
+              <view class="hg-phone-nav">
+                <view class="hg-phone-back {{step.figure.back ? '' : 'is-hidden'}}"></view>
+                <text class="hg-phone-title">{{step.figure.screen}}</text>
+                <view class="hg-phone-tools">
+                  <view wx:if="{{step.figure.flame}}" class="hg-flame {{step.figure.flameHot ? 'is-hot' : ''}}">
+                    <view class="hg-flame-icon"></view><text>{{step.figure.flame}}</text>
+                    <template wx:if="{{step.figure.flameHot}}" is="tap" data="{{tag: '', tagSide: 'left'}}" />
+                  </view>
+                  <view class="hg-capsule {{step.figure.capsuleHot ? 'is-hot' : ''}}">
+                    <view class="hg-capsule-dots"><view></view><view></view><view></view></view><view class="hg-capsule-line"></view><view class="hg-capsule-close"></view>
+                    <template wx:if="{{step.figure.capsuleHot}}" is="tap" data="{{tag: '', tagSide: 'left'}}" />
+                  </view>
+                </view>
+              </view>
+
+              <view class="hg-phone-body">
+                <!-- 内容块按 type 画：profile 资料头、tiles 钱包卡、grid 四宫格、menu 菜单、chips 横排标签、list 课程/任务、card 说明卡、
+                     input 输入框、code 大号代码、pair 左右两个选项、button 主按钮、note 小字、lines 占位灰条（分支之间不能夹注释，会切断条件链） -->
+                <block wx:for="{{step.figure.blocks}}" wx:for-item="block" wx:key="index">
+                  <view wx:if="{{block.type === 'profile'}}" class="hgb-profile">
+                    <view class="hgb-avatar"></view>
+                    <view class="hgb-profile-lines"><text class="hgb-profile-name">{{block.name || '知鹿同学'}}</text><view class="hgb-line is-short"></view></view>
+                  </view>
+
+                  <view wx:elif="{{block.type === 'tiles'}}" class="hgb-tiles">
+                    <view wx:for="{{block.items}}" wx:key="label" class="hgb-tile {{item.hot ? 'is-hot' : ''}}">
+                      <view class="hgb-tile-icon {{item.tone ? 'tone-' + item.tone : ''}}"></view>
+                      <view class="hgb-tile-copy"><text class="hgb-tile-label">{{item.label}}</text><text class="hgb-tile-value">{{item.value}}</text></view>
+                      <template wx:if="{{item.hot}}" is="tap" data="{{tag: item.tag, tagSide: item.tagSide}}" />
+                    </view>
+                  </view>
+
+                  <view wx:elif="{{block.type === 'grid'}}" class="hgb-grid-wrap">
+                    <text wx:if="{{block.title}}" class="hgb-heading">{{block.title}}</text>
+                    <view class="hgb-grid">
+                      <view wx:for="{{block.items}}" wx:key="label" class="hgb-grid-item {{item.hot ? 'is-hot' : ''}}">
+                        <view class="hgb-grid-icon"></view>
+                        <text class="hgb-grid-label">{{item.label}}</text>
+                        <template wx:if="{{item.hot}}" is="tap" data="{{tag: item.tag, tagSide: item.tagSide}}" />
+                      </view>
+                    </view>
+                  </view>
+
+                  <view wx:elif="{{block.type === 'menu'}}" class="hgb-menu-wrap">
+                    <text wx:if="{{block.title}}" class="hgb-heading">{{block.title}}</text>
+                    <view class="hgb-menu">
+                      <view wx:for="{{block.items}}" wx:key="label" class="hgb-menu-row {{item.hot ? 'is-hot' : ''}} {{item.muted ? 'is-muted' : ''}}">
+                        <view class="hgb-menu-copy"><text class="hgb-menu-label">{{item.label}}</text><text wx:if="{{item.hint}}" class="hgb-menu-hint">{{item.hint}}</text></view>
+                        <text wx:if="{{item.value}}" class="hgb-menu-value">{{item.value}}</text>
+                        <view wx:else class="hgb-chevron"></view>
+                        <template wx:if="{{item.hot}}" is="tap" data="{{tag: item.tag, tagSide: item.tagSide}}" />
+                      </view>
+                    </view>
+                  </view>
+
+                  <view wx:elif="{{block.type === 'chips'}}" class="hgb-chips">
+                    <view wx:for="{{block.items}}" wx:key="label" class="hgb-chip {{item.active ? 'is-active' : ''}} {{item.hot ? 'is-hot' : ''}}">
+                      <text>{{item.label}}</text>
+                      <template wx:if="{{item.hot}}" is="tap" data="{{tag: item.tag, tagSide: item.tagSide}}" />
+                    </view>
+                  </view>
+
+                  <view wx:elif="{{block.type === 'list'}}" class="hgb-list-wrap">
+                    <text wx:if="{{block.title}}" class="hgb-heading">{{block.title}}</text>
+                    <view wx:for="{{block.items}}" wx:key="title" class="hgb-list-row {{item.hot ? 'is-hot' : ''}}">
+                      <view class="hgb-list-thumb {{item.tone ? 'tone-' + item.tone : ''}}"><text wx:if="{{item.mark}}">{{item.mark}}</text></view>
+                      <view class="hgb-list-copy"><text class="hgb-list-title">{{item.title}}</text><text wx:if="{{item.meta}}" class="hgb-list-meta">{{item.meta}}</text></view>
+                      <text wx:if="{{item.badge}}" class="hgb-list-badge">{{item.badge}}</text>
+                      <template wx:if="{{item.hot}}" is="tap" data="{{tag: item.tag, tagSide: item.tagSide}}" />
+                    </view>
+                  </view>
+
+                  <view wx:elif="{{block.type === 'card'}}" class="hgb-card {{block.tone ? 'tone-card-' + block.tone : ''}} {{block.hot === 'card' ? 'is-hot' : ''}}">
+                    <text class="hgb-card-title">{{block.title}}</text>
+                    <text wx:if="{{block.text}}" class="hgb-card-text">{{block.text}}</text>
+                    <view wx:if="{{block.button}}" class="hgb-card-button {{block.hot === 'button' ? 'is-hot' : ''}}">
+                      <text>{{block.button}}</text>
+                      <template wx:if="{{block.hot === 'button'}}" is="tap" data="{{tag: block.tag, tagSide: block.tagSide}}" />
+                    </view>
+                    <template wx:if="{{block.hot === 'card'}}" is="tap" data="{{tag: block.tag, tagSide: block.tagSide}}" />
+                  </view>
+
+                  <view wx:elif="{{block.type === 'input'}}" class="hgb-input-wrap">
+                    <text wx:if="{{block.label}}" class="hgb-heading">{{block.label}}</text>
+                    <view class="hgb-input {{block.hot === 'input' ? 'is-hot' : ''}}">
+                      <text class="{{block.value ? 'hgb-input-value' : 'hgb-input-placeholder'}}">{{block.value || block.placeholder}}</text>
+                      <view wx:if="{{block.value}}" class="hgb-caret"></view>
+                      <template wx:if="{{block.hot === 'input'}}" is="tap" data="{{tag: block.tag, tagSide: block.tagSide}}" />
+                    </view>
+                    <view wx:if="{{block.button}}" class="hgb-button {{block.hot === 'button' ? 'is-hot' : ''}}">
+                      <text>{{block.button}}</text>
+                      <template wx:if="{{block.hot === 'button'}}" is="tap" data="{{tag: block.tag, tagSide: block.tagSide}}" />
+                    </view>
+                  </view>
+
+                  <view wx:elif="{{block.type === 'code'}}" class="hgb-code">
+                    <text class="hgb-code-label">{{block.label}}</text>
+                    <view class="hgb-code-value {{block.hot === 'value' ? 'is-hot' : ''}}">
+                      <text>{{block.value}}</text>
+                      <template wx:if="{{block.hot === 'value'}}" is="tap" data="{{tag: block.tag, tagSide: block.tagSide}}" />
+                    </view>
+                    <view wx:if="{{block.button}}" class="hgb-code-button {{block.hot === 'button' ? 'is-hot' : ''}}">
+                      <text>{{block.button}}</text>
+                      <template wx:if="{{block.hot === 'button'}}" is="tap" data="{{tag: block.tag, tagSide: block.tagSide}}" />
+                    </view>
+                  </view>
+
+                  <view wx:elif="{{block.type === 'pair'}}" class="hgb-pair">
+                    <view wx:for="{{block.items}}" wx:key="title" class="hgb-pair-item {{item.hot ? 'is-hot' : ''}}">
+                      <text class="hgb-pair-kicker">{{item.kicker}}</text>
+                      <text class="hgb-pair-title">{{item.title}}</text>
+                      <text class="hgb-pair-text">{{item.text}}</text>
+                      <template wx:if="{{item.hot}}" is="tap" data="{{tag: item.tag, tagSide: item.tagSide}}" />
+                    </view>
+                  </view>
+
+                  <view wx:elif="{{block.type === 'button'}}" class="hgb-button {{block.secondary ? 'is-secondary' : ''}} {{block.hot ? 'is-hot' : ''}}">
+                    <text>{{block.label}}</text>
+                    <template wx:if="{{block.hot}}" is="tap" data="{{tag: block.tag, tagSide: block.tagSide}}" />
+                  </view>
+
+                  <text wx:elif="{{block.type === 'note'}}" class="hgb-note">{{block.text}}</text>
+
+                  <view wx:elif="{{block.type === 'lines'}}" class="hgb-lines">
+                    <view class="hgb-line"></view><view class="hgb-line is-mid"></view><view wx:if="{{block.count !== 2}}" class="hgb-line is-short"></view>
+                  </view>
+                </block>
+                <view class="hg-phone-filler"><view class="hgb-filler-card"></view><view class="hgb-filler-card is-short"></view><view class="hgb-filler-card"></view></view>
+              </view>
+
+              <!-- 底栏：与小程序底栏同样几项（家长没有「图谱」） -->
+              <view wx:if="{{step.figure.tabItems}}" class="hg-tabbar">
+                <view wx:for="{{step.figure.tabItems}}" wx:key="key" class="hg-tab {{item.active ? 'is-active' : ''}} {{item.hot ? 'is-hot' : ''}}">
+                  <view class="hg-tab-icon"></view>
+                  <text>{{item.label}}</text>
+                  <template wx:if="{{item.hot}}" is="tap" data="{{tag: item.tag, tagSide: item.tagSide}}" />
+                </view>
+              </view>
+
+              <view class="hg-phone-home"></view>
+
+              <view wx:if="{{step.figure.modal}}" class="hg-modal-mask">
+                <view class="hg-modal">
+                  <text class="hg-modal-title">{{step.figure.modal.title}}</text>
+                  <text wx:if="{{step.figure.modal.text}}" class="hg-modal-text">{{step.figure.modal.text}}</text>
+                  <view class="hg-modal-actions">
+                    <view wx:if="{{step.figure.modal.cancel}}" class="hg-modal-button">{{step.figure.modal.cancel}}</view>
+                    <view class="hg-modal-button is-confirm {{step.figure.modal.hot ? 'is-hot' : ''}}">
+                      <text>{{step.figure.modal.confirm}}</text>
+                      <template wx:if="{{step.figure.modal.hot}}" is="tap" data="{{tag: step.figure.modal.tag, tagSide: step.figure.modal.tagSide}}" />
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            </view>
+            </view>
+            <text wx:if="{{step.figure.caption}}" class="hg-caption">{{step.figure.caption}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{guide.tips && guide.tips.length}}" class="hg-tips">
+          <text class="hg-tips-title">小提示</text>
+          <view wx:for="{{guide.tips}}" wx:key="index" class="hg-tip"><view class="hg-tip-dot"></view><text>{{item}}</text></view>
+        </view>
+
+        <view wx:if="{{relatedFaqs.length}}" class="hg-related">
+          <text class="hg-related-title">相关问题</text>
+          <view wx:for="{{relatedFaqs}}" wx:key="id" class="hg-faq {{openFaqId === item.id ? 'is-open' : ''}}">
+            <view class="hg-faq-head" data-id="{{item.id}}" bindtap="toggleFaq" hover-class="hg-faq-head-pressed" aria-role="button" aria-expanded="{{openFaqId === item.id}}">
+              <text class="hg-faq-title">{{item.title}}</text>
+              <view class="hg-faq-chevron"></view>
+            </view>
+            <view wx:if="{{openFaqId === item.id}}" class="hg-faq-body">
+              <text wx:for="{{item.answer}}" wx:for-item="paragraph" wx:key="index" class="hg-faq-paragraph">{{paragraph}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{shareVisible}}" class="hg-share-mask" catchtap="closeShare">
+    <view class="hg-share-preview" catchtap="noop">
+      <view class="hg-share-card">
+        <view class="hg-share-card-head">
+          <image wx:if="{{UA.src(ui, '/assets/brand/app-icon.png')}}" class="hg-share-card-logo" src="{{UA.src(ui, '/assets/brand/app-icon.png')}}" mode="aspectFill" aria-hidden="true"></image>
+          <view wx:else class="sk hg-share-card-logo"></view>
+          <text>知鹿学习</text>
+        </view>
+        <text class="hg-share-card-title">{{shareTitle}}</text>
+        <image wx:if="{{coverPath}}" class="hg-share-card-cover" src="{{coverPath}}" mode="aspectFill" aria-label="分享卡片封面"></image>
+        <view wx:else class="sk hg-share-card-cover"></view>
+        <view class="hg-share-card-foot"><view class="hg-share-card-mark"></view><text>小程序</text></view>
+      </view>
+      <text class="hg-share-preview-note">好友收到的卡片预览</text>
+    </view>
+    <view class="hg-share-sheet" catchtap="noop">
+      <view class="hg-share-sheet-header"><text class="hg-share-sheet-title">分享这份指南</text></view>
+      <view class="hg-share-actions">
+        <view class="hg-share-action">
+          <button class="hg-share-native-button" open-type="share" bindtap="closeShare" aria-label="发给微信好友"></button>
+          <view class="hg-share-action-icon is-wechat"><image src="{{UA.src(ui, '/assets/promotion/share-wechat.svg')}}" mode="aspectFit"></image></view>
+          <text>发给好友</text>
+        </view>
+        <view class="hg-share-action" bindtap="showCopyHint" aria-role="button">
+          <view class="hg-share-action-icon"><view class="hg-link-glyph"></view></view>
+          <text>复制链接</text>
+        </view>
+      </view>
+      <view class="hg-share-cancel" bindtap="closeShare" aria-role="button">取消</view>
+    </view>
+  </view>
+
+  <canvas type="2d" id="share-cover-canvas" class="share-cover-canvas"></canvas>
+
+  <view wx:if="{{guide}}" class="hg-bar">
+    <view class="hg-bar-secondary" bindtap="openFeedback" hover-class="hg-button-pressed" aria-role="button">还有问题</view>
+    <view class="hg-bar-primary" bindtap="startAction" hover-class="hg-button-pressed" aria-role="button">{{guide.action.label}}</view>
+  </view>
+</view>
+<dev-reset-fab />

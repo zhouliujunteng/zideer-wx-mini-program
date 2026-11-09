@@ -1,6 +1,90 @@
-.topic-page { min-height: 100vh; padding: 0 28rpx calc(env(safe-area-inset-bottom) + 44rpx); }.topic-page__inner { padding-top: 54rpx; }.topic-page__head { padding: 0 8rpx; }.topic-page__eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }.topic-page__title { display: block; margin-top: 12rpx; font-size: 42rpx; font-weight: 700; line-height: 1.28; }.topic-page__status { display: block; margin-top: 12rpx; color: var(--muted); font-size: 23rpx; }.topic-page__status--mastered { color: var(--green); }.topic-page__status--learning { color: var(--accent-deep); }.topic-page__status--weak { color: var(--yellow); }.topic-page__details { margin-top: 42rpx; padding: 0 26rpx; }.topic-page__row { display: flex; min-height: 108rpx; align-items: center; justify-content: space-between; gap: 24rpx; border-bottom: 1rpx solid var(--line); font-size: 24rpx; line-height: 1.5; }.topic-page__row:last-child { border-bottom: 0; }.topic-page__row text:first-child { flex: none; color: var(--muted); }.topic-page__row text:last-child { min-width: 0; text-align: right; }.topic-page__candidate { margin: 28rpx 8rpx; }.topic-page__candidate-copy { display: block; margin-bottom: 16rpx; color: var(--muted); font-size: 22rpx; line-height: 1.55; }.topic-page__candidate-action { width: 100%; min-height: 88rpx; border-radius: 12rpx; background: var(--ink); color: var(--surface); font-size: 28rpx; font-weight: 700; }.topic-page__candidate-action[disabled] { background: var(--line-strong); }.topic-page__skeleton { height: 360rpx; border-radius: 18rpx; }
-.topic-page__section { margin-top: 28rpx; padding: 26rpx; }
-.topic-page__section-title { display: block; font-size: 27rpx; font-weight: 700; }
-.topic-page__copy { display: block; margin-top: 16rpx; font-size: 25rpx; line-height: 1.75; white-space: pre-wrap; }
-.topic-page__link { margin-top: 14rpx; padding: 20rpx 0; border-top: 1rpx solid var(--line); font-size: 26rpx; line-height: 1.5; color: var(--accent-deep); }
-.topic-page__link-reason { display: block; margin-top: 8rpx; color: var(--muted); font-size: 23rpx; }
+@import "../../styles/skeleton.wxss";
+/* 知识点详情：订单详情 / 课程积分页一系的氛围光、自定义顶栏、30rpx 小节标题、白色 36rpx 大圆角卡片、底部品牌橙渐变胶囊；
+   掌握状态标签配色与测评页（assessment/short）一致。右上角的星点插画纯 CSS 画，不占素材。 */
+page { background: #FAFAFA; }
+
+.topic-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.topic-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; background: radial-gradient(125% 52% at 100% 0, rgba(201, 232, 255, .84) 0%, rgba(215, 239, 255, .48) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.topic-ambient-ribbon { position: absolute; top: -140rpx; left: -430rpx; width: 1480rpx; height: 720rpx; box-sizing: border-box; border: 24rpx solid rgba(255, 255, 255, .72); border-top-color: transparent; border-right-color: transparent; border-radius: 50%; opacity: .84; transform: rotate(-18deg); }
+.topic-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.topic-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.topic-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.topic-back:active { background: #F0F2EF; }
+.topic-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.topic-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.topic-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.topic-shell { min-height: 100%; padding: 0 32rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.topic-shell.has-bar { padding-bottom: calc(220rpx + env(safe-area-inset-bottom)); }
+
+/* 顶部：学段学科、知识点名大字、最近一次测评状态 + 教材出处，右侧星点插画 */
+.topic-hero { display: flex; align-items: flex-start; justify-content: space-between; padding: 8rpx 8rpx 12rpx; }
+.topic-hero-copy { min-width: 0; flex: 1; }
+.topic-eyebrow { display: block; color: #7E8A82; font-size: 24rpx; font-weight: 600; line-height: 1.3; }
+.topic-title { display: block; margin-top: 12rpx; color: #24332D; font-size: 56rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1.2; overflow-wrap: anywhere; }
+.topic-hero-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 12rpx 14rpx; margin-top: 22rpx; }
+.topic-source { min-width: 0; color: #98A49C; font-size: 21rpx; line-height: 1.3; }
+
+.topic-art { position: relative; flex: 0 0 auto; width: 168rpx; height: 168rpx; margin: -6rpx 0 0 16rpx; }
+.topic-art-orbit { position: absolute; top: 28rpx; left: 4rpx; width: 160rpx; height: 104rpx; box-sizing: border-box; border: 5rpx solid rgba(101, 167, 233, .5); border-radius: 50%; transform: rotate(-20deg); }
+.topic-art-core { position: absolute; top: 46rpx; left: 48rpx; width: 72rpx; height: 72rpx; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #FFD19C 0%, #FF9F43 45%, #FD7C02 100%); box-shadow: 0 12rpx 28rpx rgba(253, 124, 2, .28); }
+.topic-art-dot { position: absolute; border-radius: 50%; }
+.topic-art-dot-a { top: 30rpx; right: 14rpx; width: 22rpx; height: 22rpx; background: #65A7E9; box-shadow: 0 0 0 6rpx rgba(101, 167, 233, .18); }
+.topic-art-dot-b { bottom: 30rpx; left: 12rpx; width: 16rpx; height: 16rpx; background: #6EB58B; box-shadow: 0 0 0 5rpx rgba(110, 181, 139, .18); }
+
+/* 状态标签：掌握 / 待巩固 / 未掌握 / 待测，证据类型也用同一套 */
+.topic-tag { flex: 0 0 auto; padding: 6rpx 16rpx; border-radius: 999rpx; background: #F1F3F1; color: #7E8982; font-size: 20rpx; font-weight: 600; line-height: 1.4; white-space: nowrap; }
+.topic-tag.solid { background: #EAF7EE; color: #5FA873; }
+.topic-tag.steady { background: #EEF5FF; color: #7894BE; }
+.topic-tag.weak { background: #FFF3E7; color: #B88D62; }
+
+.topic-section { margin-top: 38rpx; }
+.topic-heading { display: flex; align-items: baseline; padding: 0 4rpx; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.2; }
+.topic-heading-count { margin-left: 12rpx; color: #98A49C; font-size: 22rpx; font-weight: 500; }
+.topic-card { margin-top: 22rpx; padding: 6rpx 24rpx; border-radius: 36rpx; background: #fff; }
+.topic-card-text { padding: 26rpx 28rpx; }
+.topic-copy { display: block; color: #4A5A51; font-size: 26rpx; line-height: 1.75; white-space: pre-wrap; }
+.topic-muted { color: #98A39B; font-size: 24rpx; line-height: 1.6; }
+
+/* 行：测评记录、掌握证据 */
+.topic-row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; min-height: 44rpx; padding: 26rpx 0; border-bottom: 2rpx solid #F0F3F0; }
+.topic-row:last-child { border-bottom: 0; }
+.topic-row-copy { min-width: 0; flex: 1; }
+.topic-row-title { display: block; overflow: hidden; color: #24332D; font-size: 25rpx; font-weight: 600; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.topic-row-meta { display: block; margin-top: 8rpx; color: #98A39B; font-size: 20rpx; line-height: 1.3; }
+.topic-row-side { display: flex; flex: 0 0 auto; align-items: center; gap: 14rpx; }
+.topic-rate { color: #7E8A82; font-size: 22rpx; white-space: nowrap; }
+
+/* 前置 / 后续 / 相关知识：知识点名 + 年级，下面一行关系说明，右侧箭头 */
+.topic-link { display: flex; align-items: center; gap: 18rpx; padding: 26rpx 0; border-bottom: 2rpx solid #F0F3F0; }
+.topic-link:last-child { border-bottom: 0; }
+.topic-link:active { opacity: .6; }
+.topic-link-copy { min-width: 0; flex: 1; }
+.topic-link-head { display: flex; align-items: baseline; gap: 12rpx; min-width: 0; }
+.topic-link-title { min-width: 0; overflow: hidden; color: #24332D; font-size: 27rpx; font-weight: 600; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.topic-link-grade { flex: 0 0 auto; color: #E78435; font-size: 20rpx; font-weight: 600; }
+.topic-link-reason { display: block; margin-top: 8rpx; color: #7E8A82; font-size: 22rpx; line-height: 1.55; }
+.topic-link-arrow { flex: 0 0 auto; width: 12rpx; height: 12rpx; box-sizing: border-box; border-top: 3rpx solid #B1BBB4; border-right: 3rpx solid #B1BBB4; transform: rotate(45deg); }
+
+.topic-state-panel { display: flex; align-items: center; flex-direction: column; padding: 120rpx 24rpx 40rpx; text-align: center; }
+.topic-state-title { color: #24332D; font-size: 32rpx; font-weight: 600; }
+.topic-state-copy { margin: 22rpx 0 32rpx; color: #7D877F; font-size: 25rpx; line-height: 1.6; }
+.topic-state-action { display: inline-flex; height: 76rpx; align-items: center; padding: 0 44rpx; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; font-weight: 600; }
+.topic-state-action:active { opacity: .78; }
+
+/* 底部按钮：加入候选是品牌橙渐变胶囊，已在候选时换成浅色描边的「移出候选」 */
+.topic-bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 18; padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .96); box-shadow: 0 -8rpx 24rpx rgba(36, 51, 45, .06); }
+.topic-bar-note { display: block; margin-bottom: 14rpx; color: #7E8A82; font-size: 22rpx; line-height: 1.5; text-align: center; }
+.topic-button { display: block; width: 100%; height: 88rpx; margin: 0; padding: 0; border: 0; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #fff; font-size: 28rpx; font-weight: 650; line-height: 88rpx; }
+.topic-button::after { border: 0; }
+.topic-button:active { opacity: .82; }
+.topic-button.is-active { box-sizing: border-box; border: 2rpx solid #F3D2B0; background: #FFF6EC; color: #E78435; line-height: 84rpx; }
+.topic-button[disabled] { border: 0 !important; background: #F3C9A0 !important; color: #fff !important; }
+
+/* 首次加载骨架 */
+.topic-sk-eyebrow { width: 180rpx; height: 26rpx; }
+.topic-sk-title { width: 320rpx; height: 64rpx; margin-top: 16rpx; }
+.topic-sk-state { width: 96rpx; height: 36rpx; border-radius: 999rpx; }
+.topic-sk-line { margin-top: 0; }
+.topic-card-text .sk + .sk { margin-top: 18rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

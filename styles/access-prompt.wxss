@@ -1,0 +1,8 @@
+/* 未登录、未完善学习资料的提示卡（2026-09-27 用户规则：未登录也能浏览）。数据位换成这张卡，引导去登录 / 去完善。
+   版式同首页「课程暂时没有读到」：白底圆角卡，左边标题与说明，右边主题橙按钮。 */
+.access-prompt { display: flex; align-items: center; justify-content: space-between; gap: 24rpx; padding: 32rpx; border-radius: 24rpx; background: #FFFFFF; }
+.access-prompt-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.access-prompt-title { color: #24332D; font-size: 28rpx; font-weight: 600; line-height: 40rpx; }
+.access-prompt-subtitle { margin-top: 8rpx; color: #8A948F; font-size: 24rpx; line-height: 34rpx; }
+.access-prompt-action { flex-shrink: 0; padding: 12rpx 32rpx; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 24rpx; font-weight: 600; line-height: 34rpx; }
+.access-prompt-action:active { opacity: .8; }

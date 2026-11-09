@@ -8,22 +8,22 @@ const tick = () => new Promise(setImmediate)
 const source = fs.readFileSync(path.join(__dirname, '../services/identity.js'), 'utf8')
 const code = 'wechat-phone-code-fixture'
 
-function service(initial = '') {
+function service(initial = '', route = 'commerce/orders/index') {
   let token = initial
   const calls = [], writes = [], navigations = [], pending = []
   const app = { globalData: { user: null } }
   const module = { exports: {} }
   vm.runInNewContext(source, {
-    module, require: name => name.includes('config') ? config : require('../utils/course-state'),
-    getApp: () => app, getCurrentPages: () => [{ route: 'pages/me/index' }],
+    module, require: name => name.includes('config') ? config : name.includes('account-role') ? require('../utils/account-role') : require('../utils/course-state'),
+    getApp: () => app, getCurrentPages: () => [{ route }],
     wx: {
       getStorageSync: () => token, removeStorageSync() { token = '' },
       setStorageSync(key, value) { token = value; writes.push(value) },
       login(options) { calls.push('wx.login'); options.success({ code: 'identity-code' }) },
       reLaunch(options) { navigations.push(options.url) },
       request(options) {
-        // 课程入场券换取不属于手机号校验链路：直接失败，课程地址回落为不含凭证的地址
-        if (/\/api\/learn\/device$/.test(options.url)) return options.fail({ errMsg: 'request:fail handoff unavailable' })
+        // 课程入场券换取不属于手机号校验链路：直接发券，不计入 pending
+        if (/\/api\/learn\/device$/.test(options.url)) return options.success({ statusCode: 200, data: { ticket: 'H'.repeat(43), expiresAt: Date.now() + 60000 } })
         pending.push(options); calls.push(options.data?.query || options.url)
       }
     }
@@ -109,13 +109,27 @@ for (const failure of ['bind-error', 'bind-false', 'readback-false']) {
 test('unbound old JWT is rejected before protected calls with a single redirect', async () => {
   const s = service('old-token')
   const first = assert.rejects(s.api.loadCurrentUser(), { code: 'PHONE_REQUIRED' })
-  const second = assert.rejects(s.api.loadMemberCourseLibrary(), { code: 'PHONE_REQUIRED' })
+  const second = assert.rejects(s.api.loadCurrentCreditAccount(), { code: 'PHONE_REQUIRED' })
   assert.equal(s.pending.length, 1)
   s.reply({ authenticated: true, phoneVerified: false })
   await Promise.all([first, second])
   assert.equal(s.token(), '')
   assert.equal(s.navigations.length, 1)
   assert.equal(s.pending.length, 0)
+})
+
+// 2026-09-27 用户规则：未登录也能浏览。首页等可浏览页上发现凭证无效，只作废凭证、不跳登录页，会员课程列表按游客照常读。
+test('on a browsable tab an unbound old JWT is dropped quietly and the course list still loads as a guest', async () => {
+  const s = service('old-token', 'pages/home/index')
+  const courses = s.api.loadMemberCourseLibrary()
+  s.reply({ authenticated: true, phoneVerified: false }); await tick()
+  assert.equal(s.token(), '')
+  assert.equal(s.navigations.length, 0)
+  const request = s.pending.shift()
+  assert.match(request.url, /\/api\/learn\/library$/)
+  assert.equal(request.header.authorization, undefined)
+  request.success({ statusCode: 200, data: { courses: [{ id: 'a'.repeat(32), title: '函数', subject: '数学', grade: '8', isMember: false }] } })
+  assert.deepEqual((await courses).map((course) => [course.title, course.isMember]), [['函数', false]])
 })
 
 test('phone-state transport failure preserves old token but never sends protected request', async () => {
@@ -144,7 +158,7 @@ test('parallel requests share phone verification and foreground reset rechecks',
 
 test('expired token renewal still rejects an unbound WeChat account', async () => {
   const s = service('expired-token')
-  const result = assert.rejects(s.api.loadMemberCourseLibrary(), { code: 'PHONE_REQUIRED' })
+  const result = assert.rejects(s.api.loadCurrentCreditAccount(), { code: 'PHONE_REQUIRED' })
   s.pending.shift().success({ statusCode: 200, data: { errors: [{ message: 'JWT expired' }] } })
   await tick(); s.reply('renewed-token', true); await tick()
   s.reply({ authenticated: true, phoneVerified: false }); await result
@@ -175,15 +189,25 @@ test('sign-out during phone login prevents late session recreation', async () =>
   assert.deepEqual(s.writes, [])
 })
 
-function loginPage(login, restore = async () => null) {
+function loginPage(login, restore = async () => null, { agreed = true, token = 'stored-token', pages = 1 } = {}) {
   let definition
   const navigations = [], calls = []
+  const modules = {
+    identity: { getStoredToken: () => token, restoreAuthenticatedUser: restore, signInWithWechat: value => { calls.push(value); return login(value) } },
+    'referral-context': { postAuthenticationUrl: () => '/pages/me/index' },
+    'ui-assets': { attachUiAssets: () => Promise.resolve({}) },
+    'user-agreement': require('../pages/login/user-agreement')
+  }
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../pages/login/login.js'), 'utf8'), {
-    Page: p => { definition = p }, getApp: () => ({ globalData: {} }),
-    require: name => name.includes('identity') ? { restoreAuthenticatedUser: restore, signInWithWechat: value => { calls.push(value); return login(value) } } : { postAuthenticationUrl: () => '/pages/me/index' },
-    wx: { reLaunch: o => navigations.push(o.url) }
+    Page: p => { definition = p }, getApp: () => ({ globalData: {} }), getCurrentPages: () => Array.from({ length: pages }, () => ({})),
+    require: name => modules[Object.keys(modules).find(key => name.endsWith(key))],
+    wx: {
+      reLaunch: o => navigations.push(o.url), navigateBack: () => navigations.push('back'),
+      redirectTo: o => navigations.push(`redirect:${o.url}`), switchTab: o => navigations.push(`tab:${o.url}`),
+      getWindowInfo: () => ({ statusBarHeight: 20 }), getMenuButtonBoundingClientRect: () => ({ top: 24, height: 32 })
+    }
   })
-  return { page: { ...definition, data: { ...definition.data, checkingSession: false }, setData(patch) { Object.assign(this.data, patch) } }, navigations, calls }
+  return { page: { ...definition, data: { ...definition.data, checkingSession: false, hasAgreed: agreed }, setData(patch) { Object.assign(this.data, patch) } }, navigations, calls }
 }
 
 test('denied or quota-failed authorization stays on login without calling login service', async () => {
@@ -226,6 +250,116 @@ test('login entry uses native phone authorization rather than tap login', () => 
   assert.match(template, /open-type="getPhoneNumber"/)
   assert.match(template, /bindgetphonenumber="handlePhoneLogin"/)
   assert.doesNotMatch(template, /bindtap="handle(?:Wechat|Phone)Login"/)
+})
+
+test('phone authorization is only reachable after agreeing to the terms', () => {
+  const template = fs.readFileSync(path.join(__dirname, '../pages/login/login.wxml'), 'utf8')
+  // 主按钮：只有勾选后那一支带授权；未勾选那一支只弹确认框
+  assert.match(template, /wx:elif="\{\{hasAgreed\}\}"[^>]*open-type="getPhoneNumber"[^>]*bindgetphonenumber="handlePhoneLogin"/)
+  assert.match(template, /<button wx:else class="login-button" bindtap="requestAgreement">/)
+  // 确认框的「同意并继续」直接授权，并记为已同意
+  assert.match(template, /open-type="getPhoneNumber" bindgetphonenumber="handleAgreedPhoneLogin">同意并继续</)
+  assert.equal((template.match(/open-type="getPhoneNumber"/g) || []).length, 2)
+})
+
+test('without agreement the login button asks first and never signs in', async () => {
+  const { page, calls, navigations } = loginPage(async () => ({ phoneVerified: true }), undefined, { agreed: false })
+  page.requestAgreement()
+  assert.equal(page.data.agreementPromptVisible, true)
+  await page.handlePhoneLogin({ detail: { code } })
+  assert.deepEqual(calls, [])
+  page.closeAgreementPrompt()
+  assert.equal(page.data.agreementPromptVisible, false)
+  assert.equal(page.data.hasAgreed, false)
+  assert.deepEqual(navigations, [])
+})
+
+test('agreeing in the prompt checks the box and continues with the same authorization', async () => {
+  const { page, calls, navigations } = loginPage(async () => ({ phoneVerified: true }), undefined, { agreed: false })
+  page.requestAgreement()
+  await page.handleAgreedPhoneLogin({ detail: { code } })
+  assert.equal(page.data.hasAgreed, true)
+  assert.equal(page.data.agreementPromptVisible, false)
+  assert.deepEqual(calls, [code])
+  assert.deepEqual(navigations, ['/pages/me/index'])
+  // 同意后拒绝授权：保持勾选，只提示未授权
+  const denied = loginPage(async () => ({}), undefined, { agreed: false })
+  await denied.page.handleAgreedPhoneLogin({ detail: { errMsg: 'getPhoneNumber:fail user deny' } })
+  assert.equal(denied.page.data.hasAgreed, true)
+  assert.match(denied.page.data.errorMessage, /尚未授权/)
+  assert.deepEqual(denied.calls, [])
+})
+
+test('only the first session check shows the busy button; returning to the page rechecks silently', async () => {
+  const states = []
+  const { page } = loginPage(async () => ({}), async () => null)
+  page.data.checkingSession = true
+  const setData = page.setData
+  page.setData = function (patch) { if ('checkingSession' in patch) states.push(patch.checkingSession); setData.call(this, patch) }
+  await page.restoreSession()
+  await page.restoreSession()
+  assert.deepEqual(states, [true, false, false])
+  assert.equal(page.data.checkingSession, false)
+})
+
+test('without a stored token the first check never shows the busy button', async () => {
+  const states = []
+  const { page } = loginPage(async () => ({}), async () => null, { token: '' })
+  const setData = page.setData
+  page.setData = function (patch) { if ('checkingSession' in patch) states.push(patch.checkingSession); setData.call(this, patch) }
+  await page.restoreSession()
+  assert.deepEqual(states, [false])
+})
+
+// 2026-09-27 用户规则：未登录也能浏览。登录页多由浏览中点了要登录的功能打开（navigateTo），登录完回原页面。
+test('a login opened while browsing returns to that page, and an unfinished profile goes to setup first', async () => {
+  const done = loginPage(async () => ({ phoneVerified: true, profileCompleted: true }), undefined, { pages: 2 })
+  await done.page.handlePhoneLogin({ detail: { code } })
+  assert.deepEqual(done.navigations, ['back'])
+  const setup = loginPage(async () => ({ phoneVerified: true, profileCompleted: false }), undefined, { pages: 2 })
+  await setup.page.handlePhoneLogin({ detail: { code } })
+  assert.deepEqual(setup.navigations, ['redirect:/pages/me/index'])
+})
+
+test('without a page to return to the login page offers browsing as a guest', () => {
+  const template = fs.readFileSync(path.join(__dirname, '../pages/login/login.wxml'), 'utf8')
+  assert.match(template, /wx:if="\{\{!canGoBack\}\}"[^>]*bindtap="browseAsGuest"[^>]*>先随便看看</)
+  const { page, navigations } = loginPage(async () => ({}))
+  page.onLoad()
+  assert.equal(page.data.canGoBack, false)
+  page.browseAsGuest()
+  assert.deepEqual(navigations, ['tab:/pages/home/index'])
+})
+
+test('the splash waits for the session check and lands on home even without a session', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../pages/splash/index.js'), 'utf8')
+  const wait = Number((source.match(/SESSION_WAIT_MS = (\d+)/) || [])[1])
+  assert.ok(wait >= 10000, String(wait))
+  assert.doesNotMatch(source, /login\/login/)
+  let definition
+  const navigations = []
+  vm.runInNewContext(source, {
+    Page: p => { definition = p }, getApp: () => ({ globalData: {} }), setTimeout,
+    require: name => name.endsWith('identity') ? { restoreAuthenticatedUser: async () => null }
+      : name.endsWith('referral-context') ? { postAuthenticationUrl: () => '/pages/profile-setup/index' } : { attachUiAssets() {} },
+    wx: { reLaunch: o => navigations.push(o.url) }
+  })
+  ;({ ...definition }).land(null)
+  ;({ ...definition }).land({ phoneVerified: true, profileCompleted: false })
+  assert.deepEqual(navigations, ['/pages/home/index', '/pages/profile-setup/index'])
+})
+
+test('user agreement opens in page and carries no preview placeholder copy', () => {
+  const { page } = loginPage(async () => ({}))
+  page.openUserAgreement()
+  const agreement = page.data.userAgreement
+  assert.equal(agreement.title, '《知鹿用户协议》')
+  assert.match(agreement.meta, /深圳市原点秩序科技有限公司/)
+  const text = agreement.sections.map(section => [section.heading, ...section.paragraphs].join('')).join('')
+  assert.doesNotMatch(text, /预览稿|私课/)
+  assert.equal(new Set(agreement.sections.map(section => section.id)).size, agreement.sections.length)
+  page.closeUserAgreement()
+  assert.equal(page.data.userAgreement, null)
 })
 
 test('session restore timeout stays recoverable on the login page', async () => {

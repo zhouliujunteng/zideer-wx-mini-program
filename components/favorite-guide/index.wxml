@@ -1,0 +1,36 @@
+<!-- 「设为星标 / 添加到桌面」引导：箭头指着右上角胶囊的「···」，见 index.js -->
+<view wx:if="{{visible}}" class="fg-mask {{closing ? 'is-closing' : ''}}" catchtap="handleLater" catchtouchmove="noop">
+  <view class="fg-ring" style="left: {{ringLeft}}px; top: {{ringTop}}px; width: {{ringSize}}px; height: {{ringSize}}px;" aria-hidden="true"></view>
+  <view class="fg-card" style="top: {{cardTop}}px; right: {{cardRight}}px;" catchtap="noop" aria-role="dialog" aria-label="把知鹿学习设为星标或添加到桌面">
+    <view class="fg-arrow" style="right: {{arrowRight}}px;" aria-hidden="true"></view>
+    <text class="fg-title">把知鹿学习放在手边</text>
+    <text class="fg-subtitle">点右上角胶囊的「···」，在弹出的菜单里选：</text>
+
+    <view class="fg-menu" aria-hidden="true">
+      <view class="fg-menu-item"><view class="fg-menu-icon"><view class="fg-icon-send"></view></view><text>发送给朋友</text></view>
+      <view class="fg-menu-item is-hot"><view class="fg-menu-icon"><view class="fg-icon-star"></view></view><text>设为星标</text></view>
+      <view class="fg-menu-item is-hot"><view class="fg-menu-icon"><view class="fg-icon-desktop"></view></view><text>添加到桌面</text></view>
+      <view class="fg-menu-item"><view class="fg-menu-icon"><view class="fg-icon-more"><view></view><view></view><view></view></view></view><text>更多</text></view>
+    </view>
+
+    <view class="fg-option">
+      <view class="fg-option-badge"><view class="fg-icon-star"></view></view>
+      <view class="fg-option-copy">
+        <text class="fg-option-title">设为星标</text>
+        <text class="fg-option-hint">以后在微信首页往下拉，知鹿学习固定在最前面</text>
+      </view>
+    </view>
+    <view class="fg-option">
+      <view class="fg-option-badge"><view class="fg-icon-desktop"></view></view>
+      <view class="fg-option-copy">
+        <text class="fg-option-title">添加到桌面</text>
+        <text class="fg-option-hint">手机桌面多一个知鹿学习图标，一点就进；提示要权限时按手机提示开启</text>
+      </view>
+    </view>
+
+    <view class="fg-actions">
+      <view class="fg-secondary" bindtap="handleNeverAgain" aria-role="button">不再提醒</view>
+      <view class="fg-primary" bindtap="handleLater" aria-role="button">我知道了</view>
+    </view>
+  </view>
+</view>

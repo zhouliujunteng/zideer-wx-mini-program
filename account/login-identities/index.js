@@ -1,11 +1,13 @@
-const { loadCurrentLoginIdentities, loadMeDashboard, submitCurrentGuardianIdentityVerification } = require('../../services/identity')
+const { loadCurrentLoginIdentities, loadCurrentUser, saveCurrentLearningProfile, submitCurrentGuardianIdentityVerification } = require('../../services/identity')
 const { attachUiAssets } = require('../../services/ui-assets')
+const { roleLabel } = require('../../utils/business-labels')
+const { basicInfoComplete, studentInfoComplete, studentInfoSummary } = require('../../utils/account-switch')
 
 // 界面取自 UI 设计仓库 JiahaoTang-Alvin/zhilu-miniprogram 提交 d9627f0 的 M63 身份与登录页（2026-09-19 同步）。
 // 实名认证弹层同步自设计仓库，提交走现有身份证核验动作流：后端目前只能核验 18 位居民身份证，
 // 所以证件类型只提供「身份证」（设计稿另有永久居留证、港澳 / 台湾通行证，待后端支持后再加）。
-// 未移植：邮箱验证码绑定（无后端接口）、「认领原账号 / 账号合并 / 解除旧微信」三个仅演示的管理入口，
-// 以及设计稿右上角切换实名状态的演示菜单。
+// 本页不做邮箱功能（2026-09-27 用户要求去掉）：联系方式只有手机号，设计稿的邮箱行与邮箱验证码绑定都不要加回来。
+// 未移植：「认领原账号 / 账号合并 / 解除旧微信」三个仅演示的管理入口，以及设计稿右上角切换实名状态的演示菜单。
 
 const channelLabels = {
   wechat_miniprogram: '微信小程序',
@@ -15,20 +17,31 @@ const channelLabels = {
   web: '网页登录'
 }
 
-const roleLabels = {
-  USER: '学习用户',
-  GUARDIAN: '家长',
-  PROMOTER: '推广伙伴',
-  TEACHER: '教师'
-}
-
 // tone 对应设计稿 .real-name-status 的 success / pending / failed / muted；actionLabel 为空时不显示按钮。
 const verificationStates = {
   verified: { label: '已完成认证', tone: 'success', actionLabel: '' },
   pending: { label: '认证中', tone: 'pending', actionLabel: '' },
+  // 2026-09-26～09-29 两步实名时没录人脸视频的记录：普通实名已不再刷脸，重新提交一次姓名和身份证号即完成（后端不重复收费）
+  pending_liveness: { label: '未完成认证', tone: 'pending', actionLabel: '继续认证' },
   rejected: { label: '认证失败', tone: 'failed', actionLabel: '重新提交' },
   expired: { label: '认证已过期', tone: 'failed', actionLabel: '重新提交' },
   not_started: { label: '未认证', tone: 'muted', actionLabel: '去认证' }
+}
+
+// 账号身份（学生 / 家长）可以互换（2026-09-24 用户规则）。2026-09-25 起：
+// - 学生改家长要先完成实名认证，且实名信息满 22 周岁（后端保存档案时同样把关）；学校、年级、教材保留不清空。
+// - 家长改学生：保留过学生资料的直接沿用，确认后保存；没有的（注册就选家长）去建档向导补学校、年级、教材。
+const accountRoleViews = {
+  student: { label: '学生', detail: '按你的年级和教材安排学习内容', actionLabel: '切换为家长' },
+  guardian: { label: '家长', detail: '绑定学生后可查看孩子的学习情况', actionLabel: '切换为学生' }
+}
+
+function buildAccountRole(user) {
+  const profile = user && user.profile
+  if (!user || !user.profileCompleted || !profile) return { type: '', label: '未选择', detail: '完善学习档案时选择学生或家长身份', actionLabel: '去完善' }
+  // 早期建档的账号没有记身份，按学生处理（与个人资料页一致）
+  const type = profile.account_type === 'guardian' ? 'guardian' : 'student'
+  return { type, ...accountRoleViews[type] }
 }
 
 // 弹层收起动画时长，与 index.wxss 中 .real-name-verify-layer.is-closing 的 .28s 一致。
@@ -51,6 +64,7 @@ function contact(key, label, contacts) {
 function verificationDetail(status, verification) {
   if (status === 'verified') return verification && verification.verified_at ? `核验时间 ${formatDate(verification.verified_at)}` : '已通过实名核验'
   if (status === 'pending') return '资料审核中'
+  if (status === 'pending_liveness') return '请重新提交一次姓名和身份证号完成认证'
   if (status === 'rejected' || status === 'expired') return '请重新提交认证资料'
   return '家长绑定和涉及现金结算的功能会在实名认证完成后开放。'
 }
@@ -63,7 +77,7 @@ function buildPageData(principal) {
   return {
     principalNo: principal.principal_no || '业务账号待初始化',
     hasPrincipalNo: Boolean(principal.principal_no),
-    contacts: [contact('phone', '手机号', principal.contacts), contact('email', '邮箱', principal.contacts)],
+    contacts: [contact('phone', '手机号', principal.contacts)],
     identities: (principal.account_identities || []).map((item) => ({
       ...item,
       channelLabel: channelLabels[item.login_channel] || '已绑定登录方式',
@@ -74,7 +88,7 @@ function buildPageData(principal) {
     })),
     roles: (principal.role_assignments || []).map((item) => ({
       ...item,
-      label: roleLabels[item.role_code] || item.role_code || '业务角色'
+      label: roleLabel(item.role_code)
     })),
     verification: { status, ...verificationStates[status], detail: verificationDetail(status, verification) }
   }
@@ -86,6 +100,9 @@ Page({
     failed: false,
     refreshing: false,
     account: null,
+    // 账号身份随学习档案读取：读失败只让这张卡显示重试，不影响其余账号信息；读到过就保留
+    accountRole: null,
+    switchingRole: false,
     avatarSrc: '',
     avatarText: '知',
     realNameSheetVisible: false,
@@ -102,8 +119,11 @@ Page({
     contentTop: 76
   },
 
-  onLoad() {
+  onLoad(options = {}) {
     attachUiAssets(this)
+    // 从「绑定学生」等页面带 verify=1 进来：读到状态后直接弹出实名认证，认证通过后回原页面
+    this.returnAfterVerify = String(options.verify || '') === '1'
+    this.openVerifyOnLoad = this.returnAfterVerify
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const windowWidth = windowInfo.windowWidth || 375
     const menuButton = wx.getMenuButtonBoundingClientRect
@@ -114,7 +134,9 @@ Page({
     this.setData({ statusBarHeight, navigationBarHeight, contentTop: statusBarHeight + navigationBarHeight + 18 })
   },
 
-  onShow() { return this.loadPage() },
+  onShow() {
+    return this.loadPage()
+  },
 
   async handleRefresh() {
     this.setData({ refreshing: true })
@@ -127,19 +149,27 @@ Page({
     this._loadRequestId = requestId
     if (!options.silent) this.setData({ loading: !this.data.account, failed: false })
     try {
-      // 头像只是装饰：「我的」资料读取失败时退回文字头像，不影响账号信息。
-      const [principal, me] = await Promise.all([
+      // 学习档案读取失败时头像退回文字头像、账号身份卡显示重试，不影响账号信息。
+      const [principal, user] = await Promise.all([
         loadCurrentLoginIdentities(),
-        loadMeDashboard().catch(() => null)
+        loadCurrentUser().catch(() => null)
       ])
       if (requestId !== this._loadRequestId) return
-      const profile = me && me.profile || {}
+      const profile = user && user.profile || {}
+      const account = buildPageData(principal)
       this.setData({
-        account: buildPageData(principal),
-        avatarSrc: profile.avatarUrl || '',
-        avatarText: profile.initial || '知',
+        account,
+        ...(user ? {
+          avatarSrc: profile.avatar_url || '',
+          avatarText: String(profile.nickname || '知').slice(0, 1),
+          accountRole: buildAccountRole(user)
+        } : {}),
         failed: false
       })
+      if (this.openVerifyOnLoad && account) {
+        this.openVerifyOnLoad = false
+        if (account.verification.actionLabel) this.openRealNameVerification()
+      }
     } catch (error) {
       if (requestId !== this._loadRequestId) return
       if (!this.data.account) this.setData({ failed: true })
@@ -171,9 +201,122 @@ Page({
 
   onUnload() {
     if (this._sheetTimer) clearTimeout(this._sheetTimer)
+    if (this._returnTimer) clearTimeout(this._returnTimer)
+  },
+
+  switchAccountRole() {
+    const role = this.data.accountRole
+    if (!role || this.data.switchingRole) return
+    if (!role.type) return wx.navigateTo({ url: '/pages/profile-setup/index' })
+    if (role.type === 'guardian') return this.confirmSwitchToStudent()
+    // 学生改家长：先实名认证（满 22 周岁才算家长），认证通过后接着切换
+    const verification = this.data.account && this.data.account.verification
+    if (!verification || verification.status !== 'verified') {
+      if (verification && verification.status === 'pending') return wx.showToast({ title: '实名认证审核中，通过后再切换为家长', icon: 'none' })
+      wx.showModal({
+        title: '先完成实名认证',
+        content: '切换为家长需要先完成实名认证，且年满 22 周岁。认证通过后会接着为你切换。',
+        confirmText: '去认证',
+        cancelText: '再想想',
+        success: (result) => {
+          if (!result.confirm) return
+          this.openRealNameVerification()
+          this.switchAfterVerify = true
+        }
+      })
+      return
+    }
+    this.confirmSwitchToGuardian()
+  },
+
+  confirmSwitchToGuardian() {
+    wx.showModal({
+      title: '切换为家长',
+      content: '切换后可以绑定孩子、查看孩子的学习情况，底部导航不再显示「图谱」。你的学校、年级和教材会保留，改回学生时直接沿用。',
+      confirmText: '确认切换',
+      cancelText: '再想想',
+      success: (result) => { if (result.confirm) this.switchToGuardian() }
+    })
+  },
+
+  // 家长改学生：以前当过学生、资料还在的直接沿用；注册就选家长的去向导补学校、年级、教材
+  async confirmSwitchToStudent() {
+    let user = null
+    try { user = await loadCurrentUser() } catch (error) {}
+    const profile = user && user.profile
+    if (!profile || !studentInfoComplete(profile) || !basicInfoComplete(profile)) {
+      return wx.navigateTo({ url: '/pages/profile-setup/index?switch=student' })
+    }
+    wx.showModal({
+      title: '切换为学生',
+      content: `将沿用之前的学习资料：${studentInfoSummary(profile)}。之后可以在「学习档案」里修改。`,
+      confirmText: '确认切换',
+      cancelText: '再想想',
+      success: (result) => { if (result.confirm) this.saveRole('student', profile) }
+    })
+  },
+
+  async switchToGuardian() {
+    if (this.data.switchingRole) return
+    let user = null
+    try { user = await loadCurrentUser() } catch (error) {
+      return wx.showToast({ title: error.message || '学习档案读取失败，请重试', icon: 'none' })
+    }
+    const profile = user && user.profile
+    if (!user || !user.profileCompleted || !profile || !profile.id) return wx.showToast({ title: '请先完善学习档案。', icon: 'none' })
+    // 基本信息不全（早期建档没填性别、生日）：去向导补齐后再切换
+    if (!basicInfoComplete(profile)) return wx.navigateTo({ url: '/pages/profile-setup/index?switch=guardian' })
+    await this.saveRole('guardian', profile)
+  },
+
+  // 只改身份：学校、年级、教材按已存的原样提交，不清空（2026-09-25 用户规则）
+  async saveRole(accountType, profile) {
+    if (this.data.switchingRole) return
+    this.setData({ switchingRole: true })
+    wx.showLoading({ title: '正在切换', mask: true })
+    try {
+      await saveCurrentLearningProfile({
+        profileId: profile.id, accountType, nickname: profile.nickname, gender: profile.gender, birthday: profile.birthday,
+        grade: Number(profile.current_grade) || 0, schoolStage: profile.school_stage || '', semester: profile.semester || '',
+        schoolName: profile.school_name || '', textbookVersion: profile.textbook_version || '', regionDetail: profile.region_detail
+      })
+      wx.hideLoading()
+      wx.showToast({ title: accountType === 'guardian' ? '已切换为家长' : '已切换为学生', icon: 'none' })
+      await this.loadPage({ silent: true })
+    } catch (error) {
+      wx.hideLoading()
+      this.handleSwitchError(error)
+    } finally {
+      this.setData({ switchingRole: false })
+    }
+  },
+
+  handleSwitchError(error) {
+    const code = error && error.code
+    if (code === 'GUARDIAN_UNDERAGE') {
+      wx.showModal({ title: '暂不能切换为家长', content: '实名认证显示你未满 22 周岁，年满 22 周岁才能切换为家长。', showCancel: false, confirmText: '知道了' })
+      return
+    }
+    if (code === 'GUARDIAN_VERIFICATION_REQUIRED' || code === 'GUARDIAN_AGE_UNKNOWN') {
+      wx.showModal({
+        title: '先完成实名认证',
+        content: error.message,
+        confirmText: '去认证',
+        cancelText: '再想想',
+        success: (result) => {
+          if (!result.confirm) return
+          this.openRealNameVerification()
+          this.switchAfterVerify = true
+        }
+      })
+      return
+    }
+    wx.showToast({ title: error && error.message || '切换失败，请重试', icon: 'none' })
   },
 
   openRealNameVerification() {
+    // 直接点「去认证」的不接着切换；为切换家长打开的由调用方在打开后置位
+    this.switchAfterVerify = false
     if (this._sheetTimer) {
       clearTimeout(this._sheetTimer)
       this._sheetTimer = null
@@ -233,13 +376,33 @@ Page({
     }
     this.setData({ realNameSubmitting: true, realNameError: '' })
     try {
+      // 姓名与身份证号核对一致即完成实名（2026-09-29 起普通实名不刷脸；10-13 起推广伙伴流程也不刷脸）
       const result = await submitCurrentGuardianIdentityVerification({ name, idCardNumber })
       this.setData({ realNameSubmitting: false })
       this.closeRealNameVerification()
       wx.showToast({ title: result.message || '实名认证成功', icon: 'none', duration: 1800 })
-      await this.loadPage({ silent: true })
+      await this.afterVerified()
     } catch (error) {
       this.setData({ realNameSubmitting: false, realNameError: error.message || '实名认证未通过，请核对信息后重试。' })
+    }
+  },
+
+  async afterVerified() {
+    try {
+      await this.loadPage({ silent: true })
+      // 为切换家长来认证的：认证通过后接着切换（未满 22 周岁由后端拒绝，弹窗说明）
+      if (this.switchAfterVerify && this.data.account && this.data.account.verification.status === 'verified') {
+        this.switchAfterVerify = false
+        await this.switchToGuardian()
+        return
+      }
+      // 为绑定学生来认证的，认证通过后回到原页面继续绑定
+      if (this.returnAfterVerify && this.data.account && this.data.account.verification.status === 'verified' && getCurrentPages().length > 1) {
+        this.returnAfterVerify = false
+        this._returnTimer = setTimeout(() => { this._returnTimer = null; wx.navigateBack({ delta: 1 }) }, 1200)
+      }
+    } catch (error) {
+      wx.showToast({ title: error && error.message || '账号信息刷新失败', icon: 'none' })
     }
   }
 })

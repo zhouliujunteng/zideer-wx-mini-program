@@ -1,0 +1,49 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.orders-page{height:100vh}
+.orders-topbar{top:0;right:max(0px, 50% - var(--lg-col) / 2);left:max(0px, 50% - var(--lg-col) / 2)}
+.orders-topbar-inner{padding:0 19px 4px}
+.orders-back{width:32px;height:32px;border-radius:50%}
+.orders-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.orders-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.orders-shell{height:100vh;padding:0 19px}
+.orders-state{padding:72px 14px 24px}
+.orders-state-title{font-size:19px;font-weight:600}
+.orders-state-copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.orders-state-action{height:45px;padding:0 26px;border-radius:599px;font-size:15px;font-weight:600}
+.orders-module{margin-top:1px;border-radius:24px}
+.orders-tabs{width:100%;height:45px;border-radius:15px 15px 0 0}
+.orders-tab{height:45px;font-size:14px;line-height:1}
+.orders-tab.is-selected{border-radius:15px 15px 0 0;font-weight:650}
+.orders-tab.is-selected::before, .orders-tab.is-selected::after{bottom:0;width:19px;height:19px}
+.orders-tab.is-selected::before{left:-20px}
+.orders-tab.is-selected::after{right:-20px}
+.orders-list-card, .orders-sk-card{padding:4px 14px;border-radius:0 0 24px 24px}
+.order-month{padding:10px 0 4px;font-size:13px;font-weight:500;line-height:1}
+.order-item{min-height:87px}
+.order-copy{min-width:0;padding:18px 0 14px;border-bottom:1px solid #F0F3F0}
+.order-group .order-item:last-child .order-copy, .orders-sk-card .order-item:last-child .order-copy{border-bottom:0}
+.order-title{min-width:0;font-size:15px;font-weight:600;line-height:1.2}
+.order-amount{margin-left:9px;font-size:18px;font-weight:500;line-height:1}
+.order-detail{margin-top:7px;font-size:12px;line-height:1.2}
+.order-meta{margin-top:7px;font-size:11px;line-height:1}
+.order-status{padding:3px 7px;border-radius:599px;font-size:10px}
+.orders-empty{min-height:168px}
+.orders-empty text:first-child{font-size:16px;font-weight:650}
+.orders-empty text:last-child{margin-top:8px;font-size:12px}
+.orders-sk-month{width:72px;height:13px;margin:10px 0 4px}
+.order-title-row .orders-sk-title{width:46%;margin-top:0}
+.order-title-row .orders-sk-amount{width:57px;margin-top:0}
+.order-copy .orders-sk-detail{width:58%;height:12px;margin-top:8px}
+.order-meta .orders-sk-time{width:90px;height:10px;margin-top:0}
+.orders-sk-status{width:45px;height:18px;border-radius:599px}
+}

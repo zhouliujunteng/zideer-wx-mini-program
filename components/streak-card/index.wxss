@@ -1,0 +1,58 @@
+@import "../../styles/skeleton.wxss";
+
+/* 与「我的」页「常用入口」同一套分区标题与白色圆角卡片；点亮色与学习连胜页一致（#FD7C02 / #FFE7C0）。 */
+.streak-card-section { margin-top: 34rpx; }
+.streak-card-title { display: block; margin-bottom: 16rpx; color: #6f7972; font-size: 24rpx; }
+.streak-card { position: relative; overflow: hidden; padding: 26rpx 28rpx 24rpx; border-radius: 40rpx; background: #fff; }
+.streak-card:active { opacity: .86; }
+.streak-card-lit { background: linear-gradient(120deg, #FFFFFF 52%, #FFF0DD 100%); }
+.streak-card-idle { background: linear-gradient(120deg, #FFFFFF 52%, #EEF0EE 100%); }
+
+.streak-card-head { display: flex; align-items: center; min-height: 128rpx; padding-right: 30rpx; }
+.streak-card-copy { flex: 1; min-width: 0; }
+.streak-card-label { display: block; color: #6F7975; font-size: 23rpx; font-weight: 600; line-height: 1.2; }
+.streak-card-lit .streak-card-label { color: #9D6842; }
+.streak-card-number-row { display: flex; align-items: flex-end; margin-top: 10rpx; }
+.streak-card-number { color: #7A8581; font-family: "Arial Rounded MT Bold", "SF Pro Rounded", "Avenir Next Rounded", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: 68rpx; font-weight: 900; letter-spacing: -3rpx; line-height: .9; font-variant-numeric: tabular-nums; }
+.streak-card-unit { margin: 0 0 6rpx 8rpx; color: #7F8985; font-size: 24rpx; font-weight: 700; }
+.streak-card-lit .streak-card-number,
+.streak-card-lit .streak-card-unit { color: #FD8B00; }
+.streak-card-state { display: block; margin-top: 12rpx; overflow: hidden; color: #606B67; font-size: 24rpx; font-weight: 600; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.streak-card-lit .streak-card-state { color: #24332D; }
+.streak-card-error { display: block; margin-top: 16rpx; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.25; }
+.streak-card-retry { display: block; margin-top: 10rpx; color: #FD7C02; font-size: 23rpx; line-height: 1.25; }
+.streak-card-number-skeleton { width: 110rpx; height: 58rpx; margin-top: 12rpx; }
+.streak-card-state-skeleton { width: 200rpx; height: 24rpx; margin-top: 16rpx; }
+
+/* 图标画布里火苗只占中间一块：铺大一些再居中，火苗高约 84rpx。 */
+.streak-card-art { position: relative; flex: 0 0 auto; width: 112rpx; height: 112rpx; margin-left: 16rpx; }
+.streak-card-icon { position: absolute; top: -12rpx; left: -20rpx; display: block; width: 152rpx; height: 152rpx; }
+.streak-card-art-skeleton { position: absolute; top: 16rpx; left: 16rpx; width: 80rpx; height: 80rpx; }
+.streak-card-go { position: absolute; top: 74rpx; right: 22rpx; display: flex; align-items: center; justify-content: center; width: 26rpx; height: 32rpx; }
+.streak-card-chevron { width: 12rpx; height: 12rpx; border-top: 3rpx solid #C3CAC4; border-right: 3rpx solid #C3CAC4; transform: rotate(45deg); }
+
+/* 本周七天（周日起，与学习连胜页日历一致）。 */
+.streak-week { display: flex; justify-content: space-between; margin-top: 22rpx; padding-top: 20rpx; border-top: 1rpx solid #F0F2EF; }
+.streak-day { display: flex; flex: 1; flex-direction: column; align-items: center; min-width: 0; }
+.streak-day-label { color: #9AA19A; font-size: 20rpx; line-height: 1.2; }
+.streak-day-mark { display: flex; width: 56rpx; height: 56rpx; margin-top: 10rpx; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 50%; color: #58645D; font-size: 22rpx; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.streak-day-mark-future { color: #C3CAC4; }
+.streak-day-mark-today { background: #EEF0EE; color: #9AA19A; }
+.streak-day-mark-checked { background: #FD7C02; color: #FFFFFF; font-weight: 700; }
+/* 与学习连胜页日历一致：实心填色、不描边。冻结日蓝（还没到的冻结日浅蓝）、复活补回的日子粉。 */
+.streak-day-mark-frozen { background: #4EA3EE; color: #FFFFFF; font-weight: 700; }
+.streak-day-mark-frozen.streak-day-mark-future { background: #D9ECFC; color: #2F80D8; }
+.streak-day-mark-revived { background: #F06A96; color: #FFFFFF; font-weight: 700; }
+.streak-day-mark-skeleton { width: 56rpx; height: 56rpx; margin-top: 10rpx; }
+
+/* 按内容所需宽度换行：480px 平板窗口、分栏内的窄卡片都不能把七天压成一团。
+   七格至少 392rpx；空间足够才与摘要并排，箭头保留在摘要右侧。 */
+@media (min-width: 450px) {
+  .streak-card { display: flex; flex-wrap: wrap; align-items: center; column-gap: 32rpx; row-gap: 22rpx; }
+  .streak-card-head { flex: 1 1 440rpx; min-width: 0; box-sizing: border-box; }
+  .streak-week { flex: 1 1 392rpx; min-width: 392rpx; margin: 0; padding: 0; border: 0; }
+  .streak-day { flex: 1 0 56rpx; }
+}
+
+@media (min-width:450px) { .streak-card-section { margin-top:0; } .streak-card { border-radius:18px; } }
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

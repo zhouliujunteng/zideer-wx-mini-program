@@ -12,7 +12,6 @@
     <text class="state-panel__title">课程暂时无法进入</text>
     <text class="state-panel__copy">{{errorMessage}}</text>
     <button class="state-panel__action pressable" bindtap="retry">重新加载</button>
-    <button class="state-panel__secondary pressable" wx:if="{{courseUrl}}" bindtap="copyCourseLink">复制课程链接</button>
     <button class="state-panel__secondary pressable" bindtap="goBack">返回学习页</button>
   </view>
 </view>

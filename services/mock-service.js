@@ -299,52 +299,6 @@ function getMeModel() {
   return clone(meModel)
 }
 
-// The voice page owns the recorder and conversation lifecycle. This model only
-// supplies copy and state labels so that the page can render without importing
-// the UI reference repository's mock data bundle.
-function getAiVoiceConversationModel(conversationId, state, prompt) {
-  const states = {
-    idle: { id: 'idle', label: '准备好了', description: '点击麦克风开始本地声音可视化', previewLabel: '空闲' },
-    'requesting-permission': { id: 'requesting-permission', label: '正在请求麦克风权限…', description: '授权后声音仅在设备本地用于动画', previewLabel: '请求权限' },
-    recording: { id: 'recording', label: '正在听…', description: '声音只用于本地动画，不会转写或上传', neutralDescription: '当前环境未提供实时音量，正在显示中性呼吸动画', previewLabel: '聆听' },
-    transcribing: { id: 'transcribing', label: '语音处理中…', description: '当前服务暂未连接语音转写', previewLabel: '处理中' },
-    thinking: { id: 'thinking', label: 'AI 正在思考…', description: '当前服务暂未连接实时对话', previewLabel: '思考' },
-    speaking: { id: 'speaking', label: 'AI 正在回复…', description: '当前服务暂未连接语音播放', previewLabel: '回复' },
-    interrupted: { id: 'interrupted', label: '对话已中断', description: '点击麦克风后可重新开始本地采集', previewLabel: '中断' },
-    paused: { id: 'paused', label: '麦克风已关闭', description: '点击麦克风可继续本地声音可视化', previewLabel: '暂停' },
-    failed: { id: 'failed', label: '暂时无法启动麦克风', description: '请检查系统状态后点击麦克风重试', previewLabel: '失败' },
-    'permission-denied': { id: 'permission-denied', label: '麦克风权限未开启', description: '点击麦克风，根据提示前往设置开启', previewLabel: '权限关闭' }
-  }
-  const activeState = Object.prototype.hasOwnProperty.call(states, state) ? state : 'idle'
-  const initialPrompt = typeof prompt === 'string' && prompt.trim()
-    ? prompt.trim().slice(0, 500)
-    : '你好呀，我想聊聊今天的学习。'
-  const conversation = {
-    id: conversationId || 'welcome',
-    title: 'AI 语音对话',
-    messages: [
-      { id: 'welcome-user', role: 'user', text: initialPrompt },
-      { id: 'welcome-ai', role: 'assistant', text: '当然可以。麦克风开启后，我会在本地显示声音状态。' }
-    ]
-  }
-  return {
-    conversation,
-    voiceState: activeState,
-    currentState: states[activeState],
-    states,
-    statePreviews: Object.keys(states).map((id) => ({ ...states[id], isSelected: id === activeState })),
-    header: { subtitleOnLabel: '关闭字幕', subtitleOffLabel: '开启字幕', moreLabel: '打开调试面板' },
-    transcript: { userLabel: '你', assistantLabel: 'AI', expandLabel: '展开字幕', collapseLabel: '收起字幕' },
-    controls: [{ id: 'microphone', onLabel: '关闭麦克风', offLabel: '开启麦克风', retryLabel: '重新尝试开启麦克风' }, { id: 'end', label: '结束对话' }],
-    waveform: { accessibleLabel: '本地麦克风音量指示器', levelModes: { waiting: '等待实时音量', live: '实时音量可用', neutral: '当前无实时音量' } },
-    debugPanel: { title: '调试面板', noticeTitle: '本地声音状态', notice: '录音只用于当前页面的本地可视化，不会上传录音。', closeLabel: '关闭调试面板', presetTitle: '预设对话', presetHint: '选择一段本地字幕预览。', stateTitle: '状态预览', stateHint: '仅用于检查页面状态。', demoBadge: '本地预览' },
-    privacy: { shortLabel: '本地处理', temporaryFileNote: '录音停止后立即清理临时文件' },
-    presets: [{ id: 'welcome', label: '学习问候', userText: conversation.messages[0].text }],
-    errors: { settingsUnavailable: '无法打开系统设置', startFailed: '麦克风启动失败', unsupportedRecorder: '当前环境不支持录音' },
-    permissionDialog: { title: '需要麦克风权限', content: '开启后才能显示本地声音状态。' }
-  }
-}
-
 function getProfileModel(savedValues = {}) {
   const grade = savedValues.grade || '五年级'
   const semester = savedValues.semester || '上学期'
@@ -360,8 +314,11 @@ function getProfileModel(savedValues = {}) {
     title: '个人资料',
     name: savedValues.name || '周流君腾',
     avatarSrc: savedValues.avatarSrc || '',
+    // 2026-09-26：加性别、户籍地（实名认证后与生日一起按身份证锁定）；「所在地区」改叫「所在城市」，只选到城市
     rows: [
-      { id: 'region', label: '所在地区', value: savedValues.region || '未设置', action: 'region' },
+      { id: 'gender', label: '性别', value: savedValues.gender || '未设置', action: 'gender' },
+      { id: 'region', label: '所在城市', value: savedValues.region || '未设置', action: 'region' },
+      { id: 'household', label: '户籍地', value: savedValues.household || '未设置', action: 'household' },
       { id: 'school', label: '所在学校', value: savedValues.school || '未设置', action: 'school' },
       { id: 'grade', label: '年级与学期', value: `${grade}${semester}`, action: 'grade' },
       { id: 'birthday', label: '生日', value: savedValues.birthday || '未设置', action: 'birthday' },
@@ -389,4 +346,4 @@ function getAgentChatModel(conversationId, state) {
 }
 
 module.exports = {
-  getAgentChatModel, getHomeModel, getLearningModel, getKnowledgeMapModel, getMeModel, getProfileModel, getAiVoiceConversationModel }
+  getAgentChatModel, getHomeModel, getLearningModel, getKnowledgeMapModel, getMeModel, getProfileModel }

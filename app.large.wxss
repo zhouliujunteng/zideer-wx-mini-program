@@ -1,0 +1,8 @@
+/* 自动生成，请勿手改：app.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+page{--lg-col:450px;max-width:var(--lg-col);margin-left:auto;margin-right:auto}
+}
+@media (min-width: 450px) {
+.share-cover-canvas{top:-9999px;left:calc(max(0px, 50% - var(--lg-col) / 2) + -9999px);width:500px;height:400px}
+}

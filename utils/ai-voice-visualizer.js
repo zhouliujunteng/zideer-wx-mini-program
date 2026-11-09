@@ -1,29 +1,3 @@
-const SUPPORTED_VOICE_STATES = Object.freeze([
-  'idle',
-  'requesting-permission',
-  'recording',
-  'transcribing',
-  'thinking',
-  'speaking',
-  'interrupted',
-  'paused',
-  'failed',
-  'permission-denied'
-])
-
-const STATE_VISUAL_TARGETS = Object.freeze({
-  idle: { pace: 0.34, radius: 0.88, deformation: 0.08, energy: 0.12, glow: 0.28 },
-  'requesting-permission': { pace: 0.44, radius: 0.9, deformation: 0.09, energy: 0.16, glow: 0.34 },
-  recording: { pace: 0.72, radius: 0.94, deformation: 0.16, energy: 0.32, glow: 0.48 },
-  transcribing: { pace: 0.92, radius: 0.92, deformation: 0.14, energy: 0.28, glow: 0.45 },
-  thinking: { pace: 1.14, radius: 0.9, deformation: 0.2, energy: 0.38, glow: 0.55 },
-  speaking: { pace: 1.34, radius: 0.98, deformation: 0.24, energy: 0.58, glow: 0.7 },
-  interrupted: { pace: 0.24, radius: 0.84, deformation: 0.07, energy: 0.08, glow: 0.22 },
-  paused: { pace: 0.2, radius: 0.85, deformation: 0.06, energy: 0.06, glow: 0.2 },
-  failed: { pace: 0.26, radius: 0.83, deformation: 0.08, energy: 0.08, glow: 0.2 },
-  'permission-denied': { pace: 0.2, radius: 0.84, deformation: 0.06, energy: 0.05, glow: 0.18 }
-})
-
 function clamp(value, min, max) {
   const number = Number(value)
   if (!Number.isFinite(number)) return min
@@ -74,15 +48,99 @@ function calculatePcm16LeRms(arrayBuffer) {
   return view ? calculateRmsFromView(view) : 0
 }
 
-/** Distinguishes an invalid recorder payload from a valid silent PCM frame. */
-function analyzePcm16LeFrame(arrayBuffer) {
+// 分频范围：人声的基频与主要共振峰都在这里面；更高的频段说话时也几乎没有能量，画出来只是一排矮条
+const BAND_MIN_HZ = 120
+const BAND_MAX_HZ = 4000
+const FFT_MIN_SIZE = 64
+const FFT_MAX_SIZE = 2048
+
+// 原地基 2 FFT（re/im 长度须为 2 的幂）
+function fftInPlace(re, im) {
+  const size = re.length
+  for (let i = 1, j = 0; i < size; i += 1) {
+    let bit = size >> 1
+    for (; j & bit; bit >>= 1) j ^= bit
+    j ^= bit
+    if (i < j) {
+      const tr = re[i]; re[i] = re[j]; re[j] = tr
+      const ti = im[i]; im[i] = im[j]; im[j] = ti
+    }
+  }
+  for (let length = 2; length <= size; length <<= 1) {
+    const angle = -2 * Math.PI / length
+    const stepRe = Math.cos(angle)
+    const stepIm = Math.sin(angle)
+    for (let start = 0; start < size; start += length) {
+      let wRe = 1
+      let wIm = 0
+      for (let k = 0; k < length / 2; k += 1) {
+        const a = start + k
+        const b = a + length / 2
+        const tRe = re[b] * wRe - im[b] * wIm
+        const tIm = re[b] * wIm + im[b] * wRe
+        re[b] = re[a] - tRe; im[b] = im[a] - tIm
+        re[a] += tRe; im[a] += tIm
+        const nextRe = wRe * stepRe - wIm * stepIm
+        wIm = wRe * stepIm + wIm * stepRe
+        wRe = nextRe
+      }
+    }
+  }
+}
+
+/**
+ * 一帧 PCM 的频谱形状：取帧末尾最长 2 的幂个采样，加汉宁窗做 FFT，
+ * 把 120Hz–4kHz 按对数间隔切成 bandCount 段，每段取幅度均方根，再除以本帧最强的一段 → [0, 1]。
+ * 只描述「这一帧的声音长什么样」，不含响度：响度看 rms，由调用方做自动增益后再乘上去。
+ * 帧太短或整帧全零时返回全 0。
+ */
+function spectrumBands(view, sampleCount, bandCount, sampleRate) {
+  const bands = Array.from({ length: bandCount }, () => 0)
+  if (sampleCount < FFT_MIN_SIZE) return bands
+  let size = FFT_MIN_SIZE
+  while (size * 2 <= Math.min(sampleCount, FFT_MAX_SIZE)) size *= 2
+  const offset = sampleCount - size
+  const re = new Array(size)
+  const im = new Array(size)
+  for (let index = 0; index < size; index += 1) {
+    const hann = 0.5 - 0.5 * Math.cos(2 * Math.PI * index / (size - 1))
+    re[index] = view.getInt16((offset + index) * 2, true) / 32768 * hann
+    im[index] = 0
+  }
+  fftInPlace(re, im)
+  const binHz = sampleRate / size
+  const lastBin = size / 2 - 1
+  const ratio = BAND_MAX_HZ / BAND_MIN_HZ
+  let strongest = 0
+  for (let band = 0; band < bandCount; band += 1) {
+    const lowHz = BAND_MIN_HZ * Math.pow(ratio, band / bandCount)
+    const highHz = BAND_MIN_HZ * Math.pow(ratio, (band + 1) / bandCount)
+    const lowBin = Math.min(lastBin, Math.max(1, Math.round(lowHz / binHz)))
+    const highBin = Math.min(lastBin, Math.max(lowBin, Math.round(highHz / binHz) - 1))
+    let power = 0
+    for (let bin = lowBin; bin <= highBin; bin += 1) power += re[bin] * re[bin] + im[bin] * im[bin]
+    bands[band] = Math.sqrt(power / (highBin - lowBin + 1))
+    if (bands[band] > strongest) strongest = bands[band]
+  }
+  return strongest > 0 ? bands.map((value) => value / strongest) : bands
+}
+
+/**
+ * Distinguishes an invalid recorder payload from a valid silent PCM frame.
+ * options.bandCount > 0 时另给 bands（频谱形状，见 spectrumBands）；options.sampleRate 默认 16000。
+ */
+function analyzePcm16LeFrame(arrayBuffer, options = {}) {
   const view = getPcm16LeView(arrayBuffer, true)
   if (!view) return { valid: false, rms: 0, sampleCount: 0 }
-  return {
+  const sampleCount = view.byteLength / 2
+  const result = {
     valid: true,
     rms: calculateRmsFromView(view),
-    sampleCount: view.byteLength / 2
+    sampleCount
   }
+  const bandCount = Math.floor(Number(options.bandCount) || 0)
+  if (bandCount > 0) result.bands = spectrumBands(view, sampleCount, bandCount, Number(options.sampleRate) || 16000)
+  return result
 }
 
 /** Maps raw RMS above the room noise floor onto a stable [0, 1] energy value. */
@@ -126,92 +184,34 @@ function smoothLevel(previous, target, attack = 0.58, release = 0.16) {
  */
 function updateMicrophoneEnvelope(previousLevel, previousPeak, rms) {
   const safeRms = clamp(rms, 0, 1)
-  const floor = 0.0008
   const peakTarget = Math.max(0.012, safeRms * 1.65)
   const peak = smoothLevel(previousPeak, peakTarget, 0.45, 0.012)
-  const fixedGainLevel = normalizeMicrophoneLevel(safeRms)
-  const adaptiveLevel = clamp((safeRms - floor) / Math.max(peak - floor, 0.002), 0, 1)
-  // Fixed gain keeps absolute silence quiet; adaptive gain preserves movement on
-  // low-output devices. A sub-linear curve emphasizes normal speech changes.
-  const target = Math.pow(Math.max(fixedGainLevel, adaptiveLevel * 0.86), 0.72)
   return {
     peak,
-    level: smoothLevel(previousLevel, target, 0.72, 0.13)
+    level: smoothLevel(previousLevel, microphoneTargetLevel(safeRms, peak), 0.72, 0.13)
   }
-}
-
-const VOICE_ACTIVITY_BAR_WEIGHTS = Object.freeze([0.72, 0.9, 1, 0.9, 0.72])
-
-/** Maps one RMS envelope to five calm, monotonic activity bars. */
-function createVoiceActivityBars(level) {
-  const safeLevel = clamp(level, 0, 1)
-  // Keep quiet speech visible on the small five-bar indicator. The envelope is
-  // still bounded by the caller's normalized PCM level, but responds sooner so
-  // a real voice does not look like a nearly static status marker.
-  const envelope = Math.pow(safeLevel, 0.56)
-  return VOICE_ACTIVITY_BAR_WEIGHTS.map((weight, index) => ({
-    id: index,
-    height: Math.round(8 + envelope * 42 * weight),
-    opacity: Math.round((0.3 + envelope * 0.7) * 100) / 100
-  }))
-}
-
-/** Keeps microphone response visible without letting the Aura over-deform. */
-function getAuraMotion(energy, stateDeformation, oscillation) {
-  const safeEnergy = clamp(energy, 0, 1)
-  const safeOscillation = clamp(oscillation, -1, 1)
-  return {
-    pulse: clamp(
-      1 + safeEnergy * 0.085 + safeOscillation * (0.01 + safeEnergy * 0.014),
-      0.98,
-      1.11
-    ),
-    paceMultiplier: 1 + safeEnergy * 0.32,
-    deformation: clamp(
-      clamp(stateDeformation, 0, 1) * 0.62 + safeEnergy * 0.2,
-      0,
-      0.3
-    )
-  }
-}
-
-function getStateVisualTarget(state) {
-  const target = STATE_VISUAL_TARGETS[state] || STATE_VISUAL_TARGETS.idle
-  return { ...target }
-}
-
-function getSeedNumber(seed) {
-  if (Number.isFinite(Number(seed))) return Number(seed)
-  return String(seed || '').split('').reduce(
-    (value, character) => ((value * 31) + character.charCodeAt(0)) % 997,
-    17
-  )
 }
 
 /**
- * Produces deterministic motion for the debug-only AI speaking preview.
- * This is deliberately not derived from audio and must never be presented as
- * playback or TTS output.
+ * 这一帧的目标响度（未平滑）：固定增益与按 peak 的自适应增益取大。
+ * updateMicrophoneEnvelope 在它上面做慢回落；录音电平条要跟着一个个字起伏，直接用它再自己做快一些的平滑。
  */
-function getDemoSpeakingLevel(elapsedMs, seed = 0) {
-  const time = Math.max(0, Number(elapsedMs) || 0) / 1000
-  const phase = getSeedNumber(seed) * 0.173
-  const slow = (Math.sin(time * 3.7 + phase) + 1) / 2
-  const medium = (Math.sin(time * 8.9 + phase * 0.61) + 1) / 2
-  const quick = (Math.sin(time * 15.3 + phase * 1.37) + 1) / 2
-  return clamp(0.16 + slow * 0.34 + medium * 0.25 + quick * 0.17, 0, 1)
+function microphoneTargetLevel(rms, peak) {
+  const safeRms = clamp(rms, 0, 1)
+  const floor = 0.0008
+  const fixedGainLevel = normalizeMicrophoneLevel(safeRms)
+  const adaptiveLevel = clamp((safeRms - floor) / Math.max(clamp(peak, 0, 1) - floor, 0.002), 0, 1)
+  // Fixed gain keeps absolute silence quiet; adaptive gain preserves movement on
+  // low-output devices. A sub-linear curve emphasizes normal speech changes.
+  return Math.pow(Math.max(fixedGainLevel, adaptiveLevel * 0.86), 0.72)
 }
 
 module.exports = {
-  SUPPORTED_VOICE_STATES,
   clamp,
   calculatePcm16LeRms,
   analyzePcm16LeFrame,
   normalizeMicrophoneLevel,
   smoothLevel,
   updateMicrophoneEnvelope,
-  createVoiceActivityBars,
-  getAuraMotion,
-  getStateVisualTarget,
-  getDemoSpeakingLevel
+  microphoneTargetLevel
 }

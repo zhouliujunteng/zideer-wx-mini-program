@@ -1,0 +1,12 @@
+<view class="lab-host" wx:if="{{failed}}">
+  <view class="state-panel">
+    <view class="state-panel__mark">!</view>
+    <text class="state-panel__title">物理实验室暂时无法打开</text>
+    <text class="state-panel__copy">{{errorMessage}}</text>
+    <button class="state-panel__action pressable" bindtap="retry">重新加载</button>
+    <button class="state-panel__secondary pressable" bindtap="goBack">返回首页</button>
+  </view>
+</view>
+
+<web-view wx:if="{{launchUrl}}" src="{{launchUrl}}" binderror="onWebViewError"></web-view>
+<dev-reset-fab />

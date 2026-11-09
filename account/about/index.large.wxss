@@ -1,0 +1,26 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.about-page{height:100vh}
+.about-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
+.about-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));box-sizing:border-box}
+.about-topbar-inner{box-sizing:content-box;padding:0 19px 9px}
+.about-back{width:32px;height:32px;border-radius:50%}
+.about-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.about-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.about-scroll{height:100vh;box-sizing:border-box}
+.about-shell{min-height:100%;padding:0 19px calc(28px + env(safe-area-inset-bottom));box-sizing:border-box}
+.about-brand{padding:16px 0 4px}
+.about-brand-logo{width:108px;height:108px;border-radius:26px;box-shadow:0 7px 19px rgba(253, 124, 2, .18)}
+.about-brand-name{margin-top:15px;font-size:22px;font-weight:700;letter-spacing:1px}
+.about-brand-slogan{margin-top:6px;font-size:14px}
+.about-section{margin-top:22px}
+.about-heading{padding:0 2px;font-size:18px;font-weight:700;line-height:1.2}
+.about-card{margin-top:13px;padding:3px 14px;border-radius:21px}
+.about-row{gap:13px;padding:16px 0;border-bottom:1px solid #F0F3F0;font-size:14px;line-height:1.4}
+.about-row:last-child{border-bottom:0}
+.about-row-value{min-width:0}
+.about-copy{margin-left:8px;padding:2px 8px;border-radius:599px;font-size:12px}
+.about-link-title{font-size:15px;font-weight:600}
+.about-chevron{width:8px;height:8px;margin-right:3px;border-top:1px solid #B0B4BA;border-right:1px solid #B0B4BA}
+}

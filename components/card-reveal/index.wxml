@@ -1,0 +1,74 @@
+<!-- 成就卡详情浮层：卡片背面朝上从格子飞到屏幕中央翻成正面，跟随手机倾斜摆动；左右切换等级。
+     抽卡：翻背面缩小 → 5 张扇形选一张 → 放大到中间 → 点开撒纸屑翻面揭晓（逐帧照用户录屏）。 -->
+<view wx:if="{{phase !== 'hidden'}}" class="cr-root" catchtouchmove="noop" bindtap="close">
+  <view class="cr-mask {{maskOn ? 'cr-mask-on' : ''}}"></view>
+  <view class="cr-glow {{maskOn ? 'cr-glow-on' : ''}}" style="--ac-color: {{dcard.color}}; top: {{glowTop}}px;"></view>
+
+  <view class="cr-close {{infoOn ? 'cr-info-on' : ''}}" style="top: {{closeTop}}px; width: {{closeSize}}px; height: {{closeSize}}px;" catchtap="close" role="button" aria-label="关闭">
+    <view class="cr-close-x"></view>
+  </view>
+
+  <view class="cr-fly {{cardHidden ? 'cr-fly-hidden' : ''}}" style="left: {{cardLeft}}px; top: {{cardTop}}px; width: {{cardWidth}}px; height: {{cardHeight}}px; {{flyStyle}}"
+    catchtap="tapCard" bindtouchstart="touchStart" bindtouchmove="touchMove" bindtouchend="touchEnd" bindtouchcancel="touchEnd">
+    <view class="cr-tilt" style="{{tiltStyle}}">
+      <view class="cr-shake {{shaking ? 'cr-shaking' : ''}} {{popKey % 2 ? 'cr-pop-a' : popKey ? 'cr-pop-b' : ''}}">
+        <view class="cr-flip {{flipped ? 'cr-flipped' : ''}} {{flipInstant ? 'cr-flip-instant' : ''}}">
+          <view class="cr-side cr-front" style="--ac-color: {{dcard.color}};">
+            <view class="ac-face">
+              <text class="ac-face-tag cr-tag">{{dcard.title}}</text>
+              <view class="ac-face-art">
+                <image wx:if="{{level.image}}" class="ac-face-image {{level.owned ? '' : 'cr-locked-art'}}" src="{{level.image}}" mode="aspectFill"></image>
+                <view wx:else class="ac-face-placeholder {{level.owned ? '' : 'cr-locked-art'}}">
+                  <text class="ac-face-placeholder-title cr-placeholder-title">{{dcard.title}}</text>
+                  <text class="ac-face-placeholder-no">#{{level.no}}</text>
+                </view>
+                <view class="cr-shine" style="{{shineStyle}}"></view>
+                <view wx:if="{{!level.owned}}" class="cr-locked-badge"><view class="ac-lock"></view><text>未获得</text></view>
+              </view>
+            </view>
+            <!-- 一道光从左上角扫到右下角，循环 -->
+            <view class="cr-sweep {{level.owned ? '' : 'cr-sweep-dim'}}"><view class="cr-sweep-band"></view></view>
+          </view>
+          <view class="cr-side cr-back"><include src="./back.wxml" /></view>
+        </view>
+      </view>
+    </view>
+    <!-- 抽到已经有的那一级：碎成碎片 -->
+    <view wx:if="{{dup}}" class="cr-dup">
+      <view wx:for="{{[0, 1, 2, 3, 4, 5, 6, 7]}}" wx:key="*this" class="cr-shard cr-shard-{{item}}"></view>
+      <view class="cr-dup-chip"><view class="cr-dup-gem"></view><text>已拥有 · 变成 {{dup.fragments}} 碎片</text></view>
+    </view>
+  </view>
+
+  <!-- 抽卡时的扇形：5 张背面，和主卡同一个位置与大小，靠 transform 摆开 -->
+  <view wx:for="{{fan}}" wx:key="id" class="cr-fan-card {{item.chosen ? 'cr-fan-chosen' : ''}}" data-id="{{item.id}}" catchtap="pickFan"
+    style="left: {{cardLeft}}px; top: {{cardTop}}px; width: {{cardWidth}}px; height: {{cardHeight}}px; {{item.style}}">
+    <view class="cr-side cr-back cr-fan-back"><include src="./back.wxml" /></view>
+  </view>
+  <text class="cr-hint {{hint ? 'cr-hint-on' : ''}}">{{hint}}</text>
+  <canvas type="2d" id="cr-confetti" class="cr-confetti"></canvas>
+
+  <view class="cr-info {{infoOn ? 'cr-info-on' : ''}}" style="top: {{infoTop}}px;">
+    <view class="cr-level-nav" catchtap="noop">
+      <view class="cr-arrow cr-arrow-left {{levelIndex > 0 ? '' : 'cr-arrow-off'}}" catchtap="prevLevel" aria-label="上一级"></view>
+      <text class="cr-level-no">#{{level.no}}</text>
+      <view class="cr-arrow cr-arrow-right {{levelIndex < dcard.levels.length - 1 ? '' : 'cr-arrow-off'}}" catchtap="nextLevel" aria-label="下一级"></view>
+    </view>
+    <view class="cr-dots" catchtap="noop">
+      <view wx:for="{{dcard.levels}}" wx:key="id" class="cr-dot {{index === levelIndex ? 'cr-dot-current' : ''}} {{item.owned ? 'cr-dot-owned' : ''}}" data-index="{{index}}" catchtap="pickLevel">
+        <view wx:if="{{item.owned}}" class="cr-check"></view>
+        <view wx:else class="ac-lock"></view>
+      </view>
+    </view>
+    <view class="cr-prob" catchtap="noop">
+      <text class="cr-prob-label">抽中概率</text>
+      <text class="cr-prob-value">{{level.probability}}%</text>
+    </view>
+    <text wx:if="{{level.boost}}" class="cr-boost" catchtap="noop">{{level.boost.text}}（已加 {{level.boost.added}}%，最多 {{level.boost.cap}}%）</text>
+    <text class="cr-owned" catchtap="noop">{{level.owned ? '你拥有 ' + level.owned + ' 张。上次抽到于 ' + level.lastDrawn : '还没抽到这一级'}}</text>
+    <view class="cr-draw {{drawsLeft > 0 && !drawing ? '' : 'cr-draw-off'}}" catchtap="draw" role="button">
+      {{drawing ? '抽卡中…' : drawsLeft > 0 ? '在「' + seriesTitle + '」里抽卡（还有 ' + drawsLeft + ' 次）' : '完成任务获得抽卡次数'}}
+    </view>
+    <text wx:if="{{series.task}}" class="cr-bonus-note" catchtap="noop">{{series.task.text}}</text>
+  </view>
+</view>

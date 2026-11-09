@@ -10,19 +10,41 @@
 
   <scroll-view class="account-scroll" scroll-y refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" bindrefresherrefresh="handleRefresh" style="padding-top: {{contentTop}}px;">
     <view class="account-shell">
-      <view wx:if="{{loading}}" class="account-state"><text>正在读取账号信息…</text></view>
+      <!-- 第一次读到账号前按资料卡、实名卡、联系方式的形状画骨架；读到过后刷新保留旧数据 -->
+      <block wx:if="{{loading}}">
+        <view class="account-profile"><view class="sk sk-round account-avatar-sk"></view><view class="account-profile-copy account-sk-fill"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view></view>
+        <view class="account-section role-section"><text class="account-section-title">账号身份</text><view class="account-card real-name-card"><view class="real-name-copy account-sk-fill"><view class="sk sk-line account-sk-status"></view><view class="sk sk-line"></view></view></view></view>
+        <view class="account-section real-name-section"><text class="account-section-title">实名认证</text><view class="account-card real-name-card"><view class="real-name-copy account-sk-fill"><view class="sk sk-line account-sk-status"></view><view class="sk sk-line"></view></view></view></view>
+        <view class="account-section"><text class="account-section-title">联系方式</text><view class="account-card contact-card"><view class="contact-row is-last"><view class="sk sk-line account-sk-label"></view><view class="sk sk-line account-sk-value"></view></view></view></view>
+      </block>
       <view wx:elif="{{failed}}" class="account-state"><text class="account-state-title">账号信息暂时无法加载</text><text class="account-state-copy">网络恢复后可以重新读取账号状态。</text><view class="account-state-action" bindtap="loadPage" role="button">重新加载</view></view>
       <view wx:elif="{{!account}}" class="account-state"><text class="account-state-title">账号信息尚未初始化</text><text class="account-state-copy">请重新登录后再查看业务账号与登录身份。</text></view>
       <block wx:else>
         <view class="account-profile">
-          <image wx:if="{{avatarSrc}}" class="account-avatar account-avatar-image" src="{{UA.src(ui, avatarSrc)}}" mode="aspectFill"></image>
-          <view wx:else class="account-avatar account-avatar-placeholder" aria-label="当前用户头像">{{avatarText}}</view>
+          <image class="account-avatar account-avatar-image" src="{{UA.avatar(ui, avatarSrc)}}" mode="aspectFill" aria-label="当前用户头像"></image>
           <view class="account-profile-copy">
             <text class="account-profile-id-label">业务ID</text>
             <view class="account-profile-id-row">
               <text class="account-profile-id">{{account.principalNo}}</text>
               <view wx:if="{{account.hasPrincipalNo}}" class="account-profile-copy-action" aria-label="复制业务 ID" catchtap="copyAccountId"><view class="account-profile-copy-icon"></view></view>
             </view>
+          </view>
+        </view>
+
+        <!-- 学生、家长身份可以互换：家长改学生去补齐学校、年级、教材；学生改家长确认后直接保存 -->
+        <view class="account-section role-section">
+          <text class="account-section-title">账号身份</text>
+          <view class="account-card real-name-card">
+            <view wx:if="{{accountRole}}" class="real-name-copy">
+              <text class="account-role-label">{{accountRole.label}}</text>
+              <text class="real-name-time">{{accountRole.detail}}</text>
+            </view>
+            <view wx:else class="real-name-copy">
+              <text class="real-name-status muted">身份信息暂时无法读取</text>
+              <text class="real-name-time">网络恢复后可以重新读取。</text>
+            </view>
+            <view wx:if="{{accountRole}}" class="real-name-action-button {{switchingRole ? 'is-busy' : ''}}" bindtap="switchAccountRole" role="button">{{accountRole.actionLabel}}</view>
+            <view wx:else class="real-name-action-button" bindtap="loadPage" role="button">重试</view>
           </view>
         </view>
 
@@ -44,7 +66,7 @@
               <text class="contact-label">{{item.label}}</text>
               <view class="contact-value-wrap"><text class="contact-value {{item.tone}}">{{item.value}}</text></view>
             </view>
-            <text class="account-note">当前使用微信身份和授权手机号完成登录。手机号在登录时绑定，邮箱不会自动绑定；已绑定信息会部分隐藏以保护隐私。本页用于查看，暂不提供换绑。</text>
+            <text class="account-note">当前使用微信身份和授权手机号完成登录。手机号在登录时绑定，显示时会部分隐藏以保护隐私。本页用于查看，暂不提供换绑。</text>
           </view>
         </view>
 

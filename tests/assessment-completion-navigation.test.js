@@ -14,6 +14,7 @@ function fixture(call) {
       getSystemInfoSync() { return { windowWidth: 375, windowHeight: 667, statusBarHeight: 20 } },
       showModal() {},
       navigateTo(options) { navigations.push(options) },
+      redirectTo(options) { navigations.push({ redirect: true, ...options }) },
       switchTab(options) { navigations.push(options) },
       setInterval() { return 1 },
       clearInterval() {}
@@ -32,9 +33,10 @@ function fixture(call) {
   return { definition, instance, navigations }
 }
 
-test('short assessment starts, saves answers, and renders the submitted report', async () => {
+// 提交后的报告在独立的报告页（assessment/report）：答题页收到已提交的测评就换过去。
+test('short assessment starts, saves answers, and hands the submitted attempt to the report page', async () => {
   const answers = []
-  const { definition, instance } = fixture(async (operation, payload) => {
+  const { definition, instance, navigations } = fixture(async (operation, payload) => {
     if (operation === 'start') return { attempt: { id: '51', revision: 0, status: 'draft', answeredCount: 0, totalQuestions: 1, current: { id: 'q1', prompt: '题目', options: [{ value: 'A', label: '选项 A' }] } } }
     if (operation === 'answer') {
       answers.push(payload)
@@ -52,12 +54,13 @@ test('short assessment starts, saves answers, and renders the submitted report',
   assert.equal(answers[0].revision, 0)
   assert.equal(answers[0].questionId, 'q1')
   assert.equal(answers[0].answer, 'A')
-  assert.equal(instance.data.report.totalScore, 100)
+  assert.deepEqual(navigations, [{ redirect: true, url: '/assessment/report/index?attemptId=51' }])
+  assert.equal(instance.data.attempt.status, 'draft')
 })
 
 test('completed short assessment returns to its list without using deleted legacy pages', () => {
   const { definition, instance, navigations } = fixture(async () => {})
-  instance.setData({ report: { scope: { name: '数学摸底' } }, attempt: { id: '51' } })
+  instance.setData({ attempt: { id: '51' } })
   definition.backToList.call(instance)
   assert.equal(navigations.length, 0)
   assert.equal(instance.data.attempt, null)

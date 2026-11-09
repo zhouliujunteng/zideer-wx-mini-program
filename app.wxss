@@ -4,3 +4,8 @@ page {
   color: #22322b;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
+
+/* 分享卡片封面的离屏画布（services/share-cover.js）：要真的渲染出来才拿得到节点，所以挪到屏幕外，不用 display: none */
+.share-cover-canvas { position: fixed; top: -9999px; left: -9999px; width: 500px; height: 400px; opacity: 0; pointer-events: none; }
+
+@import "./app.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

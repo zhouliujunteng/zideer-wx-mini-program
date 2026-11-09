@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
+require('./helpers/allow-diagnosis-room-entry')
 
 const {
   REVEAL_TICK_MS,
@@ -97,7 +98,7 @@ test('dangling bold and inline code are closed while streaming so markers never 
 
 // ---------- 页面：直播流中成批快照被匀速渐显，结束后无残留 span ----------
 
-const pagePath = require.resolve('../pages/agent-chat/index.js')
+const pagePath = require.resolve('../pages/diagnosis-room/index.js')
 
 function loadPage() {
   delete require.cache[pagePath]

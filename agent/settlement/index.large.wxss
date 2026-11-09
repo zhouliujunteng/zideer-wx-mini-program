@@ -1,0 +1,109 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px;background:linear-gradient(90deg, #ECEEEB 25%, #F5F6F4 37%, #ECEEEB 63%);background-size:400% 100%}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+page{background:#FAFAFA}
+.settlement-page{height:100vh;background:#FAFAFA}
+.settlement-topbar{top:0;right:max(0px, 50% - var(--lg-col) / 2);left:max(0px, 50% - var(--lg-col) / 2);box-sizing:border-box;background:transparent}
+.settlement-topbar-surface{top:0;right:0;bottom:0;left:0;background:#FAFAFA}
+.settlement-topbar-inner{box-sizing:content-box;padding:0 21px 4px}
+.settlement-back{width:26px;height:26px}
+.settlement-back-icon{width:12px;height:12px;border-bottom:1px solid #FFFFFF;border-left:1px solid #FFFFFF}
+.settlement-back-icon-dark{border-color:#24332D}
+.settlement-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.settlement-scroll{top:0;right:0;bottom:0;left:0;box-sizing:border-box;background:#FAFAFA}
+.settlement-refresh-capsule{left:50%;height:28px;padding:0 10px;box-sizing:border-box;border-radius:599px;background:rgba(255, 255, 255, .94);font-size:10px;font-weight:600;line-height:1;box-shadow:0 4px 12px rgba(183, 68, 82, .12)}
+.settlement-refresh-spinner{width:10px;height:10px;margin-right:4px;box-sizing:border-box;border:1px solid rgba(214, 95, 104, .28);border-top-color:#D65F68;border-radius:50%}
+.settlement-shell{min-height:100%;padding:0 19px calc(43px + env(safe-area-inset-bottom));box-sizing:border-box;background:linear-gradient(180deg, #F14677 0%, #EF3E3A 48%, #F5A4A7 68%, #FBE4DF 79%, #FAFAFA 88%, #FAFAFA 100%);background-repeat:no-repeat;background-size:100% 288px}
+.settlement-shell::before{top:67px;right:-90px;width:390px;height:1px;background:linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, .32) 22%, rgba(255, 244, 222, .82) 68%, rgba(255, 255, 255, .12) 100%)}
+.settlement-shell::after{top:25px;right:-60px;width:300px;height:126px;border:1px solid rgba(255, 255, 255, .28);border-left-color:transparent;border-bottom-color:transparent;border-radius:50%}
+.settlement-ambient-icon{top:-16px;right:-48px;width:234px;height:234px}
+.settlement-profile{padding:3px 2px 13px}
+.settlement-profile-avatar{width:38px;height:38px;border:1px solid rgba(255, 255, 255, .78);border-radius:50%;background:rgba(255, 255, 255, .32);font-size:15px;font-weight:700}
+.settlement-profile-avatar-image{width:100%;height:100%}
+.settlement-profile-name{margin-left:9px;font-size:16px;font-weight:650;line-height:1.2}
+.settlement-sk-avatar{width:38px;height:38px;background:rgba(255, 255, 255, .42)}
+.settlement-sk-name{width:90px;height:18px;margin-left:9px;background:rgba(255, 255, 255, .42)}
+.settlement-sk-daily{width:54px;height:15px;margin-left:6px}
+.settlement-sk-balance{width:120px;height:33px;margin-top:8px}
+.settlement-sk-selectable{width:90px;height:21px;margin-top:6px}
+.settlement-sk-metric{width:54px;height:16px;margin-top:5px}
+.settlement-sk-date{height:10px}
+.settlement-sk-amount{width:54px;height:15px;margin-left:9px}
+.settlement-sk-service{width:144px;height:12px;margin-top:4px}
+.settlement-state{padding:54px 14px 24px}
+.settlement-state-title{font-size:19px;font-weight:600}
+.settlement-state-copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.settlement-state-action{height:45px;padding:0 26px;border-radius:12px;background:#FD7C02;font-size:15px}
+.settlement-wallet-card, .settlement-selectable-card{border-radius:16px;background:#FFFFFF}
+.settlement-wallet-card-stack{min-height:132px;padding-bottom:36px;box-sizing:border-box}
+.settlement-wallet-card-back{top:16px;right:0;left:0;height:114px;box-sizing:border-box;border:0.5px solid rgba(255, 255, 255, .72);border-radius:16px;background:#FFF0EE}
+.settlement-wallet-daily-summary{right:18px;bottom:10px;left:18px}
+.settlement-wallet-daily-item{min-width:0}
+.settlement-wallet-daily-item + .settlement-wallet-daily-item{padding-left:12px}
+.settlement-wallet-daily-item + .settlement-wallet-daily-item::before{top:2px;bottom:1px;left:0;width:1px;border-radius:599px;background:rgba(255, 255, 255, .72)}
+.settlement-wallet-daily-label{font-size:13px;font-weight:600;line-height:1.2}
+.settlement-wallet-daily-value{margin-left:6px;font-size:15px;font-weight:700;line-height:1}
+.settlement-wallet-card{padding:13px 18px 14px}
+.settlement-wallet-label, .settlement-selectable-label, .settlement-selectable-metric-label{font-size:13px;font-weight:600}
+.settlement-wallet-value{margin-top:8px;font-size:33px;font-weight:700;letter-spacing:-1px;line-height:1}
+.settlement-selectable-card{margin-top:10px;padding:15px 18px 14px}
+.settlement-selectable-value{margin-top:6px;font-size:21px;font-weight:700;line-height:1}
+.settlement-selectable-metrics{margin-top:14px;padding-top:12px;border-top:0.5px solid #F0F2F0}
+.settlement-selectable-metric{min-width:0}
+.settlement-selectable-metric + .settlement-selectable-metric{padding-left:9px;border-left:0.5px solid #EDF0ED}
+.settlement-selectable-metric-label{line-height:1.2}
+.settlement-selectable-metric-value{margin-top:5px;font-size:16px;font-weight:700;line-height:1}
+.settlement-gift-row{margin-top:12px;padding-top:10px;border-top:0.5px solid #F0F2F0}
+.settlement-gift-label{font-size:12px;font-weight:600}
+.settlement-gift-value{font-size:15px;font-weight:700;line-height:1.1}
+.settlement-gift-hint{margin-top:3px;font-size:10px}
+.settlement-selectable-action{height:42px;margin-top:14px;border-radius:599px;background:linear-gradient(90deg, #F14677, #EF3E3A);font-size:13px;font-weight:700}
+.settlement-status-notice{min-height:46px;margin-top:10px;box-sizing:border-box;padding:8px 10px;border-radius:13px;background:#FFF8EC}
+.settlement-status-notice-failed{background:#FFF0EE}
+.settlement-status-notice-icon{width:19px;height:19px;margin-right:7px;border-radius:50%;background:#F5A53D;font-size:13px;font-weight:700;line-height:1}
+.settlement-status-notice-failed .settlement-status-notice-icon{background:#E58A7B}
+.settlement-status-notice-copy{min-width:0}
+.settlement-status-notice-title{font-size:13px;font-weight:700;line-height:1.3}
+.settlement-status-notice-detail{margin-top:3px;font-size:12px;line-height:1.4}
+.settlement-status-notice-arrow{width:7px;height:7px;margin-left:6px;border-top:1px solid #B29170;border-right:1px solid #B29170}
+.settlement-status-notice-failed .settlement-status-notice-arrow{border-color:#D39A92}
+.settlement-entry-card{min-height:67px;margin-top:10px;padding:13px 15px;box-sizing:border-box;border-radius:18px;background:#FFFFFF}
+.settlement-entry-icon{width:38px;height:38px;border-radius:10px;background:#FFF0EE}
+.settlement-entry-icon image{width:21px;height:21px}
+.settlement-entry-copy{min-width:0;margin-left:10px}
+.settlement-entry-title{font-size:16px;font-weight:650;line-height:1.25}
+.settlement-entry-meta{margin-top:4px;font-size:12px;line-height:1.3}
+.settlement-section-heading{margin:20px 2px 0}
+.settlement-section-title{font-size:17px;font-weight:700;line-height:1.25}
+.settlement-view-all{font-size:13px;line-height:1}
+.settlement-view-all-icon{width:7px;height:7px;margin-left:7px;box-sizing:border-box;border-top:1px solid #A6AFA9;border-right:1px solid #A6AFA9}
+.settlement-records-card{min-height:0;padding:12px 0 1px;box-sizing:border-box;border-radius:0 0 18px 18px;background:transparent}
+.settlement-record-item{min-height:62px;margin:0 0 8px;padding:12px 14px;box-sizing:border-box;border-radius:14px;background:#FFFFFF}
+.settlement-record-copy{min-width:0;box-sizing:border-box}
+.settlement-record-left{min-width:0}
+.settlement-record-title{min-width:0;font-size:14px;font-weight:600;line-height:1.2}
+.settlement-record-date{margin-top:5px;font-size:10px;line-height:1}
+.settlement-record-amount{margin-left:9px;font-size:15px;font-weight:600;line-height:1}
+.settlement-records-empty{min-height:132px}
+.settlement-records-empty text:first-child{font-size:15px;font-weight:650}
+.settlement-records-empty text:last-child{margin-top:7px;font-size:11px}
+.settlement-rules-card{margin-top:10px;padding:16px 15px;border-radius:18px;background:#FFFFFF}
+.settlement-rules-title{font-size:16px;font-weight:700;line-height:1.3}
+.settlement-rule-item{margin-top:10px;font-size:14px;line-height:1.6}
+.settlement-rule-dot{width:6px;height:6px;margin:8px 8px 0 1px;border-radius:50%;background:#FD7C02}
+.settlement-service-card{min-height:67px;margin-top:10px;padding:13px 15px;box-sizing:border-box;border-radius:18px;background:#FFFFFF}
+.settlement-service-icon{width:38px;height:38px;border-radius:10px;background:#FFF1E5}
+.settlement-service-icon image{width:20px;height:20px}
+.settlement-service-copy{min-width:0;margin-left:10px}
+.settlement-service-title{font-size:16px;font-weight:650;line-height:1.25}
+.settlement-service-meta{margin-top:4px;font-size:12px;line-height:1.3}
+.settlement-service-arrow{width:8px;height:8px;margin-left:7px;box-sizing:border-box;border-top:1px solid #B6BFB9;border-right:1px solid #B6BFB9}
+}

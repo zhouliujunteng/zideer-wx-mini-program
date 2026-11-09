@@ -1,6 +1,13 @@
-.service-contact { padding-top: 36rpx; }
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
+/* screen / screen-scroll / page-head 在公共样式里都没有定义，页面一直是裸排（标题和说明挤在一行、卡片贴屏幕边）。
+   2026-09-25 按兄弟页（account/identity、account/bind-student）的页边距与标题写法补上。 */
+.service-contact { min-height: 100vh; padding: 48rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); box-sizing: border-box; }
+.page-head { padding: 0 8rpx; }
+.page-head__title { display: block; font-size: 42rpx; font-weight: 700; }
+.page-head__copy { display: block; margin-top: 12rpx; color: var(--muted); font-size: 24rpx; }
 .service-list { margin-top: 28rpx; }
-.service-row { display: flex; width: 100%; min-height: 118rpx; align-items: center; margin-top: 16rpx; padding: 20rpx 24rpx; text-align: left; }
+.service-row { display: flex; width: 100%; min-height: 118rpx; box-sizing: border-box; align-items: center; margin-top: 16rpx; padding: 20rpx 24rpx; text-align: left; }
 .service-row__icon { display: flex; width: 58rpx; height: 58rpx; align-items: center; justify-content: center; border-radius: 16rpx; background: var(--yellow-soft); }
 .service-row__icon image { width: 30rpx; height: 30rpx; }
 .service-row__copy { min-width: 0; flex: 1; margin-left: 18rpx; }
@@ -8,3 +15,8 @@
 .service-row__title { font-size: 26rpx; font-weight: 600; }
 .service-row__meta { margin-top: 7rpx; color: var(--muted); font-size: 20rpx; }
 .service-row__arrow { flex: none; margin-left: 12rpx; color: #B0B4BA; font-size: 34rpx; }
+
+/* 首次加载骨架里的图标位 */
+.service-row__icon-sk { flex: none; width: 58rpx; height: 58rpx; border-radius: 16rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

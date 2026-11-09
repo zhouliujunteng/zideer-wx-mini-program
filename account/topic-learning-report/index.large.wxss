@@ -1,0 +1,62 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.report-page{min-height:100vh;padding:28px 16px calc(env(safe-area-inset-bottom) + 28px)}
+.report-head{padding:0 4px}
+.report-eyebrow{font-size:13px;font-weight:700}
+.report-title{margin-top:7px;font-size:25px;font-weight:700}
+.student-switcher{width:100%;min-height:72px;margin-top:22px;padding:12px 13px}
+.student-avatar{width:38px;height:38px;border-radius:19px;font-size:15px;font-weight:700}
+.student-copy{min-width:0;margin-left:10px}
+.student-label{font-size:12px}
+.student-name{margin-top:4px;font-size:15px;font-weight:700}
+.student-action{margin-left:7px;font-size:12px}
+.report-empty{margin-top:20px;padding:18px 15px}
+.report-empty__title{font-size:16px;font-weight:700}
+.report-empty__copy{margin-top:7px;font-size:13px;line-height:1.6}
+.report-tabs{width:calc(100% + 33px);margin:18px -17px 0}
+.report-tab{min-width:126px;min-height:62px;margin-left:10px;padding:9px 12px;border:0.5px solid var(--line);border-radius:4px}
+.report-tab:last-child{margin-right:10px}
+.report-tab text:first-child{font-size:13px;font-weight:700}
+.report-tab text:last-child{margin-top:4px;font-size:11px}
+.report-tab--active{border-color:var(--accent)}
+.report-card{margin-top:10px;padding:16px 15px}
+.report-card__top{min-width:0;gap:9px}
+.report-card__label{font-size:12px}
+.report-card__no{margin-top:4px;font-size:16px;font-weight:700}
+.status-pill{max-width:138px;padding:4px 7px;border-radius:3px;font-size:11px}
+.report-meta{gap:6px 12px;margin-top:12px;font-size:12px}
+.report-section{margin-top:22px}
+.report-section__title{margin:0 4px 9px;font-size:14px;font-weight:700}
+.report-panel{padding:15px;font-size:13px;line-height:1.7}
+.report-panel__label{font-size:12px}
+.report-panel__label--gap{margin-top:13px}
+.review-status{margin-bottom:6px;font-size:14px;font-weight:700}
+.audio-list{padding:0 14px}
+.audio-row{min-height:64px;border-bottom:0.5px solid var(--line)}
+.audio-row:last-child{border-bottom:0}
+.audio-row__index{width:26px;height:26px;border-radius:13px;font-size:12px;font-weight:700}
+.audio-row__copy{min-width:0;margin-left:9px}
+.audio-row__title{font-size:13px;font-weight:600}
+.audio-row__meta{margin-top:3px;font-size:10px}
+.audio-row__action{min-width:45px;margin-left:6px;padding:0;font-size:12px}
+.audio-row__disabled{margin-left:6px;font-size:12px}
+.audio-empty{padding:18px 0;font-size:12px}
+.report-avatar-sk{width:38px;height:38px}
+}

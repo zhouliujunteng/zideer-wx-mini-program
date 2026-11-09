@@ -18,6 +18,7 @@
 const BASELINE_SKILL = 'learner-baseline-interview'
 const CONTEXT_TAG = 'zhilu-learner-context'
 const OPTIONS_MARK = '【知鹿学习选项】'
+const TEACHER_NOTES_HEAD = '在学生这句话之前，老师本人在对话里亲自发了下面这些话，学生已经看到了，在他眼里和你说的话出自同一位老师。接着聊时把它们算进去：老师问过的就当已经问过，学生这句话可能就是在回答老师；老师定下的就照着办，别重复，也别和老师的说法矛盾。'
 
 const LEARNING_MODES = [
   { id: 'zero-foundation', label: '零基础学习', skill: 'zero-foundation' },
@@ -54,18 +55,28 @@ function encodeContextJson(value) {
  * @param {boolean} input.attachOptions  是否附加选项行（会话首条或选项变化时）
  * @param {boolean} input.attachBaseline 是否附加基本盘（开启宇宙且本会话尚未发送过）
  */
-function buildAgentMessageText({ text, universe, modeId, baseline, attachOptions, attachBaseline }) {
+function buildAgentMessageText({ text, universe, modeId, baseline, attachOptions, attachBaseline, styleReminder, teacherNotes }) {
   const body = String(text || '').trim()
-  if (!attachOptions && !attachBaseline) return body
+  const reminder = String(styleReminder || '').trim()
+  const notes = (teacherNotes || []).map((note) => String(note || '').trim()).filter(Boolean)
+  if (!attachOptions && !attachBaseline && !reminder && !notes.length) return body
   const parts = [body, '']
   if (attachBaseline && universe) {
     const context = baseline || { status: 'unavailable', note: '学习基本盘暂时读取失败，请按没有档案处理并完整摸底。' }
     parts.push(`<${CONTEXT_TAG}>`, encodeContextJson(context), `</${CONTEXT_TAG}>`)
   }
-  const mode = findLearningMode(modeId)
-  parts.push(`${OPTIONS_MARK}参考我的宇宙：${universe ? '开' : '关'} · 学习模式：${mode ? mode.label : '未选择'}`)
-  const handles = [BASELINE_SKILL].concat(mode ? [mode.skill] : [])
-  parts.push(handles.map((handle) => `/${handle}`).join(' '))
+  if (attachOptions || attachBaseline) {
+    const mode = findLearningMode(modeId)
+    parts.push(`${OPTIONS_MARK}参考我的宇宙：${universe ? '开' : '关'} · 学习模式：${mode ? mode.label : '未选择'}`)
+    const handles = [BASELINE_SKILL].concat(mode ? [mode.skill] : [])
+    parts.push(handles.map((handle) => `/${handle}`).join(' '))
+  }
+  // 诊断室每轮都带一行口吻提醒：长对话里模型容易忘掉开场时的约束，说着说着又变回助手腔。
+  // 同样挂在 OPTIONS_MARK 后面，回放时被 stripLearningAppendix 去掉，学生看不到。
+  if (reminder) parts.push(`${OPTIONS_MARK}${reminder}`)
+  // 诊断室里老师本人在后台插的话：学生屏幕上已经显示，但 AI 的会话里没有，不带上它就当老师没说过。
+  // 同样挂在 OPTIONS_MARK 后面，回放时去掉。
+  if (notes.length) parts.push(`${OPTIONS_MARK}${TEACHER_NOTES_HEAD}`, ...notes.map((note) => `老师：${note}`))
   return parts.join('\n')
 }
 

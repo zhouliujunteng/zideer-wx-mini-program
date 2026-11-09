@@ -1,0 +1,60 @@
+/* 「学习宇宙」里学生自己填的两页共用：学习偏好（learning/learning-preference）、学习目标（learning/learning-goal）。
+   与「问题反馈」同一套：自定义顶栏、#FAFAFA 页面、白色圆角卡、#FD7C02 主按钮。
+   用固定逻辑 px 控制阅读密度，避免平板随 rpx 整体放大。 */
+page { background: #FAFAFA; }
+.pref-page { position: relative; height: 100vh; overflow: hidden; color: #24332D; background: #FAFAFA; font-size: 14px; line-height: 1.5; }
+.pref-ambient { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #FFF5EC 0, #FAFAFA 300px); }
+.pref-topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; background: #FFF5EC; }
+.pref-topbar-inner { position: relative; box-sizing: content-box; display: flex; align-items: center; padding-right: 16px; padding-left: 12px; }
+.pref-back { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.pref-back:active { opacity: .6; }
+.pref-back-icon { width: 9px; height: 9px; border-bottom: 1.8px solid #24332D; border-left: 1.8px solid #24332D; transform: rotate(45deg); }
+.pref-topbar-title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: 700; letter-spacing: -.5px; white-space: nowrap; }
+.pref-scroll { position: relative; height: 100vh; box-sizing: border-box; }
+.pref-shell { box-sizing: border-box; max-width: 680px; margin: 0 auto; padding: 22px 18px calc(120px + env(safe-area-inset-bottom)); }
+
+.pref-heading { margin: 0 2px 18px; }
+.pref-title { display: block; font-size: 19px; font-weight: 700; line-height: 1.35; }
+.pref-subtitle { display: block; margin-top: 8px; color: #8A958D; font-size: 12px; line-height: 1.7; }
+
+.pref-card { margin-bottom: 14px; padding: 18px 18px 16px; border-radius: 22px; background: #FFF; box-shadow: 0 3px 14px rgba(56,75,64,.025); }
+.pref-group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pref-group-title { color: #34423A; font-size: 15px; font-weight: 650; line-height: 1.4; }
+.pref-group-hint { flex: none; color: #A0A9A2; font-size: 11px; }
+.pref-optional { margin-left: 8px; color: #A0A9A2; font-size: 11px; font-weight: 400; }
+.pref-options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.pref-chip { box-sizing: border-box; min-height: 38px; padding: 9px 15px; border: 1px solid transparent; border-radius: 999px; background: #F6F7F5; color: #66736A; font-size: 13px; line-height: 18px; }
+.pref-chip.is-selected { border-color: #FFD8B3; background: #FFF0E2; color: #FD7C02; font-weight: 650; }
+.pref-chip:active { opacity: .75; }
+
+.pref-note { box-sizing: border-box; width: 100%; height: 104px; margin-top: 12px; padding: 0; color: #34423A; font-size: 14px; line-height: 1.8; }
+.pref-note-placeholder { color: #AAB2AC; font-size: 12px; line-height: 1.9; }
+.pref-note-count { display: flex; justify-content: flex-end; color: #ADB5AF; font-size: 11px; }
+
+.pref-preview { background: #FFFBF6; box-shadow: none; border: 1px solid #FFE7CF; }
+.pref-preview-title { display: block; color: #C46A12; font-size: 13px; font-weight: 650; }
+.pref-preview-line { margin-top: 12px; }
+.pref-preview-label { display: block; color: #8A958D; font-size: 11px; line-height: 1.5; }
+.pref-preview-text { display: block; margin-top: 3px; color: #4B5A50; font-size: 13px; line-height: 1.75; word-break: break-all; }
+.pref-preview-empty { display: block; margin-top: 10px; color: #8A958D; font-size: 12px; line-height: 1.75; }
+
+.pref-read-notice { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding: 12px 14px; border-radius: 16px; background: #FFF0E9; }
+.pref-read-notice-copy { flex: 1; min-width: 0; color: #B0603F; font-size: 12px; line-height: 1.6; }
+.pref-read-retry { flex: none; padding: 5px 12px; border-radius: 999px; background: #FFF; color: #FD7C02; font-size: 12px; font-weight: 600; }
+
+.pref-options-sk { margin-top: 16px; }
+.pref-chip-sk { height: 38px; border-radius: 999px; }
+
+.pref-footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; box-sizing: border-box; padding: 12px 18px calc(12px + env(safe-area-inset-bottom)); background: #FAFAFA; box-shadow: 0 -6px 20px rgba(32, 54, 46, .05); }
+.pref-save-error { margin-bottom: 10px; padding: 10px 14px; border-radius: 14px; background: #FFF0E9; color: #C16445; font-size: 12px; line-height: 1.6; }
+.pref-save { width: 100%; max-width: 644px; min-height: 48px; margin: 0 auto; padding: 0 20px; border-radius: 999px; background: #FD7C02; color: #FFF; font-size: 15px; font-weight: 650; line-height: 48px; }
+.pref-save::after { border: none; }
+.pref-save:active { opacity: .82; }
+/* 要压过基础库 button[disabled]:not([type]) 的灰底 */
+.pref-footer .pref-save[disabled] { background: #FD7C02; color: #FFF; opacity: .45; }
+
+@media (max-width: 350px) {
+  .pref-shell { padding-left: 14px; padding-right: 14px; }
+  .pref-card { padding-left: 14px; padding-right: 14px; }
+  .pref-chip { padding: 8px 12px; font-size: 12px; }
+}

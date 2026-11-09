@@ -1,14 +1,17 @@
 /* 每日学习打卡页样式取自 UI 设计仓库 JiahaoTang-Alvin/zhilu-miniprogram 提交 b5cc5ab（E05），
    去掉了「开发调试」面板的样式。 */
+@import "../../styles/skeleton.wxss";
 page { background: #FAFAFA; }
 
 .checkin-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
 .checkin-stage { position: relative; width: 100%; overflow: hidden; border-radius: 0 0 44rpx 44rpx; background: #FFF0DD; }
 .checkin-stage-idle { background: #E7EAE9; }
+/* 今天在冻结中：冰蓝底，火苗蒙一层霜。 */
+.checkin-stage-frozen { background: #E3F0FB; }
 .checkin-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; overflow: hidden; box-sizing: border-box; background: transparent; }
 .checkin-topbar-idle { background: transparent; }
 .corner-pixel-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; transform: translate(-6rpx, -6rpx); }
-.corner-pixel { position: absolute; width: 35rpx; height: 35rpx; border-radius: 5rpx; background: #FFFFFF; }
+.corner-pixel { position: absolute; left: calc(var(--pixel-x) * 1000rpx / 1000); bottom: calc(var(--pixel-bottom) * 1000rpx / 1000); width: 35rpx; height: 35rpx; border-radius: 5rpx; background: #FFFFFF; }
 .checkin-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
 .checkin-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 34rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
 .checkin-back { display: flex; flex: 0 0 auto; width: 54rpx; height: 54rpx; align-items: center; justify-content: center; border-radius: 50%; }
@@ -26,6 +29,14 @@ page { background: #FAFAFA; }
 .checkin-hero-idle .hero-number { color: #7A8581; }
 .checkin-hero-idle .hero-number-unit { color: #7F8985; }
 .checkin-hero-idle .hero-state { color: #606B67; }
+.checkin-hero-frozen .hero-label { color: #4F7196; }
+.checkin-hero-frozen .hero-number,
+.checkin-hero-frozen .hero-number-unit { color: #2F80D8; }
+.checkin-hero-frozen .hero-state { color: #3D6A94; }
+.hero-frost { position: absolute; top: 26rpx; right: 0; z-index: 3; width: 246rpx; height: 246rpx; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0) 38%, rgba(196,227,250,.72) 72%, rgba(255,255,255,0) 100%); pointer-events: none; animation: frost-breathe 3.2s ease-in-out infinite; }
+@keyframes frost-breathe { 0%, 100% { opacity: .75; transform: scale(.96); } 50% { opacity: 1; transform: scale(1.03); } }
+.hero-coins { display: inline-flex; margin-top: 16rpx; padding: 8rpx 18rpx 8rpx 10rpx; align-items: center; border-radius: 999rpx; background: rgba(255,255,255,.72); color: #9A5A12; font-size: 22rpx; font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.hero-coins-icon { display: block; width: 32rpx; height: 32rpx; margin-right: 8rpx; }
 .checkin-hero-active .hero-label,
 .checkin-hero-active .hero-state { color: #000000; }
 .checkin-hero-active .hero-number,
@@ -45,17 +56,47 @@ page { background: #FAFAFA; }
 .calendar-month-button::before { width: 17rpx; height: 17rpx; border-top: 4rpx solid #6F7A73; border-right: 4rpx solid #6F7A73; content: ''; transform: rotate(45deg); }
 .calendar-month-button-prev::before { transform: rotate(-135deg); }
 .calendar-month-button-disabled { opacity: .22; }
-.checkin-stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18rpx; margin-top: 18rpx; }
-.checkin-stat-card { display: flex; min-width: 0; min-height: 112rpx; padding: 18rpx 20rpx; align-items: flex-start; box-sizing: border-box; border-radius: 28rpx; background: #FFFFFF; }
+.checkin-stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14rpx; margin-top: 18rpx; }
+.checkin-stat-card { display: flex; min-width: 0; min-height: 112rpx; padding: 18rpx 16rpx; align-items: flex-start; box-sizing: border-box; border-radius: 28rpx; background: #FFFFFF; }
 .checkin-stat-icon { display: flex; flex: 0 0 40rpx; width: 40rpx; height: 40rpx; align-items: center; justify-content: center; border-radius: 50%; font-size: 22rpx; font-weight: 800; }
 .checkin-stat-icon-check { background: #FD7C02; color: #FFFFFF; }
 .checkin-stat-icon-week { background: #2F80D8; color: #FFFFFF; font-size: 0; }
 .checkin-stat-icon-svg { display: block; width: 24rpx; height: 24rpx; }
-.checkin-stat-copy { min-width: 0; margin-left: 14rpx; }
+.checkin-stat-copy { min-width: 0; margin-left: 12rpx; }
 .checkin-stat-value { display: block; color: #2F3D36; font-family: "Arial Rounded MT Bold", "SF Pro Rounded", "Avenir Next Rounded", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: 38rpx; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
 .checkin-stat-label { display: block; margin-top: 8rpx; color: #8B958E; font-size: 21rpx; line-height: 1.2; white-space: nowrap; }
 
-.calendar-card-wrap { margin-top: 18rpx; overflow: hidden; border-radius: 34rpx; transition: height .34s cubic-bezier(.25,.1,.25,1); }
+.today-task-card { margin-top: 24rpx; padding: 4rpx 28rpx; box-sizing: border-box; border-radius: 28rpx; background: #FFFFFF; }
+.today-task-row { display: flex; height: 88rpx; align-items: center; }
+.today-task-row:active { opacity: .75; }
+.today-task-label { min-width: 0; overflow: hidden; color: #2F3D36; font-size: 26rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+/* 右边一组：金币提示 +「去学习 ›」或对勾，整组靠右，放不下时截断左边的任务文字 */
+.today-task-end { display: flex; flex: 0 0 auto; margin-left: auto; padding-left: 16rpx; align-items: center; }
+/* 金币提示（2026-09-27）：小胶囊，颜色同顶部「连胜已赚 N 金币」 */
+.today-task-coins { flex: 0 0 auto; padding: 6rpx 14rpx; border-radius: 999rpx; background: #FFF3E0; color: #9A5A12; font-size: 21rpx; font-weight: 700; line-height: 1.25; white-space: nowrap; }
+.today-task-right { flex: 0 0 auto; padding-left: 16rpx; color: #FD7C02; font-size: 23rpx; font-weight: 650; white-space: nowrap; }
+/* 完成后的对勾：用两条边画，不用 ✓ 字符（部分机型会显示成彩色表情） */
+.today-task-done { flex: 0 0 auto; width: 14rpx; height: 26rpx; margin-left: 22rpx; margin-right: 10rpx; margin-top: -6rpx; border-right: 5rpx solid #FD7C02; border-bottom: 5rpx solid #FD7C02; transform: rotate(45deg); }
+
+/* 连胜道具：只放两张卡牌（没有底板），靠左排。有卡彩色带投影，没卡灰色；右上角圆标是张数。 */
+.streak-props { margin-top: 26rpx; }
+.streak-props-cards { display: flex; justify-content: flex-start; gap: 44rpx; padding-left: 4rpx; }
+.prop-card { display: flex; flex-direction: column; align-items: center; }
+.prop-card:active { opacity: .78; }
+.prop-card-art { position: relative; width: 168rpx; height: 168rpx; }
+.prop-card-image { display: block; width: 168rpx; height: 168rpx; }
+.prop-card-count { position: absolute; top: 2rpx; right: 14rpx; min-width: 42rpx; height: 42rpx; padding: 0 10rpx; box-sizing: border-box; border: 4rpx solid #FAFAFA; border-radius: 999rpx; background: #B9BFBA; color: #FFFFFF; font-size: 22rpx; font-weight: 800; line-height: 34rpx; text-align: center; font-variant-numeric: tabular-nums; }
+.prop-card-label { margin-top: 4rpx; color: #9AA39D; font-size: 24rpx; font-weight: 700; line-height: 1.2; }
+.prop-card-lit.prop-card-freeze .prop-card-image { filter: drop-shadow(0 10rpx 14rpx rgba(47, 128, 216, .32)); }
+.prop-card-lit.prop-card-revive .prop-card-image { filter: drop-shadow(0 10rpx 14rpx rgba(224, 80, 124, .32)); }
+.prop-card-lit.prop-card-freeze .prop-card-count { background: #2F80D8; }
+.prop-card-lit.prop-card-revive .prop-card-count { background: #E0507C; }
+.prop-card-lit.prop-card-freeze .prop-card-label { color: #2F80D8; }
+.prop-card-lit.prop-card-revive .prop-card-label { color: #D23F6C; }
+.prop-card-off .prop-card-image { opacity: .4; filter: grayscale(1); }
+
+/* 位置、高度是行内传入的 rpx 设计值（CSS 变量），在这里换算，大屏下才会跟着固定比例（见 utils/screen.js） */
+.calendar-card-wrap { height: calc(var(--calendar-height) * 1000rpx / 1000); margin-top: 18rpx; overflow: hidden; border-radius: 34rpx; transition: height .34s cubic-bezier(.25,.1,.25,1); }
 .calendar-card-wrap.calendar-transition-next, .calendar-card-wrap.calendar-transition-prev { animation-duration: .34s; animation-timing-function: cubic-bezier(.25,.1,.25,1); animation-fill-mode: both; }
 .calendar-card-wrap.calendar-transition-next { animation-name: calendar-slide-next; }
 .calendar-card-wrap.calendar-transition-prev { animation-name: calendar-slide-prev; }
@@ -65,25 +106,23 @@ page { background: #FAFAFA; }
 .calendar-weekday { color: #A0A7A1; font-size: 20rpx; line-height: 1.2; text-align: center; }
 .calendar-grid { row-gap: 10rpx; margin-top: 18rpx; }
 .calendar-cell { position: relative; display: flex; height: 82rpx; align-items: center; justify-content: center; min-width: 0; }
-.calendar-day-mark { position: relative; z-index: 1; display: flex; width: 100%; height: 72rpx; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 50%; color: #58645D; font-size: 24rpx; line-height: 1; }
-.calendar-day-mark-today { width: 72rpx; height: 72rpx; border: 0; border-radius: 50%; background: #EEF0EE; color: #9AA19A; }
-.calendar-day-number { position: relative; z-index: 1; }
-.calendar-day-number-today-checked { color: #FFFFFF; }
-.calendar-day-mark-checked { width: calc(100% + 2rpx); border-top: 4rpx solid #FD7C02; border-bottom: 4rpx solid #FD7C02; background: #FFE7C0; color: #FD7C02; font-weight: 700; }
-.calendar-day-mark-checked.calendar-day-mark-run-middle { border-radius: 0; }
-.calendar-day-mark-checked.calendar-day-mark-run-start { width: calc(100% - 12rpx); border-left: 4rpx solid #FD7C02; border-radius: 999rpx 0 0 999rpx; transform: translateX(7rpx); }
-.calendar-day-mark-checked.calendar-day-mark-run-end { width: calc(100% - 12rpx); border-right: 4rpx solid #FD7C02; border-radius: 0 999rpx 999rpx 0; transform: translateX(-7rpx); }
-.calendar-day-mark-checked.calendar-day-mark-run-start.calendar-day-mark-run-end { width: 72rpx; height: 72rpx; border: 4rpx solid #FD7C02; border-radius: 50%; background: #FFE7C0; color: #FD7C02; transform: none; }
-.calendar-day-mark-checked.calendar-day-mark-today { width: 100%; height: 72rpx; background: #FFE7C0; color: #FD7C02; }
-.calendar-day-mark-checked.calendar-day-mark-run-start.calendar-day-mark-today, .calendar-day-mark-checked.calendar-day-mark-run-end.calendar-day-mark-today { width: calc(100% - 12rpx); }
-.calendar-day-mark-checked.calendar-day-mark-run-start.calendar-day-mark-run-end.calendar-day-mark-today { width: 72rpx; height: 72rpx; border: 4rpx solid #FD7C02; border-radius: 50%; background: #FFE7C0; color: #FD7C02; }
-.calendar-day-mark-checked.calendar-day-mark-today::before { position: absolute; top: 50%; left: 50%; width: 54rpx; height: 54rpx; border-radius: 50%; background: #FD7C02; content: ''; transform: translate(-50%, -50%); }
-.calendar-day-mark-checked.calendar-day-mark-run-start .calendar-day-number { transform: translateX(-7rpx); }
-.calendar-day-mark-checked.calendar-day-mark-run-end .calendar-day-number { transform: translateX(7rpx); }
-.calendar-day-mark-checked.calendar-day-mark-run-start.calendar-day-mark-run-end .calendar-day-number { transform: none; }
-.calendar-day-mark-checked.calendar-day-mark-run-start.calendar-day-mark-today::before { transform: translate(-50%, -50%) translateX(-7rpx); }
-.calendar-day-mark-checked.calendar-day-mark-run-end.calendar-day-mark-today::before { transform: translate(-50%, -50%) translateX(7rpx); }
-.calendar-day-mark-checked.calendar-day-mark-run-start.calendar-day-mark-run-end.calendar-day-mark-today::before { transform: translate(-50%, -50%); }
+/* 日历参考多邻国：打卡的日子用主题橙填满一个圆、白色数字，连着的几天也各是各的圆（不连成胶囊）；
+   用冻结卡的日子填蓝色、复活卡补回的日子填粉色，还没到的冻结日浅蓝。不画描边。 */
+.calendar-day-mark { position: relative; z-index: 1; display: flex; flex-shrink: 0; width: 68rpx; height: 68rpx; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 50%; color: #58645D; font-size: 24rpx; line-height: 1; }
+.calendar-day-number { position: relative; z-index: 1; display: inline-block; width: 68rpx; text-align: center; }
+.calendar-day-mark-today { background: #EEF0EE; color: #6F7A73; font-weight: 700; }
+.calendar-day-mark-kept { background: #FD7C02; color: #FFFFFF; font-weight: 800; }
+.calendar-day-mark-frozen { background: #4EA3EE; }
+.calendar-day-mark-ahead { background: #D9ECFC; color: #2F80D8; }
+.calendar-day-mark-revived { background: #F06A96; }
+/* 刚用完道具卡：新保护的日子弹一下。 */
+.calendar-day-mark-fresh { animation: calendar-fresh .9s cubic-bezier(.2,1.3,.4,1) both; }
+@keyframes calendar-fresh { 0% { opacity: 0; transform: scale(.6); } 60% { opacity: 1; transform: scale(1.12); } 100% { transform: scale(1); } }
+.calendar-legend { display: flex; align-items: center; gap: 24rpx; margin-top: 16rpx; padding: 0 12rpx; color: #7E8882; font-size: 21rpx; }
+.calendar-legend-item { display: flex; align-items: center; }
+.calendar-legend-dot { width: 18rpx; height: 18rpx; margin-right: 8rpx; border-radius: 50%; background: #FD7C02; }
+.calendar-legend-dot-frozen { background: #4EA3EE; }
+.calendar-legend-dot-revived { background: #F06A96; }
 .calendar-cell-outside .calendar-day-mark { color: transparent; }
 
 @keyframes calendar-slide-next { from { opacity: .35; transform: translateX(52rpx); } to { opacity: 1; transform: translateX(0); } }
@@ -152,12 +191,68 @@ page { background: #FAFAFA; }
 @keyframes share-sheet-enter { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes share-sheet-exit { from { transform: translateY(0); } to { transform: translateY(100%); } }
 
+/* 道具卡弹层 */
+.card-mask { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 52; display: flex; align-items: flex-end; background: rgba(25, 31, 28, .5); animation: share-mask-enter .26s ease-out both; }
+.card-mask-closing { pointer-events: none; animation: share-mask-exit .26s ease-in both; }
+.card-sheet { width: 100%; padding: 16rpx 34rpx calc(30rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 36rpx 36rpx 0 0; background: #FFFFFF; animation: share-sheet-enter .34s cubic-bezier(.22,.75,.3,1) both; }
+.card-mask-closing .card-sheet { animation: share-sheet-exit .26s cubic-bezier(.55,.1,.8,.25) both; }
+.card-sheet-freeze { background: linear-gradient(180deg, #EAF5FF 0%, #FFFFFF 42%); }
+.card-sheet-revive { background: linear-gradient(180deg, #FFEDF3 0%, #FFFFFF 42%); }
+.card-sheet-hero { display: flex; align-items: center; margin-top: 8rpx; }
+.card-sheet-icon-wrap { display: flex; width: 104rpx; height: 104rpx; align-items: center; justify-content: center; border-radius: 30rpx; background: #FFFFFF; box-shadow: 0 10rpx 24rpx rgba(47, 128, 216, .16); }
+.card-sheet-revive .card-sheet-icon-wrap { box-shadow: 0 10rpx 24rpx rgba(210, 63, 108, .16); }
+.card-sheet-icon { width: 78rpx; height: 78rpx; }
+.card-sheet-copy { margin-left: 22rpx; }
+.card-sheet-title { display: block; color: #24332D; font-size: 34rpx; font-weight: 800; }
+.card-sheet-count { display: block; margin-top: 6rpx; color: #7E8882; font-size: 23rpx; }
+.card-sheet-desc { display: block; margin-top: 22rpx; color: #4A5650; font-size: 25rpx; line-height: 1.5; }
+.card-sheet-plan { margin-top: 20rpx; padding: 22rpx 24rpx; border-radius: 24rpx; background: #F6F8FA; }
+.card-sheet-plan-title { display: block; color: #24332D; font-size: 24rpx; font-weight: 750; }
+.card-sheet-days { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 14rpx; }
+.card-sheet-day { display: flex; min-width: 96rpx; padding: 12rpx 16rpx; flex-direction: column; align-items: center; box-sizing: border-box; border-radius: 18rpx; background: #E3F2FF; color: #2F80D8; }
+.card-sheet-revive .card-sheet-day { background: #FFE4EC; color: #D23F6C; }
+.card-sheet-day-date { font-size: 26rpx; font-weight: 800; line-height: 1.2; }
+.card-sheet-day-week { margin-top: 2rpx; font-size: 19rpx; opacity: .8; }
+.card-sheet-note { display: block; margin-top: 14rpx; color: #8B958E; font-size: 21rpx; line-height: 1.45; }
+.card-sheet-reason { margin-top: 20rpx; padding: 20rpx 24rpx; border-radius: 24rpx; background: #F6F7F6; color: #6E7872; font-size: 24rpx; line-height: 1.45; }
+.card-sheet-how { margin-top: 20rpx; }
+.card-sheet-how-title { display: block; color: #24332D; font-size: 24rpx; font-weight: 750; }
+.card-sheet-how-item { display: block; margin-top: 8rpx; color: #6E7872; font-size: 23rpx; line-height: 1.45; }
+.card-sheet-actions { display: grid; gap: 14rpx; margin-top: 30rpx; }
+.card-sheet-confirm { display: flex; height: 88rpx; align-items: center; justify-content: center; border-radius: 999rpx; background: #2F80D8; color: #FFFFFF; font-size: 28rpx; font-weight: 750; }
+.card-sheet-revive .card-sheet-confirm { background: #E0507C; }
+.card-sheet-confirm-busy { opacity: .7; }
+.card-sheet-cancel { display: flex; height: 72rpx; align-items: center; justify-content: center; color: #77817B; font-size: 25rpx; }
+
+/* 用卡后的全屏效果：冻结卡飘下十几片「雪」，复活卡升起一串火花。粒子是纯 CSS 圆点，不用图片。 */
+.card-effect { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 60; overflow: hidden; pointer-events: none; }
+.card-effect-freeze { background: radial-gradient(circle at 50% 30%, rgba(196, 227, 250, .35), rgba(196, 227, 250, 0) 70%); animation: effect-fade 1.6s ease-out both; }
+.card-effect-revive { background: radial-gradient(circle at 50% 70%, rgba(255, 186, 206, .35), rgba(255, 186, 206, 0) 70%); animation: effect-fade 1.6s ease-out both; }
+.card-effect-particle { position: absolute; top: -40rpx; width: 22rpx; height: 22rpx; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 12rpx rgba(124, 192, 245, .9); animation: effect-snow 1.5s ease-in both; }
+.card-effect-revive .card-effect-particle { top: auto; bottom: -40rpx; background: #FF8FB0; box-shadow: 0 0 14rpx rgba(255, 110, 150, .9); animation-name: effect-spark; animation-timing-function: ease-out; }
+.card-effect-particle-0 { left: 6%; animation-delay: 0s; }
+.card-effect-particle-1 { left: 14%; animation-delay: .18s; width: 14rpx; height: 14rpx; }
+.card-effect-particle-2 { left: 23%; animation-delay: .06s; }
+.card-effect-particle-3 { left: 31%; animation-delay: .3s; width: 16rpx; height: 16rpx; }
+.card-effect-particle-4 { left: 40%; animation-delay: .12s; }
+.card-effect-particle-5 { left: 48%; animation-delay: .24s; width: 26rpx; height: 26rpx; }
+.card-effect-particle-6 { left: 57%; animation-delay: .04s; width: 14rpx; height: 14rpx; }
+.card-effect-particle-7 { left: 65%; animation-delay: .34s; }
+.card-effect-particle-8 { left: 73%; animation-delay: .1s; width: 18rpx; height: 18rpx; }
+.card-effect-particle-9 { left: 81%; animation-delay: .22s; }
+.card-effect-particle-10 { left: 88%; animation-delay: .14s; width: 14rpx; height: 14rpx; }
+.card-effect-particle-11 { left: 95%; animation-delay: .28s; }
+@keyframes effect-fade { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes effect-snow { 0% { opacity: 0; transform: translate3d(0, 0, 0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate3d(30rpx, 110vh, 0); } }
+@keyframes effect-spark { 0% { opacity: 0; transform: translate3d(0, 0, 0) scale(.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate3d(-20rpx, -90vh, 0) scale(1.2); } }
+
 @media (max-width: 350px) {
   .checkin-shell { padding-right: 22rpx; padding-left: 22rpx; }
   .checkin-hero { padding-right: 36rpx; padding-left: 36rpx; }
   .hero-copy { max-width: 56%; }
   .hero-spark-svg { top: 34rpx; right: -2rpx; width: 214rpx; height: 214rpx; }
-  .checkin-stat-card { padding-right: 14rpx; padding-left: 14rpx; }
+  .checkin-stat-card { padding-right: 10rpx; padding-left: 10rpx; }
+  .today-task-label { font-size: 24rpx; }
   .checkin-stat-icon { flex-basis: 40rpx; width: 40rpx; height: 40rpx; }
   .checkin-stat-copy { margin-left: 9rpx; }
 }
@@ -166,5 +261,19 @@ page { background: #FAFAFA; }
 .checkin-state { display: flex; flex-direction: column; align-items: center; padding-left: 48rpx; padding-right: 48rpx; text-align: center; }
 .checkin-state-title { margin-top: 200rpx; color: #24332D; font-size: 30rpx; font-weight: 600; }
 .checkin-state-copy { margin-top: 16rpx; color: #8A948F; font-size: 26rpx; line-height: 1.5; }
-.checkin-state > .checkin-state-copy:first-child { margin-top: 200rpx; }
 .checkin-state-action { margin-top: 32rpx; padding: 16rpx 48rpx; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; }
+
+/* 打卡数据第一次到达前的骨架：顶部连胜区、今日任务、道具卡、统计卡与日历 */
+.checkin-sk-stage { position: relative; width: 100%; overflow: hidden; border-radius: 0 0 44rpx 44rpx; background: #F1F2F0; }
+.checkin-sk-hero { position: absolute; right: 0; bottom: 0; left: 0; height: 326rpx; padding: 46rpx 50rpx 34rpx; box-sizing: border-box; }
+.checkin-sk-label { width: 160rpx; }
+.checkin-sk-number { width: 200rpx; height: 104rpx; margin: 16rpx 0 18rpx; }
+.checkin-sk-track { height: 16rpx; margin: 18rpx 0 14rpx; border-radius: 999rpx; }
+.checkin-sk-month { width: 220rpx; height: 44rpx; }
+.checkin-sk-icon { flex: 0 0 40rpx; width: 40rpx; height: 40rpx; }
+.checkin-sk-copy { flex: 1; }
+.checkin-sk-value { width: 80rpx; height: 40rpx; margin-bottom: 10rpx; }
+.checkin-sk-calendar { height: 600rpx; margin-top: 18rpx; border-radius: 34rpx; }
+.checkin-sk-prop { width: 124rpx; height: 148rpx; border-radius: 22rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -1,3 +1,7 @@
 {
-  "navigationBarTitleText": "登录知鹿私课"
+  "navigationStyle": "custom",
+  "disableScroll": true,
+  "navigationBarTitleText": "登录知鹿学习",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#FFFFFF"
 }

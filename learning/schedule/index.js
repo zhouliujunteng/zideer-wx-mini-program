@@ -44,7 +44,8 @@ function normalizeSession(item) {
 }
 
 Page({
-  data: { loading: true, failed: false, sessions: [], assignments: [] },
+  // 标题与说明固定渲染；场次第一次读到前只显示骨架，读到过一次后回到本页保留旧内容静默刷新。
+  data: { loading: true, loaded: false, failed: false, sessions: [], assignments: [] },
 
   onShow() { this.loadPage() },
 
@@ -54,15 +55,18 @@ Page({
   },
 
   async loadPage() {
-    this.setData({ loading: true, failed: false })
+    if (!this.data.loaded) this.setData({ loading: true, failed: false })
     try {
       const data = await loadCurrentLiveSchedule()
       this.setData({
         sessions: data.sessions.map(normalizeSession),
-        assignments: data.assignments
+        assignments: data.assignments,
+        loaded: true,
+        failed: false
       })
     } catch (error) {
-      this.setData({ failed: true })
+      // 已显示过的日程不因刷新失败被换成错误页。
+      if (!this.data.loaded) this.setData({ failed: true })
       wx.showToast({ title: error.message || '日程加载失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })

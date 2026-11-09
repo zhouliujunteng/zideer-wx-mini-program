@@ -1,0 +1,42 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.pref-page{height:100vh}
+.pref-ambient{inset:0}
+.pref-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);right:max(0px, 50% - var(--lg-col) / 2)}
+.pref-topbar-inner{box-sizing:content-box}
+.pref-back{width:44px;height:44px}
+.pref-back-icon{width:9px;height:9px;border-bottom:1.8px solid #24332D;border-left:1.8px solid #24332D}
+.pref-topbar-title{left:50%}
+.pref-scroll{height:100vh;box-sizing:border-box}
+.pref-shell{box-sizing:border-box;max-width:680px;margin:0 auto}
+.pref-heading{margin:0 2px 18px}
+.pref-subtitle{margin-top:8px}
+.pref-card{margin-bottom:14px;border-radius:22px;box-shadow:0 3px 14px rgba(56,75,64,.025)}
+.pref-optional{margin-left:8px}
+.pref-options{margin-top:14px}
+.pref-chip{box-sizing:border-box;min-height:38px;border:1px solid transparent;border-radius:999px}
+.pref-chip.is-selected{border-color:#FFD8B3}
+.pref-note{box-sizing:border-box;width:100%;height:104px;margin-top:12px}
+.pref-preview{box-shadow:none;border:1px solid #FFE7CF}
+.pref-preview-line{margin-top:12px}
+.pref-preview-text{margin-top:3px}
+.pref-preview-empty{margin-top:10px}
+.pref-read-notice{margin-bottom:14px;border-radius:16px}
+.pref-read-notice-copy{min-width:0}
+.pref-read-retry{border-radius:999px}
+.pref-options-sk{margin-top:16px}
+.pref-chip-sk{height:38px;border-radius:999px}
+.pref-footer{left:max(0px, 50% - var(--lg-col) / 2);right:max(0px, 50% - var(--lg-col) / 2);bottom:0;box-sizing:border-box;box-shadow:0 -6px 20px rgba(32, 54, 46, .05)}
+.pref-save-error{margin-bottom:10px;border-radius:14px}
+.pref-save{width:100%;max-width:644px;min-height:48px;margin:0 auto;border-radius:999px}
+.pref-save::after{border:none}
+}

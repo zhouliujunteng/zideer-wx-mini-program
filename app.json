@@ -9,33 +9,61 @@
     "pages/system-messages/index",
     "pages/home/index",
     "pages/learning/index",
+    "pages/knowledge-universe/index",
+    "pages/goal/index",
     "pages/knowledge-map/index",
+    "pages/galaxy/index",
     "pages/me/index",
     "pages/profile/index",
     "pages/redemption/index",
-    "pages/ai-voice/index",
-    "pages/agent-chat/index"
+    "pages/diagnosis-room/index"
   ],
   "subpackages": [
+    {
+      "root": "universe",
+      "pages": []
+    },
     {
       "root": "account",
       "pages": [
         "family/index",
         "binding-code/index",
         "bind-student/index",
+        "web-child/index",
         "identity/index",
         "service-contact/index",
+        "help-feedback/index",
+        "help-center/index",
+        "help-guide/index",
         "guardian-dashboard/index",
         "login-identities/index",
         "child-learning-feed/index",
-        "topic-learning-report/index"
+        "topic-learning-report/index",
+        "parent-reports/index",
+        "about/index",
+        "agreement/index"
+      ]
+    },
+    {
+      "root": "teacher",
+      "pages": [
+        "workspace/index",
+        "add-student/index",
+        "student-detail/index",
+        "live-room/index",
+        "course-acceptance/index",
+        "assessment-report/index",
+        "study-plan/index",
+        "study-reminder/index",
+        "parent-report/index"
       ]
     },
     {
       "root": "assessment",
       "pages": [
         "center/index",
-        "short/index"
+        "short/index",
+        "report/index"
       ]
     },
     {
@@ -63,7 +91,8 @@
         "payment-result/index",
         "orders/index",
         "order-detail/index",
-        "entitlements/index"
+        "entitlements/index",
+        "web-pay/index"
       ]
     },
     {
@@ -76,12 +105,21 @@
         "remediation/index",
         "course/index",
         "library/index",
-        "device-confirm/index",
         "generation-status/index",
         "agent-course/index",
         "schedule/index",
         "live-session/index",
-        "outline/index", "check-in/index"
+        "agent-invite/index",
+        "outline/index", "check-in/index",
+        "agent-acceptance/index",
+        "review/index",
+        "custom-course-intro/index",
+        "learning-preference/index",
+        "learning-goal/index",
+        "goal-diagnosis/index",
+        "achievement-cards/index",
+        "card-fragments/index",
+        "homework/index"
       ]
     },
     {
@@ -92,8 +130,18 @@
         "clients/index",
         "client-detail/index",
         "share-tools/index",
+        "share-link/index",
         "ai-poster/index",
-        "material-library/index"
+        "material-library/index",
+        "promotion/index",
+        "poster-detail/index",
+        "my-promotion/index",
+        "settlement/index",
+        "settlement-records/index",
+        "withdraw/index",
+        "settlement-applications/index",
+        "settlement-application/index",
+        "partner-apply/index"
       ]
     },
     {
@@ -104,6 +152,14 @@
         "coin-withdrawal/index",
         "redemption/index"
       ]
+    },
+    {
+      "root": "score-tools",
+      "pages": [
+        "tool/index",
+        "history/index",
+        "physics-lab/index"
+      ]
     }
   ],
   "window": {
@@ -111,12 +167,14 @@
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#F6F7F9",
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "知鹿私课"
+    "navigationBarTitleText": "知鹿学习"
   },
+  "resizable": true,
   "usingComponents": {
     "dev-reset-fab": "/components/dev-reset-fab/index"
   },
   "tabBar": {
+    "custom": true,
     "color": "#7B8078",
     "selectedColor": "#FD7C02",
     "backgroundColor": "#FAFAFA",
@@ -135,10 +193,16 @@
         "selectedIconPath": "assets/tabbar/learning-active.png"
       },
       {
-        "pagePath": "pages/knowledge-map/index",
+        "pagePath": "pages/knowledge-universe/index",
         "text": "宇宙",
-        "iconPath": "assets/tabbar/map.png",
-        "selectedIconPath": "assets/tabbar/map-active.png"
+        "iconPath": "assets/tabbar/universe.png",
+        "selectedIconPath": "assets/tabbar/universe-active.png"
+      },
+      {
+        "pagePath": "pages/goal/index",
+        "text": "目标",
+        "iconPath": "assets/tabbar/goal.png",
+        "selectedIconPath": "assets/tabbar/goal-active.png"
       },
       {
         "pagePath": "pages/me/index",

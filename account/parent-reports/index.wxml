@@ -1,0 +1,83 @@
+<!-- 家长「学习报告」（2026-10-07）：老师给孩子出的学习成长报告，按孩子分组；版式照老师端「家长学习报告」（teacher/parent-report）。
+     面板里依次是：没登录的登录提示（服务号卡片点进来可能还没登录）/ 读取失败 / 第一次读到前的骨架 / 没绑定孩子 / 还没有报告 / 报告列表。 -->
+<view class="report-root">
+  <view class="report-ambient" aria-hidden="true"></view>
+  <view class="report-topbar">
+    <view class="report-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="report-back" bindtap="handleBack" aria-label="返回上一页" aria-role="button"><view class="report-back-icon"></view></view>
+      <text class="report-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学习报告</text>
+    </view>
+  </view>
+
+  <scroll-view class="report-page" scroll-y show-scrollbar="false" enhanced="{{true}}" style="padding-top: {{contentTop}}px;" refresher-enabled="{{loadState === 'ready' || loadState === 'failed'}}" refresher-default-style="white" refresher-background="transparent" refresher-triggered="{{refreshing}}" bindrefresherrefresh="handleRefresh">
+    <view class="report-hero">
+      <text class="report-hero-name">学习成长报告</text>
+      <text wx:if="{{loadState === 'ready' && total}}" class="report-hero-meta">老师出的报告都在这里，共 {{total}} 份</text>
+      <text wx:elif="{{loadState === 'loading'}}" class="report-hero-meta">老师出的报告都在这里</text>
+      <text wx:else class="report-hero-meta">老师给孩子出的报告，会同步到这里</text>
+    </view>
+
+    <view class="report-panel">
+      <view wx:if="{{loadState === 'guest'}}" class="card empty-card">
+        <text class="empty-title">登录后查看学习报告</text>
+        <text class="empty-copy">用绑定了孩子的家长账号登录，就能看到老师给孩子出的学习成长报告。</text>
+        <view class="empty-action" bindtap="handleLogin" aria-role="button">登录 / 注册</view>
+      </view>
+
+      <view wx:elif="{{loadState === 'failed'}}" class="card empty-card">
+        <text class="empty-title">学习报告暂时没有读到</text>
+        <text class="empty-copy">{{loadError}}</text>
+        <view class="empty-retry" bindtap="load" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:elif="{{loadState === 'loading'}}">
+        <view class="sk sk-line sk-short group-sk"></view>
+        <view wx:for="{{[1, 2]}}" wx:key="*this" class="card item-card">
+          <view class="sk sk-line sk-mid"></view>
+          <view class="item-sk"><view class="sk sk-line"></view><view class="sk sk-line sk-short"></view></view>
+        </view>
+      </block>
+
+      <view wx:elif="{{!hasStudents}}" class="card empty-card">
+        <block wx:if="{{isStudent}}">
+          <text class="empty-title">学习报告是发给家长的</text>
+          <text class="empty-copy">老师出的学习成长报告只给绑定了你的家长查看。请家长用自己的微信登录知鹿学习，在「我的 › 家庭关系」绑定你。</text>
+        </block>
+        <block wx:else>
+          <text class="empty-title">还没有绑定孩子</text>
+          <text class="empty-copy">绑定孩子后，老师给孩子出的学习成长报告会同步到这里，服务号菜单「学习报告」也能直接收到。</text>
+          <view class="empty-action" bindtap="handleBindStudent" aria-role="button">去绑定孩子</view>
+        </block>
+      </view>
+
+      <view wx:elif="{{!groups.length}}" class="card empty-card">
+        <text class="empty-title">老师还没有出报告</text>
+        <text class="empty-copy">老师给{{waitingText}}出好学习成长报告后，会出现在这里。</text>
+      </view>
+
+      <block wx:else>
+        <view wx:for="{{groups}}" wx:for-item="group" wx:key="profileId" class="group">
+          <view class="section-heading"><text>{{group.name}}</text><text class="section-caption">{{group.reports.length}} 份</text></view>
+          <view wx:for="{{group.reports}}" wx:key="id" class="card item-card {{focusId === item.id ? 'is-focus' : ''}}" data-id="{{item.id}}" bindtap="handleOpen" aria-role="button">
+            <view class="item-heading">
+              <text class="item-time">{{item.timeText}}</text>
+              <text class="item-open {{openingId === item.id ? 'is-busy' : ''}}">{{openingId === item.id ? '正在打开…' : '查看报告'}}</text>
+            </view>
+            <text wx:if="{{item.byText}}" class="item-meta">{{item.byText}}</text>
+            <view wx:if="{{item.chips.length}}" class="item-chips">
+              <text wx:for="{{item.chips}}" wx:for-item="chip" wx:key="text" class="item-chip {{chip.tone === 'up' ? 'is-up' : ''}}">{{chip.text}}</text>
+            </view>
+            <view wx:if="{{item.note}}" class="item-note">
+              <text class="item-note-label">老师寄语</text>
+              <text class="item-note-text" user-select="{{true}}">{{item.note}}</text>
+            </view>
+          </view>
+        </view>
+        <text wx:if="{{waiting.length}}" class="section-note">老师还没有给{{waitingText}}出报告，出好后会出现在这里。</text>
+      </block>
+
+      <text wx:if="{{loadState === 'ready' && groups.length}}" class="section-note">打开报告后，可以从右上角「…」转发或保存。</text>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

@@ -35,7 +35,7 @@ test('returning to a plan refreshes its task status and preserves the task entry
   service.load = async () => plans('ready')
   await page.onShow()
   assert.equal(page.data.plan.items[0].taskStatusLabel, require('../utils/course-state').courseGenerationState({ status: 'ready', contentVersionRef: 'lesson' }).label)
-  assert.equal(page.data.loading, false)
+  assert.equal(page.data.loaded, true)
 })
 
 test('hidden plan pages ignore late replies and older replies cannot overwrite a newer load', async () => {

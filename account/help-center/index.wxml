@@ -1,0 +1,169 @@
+<!-- 帮助与反馈（「我的 → 知鹿服务」最后一项进入）：搜索 + 操作指南 + 常见问题 + 问题反馈入口。
+     全是本机固定内容，没有要等后端的数据位；会员与付款相关的条目只在支付开关开着时显示。
+     插画（顶部大图、指南图标）是后端素材 help/*，千问生图，见 scripts/ui-assets/upload-help-center-assets.mjs。 -->
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="hc-page">
+  <view class="hc-ambient" aria-hidden="true"></view>
+  <!-- 顶栏：在大图上透明，往下滑就换成浅色底（不然标题和下面的字叠在一起） -->
+  <view class="hc-topbar {{topbarSolid ? 'is-solid' : ''}}">
+    <view class="hc-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="hc-back" bindtap="handleBack" hover-class="hc-back-pressed" aria-label="返回" aria-role="button"><view class="hc-back-icon"></view></view>
+      <text class="hc-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">帮助与反馈</text>
+    </view>
+  </view>
+
+  <scroll-view class="hc-scroll" scroll-y show-scrollbar="{{false}}" enhanced="{{true}}" bindscroll="handleScroll">
+    <!-- 顶部大图按屏幕宽、原图比例完整显示（两侧元素不裁），标题、搜索框居中嵌在图里；内容比图高时下面接同色底。
+         图按这台手机的顶栏高度往下挪（heroArtTop），上面两个元素落在顶栏下方、不和返回键与微信胶囊挤在一起，挪出来的顶部用图片顶端的颜色补齐。
+         图没读到时先显示同色渐变底 -->
+    <view class="hc-hero" style="padding-top: {{contentTop}}px; --hero-art-top: {{heroArtTop}}px;">
+      <view class="hc-hero-cap" style="height: {{heroArtTop + 1}}px;" aria-hidden="true"></view>
+      <view class="hc-hero-art-wrap" style="top: {{heroArtTop}}px;" aria-hidden="true">
+        <image wx:if="{{UA.src(ui, '/assets/help/hero.jpg')}}" class="hc-hero-art {{heroLoaded ? 'is-loaded' : ''}}" src="{{UA.src(ui, '/assets/help/hero.jpg')}}" mode="aspectFill" bindload="handleHeroLoad"></image>
+        <view class="hc-hero-art-fade"></view>
+      </view>
+      <view class="hc-hero-copy">
+        <text class="hc-hero-title">有什么可以帮你？</text>
+        <text class="hc-hero-subtitle">搜一搜常见问题，或者跟着操作指南一步步来</text>
+        <view class="hc-search {{searchFocused ? 'is-focused' : ''}}">
+          <view class="hc-search-icon" aria-hidden="true"></view>
+          <input
+            class="hc-search-input"
+            value="{{query}}"
+            placeholder="搜索问题，如：打卡、兑换码、金币提现"
+            placeholder-class="hc-search-placeholder"
+            confirm-type="search"
+            maxlength="40"
+            bindinput="handleQueryInput"
+            bindconfirm="handleQueryConfirm"
+            bindfocus="handleSearchFocus"
+            bindblur="handleSearchBlur"
+            aria-label="搜索常见问题"
+          />
+          <view wx:if="{{query}}" class="hc-search-clear" bindtap="clearQuery" hover-class="hc-search-clear-pressed" aria-label="清空搜索" aria-role="button"><view class="hc-search-clear-icon"></view></view>
+        </view>
+        <view wx:if="{{!query}}" class="hc-hot">
+          <text class="hc-hot-label">大家都在搜</text>
+          <view class="hc-hot-list">
+            <view wx:for="{{hotWords}}" wx:key="*this" class="hc-hot-chip" data-word="{{item}}" bindtap="useHotWord" hover-class="hc-chip-pressed" aria-role="button">{{item}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="hc-shell">
+
+      <!-- 搜索结果：先列操作指南，再列常见问题 -->
+      <view wx:if="{{query}}" class="hc-results" id="hc-results">
+        <text class="hc-results-count">{{resultCount ? '找到 ' + resultCount + ' 条相关内容' : ''}}</text>
+        <view wx:if="{{guideResults.length}}" class="hc-section hc-result-section">
+          <text class="hc-section-title">操作指南</text>
+          <view class="hc-guide-rows">
+            <view wx:for="{{guideResults}}" wx:key="id" class="hc-guide-row" data-id="{{item.id}}" bindtap="openGuide" hover-class="hc-card-pressed" aria-role="button" style="animation-delay: {{index * 40}}ms;">
+              <image wx:if="{{UA.src(ui, item.iconPath)}}" class="hc-guide-row-art" src="{{UA.src(ui, item.iconPath)}}" mode="aspectFit" aria-hidden="true"></image>
+              <view wx:else class="sk hc-guide-row-art"></view>
+              <view class="hc-guide-row-copy">
+                <text class="hc-guide-row-title"><text wx:for="{{item.titleParts}}" wx:for-item="part" wx:key="index" class="{{part.hit ? 'is-hit' : ''}}">{{part.text}}</text></text>
+                <text class="hc-guide-row-meta">{{item.stepCount}} 步图解 · 带点击演示</text>
+              </view>
+              <view class="hc-chevron" aria-hidden="true"></view>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{faqResults.length}}" class="hc-section hc-result-section">
+          <text class="hc-section-title">常见问题</text>
+          <view class="hc-faq-list">
+            <view wx:for="{{faqResults}}" wx:key="id" class="hc-faq {{openFaqId === item.id ? 'is-open' : ''}}" style="animation-delay: {{index * 40}}ms;">
+              <view class="hc-faq-head" data-id="{{item.id}}" bindtap="toggleFaq" hover-class="hc-faq-head-pressed" aria-role="button" aria-expanded="{{openFaqId === item.id}}">
+                <text class="hc-faq-mark" aria-hidden="true">Q</text>
+                <view class="hc-faq-head-copy">
+                  <text class="hc-faq-title"><text wx:for="{{item.titleParts}}" wx:for-item="part" wx:key="index" class="{{part.hit ? 'is-hit' : ''}}">{{part.text}}</text></text>
+                  <text class="hc-faq-category">{{item.categoryName}}</text>
+                </view>
+                <view class="hc-faq-chevron" aria-hidden="true"></view>
+              </view>
+              <view wx:if="{{openFaqId === item.id}}" class="hc-faq-body">
+                <text wx:for="{{item.answer}}" wx:for-item="paragraph" wx:key="index" class="hc-faq-paragraph">{{paragraph}}</text>
+                <view class="hc-faq-actions">
+                  <view wx:if="{{item.guide}}" class="hc-faq-guide" data-id="{{item.guide}}" bindtap="openGuide" hover-class="hc-chip-pressed" aria-role="button"><view class="hc-play-icon" aria-hidden="true"></view><text>看操作演示</text></view>
+                  <view class="hc-faq-unsolved" bindtap="openFeedback" hover-class="hc-chip-pressed" aria-role="button">没解决？去反馈</view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{!resultCount}}" class="hc-empty">
+          <view class="hc-empty-art" aria-hidden="true"><view class="hc-empty-lens"></view><view class="hc-empty-handle"></view></view>
+          <text class="hc-empty-title">没有找到「{{query}}」相关的内容</text>
+          <text class="hc-empty-copy">换个说法试试，比如「打卡」「绑定孩子」「课程打不开」；还是不行就告诉我们。</text>
+          <view class="hc-empty-action" bindtap="openFeedback" hover-class="hc-button-pressed" aria-role="button">提交问题反馈</view>
+        </view>
+      </view>
+
+      <block wx:else>
+        <view class="hc-section">
+          <view class="hc-section-head">
+            <text class="hc-section-title">操作指南</text>
+            <text class="hc-section-note">图解 + 点击演示</text>
+          </view>
+          <view class="hc-guide-grid">
+            <view wx:for="{{guides}}" wx:key="id" class="hc-guide-card card-tone-{{item.tone}}" data-id="{{item.id}}" bindtap="openGuide" hover-class="hc-card-pressed" aria-role="button" aria-label="{{item.title}}">
+              <text class="hc-guide-title">{{item.title}}</text>
+              <text class="hc-guide-meta">{{item.stepCount}} 步图解</text>
+              <image wx:if="{{UA.src(ui, item.iconPath)}}" class="hc-guide-art" src="{{UA.src(ui, item.iconPath)}}" mode="aspectFit" aria-hidden="true"></image>
+              <view wx:else class="sk hc-guide-art"></view>
+            </view>
+          </view>
+        </view>
+
+        <view class="hc-section">
+          <view class="hc-section-head"><text class="hc-section-title">常见问题</text></view>
+          <scroll-view class="hc-tabs" scroll-x show-scrollbar="{{false}}" enhanced="{{true}}" scroll-into-view="{{'hc-tab-' + categoryId}}" scroll-with-animation="{{true}}">
+            <view class="hc-tabs-track">
+              <view wx:for="{{categories}}" wx:key="id" id="hc-tab-{{item.id}}" class="hc-tab {{categoryId === item.id ? 'is-active' : ''}}" data-id="{{item.id}}" bindtap="selectCategory" hover-class="hc-chip-pressed" aria-role="button" aria-selected="{{categoryId === item.id}}">{{item.name}}</view>
+            </view>
+          </scroll-view>
+          <view class="hc-faq-list">
+            <view wx:for="{{faqList}}" wx:key="id" class="hc-faq {{openFaqId === item.id ? 'is-open' : ''}}" style="animation-delay: {{index * 30}}ms;">
+              <view class="hc-faq-head" data-id="{{item.id}}" bindtap="toggleFaq" hover-class="hc-faq-head-pressed" aria-role="button" aria-expanded="{{openFaqId === item.id}}">
+                <text class="hc-faq-mark" aria-hidden="true">Q</text>
+                <view class="hc-faq-head-copy">
+                  <text class="hc-faq-title">{{item.title}}</text>
+                  <text wx:if="{{categoryId === 'all'}}" class="hc-faq-category">{{item.categoryName}}</text>
+                </view>
+                <view class="hc-faq-chevron" aria-hidden="true"></view>
+              </view>
+              <view wx:if="{{openFaqId === item.id}}" class="hc-faq-body">
+                <text wx:for="{{item.answer}}" wx:for-item="paragraph" wx:key="index" class="hc-faq-paragraph">{{paragraph}}</text>
+                <view class="hc-faq-actions">
+                  <view wx:if="{{item.guide}}" class="hc-faq-guide" data-id="{{item.guide}}" bindtap="openGuide" hover-class="hc-chip-pressed" aria-role="button"><view class="hc-play-icon" aria-hidden="true"></view><text>看操作演示</text></view>
+                  <view class="hc-faq-unsolved" bindtap="openFeedback" hover-class="hc-chip-pressed" aria-role="button">没解决？去反馈</view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view class="hc-section hc-contact">
+        <text class="hc-section-title">没找到答案？</text>
+        <view class="hc-contact-card">
+          <view class="hc-contact-row" bindtap="openFeedback" hover-class="hc-row-pressed" aria-role="button">
+            <view class="hc-contact-icon tone-orange" aria-hidden="true"><view class="hc-contact-pen"></view></view>
+            <view class="hc-contact-copy"><text class="hc-contact-title">问题反馈</text><text class="hc-contact-hint">描述遇到的问题，可附带诊断信息</text></view>
+            <view class="hc-chevron" aria-hidden="true"></view>
+          </view>
+          <!-- 企业微信客服：与学习页「联系老师定制课程」同一套入口，只有一个客服时直接打开会话，否则进「真人服务」 -->
+          <view class="hc-contact-row" bindtap="openEnterpriseService" hover-class="hc-row-pressed" aria-role="button">
+            <view class="hc-contact-icon tone-blue" aria-hidden="true">
+              <image wx:if="{{UA.src(ui, '/assets/icons/headphones.svg')}}" class="hc-contact-image" src="{{UA.src(ui, '/assets/icons/headphones.svg')}}" mode="aspectFit"></image>
+            </view>
+            <view class="hc-contact-copy"><text class="hc-contact-title">企业微信客服</text><text class="hc-contact-hint">在微信里直接和客服聊 · 9:00-18:00</text></view>
+            <view class="hc-chevron" aria-hidden="true"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

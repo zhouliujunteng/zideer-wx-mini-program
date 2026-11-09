@@ -1,0 +1,51 @@
+/* 课程卡片网格与课程搜索框：首页「会员课程」、学习页「我的课程」、会员课程全部页（只用搜索框）共用同一份，
+   改这里三处一起变（2026-09-24 用户要求「我的课程」与首页「会员课程」展示一模一样）。
+   卡片规则取自首页（UI 设计仓库 d9627f0），搜索框取自会员课程全部页（设计稿 ui-ref/package-commerce/pages/courses）。 */
+
+/* 课程区标题右侧的跳转链接：首页「查看全部」、学习页「课程库」 */
+.task-all-link { display: flex; align-items: center; color: #8b958e; font-size: 23rpx; }
+.task-all-icon { display: block; flex: 0 0 13rpx; width: 13rpx; height: 13rpx; margin-left: 12rpx; box-sizing: border-box; border-top: 2rpx solid #a6afa9; border-right: 2rpx solid #a6afa9; transform: rotate(45deg); }
+
+.more-courses-grid { display: flex; flex-wrap: wrap; margin-top: 28rpx; gap: 36rpx 22rpx; }
+.more-course-card { width: calc((100% - 22rpx) / 2); min-width: 0; }
+.more-course-cover { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; height: 210rpx; border-radius: 24rpx; background: #e7eae8; }
+.more-course-cover-0 { background: #dcefe8; color: #267348; }
+.more-course-cover-1 { background: #f8e1d5; color: #b55d3d; }
+.more-course-cover-2 { background: #e5e1f4; color: #6f62a6; }
+.more-course-cover-image { width: 100%; height: 100%; }
+.more-course-cover-mark { font-size: 34rpx; font-weight: 700; letter-spacing: 4rpx; }
+.more-course-info { display: flex; align-items: flex-start; justify-content: space-between; margin-top: 14rpx; gap: 10rpx; }
+.more-course-copy { flex: 1; min-width: 0; }
+.more-course-title,
+.more-course-subtitle { display: block; }
+.more-course-title { display: -webkit-box; overflow: hidden; color: #34423b; font-size: 25rpx; font-weight: 700; line-height: 1.4; word-break: break-all; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.more-course-subtitle { margin-top: 6rpx; color: #9aa49d; font-size: 19rpx; line-height: 1.35; }
+.more-course-price { flex: 0 0 auto; color: #2c312e; font-size: 24rpx; font-weight: 700; line-height: 1.2; }
+/* 封面右上角的小标签（首页非会员的「会员」、我的课程的「制作中 45%」）：封面是图片时也要看得清 */
+.more-course-tag { position: absolute; top: 14rpx; right: 14rpx; padding: 4rpx 14rpx; border-radius: 999rpx; background: #FFF1E6; color: #FD7C02; font-size: 20rpx; font-weight: 600; line-height: 28rpx; letter-spacing: 0; box-shadow: 0 2rpx 8rpx rgba(36, 51, 45, .12); }
+
+/* 封面底部的系列名（我的课程：诊断会议一次定制的几节课属于同一个系列，2026-10-06） */
+/* 系列名最多两行（2026-10-09 用户要求，原来一行常被截断） */
+.more-course-series { position: absolute; right: 0; bottom: 0; left: 0; display: -webkit-box; overflow: hidden; padding: 20rpx 16rpx 8rpx; background: linear-gradient(180deg, rgba(36, 51, 45, 0), rgba(36, 51, 45, .66) 40%); color: #fff; font-size: 19rpx; font-weight: 600; line-height: 1.35; word-break: break-all; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+
+.course-search { display: flex; height: 82rpx; box-sizing: border-box; align-items: center; padding: 0 22rpx; border: 0; border-radius: 26rpx; background: #FFFFFF; }
+.course-search:focus-within { border: 2rpx solid rgba(253, 124, 2, .42); background: #FFFFFF; }
+.course-search-icon { flex: 0 0 28rpx; width: 28rpx; height: 28rpx; margin-right: 14rpx; display: block; }
+.course-search-input { min-width: 0; flex: 1; height: 82rpx; color: #34423B; font-size: 25rpx; line-height: 82rpx; }
+.course-search-input::placeholder { color: #A9B2AB; }
+.course-search-clear { display: flex; flex: 0 0 40rpx; width: 40rpx; height: 40rpx; align-items: center; justify-content: center; border-radius: 50%; background: #F0F3F0; color: #8C9890; font-size: 28rpx; font-weight: 300; line-height: 1; }
+/* 骨架封面保留 styles/skeleton.wxss 的流光（上面 .more-course-cover 的底色会盖住它） */
+.more-course-cover.sk { background: linear-gradient(90deg, #ECEEEB 25%, #F5F6F4 37%, #ECEEEB 63%); background-size: 400% 100%; }
+
+/* 平板、电脑大屏（窗口宽 ≥ 450px，见 utils/screen.js）：首页、学习页都放宽到 1040px，课程竖屏三列、横屏（≥ 900px）四列。
+   首页、学习页的平板分栏会让课程区比整栏窄、列数也各自调整（见两页 wxss 末尾），所以封面按卡片自身宽度
+   保持手机上的宽高比（高 = 卡宽 × 0.64），不再按整栏宽度推算。
+   这里的 rpx 由 scripts/build-large-screen-styles.mjs 换成大屏的固定比例。 */
+@media (min-width: 450px) {
+  .more-course-card { width: calc((100% - 2 * 22rpx) / 3); }
+  .more-course-cover { height: auto; aspect-ratio: 1.5625; }
+  .more-course-cover-image { position: absolute; left: 0; top: 0; }
+}
+@media (min-width: 900px) {
+  .more-course-card { width: calc((100% - 3 * 22rpx) / 4); }
+}

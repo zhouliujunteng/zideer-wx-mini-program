@@ -1,2 +1,100 @@
-<view class="live-page"><view class="live-skeleton skeleton" wx:if="{{loading}}"></view><view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">场次详情暂时无法加载</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view><view class="state-panel" wx:elif="{{!session}}"><view class="state-panel__mark">!</view><text class="state-panel__title">该场次暂不可查看</text><text class="state-panel__copy">场次可能已取消、调整，或当前身份无权查看。</text><button class="state-panel__action pressable" bindtap="openDailyTask">查看每日学习任务</button></view><block wx:else><view class="live-head"><text class="live-eyebrow">真人陪跑</text><text class="live-title">{{session.teacherName}}</text><text class="live-status">{{session.statusLabel}}</text></view><view class="live-card surface"><text class="live-card__label">服务时间</text><text class="live-card__value">{{session.timeLabel}}</text><text class="live-card__meta">结束于 {{session.endLabel}}</text></view><view class="live-card surface"><text class="live-card__label">服务信息</text><text class="live-card__value">{{session.serviceMode === 'parallel_coaching' ? '真人陪跑' : '真人服务'}}</text><text class="live-card__meta">{{session.attendanceLabel}}</text></view><view class="live-card surface"><text class="live-card__label">会议与支持</text><text class="live-card__meta">会议入口仅在服务时间内由平台开放；课程外仍可继续自主学习。</text><button class="live-meeting-button pressable" bindtap="showMeetingState">查看会议状态</button></view><button class="live-task-link pressable" bindtap="openDailyTask">返回每日学习任务</button></block></view>
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="live-session-page">
+  <view class="live-session-stage">
+    <view class="live-session-back" style="top: {{backTop}}px; width: {{backSize}}px; height: {{backSize}}px;" bindtap="handleBack" aria-label="返回上一页" aria-role="button">
+      <view class="live-session-back-icon"></view>
+    </view>
+
+    <!-- 第一次读到场次前：老师头像、姓名与会议详情弹层只显示骨架。 -->
+    <block wx:if="{{loadState === 'loading'}}">
+      <view class="live-session-placeholder">
+        <view class="sk sk-round live-session-placeholder-avatar"></view>
+        <view class="sk live-session-placeholder-line"></view>
+        <view class="sk live-session-placeholder-role"></view>
+      </view>
+      <view class="live-session-sheet" style="top: {{sheetTopPx}}px; bottom: 0;">
+        <view class="live-session-sheet-handle"></view>
+        <view class="live-session-sk-heading"><view class="sk live-session-sk-subtitle"></view><view class="sk live-session-sk-title"></view></view>
+        <view class="sk live-session-sk-info"></view>
+        <view class="sk live-session-sk-status"></view>
+        <view class="sk live-session-sk-attendee live-session-sk-attendee-first"></view>
+        <view class="sk live-session-sk-attendee"></view>
+      </view>
+    </block>
+
+    <view class="live-session-state" wx:elif="{{loadState !== 'ready'}}">
+      <text class="live-session-state-title">{{stateTitle}}</text>
+      <text class="live-session-state-copy">{{stateCopy}}</text>
+      <view wx:if="{{loadState === 'failed'}}" class="live-session-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+      <view wx:else class="live-session-state-action" bindtap="openDailyTask" aria-role="button">查看每日学习任务</view>
+    </view>
+
+    <block wx:else>
+      <view class="live-session-identity">
+        <view class="live-session-teacher-avatar" aria-label="老师头像占位"></view>
+        <text class="live-session-teacher-name">{{model.teacher.name}}</text>
+        <text class="live-session-teacher-role">{{model.teacher.roleLabel}}</text>
+      </view>
+
+      <view class="live-session-sheet {{sheetTransition ? 'is-transitioning' : ''}}" style="top: {{sheetTopPx}}px; bottom: 0;">
+        <view class="live-session-sheet-drag" catchtouchstart="handleSheetTouchStart" catchtouchmove="handleSheetTouchMove" catchtouchend="handleSheetTouchEnd" catchtouchcancel="handleSheetTouchEnd">
+          <view class="live-session-sheet-handle" aria-label="拖动会议详情弹窗" aria-role="button"></view>
+          <view class="live-session-sheet-heading">
+            <text class="live-session-sheet-course-title">{{model.subtitle}}</text>
+            <text class="live-session-sheet-title">{{model.title}}</text>
+          </view>
+        </view>
+
+        <scroll-view class="live-session-sheet-body" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="live-session-info-card">
+          <view class="live-session-info-item">
+            <text class="live-session-info-label">会议日期</text>
+            <text class="live-session-info-value">{{model.schedule.dateLabel}}</text>
+          </view>
+          <view class="live-session-info-divider"></view>
+          <view class="live-session-info-item">
+            <text class="live-session-info-label">会议时间</text>
+            <text class="live-session-info-value">{{model.schedule.startTime}}—{{model.schedule.endTime}}</text>
+          </view>
+          <view class="live-session-info-divider"></view>
+          <view class="live-session-info-item">
+            <text class="live-session-info-label">会议时长</text>
+            <text class="live-session-info-value">{{model.schedule.durationLabel}}</text>
+          </view>
+        </view>
+
+        <view class="live-session-status-section">
+          <text class="live-session-status-heading">会议状态</text>
+          <view class="live-session-status-card" aria-label="会议状态">
+            <view class="live-session-status-content">
+              <view class="live-session-status-line">
+                <view class="live-session-status-dot live-session-status-dot-{{model.statusTone}}"></view>
+                <text class="live-session-status-label">{{model.statusLabel}}</text>
+              </view>
+              <text wx:if="{{model.showTimer}}" class="live-session-status-timer">{{model.statusTimer}}</text>
+              <text wx:else class="live-session-status-description">{{model.statusDescription}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="live-session-attendee-section">
+          <text class="live-session-attendee-heading">参会者</text>
+          <text class="live-session-attendee-count">{{model.participantCountLabel}}</text>
+          <view wx:for="{{model.participants}}" wx:for-item="participant" wx:key="id" class="live-session-attendee-card">
+            <image class="live-session-attendee-avatar live-session-attendee-avatar-image" src="{{UA.avatar(ui, participant.avatarSrc)}}" mode="aspectFill" aria-label="参会者头像"></image>
+            <text class="live-session-attendee-name">{{participant.name}}</text>
+            <text class="live-session-attendee-role">{{participant.roleLabel}}</text>
+          </view>
+        </view>
+
+          <view class="live-session-sheet-footer-space"></view>
+        </scroll-view>
+
+        <view class="live-session-primary-action">
+          <view class="live-session-primary-button {{model.meeting.canJoin ? '' : 'is-disabled'}}" bindtap="handleJoin" aria-role="button" aria-label="{{model.meeting.joinLabel}}">{{model.meeting.joinLabel}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>
 <dev-reset-fab />

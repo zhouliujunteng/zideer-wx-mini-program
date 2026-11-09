@@ -1,0 +1,98 @@
+/* 成就卡卡背（抽卡浮层、碎片商店共用，2026-10-13 照用户录屏）：深色底、细线内框、顶部卡扣、横线与小图标。
+   .cr-back 在抽卡浮层里是翻到背面的那一面，自带 rotateY(180deg)；平放显示时再加 .cb-flat。 */
+
+.cr-back {
+  background: #3E0B12;
+  transform: rotateY(180deg);
+}
+
+.cb-frame {
+  position: absolute;
+  inset: 22rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18rpx;
+  border: 3rpx solid rgba(255, 214, 214, 0.55);
+  border-radius: 18rpx;
+}
+
+.cb-tab {
+  position: absolute;
+  top: -3rpx;
+  left: 50%;
+  width: 96rpx;
+  height: 30rpx;
+  margin-left: -48rpx;
+  box-sizing: border-box;
+  border: 3rpx solid rgba(255, 214, 214, 0.55);
+  border-top: none;
+  border-radius: 0 0 10rpx 10rpx;
+  background: #3E0B12;
+}
+
+.cb-line {
+  height: 0;
+  border-top: 3rpx solid rgba(255, 214, 214, 0.55);
+}
+
+.cb-line-long {
+  width: 74%;
+}
+
+.cb-line-short {
+  width: 30%;
+  height: 10rpx;
+  border: 3rpx solid rgba(255, 214, 214, 0.55);
+  border-radius: 3rpx;
+  margin-top: -6rpx;
+}
+
+.cb-icon {
+  position: relative;
+  width: 30rpx;
+  height: 30rpx;
+  border: 3rpx solid rgba(255, 214, 214, 0.6);
+  box-sizing: border-box;
+}
+
+/* 一本打开的书 */
+.cb-icon-book {
+  width: 36rpx;
+  height: 26rpx;
+  border-radius: 3rpx 3rpx 6rpx 6rpx;
+}
+
+.cb-icon-book::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  border-left: 3rpx solid rgba(255, 214, 214, 0.6);
+}
+
+/* 一颗星（转 45° 的小方块 + 圆点） */
+.cb-icon-star {
+  width: 22rpx;
+  height: 22rpx;
+  border-radius: 4rpx;
+  transform: rotate(45deg);
+}
+
+.cb-icon-star::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6rpx;
+  height: 6rpx;
+  margin: -3rpx 0 0 -3rpx;
+  border-radius: 50%;
+  background: rgba(255, 214, 214, 0.7);
+}
+
+.cb-flat {
+  transform: none;
+}

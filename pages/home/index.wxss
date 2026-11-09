@@ -1,3 +1,5 @@
+@import "../../styles/skeleton.wxss";
+@import "../../styles/course-grid.wxss";
 /* 首页样式取自 UI 设计仓库 JiahaoTang-Alvin/zhilu-miniprogram 提交 d9627f0 的 pages/home/index.wxss，
    只保留新首页实际用到的规则（输入区、底部浮层等已删除功能的样式未搬入）。
    分类标签、活动轮播、占位入口没有真实数据，未移植。 */
@@ -8,23 +10,8 @@ page { background: #FAFAFA; }
 .topbar-solid::after { position: absolute; right: 0; bottom: 0; left: 0; height: 1rpx; background: #e5e8e5; content: ''; pointer-events: none; }
 .topbar-inner { display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 16rpx; }
 .brand-logo { display: block; width: 176rpx; height: 60rpx; }
-.notice-button { position: fixed; z-index: 21; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: 1rpx solid #e7ebe6; border-radius: 50%; background: #fff; box-shadow: none; }
-.message-icon { display: block; width: 34rpx; height: 34rpx; }
-.notice-badge { position: absolute; top: -8rpx; right: -8rpx; min-width: 27rpx; height: 27rpx; padding: 0 6rpx; box-sizing: border-box; border: 3rpx solid #FAFAFA; border-radius: 999rpx; background: #FD5A5F; color: #fff; font-size: 17rpx; line-height: 21rpx; text-align: center; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; }
 .section-title { color: #24332d; font-size: 30rpx; font-weight: 700; }
-.task-all-link { display: flex; align-items: center; color: #8b958e; font-size: 23rpx; }
-.task-all-icon { display: block; flex: 0 0 13rpx; width: 13rpx; height: 13rpx; margin-left: 12rpx; box-sizing: border-box; border-top: 2rpx solid #a6afa9; border-right: 2rpx solid #a6afa9; transform: rotate(45deg); }
-.more-courses-grid { display: flex; flex-wrap: wrap; margin-top: 28rpx; gap: 36rpx 22rpx; }
-.more-course-card { width: calc((100% - 22rpx) / 2); min-width: 0; }
-.more-course-cover { height: 210rpx; border-radius: 24rpx; background: #e7eae8; }
-.more-course-info { display: flex; align-items: flex-start; justify-content: space-between; margin-top: 14rpx; gap: 10rpx; }
-.more-course-copy { flex: 1; min-width: 0; }
-.more-course-title,
-.more-course-subtitle { display: block; }
-.more-course-title { overflow: hidden; color: #34423b; font-size: 25rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-.more-course-subtitle { margin-top: 6rpx; color: #9aa49d; font-size: 19rpx; line-height: 1.35; }
-.more-course-price { flex: 0 0 auto; color: #2c312e; font-size: 24rpx; font-weight: 700; line-height: 1.2; }
 .learning-tool-icon { display: flex; align-items: center; justify-content: center; width: 72rpx; height: 72rpx; border: 1rpx solid #edf0ed; border-radius: 21rpx; background: #fff; color: #435048; font-size: 30rpx; line-height: 1; box-shadow: 0 4rpx 12rpx rgba(36, 51, 45, .03); transition: transform .16s ease; }
 .learning-tool-icon-blue { color: #4ea9e8; background: #f2f9fd; }
 .learning-tool-icon-green { color: #73ae7d; background: #f3faf3; }
@@ -63,10 +50,59 @@ page { background: #FAFAFA; }
 .home-flat-course-grid { padding-bottom: 30rpx; }
 
 /* 以下为正式小程序补充：设计稿按价格展示课程，真实课程库没有价格，改为「会员」标签与空状态。 */
-.more-course-tag { flex-shrink: 0; padding: 4rpx 12rpx; border-radius: 999rpx; background: #FFF1E6; color: #FD7C02; font-size: 20rpx; line-height: 28rpx; }
 .home-course-empty { display: flex; align-items: center; justify-content: space-between; margin-top: 24rpx; padding: 32rpx; border-radius: 24rpx; background: #FFFFFF; }
 .home-course-empty-copy { display: flex; flex-direction: column; }
 .home-course-empty-title { color: #24332D; font-size: 28rpx; font-weight: 600; line-height: 40rpx; }
 .home-course-empty-subtitle { margin-top: 8rpx; color: #8A948F; font-size: 24rpx; line-height: 34rpx; }
 .home-course-empty-action { flex-shrink: 0; color: #FD7C02; font-size: 24rpx; }
 .home-flat-safe-space { height: calc(160rpx + env(safe-area-inset-bottom)); }
+.home-course-skeleton-copy { flex: 1; }
+.home-course-skeleton-sub { height: 22rpx; margin-top: 12rpx; }
+
+/* 平板、电脑大屏（窗口宽 ≥ 450px，见 utils/screen.js）：首页放宽到 1040px（LARGE_SCREEN_WIDE_COLUMN），
+   会员课程的三列、四列在 styles/course-grid.wxss。 */
+@media (min-width: 450px) {
+  page { --lg-col: 1040px; }
+}
+
+
+
+@media (min-width:450px) {
+.home-priority-tool { min-height:90px; border-radius:16px; }
+.home-priority-tool-label {font-size:16px;}
+.home-priority-tool-hint {font-size:11px;}
+.home-secondary-swiper,.home-secondary-tools { height:70px; }
+.home-secondary-swiper { margin-top:20px; }
+.home-secondary-tool .learning-tool-icon { width:38px; height:38px; }
+.score-tool-icon-image-small { width:38px; height:38px; }
+.home-secondary-tool .learning-tool-label { font-size:12px; margin-top:6px; }
+.home-flat-course-section { padding-top:22px; }
+.more-courses-grid { gap:22px 13px; }
+}
+@media (min-width:680px) {
+.home-flat-content { display:grid; grid-template-columns:210px minmax(0,1fr); gap:24px; align-items:start; }
+.tablet-tools-panel { margin-top:14px; padding:16px; box-sizing:border-box; background:#fff; border-radius:20px; }
+.home-priority-tools { grid-template-columns:minmax(0,1fr); margin-top:0; gap:12px; }
+.home-priority-tool { min-height:90px; }
+.home-secondary-swiper,.home-secondary-tools { height:144px; }
+.home-secondary-tools { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.home-flat-course-section { padding-top:14px; }
+.more-course-card { width:calc((100% - 13px)/2); }
+.home-flat-safe-space { grid-column:1/-1; }
+}
+@media (min-width:1000px) { .more-course-card { width:calc((100% - 26px)/3); } }
+
+/* 物理实验室入口（2026-10-08）：照 .home-priority-tool 的版式——渐变底、白字、两道斜光条、右下角倾斜拟物图标（与提分工具图标同尺寸同角度） */
+.home-lab-entry { position: relative; min-height: 150rpx; margin-top: 18rpx; padding: 28rpx 26rpx; overflow: hidden; border-radius: 28rpx; box-sizing: border-box; background: linear-gradient(to bottom right, #4FA68C 0%, #6FC2A4 52%, #A6E0C6 100%); }
+.home-lab-entry:active { opacity: .88; }
+.home-lab-entry::before,
+.home-lab-entry::after { position: absolute; display: block; content: ''; border-radius: 999rpx; background: rgba(255, 255, 255, .16); pointer-events: none; }
+.home-lab-entry::before { top: 30rpx; right: -40rpx; width: 360rpx; height: 14rpx; transform: rotate(-12deg); }
+.home-lab-entry::after { right: 60rpx; bottom: 30rpx; width: 260rpx; height: 10rpx; opacity: .72; transform: rotate(-12deg); }
+.home-lab-copy { position: relative; z-index: 1; display: flex; width: 72%; flex-direction: column; }
+.home-lab-title { color: #fff; font-size: 30rpx; font-weight: 700; line-height: 1.25; letter-spacing: -1rpx; }
+.home-lab-hint { margin-top: 8rpx; color: rgba(255, 255, 255, .9); font-size: 20rpx; font-weight: 600; line-height: 1.35; }
+.home-lab-icon { position: absolute; right: 8rpx; bottom: -38rpx; z-index: 2; display: flex; align-items: center; justify-content: center; width: 146rpx; height: 146rpx; transform: rotate(-11deg); transform-origin: center; }
+.home-lab-icon-image { width: 166rpx; height: 166rpx; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

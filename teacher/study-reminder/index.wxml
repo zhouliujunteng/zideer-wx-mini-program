@@ -1,0 +1,76 @@
+<!-- 老师工作台「没完成任务」→ 学生：没学完的任务已带到今天，AI 写一段提醒学生的话，老师复制后在微信里发给学生（2026-10-09） -->
+<view class="sr-root">
+  <view class="sr-ambient" aria-hidden="true"></view>
+  <view class="sr-topbar">
+    <view class="sr-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="sr-back" bindtap="handleBack" aria-label="返回上一页" aria-role="button"><view class="sr-back-icon"></view></view>
+      <text class="sr-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">提醒学习</text>
+    </view>
+  </view>
+
+  <scroll-view class="sr-page" scroll-y show-scrollbar="false" enhanced="{{true}}" style="padding-top: {{contentTop}}px;" refresher-enabled="{{true}}" refresher-default-style="white" refresher-background="transparent" refresher-triggered="{{refreshing}}" bindrefresherrefresh="handleRefresh">
+    <view class="sr-hero">
+      <text class="sr-hero-name">{{studentName ? studentName + '的学习任务' : '学习任务'}}</text>
+      <text wx:if="{{loadState === 'ready'}}" class="sr-hero-meta">{{summaryText}}</text>
+      <view wx:elif="{{loadState === 'loading'}}" class="sk sr-hero-meta-sk"></view>
+    </view>
+
+    <view class="sr-panel">
+      <view wx:if="{{loadState === 'failed'}}" class="card empty-card">
+        <text class="empty-title">没完成的任务暂时没有读到</text>
+        <text class="empty-copy">{{loadError}}</text>
+        <view class="empty-retry" bindtap="load" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:elif="{{loadState === 'loading'}}">
+        <view class="section-heading"><text>没学完的任务</text></view>
+        <view wx:for="{{[1, 2]}}" wx:key="*this" class="card task-card">
+          <view class="sk sk-line sk-mid"></view>
+          <view class="sk sk-line sk-short task-sk"></view>
+        </view>
+        <view class="section-heading section-gap"><text>发给学生的话</text></view>
+        <view class="card note-card"><view class="sk sk-line"></view><view class="sk sk-line"></view><view class="sk sk-line sk-mid"></view></view>
+      </block>
+
+      <block wx:else>
+        <view wx:if="{{!missed.length}}" class="card empty-card">
+          <text class="empty-title">没有没学完的任务了</text>
+          <text class="empty-copy">学生已经把前几天的任务补上了，或者老师重新排课后这些内容排到了以后。</text>
+          <view class="empty-retry" bindtap="openPlan" aria-role="button">看学习安排</view>
+        </view>
+        <block wx:else>
+          <view class="section-heading"><text>没学完的任务</text><text class="section-caption">{{missed.length}} 项</text></view>
+          <view wx:for="{{missed}}" wx:key="key" class="card task-card">
+            <view class="task-heading">
+              <text class="task-title">{{item.title}}</text>
+              <text class="task-day">原定{{item.dayText}}</text>
+            </view>
+            <text class="task-meta">{{item.meta}}</text>
+          </view>
+          <view class="notice">{{carryText}}</view>
+
+          <view class="section-heading section-gap">
+            <text>发给学生的话</text>
+            <view wx:if="{{note && !writing}}" class="heading-action" bindtap="regenerate" aria-role="button">重新生成</view>
+          </view>
+          <view wx:if="{{writing}}" class="card note-card" aria-label="正在写提醒学生的话">
+            <view class="sk sk-line"></view><view class="sk sk-line"></view><view class="sk sk-line sk-mid"></view>
+            <text class="note-meta">正在按没学完的任务写，十几秒左右…</text>
+          </view>
+          <view wx:elif="{{note}}" class="card note-card" bindtap="copyNote" aria-role="button" aria-label="复制提醒学生的话">
+            <text class="note-text" user-select="{{true}}">{{note.text}}</text>
+            <text class="note-meta">{{note.meta}}</text>
+          </view>
+          <view wx:else class="card empty-card">
+            <text class="empty-copy">{{writeError || '还没有生成提醒的话。'}}</text>
+            <view class="empty-retry" bindtap="regenerate" aria-role="button">生成</view>
+          </view>
+          <view wx:if="{{note && !writing}}" class="primary-button" bindtap="copyNote" aria-role="button">复制，发给学生</view>
+          <text class="section-note">复制后在微信里单独发给学生；学生补完了，这里就不再出现。</text>
+          <view class="link-row" bindtap="openPlan" aria-role="button">调整学习安排</view>
+        </block>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

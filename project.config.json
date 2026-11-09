@@ -1,5 +1,5 @@
 {
-  "description": "知鹿私课本地开发配置",
+  "description": "知鹿学习本地开发配置",
   "packOptions": {
     "ignore": [
       { "type": "folder", "value": "tests" },

@@ -1,16 +1,62 @@
 <wxs module="UA" src="../../utils/ui-asset.wxs" />
-<view class="library-page">
-  <input class="library-search" placeholder="搜索课程、学科或年级" value="{{search}}" bindinput="searchCourses" maxlength="100" />
-  <view wx:if="{{loading}}" class="library-state">正在读取课程</view>
-  <view wx:elif="{{error}}" class="library-state">
-    <text>{{error}}</text><button wx:if="{{membershipRequired}}" class="library-retry" bindtap="openMembership">进入会员中心</button><button wx:else class="library-retry" bindtap="loadCourses">重新加载</button>
-  </view>
-  <view wx:elif="{{!visibleCourses.length}}" class="library-state">{{search ? '没有找到匹配的课程' : '暂无已发布课程'}}</view>
-  <view wx:else class="library-list">
-    <view wx:for="{{visibleCourses}}" wx:key="id" class="library-course" bindtap="openCourse" data-id="{{item.id}}" role="button" aria-label="{{item.title}}">
-      <view class="library-course-main"><text class="library-course-meta">{{item.grade}} · {{item.subject}}</text><text class="library-course-title">{{item.title}}</text></view>
-      <image class="library-course-icon" src="{{UA.src(ui, '/assets/tabbar/learning.png')}}" mode="aspectFit"></image>
+<!-- 会员课程全部页：按设计稿 ui-ref/package-commerce/pages/courses 实现，数据来自课程服务课程库。
+     带 scope=mine 进来时是「我的课程库」：同一套版式，只列学生自己的课程（定制课程 + 学习计划课程）。 -->
+<view class="member-courses-page">
+  <view class="member-courses-topbar">
+    <view class="member-courses-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="member-courses-back" bindtap="handleBack" role="button" aria-label="返回">
+        <view class="member-courses-back-icon"></view>
+      </view>
+      <text class="member-courses-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{pageTitle}}</text>
     </view>
   </view>
+
+  <view class="member-courses-search-region {{isSearchHidden ? 'is-hidden' : ''}}" style="top: {{searchRegionTop}}px; height: {{searchRegionHeight}}px;">
+    <view class="course-search">
+      <image class="course-search-icon" src="{{UA.src(ui, '/assets/course-library/search.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+      <input class="course-search-input" value="{{search}}" placeholder="搜索课程" confirm-type="search" maxlength="100" bindinput="searchCourses" bindconfirm="searchCourses" />
+      <view wx:if="{{search}}" class="course-search-clear" bindtap="clearSearch" role="button" aria-label="清除搜索">×</view>
+    </view>
+  </view>
+
+  <scroll-view class="member-courses-scroll" scroll-y="true" show-scrollbar="false" bindscroll="handleScroll">
+    <view class="member-courses-shell" style="padding-top: {{contentTop}}px;">
+      <!-- 我的课程库：按定制系列分别查看（2026-10-06）。只有单节课时没有这一条。 -->
+      <scroll-view wx:if="{{mine && !loading && !error && seriesTabs.length}}" class="series-tabs" scroll-x="true" show-scrollbar="false" enhanced="true">
+        <view class="series-tab-list" role="tablist" aria-label="按系列查看">
+          <view wx:for="{{seriesTabs}}" wx:key="id" class="series-tab {{item.active ? 'is-active' : ''}}" data-id="{{item.id}}" bindtap="selectSeries" role="tab" aria-selected="{{item.active}}"><text class="series-tab-label">{{item.label}}</text><text class="series-tab-count">{{item.count}}</text></view>
+        </view>
+      </scroll-view>
+      <view wx:if="{{loading}}" class="member-courses-grid">
+        <view wx:for="{{[0, 1, 2, 3, 4, 5]}}" wx:key="*this" class="member-course-card">
+          <view class="sk member-course-sk-cover"></view>
+          <view class="member-course-info"><view class="sk sk-line"></view><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short"></view></view>
+        </view>
+      </view>
+      <view wx:elif="{{error}}" class="member-courses-empty">
+        <text class="member-courses-empty-title">{{error}}</text>
+        <!-- 支付开关关着时不显示「进入会员中心」 -->
+        <view wx:if="{{membershipRequired && paymentOpen}}" class="member-courses-action" bindtap="openMembership" role="button">进入会员中心</view>
+        <view wx:elif="{{!membershipRequired}}" class="member-courses-action" bindtap="loadCourses" role="button">重新加载</view>
+      </view>
+      <view wx:elif="{{visibleCourses.length}}" class="member-courses-grid">
+        <view wx:for="{{visibleCourses}}" wx:key="id" class="member-course-card" data-id="{{item.id}}" bindtap="openCourse" role="button" aria-label="{{item.title}}">
+          <view class="member-course-cover member-course-cover-{{item.tone}}">
+            <image wx:if="{{item.coverUrl}}" class="member-course-cover-image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load="true"></image>
+          </view>
+          <view class="member-course-info">
+            <text class="member-course-name">{{item.title}}</text>
+            <text class="member-course-subtitle">{{item.subtitle}}</text>
+            <text class="member-course-price">{{item.priceLabel}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="member-courses-empty">
+        <image class="member-courses-empty-icon" src="{{UA.src(ui, '/assets/course-library/search.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+        <text class="member-courses-empty-title">{{search ? '没有找到相关课程' : mine && seriesFilter !== 'all' ? '这个系列里没有课程' : mine ? '还没有自己的课程' : '课程正在上架'}}</text>
+        <text class="member-courses-empty-subtitle">{{search ? '换个关键词试试' : mine ? '和定制老师聊完、确认方案后，课程会出现在这里' : '已发布的会员课程会出现在这里'}}</text>
+      </view>
+    </view>
+  </scroll-view>
 </view>
 <dev-reset-fab />

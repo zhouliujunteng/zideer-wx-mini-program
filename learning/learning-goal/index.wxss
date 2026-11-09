@@ -1,0 +1,12 @@
+@import "../../styles/skeleton.wxss";
+@import "../../styles/learning-plan-form.wxss";
+/* 本页特有：完成时间一行 */
+.goal-clear { flex: none; color: #FD7C02; font-size: 12px; }
+.goal-date { display: flex; align-items: center; gap: 10px; margin-top: 14px; min-height: 46px; padding: 0 14px; box-sizing: border-box; border-radius: 14px; background: #F6F7F5; }
+.goal-date.is-set { background: #FFF0E2; }
+.goal-date-value { flex: 1; min-width: 0; color: #AAB2AC; font-size: 13px; }
+.goal-date.is-set .goal-date-value { color: #34423A; font-weight: 650; }
+.goal-date-left { flex: none; color: #FD7C02; font-size: 12px; font-weight: 600; }
+.goal-date-chevron { flex: none; width: 7px; height: 7px; border-top: 1.5px solid #AFB8B1; border-right: 1.5px solid #AFB8B1; transform: rotate(45deg); }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

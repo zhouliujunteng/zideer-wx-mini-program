@@ -1,0 +1,86 @@
+<!-- 成就卡（学习页集卡，2026-10-13）：按系列三列网格，没拿到的淡出，卡下「点亮等级 / 总等级」，有抽卡机会右上角红点；
+     点卡片从原位置翻转飞出详情浮层（components/card-reveal）。 -->
+<view class="ac-page">
+  <view class="ac-topbar" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+    <view class="ac-round-button" style="width: {{buttonSize}}px; height: {{buttonSize}}px;" bindtap="handleBack" role="button" aria-label="返回"><view class="ac-back-icon"></view></view>
+    <text class="ac-topbar-title">成就卡</text>
+    <view class="ac-round-button ac-help" style="width: {{buttonSize}}px; height: {{buttonSize}}px; margin-right: {{helpRight}}px;" bindtap="toggleRules" role="button" aria-label="集卡规则">?</view>
+  </view>
+
+  <scroll-view class="ac-scroll" scroll-y style="padding-top: {{contentTop}}px;">
+    <view class="ac-shell">
+      <view wx:if="{{!loaded && !loadFailed}}" aria-hidden="true">
+        <view class="sk sk-line sk-mid ac-sk-summary"></view>
+        <view class="ac-section-head"><view class="sk sk-line sk-short"></view></view>
+        <view class="ac-grid">
+          <view wx:for="{{[0, 1, 2, 3, 4, 5]}}" wx:key="*this" class="ac-cell"><view class="sk ac-sk-card"></view><view class="sk sk-line sk-short ac-sk-count"></view></view>
+        </view>
+      </view>
+      <view wx:elif="{{!loaded}}" class="ac-state">
+        <text class="ac-state-title">成就卡暂时读不到</text>
+        <text class="ac-state-copy">{{loadError}}</text>
+        <view class="ac-state-action" bindtap="reload" role="button">重新加载</view>
+      </view>
+      <view wx:elif="{{!model.series.length}}" class="ac-state">
+        <text class="ac-state-title">成就卡还在准备中</text>
+        <text class="ac-state-copy">老师们正在设计卡片，过几天再来看看</text>
+      </view>
+      <block wx:else>
+        <view class="ac-summary">
+          <view class="ac-summary-main">
+            <text>已点亮 <text class="ac-summary-num">{{model.ownedLevels}}</text> / {{model.totalLevels}}</text>
+            <text wx:if="{{model.bonusDraws}}" class="ac-summary-bonus">通用次数 {{model.bonusDraws}}</text>
+          </view>
+          <view class="ac-fragment-chip" bindtap="openShop" role="button" aria-label="碎片商店">
+            <view class="ac-gem"></view>
+            <text class="ac-fragment-count">{{model.fragments}}</text>
+            <text class="ac-fragment-label">碎片商店</text>
+            <text class="ac-chevron">›</text>
+          </view>
+        </view>
+        <view wx:for="{{model.series}}" wx:for-item="series" wx:key="id" class="ac-series">
+          <view class="ac-section-head">
+            <text class="ac-section-title">{{series.title}}</text>
+            <view class="ac-section-line"></view>
+            <view class="ac-series-draw {{series.drawsTotal ? '' : 'ac-series-draw-off'}}" data-id="{{series.id}}" bindtap="drawSeries" role="button">
+              <text>抽卡</text><text wx:if="{{series.drawsTotal}}" class="ac-series-draw-count">×{{series.drawsTotal}}</text>
+            </view>
+          </view>
+          <view wx:if="{{series.task}}" class="ac-series-task">
+            <text class="ac-series-task-text">{{series.task.text}}</text>
+            <text wx:if="{{series.task.dailyCap}}" class="ac-series-task-today">今天已得 {{series.task.earnedToday}}/{{series.task.dailyCap}}</text>
+          </view>
+          <text wx:if="{{series.subtitle}}" class="ac-section-subtitle">{{series.subtitle}}</text>
+          <view class="ac-grid">
+            <view wx:for="{{series.cards}}" wx:for-item="card" wx:key="id" class="ac-cell" id="ac-card-{{card.id}}" data-id="{{card.id}}" data-series="{{series.id}}" bindtap="openCard">
+              <view class="ac-card {{openId === card.id ? 'ac-card-away' : ''}}" style="--ac-color: {{card.color}};">
+                <view class="ac-face {{card.ownedLevels ? '' : 'ac-face-dim'}}">
+                  <text class="ac-face-tag">{{card.title}}</text>
+                  <view class="ac-face-art">
+                    <image wx:if="{{card.cover}}" class="ac-face-image" src="{{card.cover}}" mode="aspectFill" lazy-load></image>
+                    <view wx:else class="ac-face-placeholder"><text class="ac-face-placeholder-title">{{card.title}}</text><text class="ac-face-placeholder-no">#{{card.coverNo}}</text></view>
+                  </view>
+                </view>
+              </view>
+              <text class="ac-count">{{card.ownedLevels}}/{{card.totalLevels}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{showRules}}" class="ac-rules-mask" bindtap="toggleRules">
+    <view class="ac-rules" catchtap="noop">
+      <text class="ac-rules-title">怎么集卡</text>
+      <text class="ac-rules-line">每个系列对应一种学习任务，比如复习系列看复习：每完成 1 次，这个系列就多抽卡次数。</text>
+      <text class="ac-rules-line">抽卡在整个系列里抽，每次一定出一张。越稀有的卡越难抽到，但任务做得越多，它的抽中概率就越高。</text>
+      <text class="ac-rules-line">抽到已经有的那一张，会变成碎片；碎片攒够了，可以在碎片商店换抽卡次数，任何系列都能用。</text>
+      <view class="ac-rules-ok" bindtap="toggleRules" role="button">知道了</view>
+    </view>
+  </view>
+
+  <card-reveal wx:if="{{openSeries}}" card="{{openCard}}" series="{{openSeries}}" mode="{{openMode}}" origin="{{openOrigin}}" start-level-id="{{openLevelId}}"
+    bind:close="handleRevealClose" bind:drawn="handleDrawn" bind:stale="reload" />
+<dev-reset-fab />
+</view>

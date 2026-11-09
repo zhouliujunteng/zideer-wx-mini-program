@@ -1,0 +1,60 @@
+/* 结算明细：样式取自设计仓库 b5dda68 的 package-promotion/pages/settlement-records，
+   另加加载态与失败态（与推广伙伴工作台一致）。 */
+@import "../../styles/skeleton.wxss";
+
+page { background: #FAFAFA; }
+
+.settlement-records-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.settlement-records-topbar { position: fixed; top: 0; right: 0; left: 0; z-index: 20; box-sizing: border-box; background: #FAFAFA; }
+.settlement-records-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 8rpx; }
+.settlement-records-back { display: flex; width: 44rpx; height: 44rpx; align-items: center; justify-content: center; }
+.settlement-records-back:active { opacity: .65; }
+.settlement-records-back-icon { width: 20rpx; height: 20rpx; border-bottom: 3rpx solid #24332D; border-left: 3rpx solid #24332D; transform: rotate(45deg) scale(.72); }
+.settlement-records-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.settlement-records-scroll { position: absolute; top: 0; right: 0; bottom: 0; left: 0; box-sizing: border-box; background: transparent; }
+.settlement-records-shell { min-height: 100%; padding: 0 32rpx 32rpx; box-sizing: border-box; }
+
+/* 骨架：与明细列表卡同样的内边距，月份行 + 记录行（标题、日期、金额） */
+.settlement-records-sk-card { padding: 8rpx 24rpx; box-sizing: border-box; border-radius: 0 0 40rpx 40rpx; background: #FFFFFF; }
+.settlement-records-sk-month { width: 110rpx; height: 18rpx; margin: 18rpx 4rpx 6rpx; }
+.settlement-records-sk-date { height: 18rpx; }
+.settlement-records-sk-amount { flex: 0 0 auto; width: 96rpx; height: 26rpx; margin-left: 16rpx; }
+.settlement-records-state { padding: 120rpx 24rpx 40rpx; text-align: center; }
+.settlement-records-state-title { display: block; color: #24332D; font-size: 32rpx; font-weight: 600; }
+.settlement-records-state-copy { display: block; margin: 22rpx 0 32rpx; color: #7D877F; font-size: 25rpx; line-height: 1.6; }
+.settlement-records-state-action { display: inline-flex; height: 76rpx; align-items: center; padding: 0 44rpx; border-radius: 20rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; }
+.settlement-records-state-action:active { opacity: .78; }
+
+.settlement-records-tabs { display: flex; width: 100%; height: 76rpx; align-items: flex-end; border-radius: 26rpx 26rpx 0 0; background: #EEF1EF; overflow: visible; }
+.settlement-records-tab { position: relative; display: flex; height: 76rpx; flex: 1; align-items: center; justify-content: center; color: #89948D; font-size: 23rpx; line-height: 1; text-align: center; }
+.settlement-records-tab.is-selected { z-index: 2; border-radius: 26rpx 26rpx 0 0; background: #FFFFFF; color: #4A514C; font-weight: 650; }
+/* 选中标签底部用遮罩补齐外侧圆角，与金币页、我的推广保持一致。 */
+.settlement-records-tab.is-selected::before, .settlement-records-tab.is-selected::after { position: absolute; bottom: 0; width: 32rpx; height: 32rpx; background: inherit; content: ''; pointer-events: none; -webkit-mask-image: radial-gradient(100% 100% at center, transparent 49%, #000 51%); mask-image: radial-gradient(100% 100% at center, transparent 49%, #000 51%); -webkit-mask-size: 200% 200%; mask-size: 200% 200%; }
+.settlement-records-tab.is-selected::before { left: -32rpx; -webkit-mask-position: 100% 100%; mask-position: 100% 100%; }
+.settlement-records-tab.is-selected::after { right: -32rpx; -webkit-mask-position: 0 100%; mask-position: 0 100%; }
+.settlement-records-tab:first-child.is-selected::before { display: none; }
+.settlement-records-tab:last-child.is-selected::after { display: none; }
+
+.settlement-records-module { margin-top: 20rpx; overflow: hidden; border-radius: 40rpx; background: #FFFFFF; }
+.settlement-records-list-card { padding: 8rpx 24rpx; box-sizing: border-box; border-radius: 0 0 40rpx 40rpx; background: #FFFFFF; }
+.settlement-record-group { display: block; }
+.settlement-record-month { display: flex; align-items: center; justify-content: flex-start; padding: 18rpx 4rpx 6rpx; color: #A1AAA4; font-size: 18rpx; line-height: 1; text-align: left; }
+.settlement-record-item { display: flex; min-height: 146rpx; margin: 0; padding: 0; box-sizing: border-box; }
+.settlement-record-copy { display: flex; min-width: 0; flex: 1; align-items: center; box-sizing: border-box; padding: 30rpx 0 24rpx; border-bottom: 2rpx solid #F0F3F0; }
+.settlement-record-item:last-child .settlement-record-copy { border-bottom: 0; }
+.settlement-record-title-row { display: flex; min-width: 0; flex: 1; align-items: center; justify-content: space-between; }
+.settlement-record-left { min-width: 0; flex: 1; }
+.settlement-record-title { display: block; min-width: 0; overflow: hidden; color: #35433B; font-size: 24rpx; font-weight: 600; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.settlement-record-date { display: block; margin-top: 9rpx; color: #A0AAA3; font-size: 17rpx; line-height: 1; white-space: nowrap; }
+.settlement-record-amount { flex: 0 0 auto; align-self: center; margin-left: 16rpx; color: #E2843B; font-size: 25rpx; font-weight: 600; line-height: 1; white-space: nowrap; }
+.settlement-record-amount.recovering, .settlement-record-amount.reversed { color: #24332D; }
+.settlement-records-empty { display: flex; min-height: 280rpx; align-items: center; justify-content: center; flex-direction: column; color: #8C9991; }
+.settlement-records-empty text:first-child { color: #4E6157; font-size: 26rpx; font-weight: 650; }
+.settlement-records-empty text:last-child { margin-top: 12rpx; font-size: 19rpx; }
+
+@media (max-width: 350px) {
+  .settlement-records-shell { padding-right: 28rpx; padding-left: 28rpx; }
+  .settlement-records-tab { font-size: 21rpx; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

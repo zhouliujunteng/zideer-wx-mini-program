@@ -1,11 +1,243 @@
-.library-page { padding: 32rpx; color: #252b25; }
-.library-search { box-sizing: border-box; width: 100%; height: 88rpx; padding: 0 24rpx; border: 1px solid #d8dedb; border-radius: 12rpx; background: #fff; font-size: 28rpx; }
-.library-state { padding: 80rpx 16rpx; text-align: center; font-size: 28rpx; color: #626a66; line-height: 1.7; }
-.library-state text { display: block; }
-.library-retry { margin-top: 32rpx; font-size: 28rpx; background: #267348; color: #fff; border-radius: 12rpx; }
-.library-list { margin-top: 24rpx; }
-.library-course { display: flex; align-items: center; gap: 24rpx; min-height: 144rpx; padding: 24rpx; margin-bottom: 20rpx; background: #fff; border: 1px solid #e2e6e3; border-radius: 12rpx; box-sizing: border-box; }
-.library-course-main { flex: 1; min-width: 0; }
-.library-course-meta { display: block; margin-bottom: 12rpx; font-size: 24rpx; color: #626a66; }
-.library-course-title { display: block; font-size: 32rpx; line-height: 1.5; word-break: break-all; }
-.library-course-icon { width: 44rpx; height: 44rpx; flex-shrink: 0; }
+@import "../../styles/skeleton.wxss";
+@import "../../styles/course-grid.wxss";
+page {
+  background: #FAFAFA;
+}
+
+.member-courses-page {
+  height: 100vh;
+  overflow: hidden;
+  background: #FAFAFA;
+  color: #24332D;
+}
+
+.member-courses-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  width: 100%;
+  box-sizing: border-box;
+  background: #FAFAFA;
+}
+
+.member-courses-topbar-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: content-box;
+  padding: 0 36rpx 16rpx;
+}
+
+.member-courses-topbar-title {
+  position: absolute;
+  left: 50%;
+  display: block;
+  overflow: hidden;
+  color: #24332D;
+  font-size: 36rpx;
+  font-weight: 700;
+  letter-spacing: -1rpx;
+  text-align: center;
+  text-overflow: ellipsis;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.member-courses-back {
+  display: flex;
+  flex: 0 0 auto;
+  width: 44rpx;
+  height: 44rpx;
+  margin-right: 10rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.member-courses-back:active {
+  background: rgba(36, 51, 45, .06);
+}
+
+.member-courses-back-icon {
+  width: 20rpx;
+  height: 20rpx;
+  box-sizing: border-box;
+  border-bottom: 3rpx solid #425148;
+  border-left: 3rpx solid #425148;
+  transform: rotate(45deg) scale(.72);
+}
+
+.member-courses-scroll {
+  width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.member-courses-shell {
+  min-height: 100%;
+  padding: 8rpx 36rpx calc(180rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.member-courses-search-region {
+  position: fixed;
+  z-index: 15;
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #FAFAFA;
+  transition: transform .36s cubic-bezier(.22, .8, .24, 1), opacity .36s cubic-bezier(.22, .8, .24, 1);
+  will-change: transform, opacity;
+}
+
+.member-courses-search-region.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(-100% - 16rpx));
+}
+
+/* 搜索框本体在 styles/course-grid.wxss（与学习页「我的课程」共用），这里只放它在固定搜索区里的位置 */
+.member-courses-search-region .course-search {
+  margin: 28rpx 36rpx 18rpx;
+}
+
+/* 我的课程库：按定制系列分别查看（横向滚动的胶囊） */
+.series-tabs { width: 100%; margin-top: 8rpx; white-space: nowrap; }
+.series-tab-list { display: inline-flex; padding: 4rpx 0; gap: 14rpx; }
+.series-tab { display: inline-flex; flex: 0 0 auto; align-items: center; max-width: 360rpx; height: 58rpx; padding: 0 24rpx; box-sizing: border-box; border-radius: 999rpx; background: #fff; color: #7E8882; font-size: 23rpx; }
+.series-tab.is-active { background: #FFF1E6; color: #FD7C02; font-weight: 600; }
+.series-tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.series-tab-count { flex: 0 0 auto; margin-left: 8rpx; font-size: 21rpx; opacity: .75; }
+
+.member-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 22rpx;
+  row-gap: 34rpx;
+  margin-top: 26rpx;
+}
+
+.member-course-card {
+  min-width: 0;
+}
+
+.member-course-card:active {
+  opacity: .78;
+}
+
+.member-course-cover {
+  position: relative;
+  height: 218rpx;
+  overflow: hidden;
+  border-radius: 24rpx;
+}
+
+.member-course-cover-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.member-course-cover-coral { background: #F0B4A8; }
+.member-course-cover-blue { background: #A7CDE4; }
+.member-course-cover-lavender { background: #C5B9E2; }
+.member-course-cover-mint { background: #B5D9BF; }
+.member-course-cover-peach { background: #E9C18F; }
+.member-course-cover-sage { background: #C6D4A7; }
+.member-course-cover-sky { background: #AAD7DE; }
+.member-course-cover-sand { background: #E2D09E; }
+
+.member-course-info {
+  min-width: 0;
+  padding: 14rpx 2rpx 0;
+}
+
+.member-course-subtitle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 标题自动换行，最多三行 */
+.member-course-name {
+  display: -webkit-box;
+  overflow: hidden;
+  word-break: break-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: #34423B;
+  font-size: 25rpx;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.member-course-subtitle {
+  margin-top: 7rpx;
+  color: #98A39B;
+  font-size: 19rpx;
+  line-height: 1.3;
+}
+
+.member-course-price {
+  display: block;
+  margin-top: 12rpx;
+  color: #FD7C02;
+  font-size: 23rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.member-courses-empty {
+  display: flex;
+  min-height: 420rpx;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.member-courses-empty-icon {
+  display: block;
+  width: 78rpx;
+  height: 78rpx;
+  opacity: .38;
+}
+
+.member-courses-empty-title {
+  margin-top: 24rpx;
+  color: #4B594F;
+  font-size: 26rpx;
+  font-weight: 650;
+}
+
+.member-courses-empty-subtitle {
+  margin-top: 10rpx;
+  color: #A0AAA3;
+  font-size: 21rpx;
+}
+
+@media (max-width: 350px) {
+  .member-courses-shell { padding-right: 24rpx; padding-left: 24rpx; }
+  .member-courses-grid { column-gap: 16rpx; }
+  .member-course-cover { height: 198rpx; }
+}
+
+.member-courses-action {
+  margin-top: 28rpx;
+  padding: 16rpx 40rpx;
+  border-radius: 999rpx;
+  background: #FD7C02;
+  color: #FFFFFF;
+  font-size: 25rpx;
+}
+
+/* 骨架卡片：与课程卡片同尺寸的封面和三行文字 */
+.member-course-sk-cover { height: 218rpx; border-radius: 24rpx; }
+@media (max-width: 350px) {
+  .member-course-sk-cover { height: 198rpx; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -1,0 +1,102 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 老师工作台：与老师端「我的学生详情」（E06）同一套样式。头部是蓝色渐变上的搜索框，下方 #FAFAFA 面板列出负责的学生，列表在面板内滚动。 -->
+<view class="ws-root">
+  <view class="ws-ambient" aria-hidden="true"></view>
+  <view class="ws-topbar">
+    <view class="ws-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="ws-back" bindtap="handleBack" aria-label="返回上一页" aria-role="button"><view class="ws-back-icon"></view></view>
+      <text class="ws-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">老师工作台</text>
+    </view>
+  </view>
+
+  <view class="ws-header" style="padding-top: {{statusBarHeight + navigationBarHeight}}px;">
+    <view wx:if="{{!(failed && !loaded)}}" class="ws-search">
+      <image class="ws-search-icon" src="{{UA.src(ui, '/assets/course-library/search.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+      <input class="ws-search-input" value="{{search}}" placeholder="搜索学生姓名或用户 ID" placeholder-class="ws-search-placeholder" confirm-type="search" maxlength="40" bindinput="handleSearch" bindconfirm="handleSearch" />
+      <view wx:if="{{search}}" class="ws-search-clear" bindtap="clearSearch" aria-role="button" aria-label="清除搜索">×</view>
+    </view>
+  </view>
+
+  <view class="ws-panel">
+    <view wx:if="{{failed && !loaded}}" class="ws-state">
+      <view class="card empty-card">
+        <text class="empty-title">老师工作台暂时无法读取</text>
+        <text class="empty-copy">请检查网络后重试。</text>
+        <view class="empty-retry" bindtap="loadPage" aria-role="button">重新加载</view>
+      </view>
+    </view>
+    <block wx:else>
+      <view class="ws-heading">
+        <view class="ws-heading-title">
+          <text>我负责的学生</text>
+          <text wx:if="{{loaded}}" class="section-caption">{{search ? '找到 ' + visibleStudents.length + ' 人' : '共 ' + students.length + ' 人'}}</text>
+        </view>
+        <view class="heading-action" bindtap="openAddStudent" aria-role="button">+ 添加学生</view>
+      </view>
+      <!-- 分类（2026-10-09）：「没完成任务」= 前几天老师排的学习任务没学完的学生，点进去生成催学的话 -->
+      <view class="ws-tabs" role="tablist">
+        <view class="ws-tab {{tab === 'all' ? 'is-active' : ''}}" data-tab="all" bindtap="switchTab" aria-role="tab">全部</view>
+        <view class="ws-tab {{tab === 'behind' ? 'is-active' : ''}}" data-tab="behind" bindtap="switchTab" aria-role="tab">
+          <text>没完成任务</text>
+          <text wx:if="{{alertsState === 'ready' && alertCount}}" class="ws-tab-count">{{alertCount}}</text>
+        </view>
+      </view>
+      <scroll-view class="ws-list" scroll-y show-scrollbar="false" enhanced="{{true}}" refresher-enabled="{{true}}" refresher-default-style="black" refresher-background="#FAFAFA" refresher-triggered="{{refreshing}}" bindrefresherrefresh="handleRefresh">
+        <view class="ws-list-inner">
+          <view wx:if="{{tab === 'behind' && loaded && alertsState === 'failed'}}" class="card empty-card">
+            <text class="empty-title">没完成任务的学生暂时读不到</text>
+            <text class="empty-copy">{{alertsError}}</text>
+            <view class="empty-retry" bindtap="loadAlerts" aria-role="button">重新加载</view>
+          </view>
+          <view wx:elif="{{!loaded || (tab === 'behind' && alertsState === 'loading')}}" class="student-list">
+            <view wx:for="{{[1, 2, 3, 4]}}" wx:key="*this" class="card student-row">
+              <view class="sk sk-round student-avatar-sk"></view>
+              <view class="student-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid student-meta-sk"></view></view>
+            </view>
+          </view>
+          <block wx:elif="{{tab === 'behind'}}">
+            <text wx:if="{{alertsFailedCount}}" class="behind-warning">有 {{alertsFailedCount}} 位学生的学习记录暂时读不到，没算进来，下拉可重试。</text>
+            <view wx:if="{{!visibleAlerts.length}}" class="card empty-card">
+              <text class="empty-title">{{search ? '没有找到「' + search + '」' : '学生都按安排学完了'}}</text>
+              <text class="empty-copy">{{search ? '换个姓名或 6 位用户 ID 试试。' : '前几天老师排的学习任务，没学完的学生会出现在这里。'}}</text>
+            </view>
+            <view wx:else class="student-list">
+              <view wx:for="{{visibleAlerts}}" wx:key="studentProfileId" class="card student-row" data-student-profile-id="{{item.studentProfileId}}" data-id="{{item.publicId}}" data-name="{{item.name}}" bindtap="openReminder" aria-role="button" aria-label="{{item.name}}，{{item.missedText}}">
+                <image class="student-avatar" src="{{UA.avatar(ui, item.avatarUrl)}}" mode="aspectFill"></image>
+                <view class="student-copy">
+                  <text class="student-name">{{item.name}}</text>
+                  <text class="student-meta behind-meta">{{item.missedText}}</text>
+                  <text class="student-meta">{{item.detailText}}</text>
+                </view>
+                <view class="student-arrow" aria-hidden="true"></view>
+              </view>
+              <text class="section-note">点学生生成一段提醒，复制后在微信里发给他</text>
+            </view>
+          </block>
+          <view wx:elif="{{!students.length}}" class="card empty-card">
+            <text class="empty-title">还没有分配学生</text>
+            <text class="empty-copy">输入学生的 6 位用户 ID 即可添加，平台也会为你分配学生。</text>
+            <view class="empty-primary" bindtap="openAddStudent" aria-role="button">添加学生</view>
+          </view>
+          <view wx:elif="{{!visibleStudents.length}}" class="card empty-card">
+            <text class="empty-title">没有找到「{{search}}」</text>
+            <text class="empty-copy">换个姓名或 6 位用户 ID 试试。</text>
+          </view>
+          <view wx:else class="student-list">
+            <view wx:for="{{visibleStudents}}" wx:key="bindingId" class="card student-row" data-id="{{item.publicId}}" data-student-profile-id="{{item.studentProfileId}}" data-name="{{item.name}}" bindtap="openStudent" bindlongpress="copyStudentId" aria-role="button" aria-label="{{item.name}}">
+              <image class="student-avatar" src="{{UA.avatar(ui, item.avatarUrl)}}" mode="aspectFill"></image>
+              <view class="student-copy">
+                <text class="student-name">{{item.name}}</text>
+                <text class="student-meta">{{item.gradeText}}{{item.publicId ? ' · ID ' + item.publicId : ''}}</text>
+              </view>
+              <text wx:if="{{item.boundText}}" class="student-date">{{item.boundText}}分配</text>
+              <view class="student-arrow" aria-hidden="true"></view>
+            </view>
+            <text class="section-note">点学生进入详情，长按可复制用户 ID</text>
+          </view>
+        </view>
+      </scroll-view>
+    </block>
+  </view>
+</view>
+<dev-reset-fab />

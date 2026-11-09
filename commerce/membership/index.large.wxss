@@ -1,0 +1,121 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.membership-page{height:100vh;letter-spacing:0}
+.membership-page::before{top:0;right:0;left:0;height:432px}
+.membership-ambient{top:0;right:0;left:0;height:432px}
+.ambient-glow{border-radius:50%;filter:blur(1px)}
+.ambient-glow-one{top:-101px;right:-52px;width:312px;height:168px}
+.ambient-glow-two{top:57px;left:-114px;width:264px;height:60px}
+.ambient-ribbon{top:18px;right:-126px;width:360px;height:96px;border:13px solid rgba(255, 255, 255, .34);border-right-color:transparent;border-bottom-color:transparent;border-radius:50%}
+.membership-topbar{top:0;right:max(0px, 50% - var(--lg-col) / 2);left:max(0px, 50% - var(--lg-col) / 2)}
+.membership-topbar.is-solid{box-shadow:0 1px 7px rgba(170, 118, 43, .08)}
+.membership-topbar-inner{box-sizing:content-box;padding:0 14px}
+.membership-back{width:38px;height:38px;border-radius:50%}
+.membership-back-icon{width:13px;height:13px;margin-left:4px;border-bottom:2px solid #4b463c;border-left:2px solid #4b463c}
+.membership-topbar-title{right:0;left:0;font-size:19px;font-weight:600}
+.membership-scroll{top:0;right:0;bottom:0;left:0;box-sizing:border-box}
+.membership-content{min-height:100%;box-sizing:border-box}
+.membership-hero{padding:14px 21px 20px;box-sizing:border-box}
+.member-profile{min-height:93px}
+.member-avatar{flex:0 0 auto;width:57px;height:57px;border:3px solid rgba(255, 255, 255, .92);border-radius:50%;box-shadow:0 3px 8px rgba(170, 118, 43, .11)}
+.member-avatar-image{width:100%;height:100%}
+.member-avatar-initial{font-size:22px;font-weight:700}
+.member-copy{min-width:0;max-width:252px;margin-left:12px}
+.member-name{max-width:180px;font-size:19px;font-weight:700;line-height:1.25}
+.vip-mark{flex:none;height:20px;margin-left:6px;padding:0 7px;border-radius:599px;font-family:Georgia, serif;font-size:12px;font-style:italic;font-weight:700;line-height:20px}
+.member-status-row{flex-wrap:wrap;margin-top:6px;font-size:13px;line-height:1.4}
+.member-status-divider{margin:0 6px}
+.hero-vip-art{top:-9px;right:0;width:148px;height:123px}
+.hero-art-orbit{border:2px solid rgba(245, 178, 63, .25);border-radius:50%}
+.orbit-one{top:19px;right:4px;width:85px;height:42px}
+.orbit-two{top:31px;right:15px;width:72px;height:32px;border-color:rgba(255, 255, 255, .66)}
+.hero-vip-crown{top:-3px;right:-2px;width:126px;height:105px}
+.membership-panel{min-height:600px;padding:22px 16px calc(48px + env(safe-area-inset-bottom));box-sizing:border-box;border-radius:20px 20px 0 0}
+.membership-state{flex-direction:column;padding:38px 0 28px;font-size:15px;line-height:1.7}
+.membership-state-action{margin-top:14px;padding:8px 24px;border:0.5px solid #e8cf9f;border-radius:599px;font-size:15px}
+.membership-notice{margin-top:12px;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.6}
+.active-summary{gap:12px;padding:19px 19px;border-radius:16px}
+.active-summary-copy, .active-summary-side{flex-direction:column;min-width:0}
+.active-summary-label{font-size:13px}
+.active-summary-tier{margin-top:3px;font-size:26px;font-weight:700;line-height:1.25}
+.active-summary-remaining{font-size:16px;font-weight:600}
+.active-summary-date{margin-top:3px;font-size:13px}
+.plans-row{gap:14px}
+.plan-card-shell{flex:0 0 136px;width:136px}
+.plan-promotion{width:100%;flex-direction:column;box-sizing:border-box;border:1px solid #efc66f;border-radius:13px}
+.plan-card{flex-direction:column;height:117px;padding:18px 4px 0;box-sizing:border-box;border-radius:12px}
+.plan-crown-crop{top:0;right:0;bottom:0;left:0}
+.plan-crown-icon{right:-24px;bottom:-15px;width:114px;height:90px}
+.plan-name{font-size:14px;letter-spacing:1px;line-height:1.2}
+.plan-price-row{margin-top:14px}
+.plan-yuan{margin-right:2px;font-size:14px}
+.plan-price{font-size:33px;font-weight:600;letter-spacing:-1px;line-height:1.06}
+.plan-promotion-copy{height:28px;padding:0 2px;font-size:11px}
+.membership-action{margin-top:16px}
+.primary-button{width:100%;height:56px;margin:0;padding:0;border-radius:599px;box-shadow:0 4px 8px rgba(43, 28, 12, .14);font-size:19px;font-weight:500;line-height:56px}
+.primary-button::after{top:-25%;left:-48%;width:42%;height:150%;border:0;border-radius:0}
+.primary-button[disabled], .primary-button.is-disabled{box-shadow:none}
+.agreement-row{min-height:38px;margin-top:3px;font-size:12px;line-height:1.3}
+.agreement-checkbox{width:16px;height:16px;margin-right:6px;box-sizing:border-box;border:1px solid #c9bba5;border-radius:4px;font-size:11px;line-height:13px}
+.agreement-checkbox-checked{border-color:#e0a64a}
+.agreement-link{padding:7px 0}
+.benefits-heading{margin:21px 0 12px;font-size:16px;font-weight:700;line-height:1.2}
+.benefits-heading-line{width:45px;height:2px;margin-right:7px;border-radius:599px}
+.benefits-heading-line-right{margin-right:0;margin-left:7px}
+.benefit-card{min-height:122px;padding:20px 16px;box-sizing:border-box;border-radius:24px}
+.benefit-card + .benefit-card{margin-top:12px}
+.benefit-copy{max-width:60%}
+.benefit-title{font-size:18px;font-weight:700;line-height:1.25}
+.benefit-subtitle{margin-top:6px;font-size:13px;line-height:1.45}
+.benefit-state{margin-top:10px;padding:3px 10px;border-radius:599px;font-size:13px;line-height:1.5}
+.benefit-art{right:4px;bottom:0;width:105px;height:84px}
+.membership-card{margin-top:12px;padding:4px 16px;border-radius:19px}
+.membership-order{padding-top:14px;padding-bottom:9px}
+.membership-card-title{font-size:16px;font-weight:700}
+.membership-text-button{padding:7px 0 7px 12px;font-size:14px}
+.membership-row{gap:14px;padding:6px 0;font-size:14px;line-height:1.6}
+.membership-row text:first-child{flex-shrink:0}
+.membership-row text:last-child{min-width:0}
+.membership-support-row{gap:10px;min-height:60px;font-size:16px;line-height:1.6}
+.membership-support-row + .membership-support-row{border-top:0.5px solid #f2ece1}
+.membership-support-row image{flex:none;width:21px;height:21px}
+.membership-arrow{margin-left:auto;font-size:21px}
+.membership-footnote{margin-top:16px;font-size:13px}
+.agreement-sheet-layer{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);box-shadow:0 0 0 100vmax rgba(28, 24, 18, .32)}
+.agreement-sheet{right:0;bottom:0;left:0;height:64vh;padding:9px 16px calc(14px + env(safe-area-inset-bottom));box-sizing:border-box;border-radius:24px 24px 0 0}
+.agreement-sheet-handle{width:43px;height:4px;margin:0 auto 16px;border-radius:599px}
+.agreement-sheet-title{font-size:19px;font-weight:700;line-height:1.2}
+.agreement-sheet-close{width:33px;height:33px;margin-top:-5px;border-radius:50%;font-size:22px;font-weight:300;line-height:1}
+.agreement-sheet-scroll{height:calc(64vh - 85px);margin-top:16px}
+.agreement-sheet-intro{font-size:15px;line-height:1.6}
+.agreement-sheet-row{margin-top:14px;font-size:15px;line-height:1.6}
+.agreement-sheet-dot{flex:0 0 auto;width:4px;height:4px;margin:9px 8px 0 0;border-radius:50%}
+.plans-scroll{width:100%}
+.plans-scroll .plans-row{gap:9px;padding:3px 0}
+.plan-promotion{border-color:#f0e5cf}
+.plan-promotion-selected{border-color:#efc66f}
+.plan-name{max-width:120px}
+.plans-note{margin-top:9px;font-size:13px;line-height:1.6}
+.member-avatar-skeleton{width:100%;height:100%}
+.member-name-skeleton{width:108px;height:19px}
+.member-status-skeleton{width:144px;height:14px}
+.membership-skeleton{padding-top:3px}
+.membership-skeleton .plans-row{gap:9px}
+.plan-skeleton{flex:0 0 136px;height:153px;border-radius:13px}
+.membership-skeleton .plans-note-skeleton{margin-top:14px}
+.action-skeleton{height:56px;margin-top:16px;border-radius:599px}
+.benefit-state-skeleton{width:90px;height:20px;margin-top:10px;border-radius:599px}
+.benefit-title-skeleton{width:108px;height:20px;margin-bottom:8px}
+.plan-price-long{font-size:26px}
+.plans-invite-note{margin-top:9px;padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.5}
+.plans-title{margin:16px 0 9px;font-size:15px;font-weight:700;line-height:1.3}
+}

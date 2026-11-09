@@ -1,0 +1,72 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.promotion-page{height:100vh}
+.promotion-shell{top:0;right:0;bottom:0;left:0}
+.promotion-topbar{top:0;right:max(0px, 50% - var(--lg-col) / 2);left:max(0px, 50% - var(--lg-col) / 2);box-sizing:border-box}
+.promotion-topbar-inner{box-sizing:content-box;padding:0 21px 4px}
+.promotion-back{flex:0 0 auto;width:26px;height:26px;margin-right:6px}
+.promotion-back-icon{width:12px;height:12px;border-bottom:1px solid #24332D;border-left:1px solid #24332D}
+.promotion-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.promotion-scroll{top:0;right:0;bottom:0;left:0;box-sizing:border-box}
+.promotion-content{padding:18px 21px calc(42px + env(safe-area-inset-bottom));box-sizing:border-box}
+.promotion-state{padding:72px 14px 24px}
+.promotion-state-title{font-size:19px;font-weight:600}
+.promotion-state-copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.promotion-state-action{height:45px;padding:0 26px;border-radius:12px;font-size:15px}
+.promotion-balance-card{height:170px;box-sizing:border-box;border-radius:16px}
+.promotion-balance-card-clip{top:0;right:0;bottom:0;left:0;border-radius:16px}
+.promotion-balance-summary{top:24px;left:19px;width:62%}
+.promotion-balance-metric{min-width:90px;flex-direction:column}
+.promotion-balance-metric-today{margin-left:22px}
+.promotion-balance-metric-label{font-size:15px;line-height:1.2}
+.promotion-balance-metric-value{margin-top:9px;font-size:27px;font-weight:700;letter-spacing:-1px;line-height:1}
+.promotion-balance-metric-hint{margin-top:4px;flex-direction:column;font-size:12px;line-height:1.3}
+.promotion-megaphone-clip{top:-30px;right:-10px;bottom:0;width:220px}
+.promotion-megaphone-art{width:220px;height:220px}
+.promotion-balance-actions{right:0;bottom:0;left:0;height:52px;padding:0 6px;box-sizing:border-box;border:0;border-top:3px solid rgba(255, 255, 255, .96);box-shadow:0 -5px 13px rgba(72, 82, 75, .05), 0 4px 12px rgba(72, 82, 75, .05)}
+.promotion-balance-action{flex:1;height:38px;font-size:13px}
+.promotion-balance-action-divider{width:0.5px;height:19px}
+.promotion-status-notice{min-height:46px;margin-top:10px;box-sizing:border-box;padding:8px 10px;border:0;border-radius:13px}
+.promotion-status-notice-icon{width:19px;height:19px;flex:0 0 auto;margin-right:7px;border-radius:50%;font-size:13px;font-weight:700;line-height:1}
+.promotion-status-notice-copy{min-width:0;flex:1}
+.promotion-status-notice-title{font-size:13px;font-weight:700;line-height:1.3}
+.promotion-status-notice-detail{margin-top:3px;font-size:10px;line-height:1.35}
+.promotion-status-notice-arrow{width:7px;height:7px;flex:0 0 auto;margin-left:6px;border-top:1px solid #B29170;border-right:1px solid #B29170}
+.promotion-status-notice-failed .promotion-status-notice-arrow{border-color:#D39A92}
+.promotion-ai-poster-banner{width:100%;height:134px;margin:13px 0 0;border-radius:15px}
+.promotion-ai-poster-banner-image{width:100%;height:100%}
+.promotion-poster-section{margin-top:15px;padding-bottom:12px}
+.promotion-section-title{font-size:16px;font-weight:750;line-height:1.2}
+.promotion-poster-heading{margin:0 2px 10px;padding:0}
+.promotion-poster-heading .promotion-section-title{font-size:18px;font-weight:700;line-height:1.3}
+.promotion-poster-empty{padding:42px 19px;border-radius:16px}
+.promotion-poster-empty-title{font-size:16px;font-weight:700}
+.promotion-poster-empty-copy{margin-top:9px;font-size:13px;line-height:1.5}
+.promotion-poster-grid{gap:13px;margin-top:0}
+.promotion-poster-column{min-width:0;flex:1 1 0;flex-direction:column;gap:20px}
+.promotion-poster-card{min-width:0}
+.promotion-poster-media{width:100%;border-radius:14px}
+.promotion-poster-media-ratio-3-4{height:262px}
+.promotion-poster-media-ratio-9-16{height:350px}
+.promotion-poster-media-ratio-1-1{height:196px}
+.promotion-poster-media-ratio-16-9{height:110px}
+.promotion-poster-image, .promotion-poster-placeholder{width:100%;height:100%}
+.promotion-sk-amount{width:90px;height:27px;margin-top:10px}
+.promotion-poster-column > .sk.promotion-poster-media-ratio-3-4, .promotion-poster-column > .sk.promotion-poster-media-ratio-9-16, .promotion-poster-column > .sk.promotion-poster-media-ratio-1-1{width:100%;border-radius:14px}
+.promotion-poster-column > .sk-line.promotion-sk-title{width:70%;height:15px;margin-top:-12px}
+.promotion-poster-card-body{min-width:0;padding:8px 1px 0;box-sizing:border-box}
+.promotion-poster-info-row{min-width:0}
+.promotion-poster-copy{min-width:0;flex:1}
+.promotion-poster-title{min-width:0;font-size:15px;font-weight:700;line-height:1.35;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+.promotion-poster-go{flex:0 0 auto;width:15px;height:19px;margin-left:7px}
+.promotion-poster-forward-icon{flex:0 0 7px;width:7px;height:7px;box-sizing:border-box;border-top:1px solid #A6AFA9;border-right:1px solid #A6AFA9}
+}

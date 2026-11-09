@@ -4,28 +4,40 @@
   <view class="points-topbar">
     <view class="points-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
       <view class="points-back" bindtap="handleBack" aria-label="返回我的" aria-role="button"><view class="points-back-icon"></view></view>
-      <text class="points-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{loading || !model ? '我的金币' : model.title}}</text>
+      <text class="points-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">我的金币</text>
     </view>
   </view>
 
   <scroll-view class="points-scroll" scroll-y style="padding-top: {{contentTop}}px;">
     <view class="points-shell">
-      <view wx:if="{{loading}}" class="points-state"><text>正在读取金币账户…</text></view>
-      <view wx:elif="{{failed}}" class="points-state">
+      <view wx:if="{{failed && !loaded}}" class="points-state">
         <text>金币账户暂时没有加载出来</text>
         <view class="points-state-action" bindtap="loadPage">重新加载</view>
       </view>
 
-      <block wx:elif="{{model}}">
+      <block wx:else>
         <view class="points-overview">
           <view class="points-overview-main">
             <view class="points-overview-copy">
-              <text class="balance-eyebrow">{{model.balanceLabel}}</text>
-              <text class="balance-value">{{model.balance.available}}</text>
-              <view class="usage-rules" bindtap="handleUsageRules" aria-label="查看使用规则" aria-role="button"><text class="usage-rules-frozen">冻结中：{{model.balance.frozen}}</text><text class="usage-rules-label">使用规则</text><view class="usage-rules-icon"></view></view>
+              <text class="balance-eyebrow">当前可用金币</text>
+              <text wx:if="{{loaded}}" class="balance-value">{{model.balance.available}}</text>
+              <view wx:else class="sk balance-value-skeleton"></view>
+              <view class="usage-rules" bindtap="handleUsageRules" aria-label="查看使用规则" aria-role="button"><text wx:if="{{loaded}}" class="usage-rules-frozen">冻结中：{{model.balance.frozen}}</text><view wx:else class="usage-rules-frozen"><text>冻结中：</text><view class="sk sk-inline frozen-skeleton"></view></view><text class="usage-rules-label">使用规则</text><view class="usage-rules-icon"></view></view>
             </view>
-            <image class="balance-icon coin-balance-icon" src="{{UA.src(ui, model.balanceIcon)}}" mode="aspectFit" aria-label="金币图标"></image>
+            <image class="balance-icon coin-balance-icon" src="{{UA.src(ui, '/assets/commerce/coins-detail.png')}}" mode="aspectFit" aria-label="金币图标"></image>
           </view>
+        </view>
+
+        <view class="exchange-card">
+          <view wx:if="{{exchangeCard.pending}}" class="exchange-copy">
+            <view class="exchange-value-row"><text class="exchange-value-label">{{exchangeCard.pending.waiting ? '待确认收款' : '到账中'}}</text><text class="exchange-value">¥{{exchangeCard.pending.amount}}</text></view>
+            <text class="exchange-rate">{{exchangeCard.pending.waiting ? '点「去确认收款」，钱就到微信零钱了' : '微信正在处理，稍后刷新查看'}}</text>
+          </view>
+          <view wx:else class="exchange-copy">
+            <view class="exchange-value-row"><text class="exchange-value-label">可兑换</text><text wx:if="{{loaded}}" class="exchange-value">¥{{exchangeCard.yuan}}</text><view wx:else class="sk exchange-value-skeleton"></view></view>
+            <text wx:if="{{exchangeLoaded}}" class="exchange-rate">{{exchangeCard.rateLabel}}</text><view wx:else class="sk sk-line exchange-rate-skeleton"></view>
+          </view>
+          <view class="exchange-action {{exchanging ? 'is-busy' : ''}}" bindtap="handleExchange" aria-role="button">{{exchangeCard.pending ? (exchangeCard.pending.waiting ? '去确认收款' : '刷新') : '兑换现金'}}</view>
         </view>
 
         <view class="points-section">
@@ -42,12 +54,21 @@
         </view>
 
         <view class="points-section records-section">
-          <view class="section-heading"><text>{{model.recordsTitle}}</text></view>
+          <view class="section-heading"><text>金币记录</text></view>
           <view class="record-tabs">
-            <view wx:for="{{model.recordTabs}}" wx:key="id" class="record-tab {{item.isSelected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleRecordTab" aria-role="button">{{item.label}}</view>
+            <view wx:for="{{recordTabs}}" wx:key="id" class="record-tab {{item.isSelected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleRecordTab" aria-role="button">{{item.label}}</view>
           </view>
           <scroll-view class="records-card" scroll-y style="height: {{recordsHeight}}px; max-height: {{recordsHeight}}px;">
-            <view wx:if="{{model.activeRecordGroups.length}}" class="record-list">
+            <view wx:if="{{!loaded}}" class="record-list">
+              <view class="record-month"><view class="sk sk-line records-sk-month"></view></view>
+              <view wx:for="{{[1, 2, 3]}}" wx:key="*this" class="record-item">
+                <view class="record-copy">
+                  <view class="record-title-row"><view class="sk sk-line records-sk-title"></view><view class="sk sk-line records-sk-amount"></view></view>
+                  <view class="record-meta"><view class="sk sk-line records-sk-time"></view></view>
+                </view>
+              </view>
+            </view>
+            <view wx:elif="{{model.activeRecordGroups.length}}" class="record-list">
               <view wx:for="{{model.activeRecordGroups}}" wx:for-item="group" wx:key="monthKey" class="record-group">
                 <view class="record-month"><text>{{group.monthLabel}}</text></view>
                 <view wx:for="{{group.records}}" wx:for-item="record" wx:key="id" class="record-item">
@@ -66,6 +87,29 @@
     </view>
   </scroll-view>
 
+  <view wx:if="{{exchangeSheetVisible}}" class="points-sheet-layer {{exchangeSheetClosing ? 'is-closing' : ''}}" catchtap="closeExchangeSheet">
+    <view class="points-usage-rules-sheet exchange-sheet" catchtap="stopTap" aria-modal="true">
+      <view class="points-sheet-handle" aria-hidden="true"></view>
+      <view class="points-sheet-header">
+        <text class="points-sheet-title">兑换到微信零钱</text>
+        <view class="points-sheet-close" bindtap="closeExchangeSheet" aria-role="button" aria-label="关闭兑换">×</view>
+      </view>
+      <view class="exchange-amount">
+        <view class="exchange-step {{exchangeSheet.canDecrease ? '' : 'is-disabled'}}" data-step="-1" bindtap="changeExchangeYuan" aria-role="button" aria-label="少兑换 1 元">−</view>
+        <view class="exchange-amount-copy"><text class="exchange-amount-value">¥{{exchangeSheet.yuan}}</text><text class="exchange-amount-coins">消耗 {{exchangeSheet.coins}} 金币</text></view>
+        <view class="exchange-step {{exchangeSheet.canIncrease ? '' : 'is-disabled'}}" data-step="1" bindtap="changeExchangeYuan" aria-role="button" aria-label="多兑换 1 元">+</view>
+      </view>
+      <view wx:if="{{exchangeSheet.canIncrease}}" class="exchange-all" bindtap="exchangeAll" aria-role="button">全部兑换（¥{{exchangeSheet.maxYuan}}）</view>
+      <view class="exchange-rows">
+        <view class="exchange-row"><text>兑换比例</text><text>{{exchangeSheet.rate}} 金币 = 1 元</text></view>
+        <view class="exchange-row"><text>到账方式</text><text>本人微信零钱</text></view>
+        <view class="exchange-row"><text>今天还可兑换</text><text>{{exchangeSheet.remaining}} 次</text></view>
+      </view>
+      <text class="exchange-note">确认后会打开微信收款页，点「确认收款」钱就到零钱了。</text>
+      <view class="exchange-submit {{exchanging ? 'is-busy' : ''}}" bindtap="submitExchange" aria-role="button">{{exchanging ? '正在兑换…' : '确认兑换 ¥' + exchangeSheet.yuan}}</view>
+    </view>
+  </view>
+
   <view wx:if="{{usageRulesSheetVisible}}" class="points-sheet-layer {{usageRulesSheetClosing ? 'is-closing' : ''}}" catchtap="closeUsageRules">
     <view class="points-usage-rules-sheet" catchtap="stopTap" aria-modal="true">
       <view class="points-sheet-handle" aria-hidden="true"></view>
@@ -74,7 +118,7 @@
         <view class="points-sheet-close" bindtap="closeUsageRules" aria-role="button" aria-label="关闭使用规则">×</view>
       </view>
       <scroll-view class="points-sheet-scroll" scroll-y>
-        <text class="points-sheet-intro">金币归属于本人默认学生档案，可由签到、学习任务和老师核验通过的知识点掌握事件按规则发放。</text>
+        <text class="points-sheet-intro">金币可以通过每日签到、学习任务和知识点掌握获得，攒够 100 金币就能兑换 1 元现金，转到你本人的微信零钱。</text>
         <view wx:for="{{usageRulesItems}}" wx:key="*this" class="points-sheet-row">
           <view class="points-sheet-dot coin-sheet-dot" aria-hidden="true"></view>
           <text>{{item}}</text>

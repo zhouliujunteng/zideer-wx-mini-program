@@ -1,0 +1,6 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "streak-entry": "/components/streak-entry/index"
+  }
+}

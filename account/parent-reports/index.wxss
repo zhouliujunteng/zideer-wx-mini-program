@@ -1,0 +1,54 @@
+@import "../../styles/skeleton.wxss";
+/* 家长「学习报告」：与老师端「家长学习报告」（teacher/parent-report）同一套——蓝色渐变头部、#FAFAFA 面板、白色大圆角卡片、主题橙按钮。 */
+page { height: 100%; background: #FAFAFA; color: #24332D; }
+.report-root { position: relative; width: 100%; height: 100vh; overflow: hidden; background: #FAFAFA; }
+.report-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 520rpx; pointer-events: none; background: linear-gradient(180deg, #1E87FD 0%, #4BA5FF 74%, rgba(250, 250, 250, 0) 100%); }
+.report-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.report-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.report-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.report-back:active { background: rgba(255, 255, 255, .16); }
+.report-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #FFFFFF; border-left: 4rpx solid #FFFFFF; transform: rotate(45deg) scale(.7); }
+.report-topbar-title { position: absolute; left: 50%; display: block; color: #FFFFFF; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.report-page { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.report-hero { padding: 22rpx 40rpx 58rpx; }
+.report-hero-name { display: block; color: #FFFFFF; font-size: 38rpx; font-weight: 600; line-height: 1.3; }
+.report-hero-meta { display: block; margin-top: 10rpx; color: rgba(255, 255, 255, .86); font-size: 23rpx; line-height: 1.4; }
+.report-panel { position: relative; min-height: 70vh; margin-top: -24rpx; padding: 32rpx 28rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; border-radius: 26rpx 26rpx 0 0; background: #FAFAFA; }
+
+.card { box-sizing: border-box; border-radius: 28rpx; background: #FFFFFF; }
+.group + .group { margin-top: 30rpx; }
+.group-sk { width: 160rpx; margin: 0 4rpx 20rpx; }
+.section-heading { display: flex; align-items: baseline; justify-content: space-between; margin: 0 4rpx 20rpx; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.25; }
+.section-caption { color: #9AA59E; font-size: 20rpx; font-weight: 400; }
+.section-note { display: block; margin: 22rpx 4rpx 0; color: #939C96; font-size: 20rpx; line-height: 1.6; }
+
+.empty-card { display: flex; padding: 44rpx 28rpx; flex-direction: column; align-items: center; text-align: center; }
+.empty-title { color: #24332D; font-size: 25rpx; font-weight: 600; }
+.empty-copy { margin-top: 8rpx; color: #89938C; font-size: 22rpx; line-height: 1.6; }
+.empty-retry { margin-top: 20rpx; padding: 12rpx 32rpx; border-radius: 999rpx; background: #EAF3FF; color: #1E87FD; font-size: 23rpx; font-weight: 600; }
+.empty-action { margin-top: 24rpx; padding: 16rpx 44rpx; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #FFFFFF; font-size: 25rpx; font-weight: 650; }
+.empty-action:active, .empty-retry:active { opacity: .8; }
+
+.item-card { margin-bottom: 18rpx; padding: 26rpx 28rpx 24rpx; border: 2rpx solid transparent; }
+.item-card:active { opacity: .86; }
+.item-card.is-focus { border-color: #FFC58C; }
+.item-sk { padding: 22rpx 0 4rpx; }
+.item-heading { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.item-time { color: #24332D; font-size: 27rpx; font-weight: 650; }
+.item-open { flex: none; padding: 8rpx 22rpx; border-radius: 999rpx; background: linear-gradient(90deg, #FF9F43 0%, #FD7C02 100%); color: #FFFFFF; font-size: 22rpx; font-weight: 650; }
+.item-open.is-busy { opacity: .6; }
+.item-meta { display: block; margin-top: 6rpx; color: #929B95; font-size: 21rpx; line-height: 1.45; }
+.item-chips { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 16rpx; }
+.item-chip { padding: 6rpx 16rpx; border-radius: 999rpx; background: #F3F5F4; color: #5E6B63; font-size: 21rpx; line-height: 1.4; }
+.item-chip.is-up { background: #E8F5EC; color: #2F7A4F; }
+.item-note { margin-top: 16rpx; padding: 16rpx 20rpx 18rpx; border-radius: 20rpx; background: #FFF7EF; }
+.item-note-label { display: block; color: #C56204; font-size: 21rpx; font-weight: 650; }
+.item-note-text { display: block; margin-top: 8rpx; color: #4B5650; font-size: 23rpx; line-height: 1.7; white-space: pre-wrap; }
+
+/* 平板（2026-11-07 用户：「测评和知鹿服务里的页面也都要跟平板适配」）：默认大屏模式把页面收进 450px 居中栏，平板上只占中间一条。
+   这一页放宽到 LARGE_SCREEN_READING_COLUMN（760px，utils/screen.js）：列表、表单、阅读类页面再宽一行就太长，顶栏、底栏跟着这一栏走。 */
+@media (min-width: 450px) {
+  page { --lg-col: 760px; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

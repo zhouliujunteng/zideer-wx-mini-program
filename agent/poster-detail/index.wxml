@@ -1,0 +1,135 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="poster-detail-page">
+  <!-- 朋友圈单页模式由微信固定画导航栏，自己的顶栏（返回、标题）不画 -->
+  <view wx:if="{{loadState !== 'timeline'}}" class="poster-detail-topbar">
+    <view class="poster-detail-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="poster-detail-back" bindtap="handleBack" aria-label="返回推广海报" aria-role="button">
+        <view class="poster-detail-back-icon"></view>
+      </view>
+      <text class="poster-detail-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">海报详情</text>
+    </view>
+  </view>
+
+  <view wx:if="{{loadState === 'timeline'}}" class="poster-detail-invite">
+    <view class="poster-detail-invite-icon">
+      <image wx:if="{{UA.src(ui, '/assets/brand/app-icon.png')}}" src="{{UA.src(ui, '/assets/brand/app-icon.png')}}" mode="aspectFill" aria-hidden="true"></image>
+    </view>
+    <text class="poster-detail-invite-title">好友邀请你来知鹿学习</text>
+    <text class="poster-detail-invite-copy">点击下方「前往小程序」打开知鹿学习，注册后会自动记下这次邀请。</text>
+  </view>
+
+  <view wx:elif="{{loadState !== 'ready'}}" class="poster-detail-state" style="padding-top: {{contentTop}}px;">
+    <view wx:if="{{loadState === 'loading'}}" class="poster-detail-sk-wrap" aria-label="正在读取海报">
+      <view class="sk poster-detail-sk-poster" style="{{skeletonPosterStyle}}"></view>
+      <view class="poster-detail-sk-copy">
+        <view class="sk sk-line sk-mid poster-detail-sk-title"></view>
+        <view class="sk sk-line sk-short"></view>
+        <view class="sk sk-line sk-short"></view>
+      </view>
+    </view>
+    <block wx:else>
+      <text class="poster-detail-state-title">海报详情无法打开</text>
+      <text class="poster-detail-state-copy">{{loadError}}</text>
+      <view class="poster-detail-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+    </block>
+  </view>
+
+  <block wx:else>
+    <view class="poster-detail-stage" style="padding-top: {{contentTop}}px;">
+      <view class="poster-detail-preview poster-detail-preview-{{poster.ratioClass}}" style="{{posterPreviewStyle}}">
+        <image wx:if="{{poster.coverSrc}}" class="poster-detail-image" src="{{poster.coverSrc}}" mode="aspectFit" aria-label="{{poster.label}}" bindload="handlePosterLoad"></image>
+        <view wx:else class="poster-detail-placeholder" aria-hidden="true"></view>
+        <view wx:if="{{!poster.coverSrc}}" class="poster-detail-preview-copy" aria-hidden="true">暂无海报图</view>
+      </view>
+    </view>
+
+    <view class="poster-detail-sheet {{sheetTransition ? 'is-transitioning' : ''}}" style="top: {{sheetTopPx}}px;" catchtouchstart="handleSheetTouchStart" catchtouchmove="handleSheetTouchMove" catchtouchend="handleSheetTouchEnd" catchtouchcancel="handleSheetTouchEnd">
+      <view class="poster-detail-sheet-handle" bindtap="toggleSheet" aria-label="展开海报信息" aria-role="button"><view></view></view>
+      <view class="poster-detail-sheet-summary" bindtap="toggleSheet">
+        <view class="poster-detail-sheet-summary-copy">
+          <text class="poster-detail-sheet-title">{{poster.label}}</text>
+          <view class="poster-detail-sheet-meta">
+            <view class="poster-detail-sheet-meta-row">
+              <image class="poster-detail-sheet-meta-icon" src="{{UA.src(ui, '/assets/promotion/tag.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+              <text class="poster-detail-sheet-meta-item">{{poster.campaignLabel}}</text>
+            </view>
+            <view class="poster-detail-sheet-meta-row">
+              <image class="poster-detail-sheet-meta-icon" src="{{UA.src(ui, '/assets/promotion/clock.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+              <text class="poster-detail-sheet-meta-item">{{poster.validityLabel === '长期有效' ? '长期有效' : '至 ' + poster.validityLabel}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="poster-detail-sheet-content">
+        <view wx:if="{{poster.status === 'ended'}}" class="poster-detail-ended-note">该素材已结束，仅支持查看</view>
+
+        <view class="poster-detail-notices">
+          <view class="poster-detail-notice-item">
+            <text class="poster-detail-notice-title">推广文案</text>
+            <text class="poster-detail-notice-copy">{{poster.copyText || '该素材暂未提供文案。'}}</text>
+            <view wx:if="{{poster.copyText}}" class="poster-detail-notice-action" bindtap="handleCopyText" aria-role="button">复制文案</view>
+          </view>
+          <view class="poster-detail-notice-item">
+            <text class="poster-detail-notice-title">归因说明</text>
+            <text class="poster-detail-notice-copy">好友通过你分享的卡片进入并完成注册时记录推广归因，已有归因不会被覆盖；奖励按订单快照和锁定规则进入流水。</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="poster-detail-actionbar">
+      <view class="poster-detail-actionbar-actions">
+        <view class="poster-detail-promote-button" bindtap="handlePromoteAction" aria-role="button">立即推广</view>
+        <view class="poster-detail-share-action" aria-role="button">
+          <button class="poster-detail-native-share" open-type="share" aria-label="分享给好友"></button>
+          <image class="poster-detail-actionbar-icon" src="{{UA.src(ui, '/assets/promotion/share-wechat.svg')}}" mode="aspectFit"></image>
+          <text class="poster-detail-actionbar-label">邀请好友一起</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 离屏画布：海报 + 我的小程序码合成成一张图再存相册（不能 display:none，否则拿不到节点） -->
+    <canvas type="2d" id="promote-canvas" class="promotion-share-canvas" aria-hidden="true"></canvas>
+
+    <view wx:if="{{showPromoteSheet || promoteSheetClosing}}" class="promotion-share-mask {{promoteSheetClosing ? 'promotion-share-mask-closing' : ''}} {{promotionCode ? 'has-promotion-code' : ''}}" bindtap="handleClosePromoteSheet">
+      <view class="promotion-share-poster-stage">
+        <view class="promotion-share-poster-card promotion-share-poster-card-{{poster.ratioClass}}" catchtap="noop" style="{{promotePosterStyle}}">
+          <image wx:if="{{shareImageSrc}}" class="promotion-share-poster-image" src="{{shareImageSrc}}" mode="aspectFill" aria-label="{{poster.label}}"></image>
+          <view wx:else class="promotion-share-poster-placeholder" aria-hidden="true"></view>
+          <view wx:if="{{composingPoster}}" class="promotion-share-qr-pending" aria-label="正在生成我的小程序码">正在生成我的小程序码…</view>
+          <view wx:elif="{{composeFailed}}" class="promotion-share-qr-pending" aria-label="小程序码生成失败">小程序码暂不可用，保存的是原图</view>
+        </view>
+      </view>
+      <view wx:if="{{promotionCode}}" class="promotion-share-code-float" catchtap="noop">
+        <text class="promotion-share-code-title">我的邀请码</text>
+        <view class="promotion-share-code-row">
+          <text class="promotion-share-code-value">{{promotionCode}}</text>
+          <view class="promotion-share-code-copy {{promotionCodeCopied ? 'is-copied' : ''}}" catchtap="handleCopyPromotionCode" aria-role="button" aria-label="复制邀请码">
+            <view class="promotion-share-code-copy-icon"></view>
+          </view>
+        </view>
+      </view>
+      <view class="promotion-share-sheet" catchtap="noop">
+        <view class="promotion-share-sheet-header">
+          <text class="promotion-share-sheet-title">分享海报</text>
+        </view>
+        <view class="promotion-share-actions">
+          <view class="promotion-share-action promotion-share-action-save" bindtap="handleSavePoster">
+            <view class="promotion-share-action-icon"><image src="{{UA.src(ui, '/assets/promotion/share-download.svg')}}" mode="aspectFit"></image></view>
+            <text>{{savingPoster ? '保存中' : '保存海报'}}</text>
+          </view>
+          <view class="promotion-share-action" bindtap="handleOpenShareLink" aria-role="button">
+            <view class="promotion-share-action-icon"><view class="promotion-share-link-glyph"></view></view>
+            <text>复制链接</text>
+          </view>
+        </view>
+        <view class="promotion-share-sheet-note">保存海报让好友扫码，或复制带邀请码的小程序链接发出去</view>
+        <view class="promotion-share-sheet-cancel" bindtap="handleClosePromoteSheet">取消</view>
+      </view>
+    </view>
+  </block>
+</view>
+<!-- 画「邀请好友一起」卡片封面的离屏画布（services/share-cover.js），放在页面最外层：海报读到之前也要拿得到节点 -->
+<canvas type="2d" id="share-cover-canvas" class="share-cover-canvas" aria-hidden="true"></canvas>
+<dev-reset-fab />

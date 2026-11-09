@@ -1,8 +1,11 @@
 <view class="screen diagnosis-report"><view class="diagnosis-report__inner">
-  <view class="skeleton diagnosis-report__skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">诊断报告没有加载出来</text><text class="state-panel__copy">网络恢复后可以重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <view class="diagnosis-report__head"><text class="diagnosis-report__eyebrow">学习诊断</text><text class="diagnosis-report__title">当前学习报告</text></view>
+  <view class="state-panel" wx:if="{{failed && !loaded}}"><view class="state-panel__mark">!</view><text class="state-panel__title">诊断报告没有加载出来</text><text class="state-panel__copy">网络恢复后可以重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <block wx:elif="{{!loaded}}">
+    <view class="report-summary surface"><view class="sk sk-line sk-short"></view><view class="sk sk-line report-sk-gap"></view><view class="sk sk-line sk-mid"></view><view class="sk sk-line sk-short report-sk-gap"></view></view>
+    <view class="report-section"><view class="section-head"><text class="section-title">分数预测</text><button class="section-link pressable" bindtap="openForecast">全部预测</button></view><view class="sk sk-card report-list-sk"></view></view>
+  </block>
   <block wx:else>
-    <view class="diagnosis-report__head"><text class="diagnosis-report__eyebrow">学习诊断</text><text class="diagnosis-report__title">当前学习报告</text></view>
     <view class="diagnosis-empty surface" wx:if="{{!report}}"><text class="diagnosis-empty__title">尚无可查看的诊断报告</text><text class="diagnosis-empty__copy">完成基础测评或深度测评并等待后端分析后，报告会显示掌握证据、薄弱项与预测区间。</text><button class="diagnosis-empty__action pressable" bindtap="startAssessment">去测评中心</button></view>
     <block wx:else>
       <view class="report-summary surface"><text class="report-summary__status">{{report.status === 'completed' || report.status === 'ready' ? '诊断已生成' : '诊断处理中'}}</text><text class="report-summary__copy">{{report.summary.overview || report.summary.headline || report.summary.text || '诊断报告已生成，详情将随着分析数据补充。'}}</text><text class="report-summary__meta">{{report.generatedLabel}}<text wx:if="{{report.confidencePercent !== null}}"> · 置信度 {{report.confidencePercent}}%</text></text></view>

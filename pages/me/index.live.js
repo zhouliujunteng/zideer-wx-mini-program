@@ -21,7 +21,7 @@ Page({
     serviceItems: [
       { id: 'partner', icon: 'users', label: '推广伙伴', meta: '分享工具与奖励记录' },
       { id: 'learningProfile', icon: 'book', label: '学习档案', meta: '年级、教材与所在地区' },
-      { id: 'identity', icon: 'shield', label: '身份与登录', meta: '实名、微信和手机号身份' },
+      { id: 'identity', icon: 'shield', label: '身份与登录', meta: '学生或家长身份、实名与手机号' },
       { id: 'redeem', icon: 'gift', label: '兑换码', meta: '兑换课程积分、金币或体验权益' },
       { id: 'assessment', icon: 'book', label: '测评中心', meta: '开始基础测评与查看测评记录' },
       { id: 'service', icon: 'headphones', label: '企微服务', meta: '联系课程顾问和真人服务' }
@@ -33,7 +33,7 @@ Page({
   },
 
   async onShow() {
-    syncTab(this, 3)
+    syncTab(this, 4)
     await this.loadPage()
   },
 

@@ -4,7 +4,8 @@ const { attachUiAssets } = require('../../services/ui-assets')
 
 Page({
   data: {
-    model: buildMessagesModel([]), notifications: [], loading: true, failed: false,
+    // 第一次读到通知前消息位只显示骨架；读到过一次后再回来保留旧消息，后台静默刷新。
+    model: buildMessagesModel([]), notifications: [], loading: true, loaded: false, failed: false,
     statusBarHeight: 20, navigationBarHeight: 44, contentTop: 82,
     menuButtonHeight: 32, searchTop: 26, searchRight: 100,
     searchVisible: false, searchFocus: false, searchQuery: ''
@@ -19,9 +20,12 @@ Page({
     try {
       const notifications = (await loadCurrentNotifications()).map(normalizeNotification)
       if (this.disposed || requestId !== this.requestId) return
-      this.setData({ notifications, model: buildMessagesModel(notifications, { query: this.data.searchQuery }) })
+      this.setData({ notifications, loaded: true, model: buildMessagesModel(notifications, { query: this.data.searchQuery }) })
     } catch (error) {
-      if (!this.disposed && requestId === this.requestId) this.setData({ failed: true })
+      if (this.disposed || requestId !== this.requestId) return
+      // 已有消息时刷新失败只提示，不把旧消息换成错误页。
+      if (this.data.loaded) wx.showToast({ title: '消息刷新失败', icon: 'none' })
+      else this.setData({ failed: true })
     } finally {
       if (!this.disposed && requestId === this.requestId) this.setData({ loading: false })
     }

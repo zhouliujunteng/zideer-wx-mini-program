@@ -13,7 +13,8 @@
       <view class="profile-hero">
         <view class="profile-avatar-wrap">
           <button class="profile-avatar profile-avatar-trigger" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" aria-label="更换头像">
-            <image wx:if="{{model.avatarSrc}}" class="profile-avatar-image" src="{{UA.src(ui, model.avatarSrc)}}" mode="aspectFill"></image>
+            <image wx:if="{{model.avatarSrc || profileLoaded}}" class="profile-avatar-image" src="{{UA.avatar(ui, model.avatarSrc)}}" mode="aspectFill"></image>
+            <view wx:elif="{{!profileLoaded && !profileFailed}}" class="sk profile-avatar-sk"></view>
           </button>
           <view class="profile-avatar-edit">
             <button class="profile-avatar-edit-button" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" aria-label="更换头像"><image class="profile-avatar-change-icon" src="{{UA.src(ui, '../../assets/me/profile-avatar-change.svg')}}" mode="aspectFit"></image></button>
@@ -25,16 +26,36 @@
         <view class="profile-name-item" bindtap="editName" aria-label="编辑姓名">
           <text class="profile-name-label">姓名</text>
           <view class="profile-row-value-wrap">
-            <text class="profile-row-value">{{model.name}}</text>
+            <view wx:if="{{!profileLoaded}}" class="sk sk-line profile-value-sk"></view>
+            <text wx:else class="profile-row-value">{{model.name}}</text>
             <view class="profile-chevron" aria-hidden="true"></view>
           </view>
         </view>
         <block wx:for="{{model.rows}}" wx:key="id" wx:for-item="item">
-          <picker wx:if="{{item.action === 'region'}}" mode="region" level="city" value="{{regionPickerValue}}" bindchange="handleRegionChange">
+          <!-- 实名认证后按身份证锁定的行（生日、性别、户籍地，2026-09-26）：只显示，点了提示不能改 -->
+          <view wx:if="{{item.locked}}" class="profile-row is-locked {{index === model.rows.length - 1 ? 'is-last' : ''}}" data-label="{{item.label}}" bindtap="handleLockedRow">
+            <text class="profile-row-label">{{item.label}}</text>
+            <view class="profile-row-value-wrap">
+              <text class="profile-row-value">{{item.value}}</text>
+              <text class="profile-row-verified">已实名</text>
+            </view>
+          </view>
+          <picker wx:elif="{{item.action === 'region'}}" mode="region" level="city" value="{{regionPickerValue}}" bindchange="handleRegionChange">
             <view class="profile-row {{index === model.rows.length - 1 ? 'is-last' : ''}}">
               <text class="profile-row-label">{{item.label}}</text>
               <view class="profile-row-value-wrap">
-                <text class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
+                <view wx:if="{{!profileLoaded}}" class="sk sk-line profile-value-sk"></view>
+                <text wx:else class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
+                <view class="profile-chevron" aria-hidden="true"></view>
+              </view>
+            </view>
+          </picker>
+          <picker wx:elif="{{item.action === 'household'}}" mode="region" level="city" value="{{householdPickerValue}}" bindchange="handleHouseholdChange">
+            <view class="profile-row {{index === model.rows.length - 1 ? 'is-last' : ''}}">
+              <text class="profile-row-label">{{item.label}}</text>
+              <view class="profile-row-value-wrap">
+                <view wx:if="{{!profileLoaded}}" class="sk sk-line profile-value-sk"></view>
+                <text wx:else class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
                 <view class="profile-chevron" aria-hidden="true"></view>
               </view>
             </view>
@@ -43,7 +64,8 @@
             <view class="profile-row {{index === model.rows.length - 1 ? 'is-last' : ''}}">
               <text class="profile-row-label">{{item.label}}</text>
               <view class="profile-row-value-wrap">
-                <text class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
+                <view wx:if="{{!profileLoaded}}" class="sk sk-line profile-value-sk"></view>
+                <text wx:else class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
                 <view class="profile-chevron" aria-hidden="true"></view>
               </view>
             </view>
@@ -51,11 +73,34 @@
           <view wx:else class="profile-row {{index === model.rows.length - 1 ? 'is-last' : ''}}" data-action="{{item.action}}" bindtap="handleRow">
             <text class="profile-row-label">{{item.label}}</text>
             <view class="profile-row-value-wrap">
-              <text class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
+              <view wx:if="{{!profileLoaded}}" class="sk sk-line profile-value-sk"></view>
+              <text wx:else class="profile-row-value {{item.value === '未设置' ? 'is-empty' : ''}}">{{item.value}}</text>
               <view class="profile-chevron" aria-hidden="true"></view>
             </view>
           </view>
         </block>
+        <view wx:if="{{!profileLoaded && profileFailed}}" class="profile-load-failed" bindtap="retryLoadProfile" aria-role="button"><text>资料暂时无法读取</text><text class="profile-load-retry">重新加载</text></view>
+      </view>
+
+      <!-- 推荐人（2026-09-22）：只展示，不能改；没有推荐人时可补填一次。
+           2026-09-23：只显示推荐人的邀请码，不显示昵称，也不再显示推荐人的小程序码。
+           「我的邀请码」已移到推广伙伴 › 我的邀请码，这里不再重复。
+           左右留白与分隔线跟上方资料行同一套尺寸。 -->
+      <view class="profile-card profile-promotion-card">
+        <view class="profile-promotion-row is-last">
+          <view class="profile-promotion-main">
+            <text class="profile-row-label">推荐人</text>
+            <!-- 第一次读到推荐人前只画骨架，不显示「读取中」或「暂无推荐人」 -->
+            <block wx:if="{{!promotion.loaded}}"><view class="sk sk-line profile-promotion-sk"></view><view class="sk sk-line sk-mid"></view></block>
+            <block wx:else>
+            <text class="profile-promotion-code {{promotion.referrerCode ? '' : 'is-empty'}}">{{promotion.referrerCode || '暂无推荐人'}}</text>
+            <text class="profile-promotion-hint">{{promotion.referrerCode ? '你是通过这个邀请码进来的，不可更改' : '填写邀请码后不可更改，只能绑定一次'}}</text>
+            </block>
+          </view>
+          <view class="profile-promotion-side">
+            <view wx:if="{{promotion.loaded && !promotion.loading && !promotion.referrerCode}}" class="profile-promotion-bind" bindtap="bindReferrerCode" aria-role="button">填写邀请码</view>
+          </view>
+        </view>
       </view>
 
       <view class="profile-note"><view class="profile-note-dot"></view><text>{{model.footerNote}}</text></view>

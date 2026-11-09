@@ -1,0 +1,507 @@
+@import "../../styles/achievement-card.wxss";
+@import "../../styles/card-back.wxss";
+
+.cr-root {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+}
+
+.cr-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(58, 62, 74, 0);
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
+  transition: background 420ms ease, backdrop-filter 420ms ease, -webkit-backdrop-filter 420ms ease;
+}
+
+.cr-mask-on {
+  background: rgba(78, 82, 96, 0.62);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+/* 卡片后面一团主题色光晕（参考设计里的粉红光） */
+.cr-glow {
+  position: absolute;
+  left: 50%;
+  width: 600rpx;
+  height: 600rpx;
+  margin-left: -300rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ac-color, #FD7C02) 0%, rgba(255, 255, 255, 0) 68%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 520ms ease;
+}
+
+.cr-glow-on {
+  opacity: 0.38;
+}
+
+.cr-close {
+  position: absolute;
+  left: 28rpx;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.cr-close.cr-info-on {
+  opacity: 1;
+}
+
+.cr-close-x::before,
+.cr-close-x::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22rpx;
+  height: 4rpx;
+  margin: -2rpx 0 0 -11rpx;
+  border-radius: 2rpx;
+  background: #4b5563;
+  transform: rotate(45deg);
+}
+
+.cr-close-x::after {
+  transform: rotate(-45deg);
+}
+
+/* ---------- 卡片：飞行 → 倾斜 → 抖动 → 翻面 ---------- */
+
+.cr-fly {
+  position: absolute;
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.cr-tilt,
+.cr-shake,
+.cr-flip {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.cr-flip {
+  transition: transform 420ms cubic-bezier(0.3, 1.18, 0.5, 1);
+}
+
+.cr-flipped {
+  transform: rotateY(180deg);
+}
+
+.cr-side {
+  position: absolute;
+  inset: 0;
+  border-radius: 24rpx;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 30rpx 60rpx rgba(20, 22, 30, 0.28);
+}
+
+.cr-front .ac-face {
+  padding: 0 14rpx 14rpx;
+  border-radius: 24rpx;
+}
+
+.cr-tag {
+  height: 72rpx;
+  font-size: 32rpx;
+  line-height: 72rpx;
+}
+
+.cr-front .ac-face-art {
+  border-radius: 16rpx;
+}
+
+.cr-placeholder-title {
+  font-size: 56rpx;
+}
+
+.cr-locked-art {
+  opacity: 0.38;
+  filter: grayscale(0.7);
+}
+
+.cr-locked-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  background: rgba(36, 40, 50, 0.7);
+  color: #FFFFFF;
+  font-size: 22rpx;
+  transform: translateX(-50%);
+}
+
+/* 反光：随倾斜挪位置 */
+.cr-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.34) 48%, rgba(255, 255, 255, 0) 64%);
+  background-size: 260% 260%;
+  background-position: 50% 50%;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+/* 扫光：一条斜向亮带沿左上 → 右下对角线移动，扫完停一会儿再来 */
+.cr-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 24rpx;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cr-sweep-band {
+  position: absolute;
+  left: -50%;
+  top: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(255, 220, 160, 0.28) 44%,
+    rgba(255, 255, 255, 0.95) 49%,
+    rgba(255, 255, 255, 0.95) 51%,
+    rgba(255, 220, 160, 0.28) 56%,
+    rgba(255, 255, 255, 0) 62%);
+  transform: translate(-50%, -50%);
+  animation: cr-sweep 3.2s ease-in-out 0.6s infinite;
+}
+
+.cr-sweep-dim .cr-sweep-band {
+  opacity: 0.45;
+}
+
+@keyframes cr-sweep {
+  0% { transform: translate(-50%, -50%); }
+  55% { transform: translate(50%, 50%); }
+  100% { transform: translate(50%, 50%); }
+}
+
+.cr-shake.cr-shaking {
+  animation: cr-shake 420ms ease-in-out infinite;
+}
+
+@keyframes cr-shake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  20% { transform: rotate(-4deg) scale(1.02); }
+  40% { transform: rotate(4deg) scale(1.03); }
+  60% { transform: rotate(-3deg) scale(1.02); }
+  80% { transform: rotate(2deg) scale(1.01); }
+}
+
+/* 切换等级时轻轻弹一下（两个同样的动画交替，类名一换就重播） */
+.cr-pop-a { animation: cr-pop-a 300ms cubic-bezier(0.3, 1.4, 0.5, 1); }
+.cr-pop-b { animation: cr-pop-b 300ms cubic-bezier(0.3, 1.4, 0.5, 1); }
+@keyframes cr-pop-a { 0% { transform: scale(0.94); } 100% { transform: scale(1); } }
+@keyframes cr-pop-b { 0% { transform: scale(0.94); } 100% { transform: scale(1); } }
+
+/* 卡背样式在 styles/card-back.wxss（碎片商店也用） */
+
+/* ---------- 抽卡：扇形、提示、纸屑 ---------- */
+
+.cr-fly-hidden {
+  visibility: hidden;
+}
+
+.cr-flip.cr-flip-instant {
+  transition: none;
+}
+
+.cr-fan-card {
+  position: absolute;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+
+.cr-fan-back {
+  transform: none;
+  box-shadow: 0 12rpx 30rpx rgba(20, 10, 12, 0.35);
+}
+
+.cr-fan-chosen {
+  z-index: 2;
+}
+
+.cr-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom) + 170rpx);
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 240ms ease;
+  pointer-events: none;
+}
+
+.cr-hint-on {
+  opacity: 1;
+}
+
+.cr-confetti {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ---------- 下方信息 ---------- */
+
+.cr-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 40rpx;
+  opacity: 0;
+  transform: translateY(24rpx);
+  transition: opacity 280ms ease, transform 320ms ease;
+  pointer-events: none;
+}
+
+.cr-info.cr-info-on {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.cr-level-nav {
+  display: flex;
+  align-items: center;
+  gap: 56rpx;
+}
+
+.cr-level-no {
+  min-width: 96rpx;
+  color: #FFFFFF;
+  font-size: 52rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.cr-arrow {
+  position: relative;
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.cr-arrow::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22rpx;
+  height: 22rpx;
+  border-top: 5rpx solid rgba(255, 255, 255, 0.9);
+  border-left: 5rpx solid rgba(255, 255, 255, 0.9);
+  border-radius: 2rpx;
+}
+
+.cr-arrow-left::before { transform: translate(-30%, -50%) rotate(-45deg); }
+.cr-arrow-right::before { transform: translate(-70%, -50%) rotate(135deg); }
+.cr-arrow-off { opacity: 0.25; }
+
+.cr-dots {
+  display: flex;
+  margin-top: 20rpx;
+  border-radius: 10rpx;
+  background: rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+}
+
+.cr-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52rpx;
+  height: 44rpx;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cr-dot-current {
+  background: rgba(255, 255, 255, 0.95);
+  color: #4b5563;
+}
+
+.cr-check {
+  width: 20rpx;
+  height: 10rpx;
+  margin-top: -6rpx;
+  border-left: 5rpx solid currentColor;
+  border-bottom: 5rpx solid currentColor;
+  transform: rotate(-45deg);
+}
+
+/* 抽中概率：大号数字，下面一行加成进度 */
+.cr-prob {
+  display: flex;
+  align-items: baseline;
+  gap: 14rpx;
+  margin-top: 28rpx;
+}
+
+.cr-prob-label {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 26rpx;
+}
+
+.cr-prob-value {
+  color: #FFFFFF;
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.cr-boost {
+  margin-top: 10rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: rgba(253, 124, 2, 0.22);
+  color: #FFE2C4;
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.cr-owned {
+  margin-top: 16rpx;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.cr-draw {
+  width: 100%;
+  height: 96rpx;
+  margin-top: 40rpx;
+  border-radius: 24rpx;
+  background: #FD7C02;
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 96rpx;
+  text-align: center;
+  box-shadow: 0 16rpx 36rpx rgba(253, 124, 2, 0.32);
+}
+
+.cr-draw:active {
+  transform: scale(0.98);
+}
+
+/* 抽到重复：卡片碎成几片飞散，中间留一个「变成 N 碎片」的标签 */
+.cr-dup {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.cr-shard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26rpx;
+  height: 26rpx;
+  margin: -13rpx 0 0 -13rpx;
+  border-radius: 4rpx;
+  background: linear-gradient(135deg, #FFE7C2, #FD7C02);
+  box-shadow: 0 0 12rpx rgba(253, 124, 2, 0.6);
+  opacity: 0;
+  animation: cr-shard 900ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+.cr-shard-0 { --dx: -170rpx; --dy: -210rpx; }
+.cr-shard-1 { --dx: 160rpx; --dy: -230rpx; animation-delay: 30ms; }
+.cr-shard-2 { --dx: -230rpx; --dy: -40rpx; animation-delay: 60ms; }
+.cr-shard-3 { --dx: 230rpx; --dy: -60rpx; animation-delay: 20ms; }
+.cr-shard-4 { --dx: -150rpx; --dy: 170rpx; animation-delay: 50ms; }
+.cr-shard-5 { --dx: 170rpx; --dy: 160rpx; animation-delay: 80ms; }
+.cr-shard-6 { --dx: -40rpx; --dy: -270rpx; animation-delay: 40ms; }
+.cr-shard-7 { --dx: 30rpx; --dy: 250rpx; animation-delay: 70ms; }
+
+@keyframes cr-shard {
+  0% { opacity: 1; transform: translate(0, 0) rotate(45deg) scale(0.6); }
+  60% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(225deg) scale(1); }
+}
+
+.cr-dup-chip {
+  position: absolute;
+  left: 50%;
+  bottom: -26rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 26rpx;
+  border-radius: 999rpx;
+  background: #24282F;
+  color: #FFE2C4;
+  font-size: 24rpx;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 12rpx 28rpx rgba(0, 0, 0, 0.3);
+  transform: translateX(-50%);
+  animation: cr-dup-in 420ms cubic-bezier(0.3, 1.4, 0.5, 1) 300ms both;
+}
+
+.cr-dup-gem {
+  width: 22rpx;
+  height: 22rpx;
+  border-radius: 4rpx;
+  background: linear-gradient(135deg, #FFE7C2, #FD7C02);
+  transform: rotate(45deg);
+}
+
+@keyframes cr-dup-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(20rpx) scale(0.7); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.cr-bonus-note {
+  margin-top: 16rpx;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 22rpx;
+}
+
+.cr-draw-off {
+  background: rgba(255, 255, 255, 0.55);
+  color: rgba(36, 40, 50, 0.6);
+  box-shadow: none;
+}
+
+@media (min-width: 450px) {
+  .cr-info {
+    left: 50%;
+    right: auto;
+    width: var(--lg-col, 450px);
+    box-sizing: border-box;
+    transform: translate(-50%, 24rpx);
+  }
+
+  .cr-info.cr-info-on {
+    transform: translate(-50%, 0);
+  }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -1,1 +1,94 @@
-.live-page { min-height: 100vh; padding: 48rpx 28rpx calc(env(safe-area-inset-bottom) + 48rpx); }.live-skeleton { height: 560rpx; }.live-head { padding: 0 8rpx; }.live-eyebrow { display: block; color: var(--accent-deep); font-size: 22rpx; font-weight: 700; }.live-title { display: block; margin-top: 12rpx; font-size: 42rpx; font-weight: 700; line-height: 1.3; }.live-status { display: inline-flex; margin-top: 16rpx; padding: 8rpx 14rpx; border-radius: 8rpx; background: var(--yellow-soft); color: var(--yellow); font-size: 20rpx; font-weight: 700; }.live-card { margin-top: 24rpx; padding: 28rpx; }.live-card__label, .live-card__value, .live-card__meta { display: block; }.live-card__label { color: var(--muted); font-size: 20rpx; }.live-card__value { margin-top: 10rpx; font-size: 28rpx; font-weight: 700; line-height: 1.45; }.live-card__meta { margin-top: 12rpx; color: var(--muted); font-size: 21rpx; line-height: 1.55; }.live-meeting-button { min-height: 72rpx; margin-top: 22rpx; color: var(--accent-deep); font-size: 23rpx; font-weight: 700; }.live-task-link { min-height: 84rpx; margin-top: 32rpx; padding: 0 10rpx; color: var(--accent-deep); font-size: 24rpx; }
+/* 视觉取自 UI 设计仓库 JiahaoTang-Alvin/zhilu-miniprogram 提交 2d60b7b 的
+   package-learning/pages/learning/live-session/index.wxss；加载态、失败态与参会者身份行为本项目新增。 */
+@import "../../styles/skeleton.wxss";
+page { background: #FAFAFA; }
+
+.live-session-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.live-session-stage { position: relative; width: 100%; height: 100%; overflow: hidden; background: #FAFAFA; }
+.live-session-back { position: absolute; left: 24rpx; z-index: 40; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #FFFFFF; }
+.live-session-back:active { background: #F8FAF9; }
+.live-session-back-icon { width: 21rpx; height: 21rpx; border-bottom: 4rpx solid #53615B; border-left: 4rpx solid #53615B; transform: translateX(2px) rotate(45deg) scale(.68); }
+
+.live-session-placeholder { position: absolute; top: calc(250rpx + 20px); right: 36rpx; left: 36rpx; display: flex; flex-direction: column; align-items: center; }
+.live-session-placeholder-avatar { width: 224rpx; height: 224rpx; }
+.live-session-placeholder-line { width: 240rpx; height: 38rpx; margin-top: 24rpx; border-radius: 16rpx; }
+.live-session-placeholder-role { width: 140rpx; height: 22rpx; margin-top: 12rpx; }
+/* 骨架弹层：与真实会议详情弹层同位置，标题、三栏信息、状态卡与参会者卡只显示灰块。 */
+.live-session-sk-heading { display: flex; flex-direction: column; align-items: center; }
+.live-session-sk-subtitle { width: 220rpx; height: 26rpx; }
+.live-session-sk-title { width: 360rpx; height: 44rpx; margin-top: 12rpx; }
+.live-session-sk-info { height: 88rpx; margin-top: 36rpx; border-radius: 20rpx; }
+.live-session-sk-status { height: 144rpx; margin-top: 50rpx; border-radius: 26rpx; }
+.live-session-sk-attendee { height: 104rpx; margin-top: 16rpx; border-radius: 26rpx; }
+.live-session-sk-attendee-first { margin-top: 56rpx; }
+
+.live-session-state { position: absolute; top: 50%; right: 56rpx; left: 56rpx; display: flex; padding: 48rpx 36rpx; box-sizing: border-box; flex-direction: column; align-items: center; border-radius: 32rpx; background: #FFFFFF; transform: translateY(-50%); }
+.live-session-state-title { color: #25342D; font-size: 32rpx; font-weight: 700; line-height: 1.4; text-align: center; }
+.live-session-state-copy { margin-top: 16rpx; color: #7D8A82; font-size: 24rpx; line-height: 1.6; text-align: center; }
+.live-session-state-action { display: flex; height: 84rpx; margin-top: 32rpx; padding: 0 48rpx; align-items: center; justify-content: center; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; font-weight: 700; }
+.live-session-state-action:active { opacity: .78; }
+
+.live-session-identity { position: absolute; top: calc(250rpx + 20px); right: 36rpx; left: 36rpx; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+.live-session-teacher-avatar { display: block; width: 224rpx; height: 224rpx; overflow: hidden; box-sizing: border-box; border: 6rpx solid #FFFFFF; border-radius: 50%; background: #DDE2E0; }
+.live-session-teacher-name { display: block; margin-top: 13rpx; color: #2E3D35; font-size: 38rpx; font-weight: 750; line-height: 1.25; }
+.live-session-teacher-role { display: block; margin-top: 9rpx; color: #718078; font-size: 21rpx; line-height: 1.25; }
+
+.live-session-sheet { position: absolute; right: 0; left: 0; z-index: 10; display: flex; min-height: 480rpx; padding: 18rpx 36rpx calc(24rpx + env(safe-area-inset-bottom)); box-sizing: border-box; flex-direction: column; border-radius: 48rpx 48rpx 0 0; background: #FFFFFF; box-shadow: 0 -10rpx 34rpx rgba(45, 61, 54, .08); }
+.live-session-sheet.is-transitioning { transition: top 420ms cubic-bezier(.22, .8, .24, 1); }
+.live-session-sheet-drag { flex: 0 0 auto; }
+.live-session-sheet-body { flex: 1; min-height: 0; }
+.live-session-sheet-handle { width: 74rpx; height: 10rpx; margin: 0 auto 28rpx; border-radius: 999rpx; background: #D5DCD8; }
+.live-session-sheet-heading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; }
+.live-session-sheet-course-title { display: block; overflow: hidden; color: #7D8A82; font-size: 25rpx; font-weight: 550; line-height: 1.25; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.live-session-sheet-title { display: block; margin-top: 9rpx; overflow: hidden; color: #25342D; font-size: 38rpx; font-weight: 750; line-height: 1.25; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+
+.live-session-info-card { display: flex; align-items: stretch; min-height: 108rpx; margin-top: 26rpx; padding: 20rpx 0; box-sizing: border-box; }
+.live-session-info-item { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: center; justify-content: center; }
+.live-session-info-divider { flex: 0 0 1rpx; width: 1rpx; height: 58rpx; align-self: center; background: #E9EDEA; }
+.live-session-info-label { display: block; color: #9AA49D; font-size: 18rpx; line-height: 1.2; text-align: center; }
+.live-session-info-value { display: block; margin-top: 9rpx; overflow: hidden; color: #35433B; font-size: 22rpx; font-weight: 650; line-height: 1.2; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+
+.live-session-status-section { margin-top: 34rpx; }
+.live-session-status-heading { display: block; color: #24332D; font-size: 28rpx; font-weight: 650; line-height: 1.2; text-align: center; }
+.live-session-status-card { display: flex; width: 100%; min-height: 144rpx; margin-top: 16rpx; padding: 24rpx; box-sizing: border-box; align-items: center; justify-content: center; flex-direction: column; border: none; border-radius: 26rpx; background: #FAFAFA; }
+.live-session-status-content { display: flex; margin: 0; align-items: center; justify-content: center; flex-direction: column; }
+.live-session-status-line { display: flex; align-items: center; justify-content: center; }
+.live-session-status-dot { width: 14rpx; height: 14rpx; margin-right: 8rpx; border-radius: 50%; background: #A7B0AA; }
+.live-session-status-dot-muted { background: #A7B0AA; }
+.live-session-status-dot-soon { background: #6EA9E8; }
+.live-session-status-dot-active { background: #49C88B; }
+.live-session-status-dot-alert { background: #E77C6D; }
+.live-session-status-label { color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.2; }
+.live-session-status-timer { display: block; margin-top: 10rpx; color: #24332D; font-size: 34rpx; font-weight: 750; letter-spacing: 2rpx; line-height: 1.2; text-align: center; }
+.live-session-status-description { display: block; margin-top: 10rpx; color: #667B8A; font-size: 24rpx; line-height: 1.2; text-align: center; }
+
+.live-session-attendee-section { margin-top: 56rpx; }
+.live-session-attendee-heading { display: block; color: #24332D; font-size: 28rpx; font-weight: 650; line-height: 1.2; text-align: center; }
+.live-session-attendee-count { display: block; margin-top: 8rpx; color: #A4ADB5; font-size: 19rpx; line-height: 1.2; text-align: center; }
+.live-session-attendee-card { display: flex; min-height: 104rpx; margin-top: 16rpx; padding: 16rpx 24rpx; box-sizing: border-box; align-items: center; border: none; border-radius: 26rpx; background: #EFF6FF; }
+.live-session-attendee-avatar { display: block; flex: 0 0 72rpx; width: 72rpx; height: 72rpx; overflow: hidden; box-sizing: border-box; border: 4rpx solid #FFFFFF; border-radius: 50%; }
+.live-session-attendee-avatar-image { background: #DDE2E0; }
+.live-session-attendee-avatar-placeholder { background: #DDE2E0; }
+.live-session-attendee-name { min-width: 0; margin-left: 18rpx; overflow: hidden; color: #354B5D; font-size: 26rpx; font-weight: 650; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.live-session-attendee-status { display: flex; margin-left: auto; padding-left: 18rpx; align-items: center; color: #8AA0B4; font-size: 20rpx; line-height: 1.2; white-space: nowrap; }
+.live-session-attendee-status-dot { width: 10rpx; height: 10rpx; margin-right: 8rpx; border-radius: 50%; background: #C3CEDA; }
+.live-session-attendee-status.is-online { color: #2F9E6E; }
+.live-session-attendee-status.is-online .live-session-attendee-status-dot { background: #49C88B; }
+.live-session-attendee-role { margin-left: auto; padding-left: 18rpx; color: #8AA0B4; font-size: 20rpx; line-height: 1.2; white-space: nowrap; }
+
+/* 内容区滚动到底时留出按钮高度，最后一张参会者卡片不会被按钮的白色渐变盖住。 */
+.live-session-sheet-footer-space { height: 132rpx; }
+
+.live-session-primary-action { position: absolute; right: 0; bottom: 0; left: 0; z-index: 2; display: flex; height: 132rpx; padding-bottom: calc(24rpx + env(safe-area-inset-bottom)); box-sizing: border-box; align-items: flex-end; justify-content: center; background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 34%, #FFFFFF 100%); }
+.live-session-primary-button { display: flex; align-items: center; justify-content: center; width: auto; min-width: 192rpx; height: 96rpx; margin: 0; padding: 0 60rpx; box-sizing: border-box; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 28rpx; font-weight: 700; line-height: 96rpx; white-space: nowrap; }
+.live-session-primary-button:active { opacity: .78; }
+.live-session-primary-button.is-disabled { background: #E8ECE9; color: #9BA59E; }
+
+@media (max-width: 350px) {
+  .live-session-identity, .live-session-placeholder { top: calc(220rpx + 20px); }
+  .live-session-teacher-avatar, .live-session-placeholder-avatar { width: 204rpx; height: 204rpx; }
+  .live-session-sheet { padding-right: 24rpx; padding-left: 24rpx; }
+  .live-session-info-value { font-size: 19rpx; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

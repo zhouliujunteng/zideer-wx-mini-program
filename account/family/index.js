@@ -1,4 +1,5 @@
 const { loadCurrentFamilyRelations } = require('../../services/identity')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 const relationLabels = {
   guardian: '监护人',
@@ -24,6 +25,8 @@ function navigationMetrics() {
 Page({
   data: {
     loading: true,
+    // 第一次读到家庭关系前列表显示骨架；之后回到页面保留旧列表，后台静默刷新
+    loaded: false,
     failed: false,
     self: null,
     students: [],
@@ -32,7 +35,10 @@ Page({
     navigationBarHeight: 44,
     contentTop: 82
   },
-  onLoad() { this.setData(navigationMetrics()) },
+  onLoad() {
+    this.setData(navigationMetrics())
+    attachUiAssets(this)
+  },
   onResize() { this.setData(navigationMetrics()) },
   onShow() { this.loadPage() },
   async onPullDownRefresh() { await this.loadPage(); wx.stopPullDownRefresh() },
@@ -41,6 +47,7 @@ Page({
     try {
       const data = await loadCurrentFamilyRelations()
       this.setData({
+        loaded: true,
         self: data.self,
         students: data.students.map((item) => ({
           ...item,
@@ -56,7 +63,7 @@ Page({
         }))
       })
     } catch (error) {
-      this.setData({ failed: true })
+      if (!this.data.loaded) this.setData({ failed: true })
       wx.showToast({ title: error.message || '家庭关系加载失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })

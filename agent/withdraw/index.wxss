@@ -1,0 +1,135 @@
+/* 奖励结算（整笔转现金 / 兑换积分，2026-09-26）：外观照结算中心（红色渐变顶部、白色大圆角卡、红色渐变主按钮）。 */
+@import "../../styles/skeleton.wxss";
+
+page { background: #FAFAFA; }
+.withdraw-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.withdraw-topbar { position: fixed; top: 0; right: 0; left: 0; z-index: 20; box-sizing: border-box; background: transparent; }
+.withdraw-topbar-surface { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 0; background: #FAFAFA; pointer-events: none; transition: opacity .16s linear; }
+.withdraw-topbar-inner { position: relative; z-index: 1; display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 8rpx; }
+.withdraw-back { position: relative; display: flex; width: 44rpx; height: 44rpx; align-items: center; justify-content: center; }
+.withdraw-back:active { opacity: .65; }
+.withdraw-back-icon { position: absolute; width: 20rpx; height: 20rpx; border-bottom: 3rpx solid #FFFFFF; border-left: 3rpx solid #FFFFFF; transition: opacity .16s linear; transform: rotate(45deg) scale(.72); }
+.withdraw-back-icon-dark { border-color: #24332D; }
+.withdraw-topbar-title { position: absolute; left: 50%; z-index: 2; display: block; color: #FFFFFF; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transition: opacity .16s linear; transform: translateX(-50%); white-space: nowrap; }
+.withdraw-topbar-title-dark { color: #24332D; }
+.withdraw-scroll { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 1; box-sizing: border-box; background: #FAFAFA; }
+.withdraw-shell { position: relative; min-height: 100%; padding: 0 32rpx calc(72rpx + env(safe-area-inset-bottom)); box-sizing: border-box; background: linear-gradient(180deg, #F14677 0%, #EF3E3A 48%, #F5A4A7 68%, #FBE4DF 79%, #FAFAFA 88%, #FAFAFA 100%); background-repeat: no-repeat; background-size: 100% 480rpx; }
+.withdraw-ambient-icon { position: absolute; top: -26rpx; right: -80rpx; z-index: 0; width: 390rpx; height: 390rpx; opacity: .11; pointer-events: none; transform: rotate(13deg); }
+.withdraw-state, .withdraw-hero, .withdraw-tabs, .withdraw-card, .withdraw-notice-card, .withdraw-primary, .withdraw-submit-hint, .withdraw-pending, .withdraw-entry-card { position: relative; z-index: 1; }
+
+.withdraw-state { padding: 90rpx 24rpx 40rpx; text-align: center; }
+.withdraw-state-title { display: block; color: #24332D; font-size: 32rpx; font-weight: 600; }
+.withdraw-state-copy { display: block; margin: 22rpx 0 32rpx; color: #7D877F; font-size: 25rpx; line-height: 1.6; }
+.withdraw-state-action { display: inline-flex; height: 76rpx; align-items: center; padding: 0 44rpx; border-radius: 20rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; }
+.withdraw-state-action:active { opacity: .78; }
+
+/* 金额卡 */
+.withdraw-hero { padding: 26rpx 30rpx 24rpx; border-radius: 28rpx; background: #FFFFFF; }
+.withdraw-hero-label { color: #A1AAA4; font-size: 22rpx; font-weight: 600; }
+.withdraw-hero-value { display: flex; align-items: baseline; margin-top: 14rpx; color: #24332D; font-size: 56rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1; }
+.withdraw-hero-metrics { display: flex; margin-top: 24rpx; padding-top: 20rpx; border-top: 1rpx solid #F0F2F0; }
+.withdraw-hero-metric { min-width: 0; flex: 1; }
+.withdraw-hero-metric + .withdraw-hero-metric { padding-left: 16rpx; border-left: 1rpx solid #EDF0ED; }
+.withdraw-hero-metric-label { display: block; color: #A1AAA4; font-size: 21rpx; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+.withdraw-hero-metric-value { display: block; margin-top: 9rpx; color: #24332D; font-size: 27rpx; font-weight: 700; line-height: 1; }
+.withdraw-hero-hint { display: block; margin-top: 18rpx; color: #A0AAA3; font-size: 21rpx; line-height: 1.4; }
+.withdraw-sk-hero { width: 220rpx; height: 56rpx; margin-top: 14rpx; }
+.withdraw-sk-metric { width: 90rpx; height: 27rpx; margin-top: 9rpx; }
+.withdraw-sk-tab { width: 150rpx; height: 24rpx; }
+.withdraw-sk-value { width: 220rpx; }
+.withdraw-sk-block { height: 160rpx; margin-top: 20rpx; border-radius: 20rpx; }
+.withdraw-sk-service { width: 240rpx; height: 21rpx; margin-top: 8rpx; }
+
+/* 两栏切换 */
+.withdraw-tabs { display: flex; height: 80rpx; margin-top: 22rpx; padding: 6rpx; box-sizing: border-box; border-radius: 999rpx; background: #EEF1EF; }
+.withdraw-tab { display: flex; flex: 1; align-items: center; justify-content: center; border-radius: 999rpx; color: #7E8A82; font-size: 25rpx; font-weight: 600; }
+.withdraw-tab.is-selected { background: #FFFFFF; color: #E6414C; box-shadow: 0 4rpx 14rpx rgba(72, 82, 75, .08); }
+
+/* 白卡 */
+.withdraw-card { margin-top: 18rpx; padding: 26rpx 28rpx; box-sizing: border-box; border-radius: 30rpx; background: #FFFFFF; }
+.withdraw-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6rpx; }
+.withdraw-card-title { color: #35433B; font-size: 28rpx; font-weight: 700; line-height: 1.3; }
+.withdraw-card-tip { color: #A0AAA3; font-size: 21rpx; }
+.withdraw-card-note { display: block; margin-top: 18rpx; color: #98A39B; font-size: 21rpx; line-height: 1.6; }
+.withdraw-card-note-top { margin-top: 6rpx; }
+.withdraw-row { display: flex; min-height: 72rpx; align-items: center; justify-content: space-between; border-bottom: 1rpx solid #F2F4F2; }
+.withdraw-row:last-child { border-bottom: 0; }
+.withdraw-row-top { min-height: 0; align-items: flex-start; padding: 20rpx 0; }
+.withdraw-row-left { min-width: 0; flex: 1; }
+.withdraw-row-label { display: block; flex: 0 0 auto; color: #7E8A82; font-size: 25rpx; line-height: 1.3; }
+.withdraw-row-note { display: block; margin-top: 6rpx; color: #A8B1AB; font-size: 20rpx; line-height: 1.4; }
+.withdraw-row-value { min-width: 0; margin-left: 20rpx; color: #24332D; font-size: 25rpx; font-weight: 600; line-height: 1.4; text-align: right; word-break: break-all; }
+.withdraw-net-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 8rpx; padding-top: 20rpx; border-top: 1rpx dashed #E7EBE8; }
+.withdraw-net-label { color: #35433B; font-size: 26rpx; font-weight: 650; }
+.withdraw-net-value { color: #E6414C; font-size: 40rpx; font-weight: 700; letter-spacing: -1rpx; }
+.withdraw-badge { padding: 4rpx 14rpx; border-radius: 999rpx; background: #F1F4F2; color: #7E8A82; font-size: 20rpx; }
+.withdraw-badge.is-required { background: #FFF0EE; color: #E6414C; }
+
+/* 发票 */
+.withdraw-files { display: flex; flex-wrap: wrap; margin: 12rpx -8rpx 0; }
+.withdraw-file { position: relative; width: calc((100% - 48rpx) / 3); height: 180rpx; margin: 8rpx; box-sizing: border-box; }
+.withdraw-file-body { width: 100%; height: 100%; overflow: hidden; border-radius: 20rpx; background: #F5F7F5; }
+.withdraw-file-image { display: block; width: 100%; height: 100%; }
+.withdraw-file-pdf { display: flex; height: 100%; padding: 16rpx; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; }
+.withdraw-file-pdf-badge { padding: 6rpx 14rpx; border-radius: 10rpx; background: #E6414C; color: #FFFFFF; font-size: 22rpx; font-weight: 700; }
+.withdraw-file-name { display: -webkit-box; margin-top: 12rpx; overflow: hidden; color: #5F6B63; font-size: 19rpx; line-height: 1.35; text-align: center; word-break: break-all; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.withdraw-file-mask { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; border-radius: 20rpx; background: rgba(36, 51, 45, .45); color: #FFFFFF; font-size: 22rpx; }
+.withdraw-file-remove { position: absolute; top: -10rpx; right: -10rpx; display: flex; width: 40rpx; height: 40rpx; align-items: center; justify-content: center; border-radius: 50%; background: rgba(36, 51, 45, .72); color: #FFFFFF; font-size: 28rpx; line-height: 1; }
+.withdraw-file-add { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2rpx dashed #D5DBD7; border-radius: 20rpx; color: #98A39B; }
+.withdraw-file-add:active { opacity: .7; }
+.withdraw-file-add-plus { font-size: 48rpx; line-height: 1; }
+.withdraw-file-add-label { margin-top: 8rpx; font-size: 21rpx; }
+
+/* 劳务协议 */
+.withdraw-agreement { display: flex; align-items: center; padding-bottom: 20rpx; border-bottom: 1rpx solid #F2F4F2; }
+.withdraw-agreement:active { opacity: .78; }
+.withdraw-agreement-icon, .withdraw-entry-icon { display: flex; width: 64rpx; height: 64rpx; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 18rpx; background: #FFF0EE; }
+.withdraw-agreement-icon image, .withdraw-entry-icon image { width: 36rpx; height: 36rpx; }
+.withdraw-entry-icon-service { background: #FFF1E5; }
+.withdraw-agreement-copy, .withdraw-entry-copy { min-width: 0; flex: 1; margin-left: 18rpx; }
+.withdraw-agreement-title, .withdraw-entry-title { display: block; color: #35433B; font-size: 27rpx; font-weight: 650; line-height: 1.3; }
+.withdraw-agreement-meta, .withdraw-entry-meta { display: block; margin-top: 8rpx; color: #98A39B; font-size: 21rpx; line-height: 1.35; }
+.withdraw-agreement-read { flex: 0 0 auto; margin-left: 12rpx; padding: 8rpx 20rpx; border-radius: 999rpx; background: #FFF0EE; color: #E6414C; font-size: 22rpx; font-weight: 600; }
+.withdraw-agree { display: flex; align-items: flex-start; padding-top: 20rpx; }
+.withdraw-check { position: relative; width: 32rpx; height: 32rpx; flex: 0 0 auto; margin: 4rpx 14rpx 0 0; box-sizing: border-box; border: 2rpx solid #C5CDC8; border-radius: 50%; }
+.withdraw-check.is-checked { border-color: #E6414C; background: #E6414C; }
+.withdraw-check.is-checked::after { position: absolute; top: 5rpx; left: 10rpx; width: 7rpx; height: 13rpx; border-right: 3rpx solid #FFFFFF; border-bottom: 3rpx solid #FFFFFF; content: ''; transform: rotate(45deg); }
+.withdraw-agree-copy { color: #5F6B63; font-size: 23rpx; line-height: 1.55; }
+
+/* 资格提示 */
+.withdraw-notice-card { margin-top: 18rpx; padding: 30rpx 28rpx; box-sizing: border-box; border-radius: 30rpx; background: #FFFFFF; }
+.withdraw-notice-head { display: flex; align-items: center; }
+.withdraw-notice-icon { display: flex; width: 36rpx; height: 36rpx; flex: 0 0 auto; align-items: center; justify-content: center; margin-right: 12rpx; border-radius: 50%; background: #F5A53D; color: #FFFFFF; font-size: 24rpx; font-weight: 700; line-height: 1; }
+.withdraw-notice-title { color: #35433B; font-size: 29rpx; font-weight: 700; line-height: 1.3; }
+.withdraw-notice-copy { display: block; margin-top: 14rpx; color: #7E8A83; font-size: 24rpx; line-height: 1.65; }
+.withdraw-link { margin-top: 22rpx; color: #E6414C; font-size: 24rpx; font-weight: 600; text-align: center; }
+.withdraw-link:active { opacity: .7; }
+
+/* 兑换积分 */
+.withdraw-credits-card { padding-top: 30rpx; }
+.withdraw-credits-value { display: flex; align-items: baseline; margin-top: 16rpx; color: #E6414C; font-size: 64rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1; }
+.withdraw-credits-unit { margin-left: 10rpx; color: #35433B; font-size: 26rpx; font-weight: 650; letter-spacing: 0; }
+.withdraw-credits-rate { display: block; margin-top: 14rpx; color: #98A39B; font-size: 22rpx; }
+.withdraw-rules { margin-top: 20rpx; padding-top: 16rpx; border-top: 1rpx solid #F2F4F2; }
+.withdraw-rule { display: flex; margin-top: 10rpx; color: #7E8A83; font-size: 23rpx; line-height: 1.6; }
+.withdraw-rule-dot { width: 10rpx; height: 10rpx; flex: 0 0 auto; margin: 14rpx 14rpx 0 2rpx; border-radius: 50%; background: #FD7C02; }
+
+/* 主按钮、提示、入口 */
+.withdraw-primary { display: flex; height: 84rpx; margin-top: 26rpx; align-items: center; justify-content: center; border-radius: 999rpx; background: linear-gradient(90deg, #F14677, #EF3E3A); color: #FFFFFF; font-size: 27rpx; font-weight: 700; }
+.withdraw-primary:active { opacity: .72; }
+.withdraw-primary.is-disabled { background: #E3E7E4; color: #9AA59E; }
+.withdraw-primary.is-disabled:active { opacity: 1; }
+.withdraw-submit-hint { display: block; margin-top: 14rpx; color: #A0AAA3; font-size: 21rpx; text-align: center; }
+.withdraw-pending { display: flex; align-items: center; justify-content: space-between; margin-top: 18rpx; padding: 20rpx 24rpx; border-radius: 22rpx; background: #FFF8EC; color: #7A5E43; font-size: 22rpx; line-height: 1.5; }
+.withdraw-pending:active { opacity: .78; }
+.withdraw-entry-card { display: flex; min-height: 112rpx; margin-top: 18rpx; align-items: center; padding: 22rpx 26rpx; box-sizing: border-box; border-radius: 30rpx; background: #FFFFFF; }
+.withdraw-entry-first { margin-top: 34rpx; }
+.withdraw-entry-card:active { opacity: .78; }
+.withdraw-arrow { width: 14rpx; height: 14rpx; flex: 0 0 auto; margin-left: 12rpx; box-sizing: border-box; border-top: 2rpx solid #B6BFB9; border-right: 2rpx solid #B6BFB9; transform: rotate(45deg); }
+
+@media (max-width: 350px) {
+  .withdraw-shell { padding-right: 28rpx; padding-left: 28rpx; }
+  .withdraw-tab { font-size: 23rpx; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

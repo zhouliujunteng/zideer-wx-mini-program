@@ -1,0 +1,60 @@
+/* 我的结算记录（2026-09-26）：外观照结算明细页（浅灰顶栏、标签页 + 白色大圆角列表卡）。 */
+@import "../../styles/skeleton.wxss";
+
+page { background: #FAFAFA; }
+.applications-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.applications-topbar { position: fixed; top: 0; right: 0; left: 0; z-index: 20; box-sizing: border-box; background: #FAFAFA; }
+.applications-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 8rpx; }
+.applications-back { display: flex; width: 44rpx; height: 44rpx; align-items: center; justify-content: center; }
+.applications-back:active { opacity: .65; }
+.applications-back-icon { width: 20rpx; height: 20rpx; border-bottom: 3rpx solid #24332D; border-left: 3rpx solid #24332D; transform: rotate(45deg) scale(.72); }
+.applications-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.applications-shell { min-height: 100%; padding: 0 32rpx 32rpx; box-sizing: border-box; }
+
+.applications-state { padding: 120rpx 24rpx 40rpx; text-align: center; }
+.applications-state-title { display: block; color: #24332D; font-size: 32rpx; font-weight: 600; }
+.applications-state-copy { display: block; margin: 22rpx 0 32rpx; color: #7D877F; font-size: 25rpx; line-height: 1.6; }
+.applications-state-action { display: inline-flex; height: 76rpx; align-items: center; padding: 0 44rpx; border-radius: 20rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; }
+.applications-state-action:active { opacity: .78; }
+
+.applications-module { margin-top: 20rpx; overflow: hidden; border-radius: 40rpx; background: #FFFFFF; }
+.applications-tabs { display: flex; width: 100%; height: 76rpx; align-items: flex-end; border-radius: 26rpx 26rpx 0 0; background: #EEF1EF; overflow: visible; }
+.applications-tab { position: relative; display: flex; height: 76rpx; flex: 1; align-items: center; justify-content: center; color: #89948D; font-size: 23rpx; line-height: 1; text-align: center; }
+.applications-tab.is-selected { z-index: 2; border-radius: 26rpx 26rpx 0 0; background: #FFFFFF; color: #4A514C; font-weight: 650; }
+.applications-tab.is-selected::before, .applications-tab.is-selected::after { position: absolute; bottom: 0; width: 32rpx; height: 32rpx; background: inherit; content: ''; pointer-events: none; -webkit-mask-image: radial-gradient(100% 100% at center, transparent 49%, #000 51%); mask-image: radial-gradient(100% 100% at center, transparent 49%, #000 51%); -webkit-mask-size: 200% 200%; mask-size: 200% 200%; }
+.applications-tab.is-selected::before { left: -32rpx; -webkit-mask-position: 100% 100%; mask-position: 100% 100%; }
+.applications-tab.is-selected::after { right: -32rpx; -webkit-mask-position: 0 100%; mask-position: 0 100%; }
+.applications-tab:first-child.is-selected::before { display: none; }
+.applications-tab:last-child.is-selected::after { display: none; }
+
+.applications-sk-card, .applications-list-card { padding: 8rpx 24rpx; box-sizing: border-box; border-radius: 0 0 40rpx 40rpx; background: #FFFFFF; }
+.applications-sk-date { height: 18rpx; }
+.applications-sk-amount { flex: 0 0 auto; width: 110rpx; height: 28rpx; margin-left: 16rpx; }
+.applications-item { display: flex; min-height: 146rpx; box-sizing: border-box; }
+.applications-item:active { opacity: .78; }
+.applications-item-copy { display: flex; min-width: 0; flex: 1; align-items: center; box-sizing: border-box; padding: 30rpx 0 24rpx; border-bottom: 2rpx solid #F0F3F0; }
+.applications-item:last-child .applications-item-copy { border-bottom: 0; }
+.applications-item-left { min-width: 0; flex: 1; }
+.applications-item-title-row { display: flex; align-items: center; }
+.applications-item-title { overflow: hidden; color: #35433B; font-size: 26rpx; font-weight: 600; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.applications-status { flex: 0 0 auto; margin-left: 12rpx; padding: 4rpx 12rpx; border-radius: 999rpx; font-size: 19rpx; line-height: 1.3; }
+.applications-status-pending { background: #FFF4E5; color: #D9771A; }
+.applications-status-done { background: #EAF6EE; color: #3E8B5A; }
+.applications-status-rejected { background: #FFF0EE; color: #D6505A; }
+.applications-item-meta { display: block; margin-top: 12rpx; overflow: hidden; color: #A0AAA3; font-size: 19rpx; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.applications-item-right { flex: 0 0 auto; margin-left: 16rpx; text-align: right; }
+.applications-item-amount { display: block; color: #E2843B; font-size: 27rpx; font-weight: 650; line-height: 1.1; white-space: nowrap; }
+.applications-item-sub { display: block; margin-top: 10rpx; color: #A0AAA3; font-size: 19rpx; line-height: 1.2; white-space: nowrap; }
+.applications-arrow { width: 13rpx; height: 13rpx; flex: 0 0 auto; margin-left: 14rpx; box-sizing: border-box; border-top: 2rpx solid #B6BFB9; border-right: 2rpx solid #B6BFB9; transform: rotate(45deg); }
+.applications-empty { display: flex; min-height: 320rpx; padding: 30rpx 20rpx; box-sizing: border-box; align-items: center; justify-content: center; flex-direction: column; color: #8C9991; text-align: center; }
+.applications-empty text:first-child { color: #4E6157; font-size: 26rpx; font-weight: 650; }
+.applications-empty text:nth-child(2) { margin-top: 12rpx; font-size: 21rpx; line-height: 1.5; }
+.applications-empty-action { margin-top: 26rpx; padding: 16rpx 48rpx; border-radius: 999rpx; background: linear-gradient(90deg, #F14677, #EF3E3A); color: #FFFFFF; font-size: 24rpx; font-weight: 650; }
+.applications-empty-action:active { opacity: .72; }
+
+@media (max-width: 350px) {
+  .applications-shell { padding-right: 28rpx; padding-left: 28rpx; }
+  .applications-tab { font-size: 21rpx; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

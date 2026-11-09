@@ -9,7 +9,8 @@ function normalizeTopic(topic) {
 }
 
 Page({
-  data: { loading: true, failed: false, topics: [], hasReport: false },
+  // loaded：第一次读到诊断前画骨架；之后回到页面保留旧数据，后台静默刷新。
+  data: { loaded: false, failed: false, topics: [], hasReport: false },
 
   onShow() { this.loadPage() },
 
@@ -19,18 +20,19 @@ Page({
   },
 
   async loadPage() {
-    this.setData({ loading: true, failed: false })
+    this.setData({ failed: false })
     try {
       const data = await loadCurrentDiagnosticReports()
       const report = (data.reports || []).find((item) => item.status === 'completed' || item.status === 'ready') || null
       this.setData({
+        loaded: true,
         hasReport: Boolean(report),
         topics: report ? (report.weakTopics || []).map(normalizeTopic) : []
       })
     } catch (error) {
       this.setData({ failed: true })
       wx.showToast({ title: error.message || '规划建议加载失败', icon: 'none' })
-    } finally { this.setData({ loading: false }) }
+    }
   },
 
   startAssessment() {

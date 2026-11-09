@@ -1,0 +1,60 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.my-promotion-page{height:100vh}
+.my-promotion-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
+.my-promotion-ambient-ribbon{top:-84px;left:-258px;width:888px;height:432px;border:14px solid rgba(255, 255, 255, .72);border-top-color:transparent;border-right-color:transparent;border-radius:50%}
+.my-promotion-ambient-ribbon-inner{top:22px;right:22px;bottom:22px;left:22px;border:6px solid rgba(255, 255, 255, .38);border-top-color:transparent;border-right-color:transparent;border-radius:50%}
+.my-promotion-topbar{top:0;right:max(0px, 50% - var(--lg-col) / 2);left:max(0px, 50% - var(--lg-col) / 2)}
+.my-promotion-topbar-inner{padding:0 21px 4px}
+.my-promotion-back{width:26px;height:26px}
+.my-promotion-back-icon{width:12px;height:12px;border-bottom:1px solid #24332D;border-left:1px solid #24332D}
+.my-promotion-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.my-promotion-scroll{top:0;right:0;bottom:0;left:0}
+.my-promotion-content{min-height:100%;padding:0 21px calc(48px + env(safe-area-inset-bottom))}
+.my-promotion-sk-value{width:72px;height:54px;margin-top:8px}
+.my-promotion-sk-note{width:156px;height:13px;margin-top:9px}
+.my-promotion-sk-count{width:54px;height:12px}
+.my-promotion-sk-avatar{width:45px;height:45px;margin:18px 10px 0 0}
+.my-promotion-state{padding:54px 14px 24px}
+.my-promotion-state-title{font-size:19px;font-weight:600}
+.my-promotion-state-copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.my-promotion-state-action{height:45px;padding:0 26px;border-radius:12px;font-size:15px}
+.my-promotion-overview{padding:4px 4px 14px}
+.my-promotion-overview-main{min-height:0}
+.my-promotion-overview-copy{min-width:0}
+.my-promotion-overview-label{font-size:17px;font-weight:700;line-height:1.25}
+.my-promotion-overview-value{margin-top:8px;font-size:57px;font-weight:500;letter-spacing:-2px;line-height:.95}
+.my-promotion-overview-note{padding-top:9px;font-size:12px;line-height:1.2}
+.my-promotion-section-heading{margin:25px 2px 0}
+.my-promotion-section-title{font-size:18px;font-weight:700;line-height:1.25}
+.my-promotion-section-count{font-size:11px}
+.record-tabs{width:100%;height:45px;margin-top:13px;border-radius:15px 15px 0 0}
+.record-tab{height:45px;font-size:13px;line-height:1}
+.record-tab.is-selected{border-radius:15px 15px 0 0;font-weight:650}
+.record-tab.is-selected::before, .record-tab.is-selected::after{bottom:0;width:19px;height:19px}
+.record-tab.is-selected::before{left:-20px}
+.record-tab.is-selected::after{right:-20px}
+.records-card{min-height:0;margin-top:0;padding:4px 14px;border:0;border-radius:0 0 21px 21px}
+.record-item{min-height:87px}
+.my-promotion-record-avatar{width:45px;height:45px;margin:18px 10px 0 0;border:2px solid rgba(255, 255, 255, .92);border-radius:50%}
+.record-copy{min-width:0;padding:18px 0 14px}
+.my-promotion-record-name-row{min-width:0}
+.record-title{min-width:0;font-size:15px;font-weight:600;line-height:1.2}
+.vip-mark{height:20px;margin-left:6px;padding:0 7px;border-radius:599px;font-family:Georgia, serif;font-size:12px;font-style:italic;font-weight:700;line-height:20px}
+.record-detail{margin-top:7px;font-size:12px;line-height:1.2}
+.record-meta{margin-top:7px;font-size:10px;line-height:1}
+.record-status{padding:3px 7px;border-radius:599px;font-size:10px}
+.records-empty{min-height:168px}
+.records-empty-title{font-size:16px;font-weight:650}
+.records-empty-hint{margin-top:8px;font-size:12px}
+.my-promotion-records-card{margin-top:0}
+}

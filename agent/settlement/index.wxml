@@ -1,0 +1,160 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="settlement-page">
+  <view class="settlement-topbar {{isScrolled ? 'is-scrolled' : ''}}">
+    <view class="settlement-topbar-surface" style="opacity: {{topbarProgress}};"></view>
+    <view class="settlement-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="settlement-back" bindtap="handleBack" aria-label="返回推广伙伴" aria-role="button">
+        <view class="settlement-back-icon" style="opacity: {{topbarWhiteOpacity}};"></view>
+        <view class="settlement-back-icon settlement-back-icon-dark" style="opacity: {{topbarProgress}};"></view>
+      </view>
+      <text class="settlement-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px; opacity: {{topbarWhiteOpacity}};">{{title}}</text>
+      <text class="settlement-topbar-title settlement-topbar-title-dark" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px; opacity: {{topbarProgress}};">{{title}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{isRefreshing}}" class="settlement-refresh-capsule" style="top: {{refreshTop}}px;">
+    <view class="settlement-refresh-spinner"></view>
+    <text>正在刷新</text>
+  </view>
+
+  <scroll-view class="settlement-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bounces="{{true}}" refresher-enabled="{{true}}" refresher-triggered="{{isRefreshing}}" refresher-background="#F14677" refresher-default-style="none" bindrefresherrefresh="handleRefresh" bindscroll="handleScroll">
+    <view class="settlement-shell" style="padding-top: {{contentTop}}px;">
+      <image class="settlement-ambient-icon" src="{{UA.src(ui, '/assets/promotion/settlement-reward-bag.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+
+      <view class="settlement-profile">
+        <block wx:if="{{loadState === 'ready'}}">
+          <view class="settlement-profile-avatar">
+            <image class="settlement-profile-avatar-image" src="{{UA.avatar(ui, profile.avatarUrl)}}" mode="aspectFill" aria-label="头像"></image>
+          </view>
+          <text class="settlement-profile-name">{{profile.name}}</text>
+        </block>
+        <block wx:elif="{{loadState === 'loading'}}">
+          <view class="sk sk-round settlement-sk-avatar"></view>
+          <view class="sk settlement-sk-name"></view>
+        </block>
+      </view>
+
+      <view class="settlement-state" wx:if="{{loadState === 'failed'}}">
+        <text class="settlement-state-title">结算中心暂时无法加载</text>
+        <text class="settlement-state-copy">{{loadError}}</text>
+        <view class="settlement-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:else>
+        <view class="settlement-wallet-card-stack" aria-label="累计奖励">
+          <view class="settlement-wallet-card-back" aria-hidden="true">
+            <view class="settlement-wallet-daily-summary">
+              <view wx:for="{{summary.dailySummary}}" wx:key="id" class="settlement-wallet-daily-item">
+                <text class="settlement-wallet-daily-label">{{item.label}}</text>
+                <text wx:if="{{loadState === 'ready'}}" class="settlement-wallet-daily-value">{{item.value}}</text>
+                <view wx:else class="sk settlement-sk-daily"></view>
+              </view>
+            </view>
+          </view>
+          <view class="settlement-wallet-card">
+            <text class="settlement-wallet-label">{{summary.balanceLabel}}</text>
+            <view wx:if="{{loadState === 'ready'}}" class="settlement-wallet-value"><text>{{summary.balanceValue}}</text></view>
+            <view wx:else class="sk settlement-sk-balance"></view>
+          </view>
+        </view>
+
+        <view class="settlement-selectable-card" aria-label="可选择奖励">
+          <view class="settlement-selectable-heading"><text class="settlement-selectable-label">{{summary.selectable.label}}</text></view>
+          <text wx:if="{{loadState === 'ready'}}" class="settlement-selectable-value">{{summary.selectable.value}}</text>
+          <view wx:else class="sk settlement-sk-selectable"></view>
+          <view class="settlement-selectable-metrics">
+            <view wx:for="{{summary.selectable.metrics}}" wx:key="id" class="settlement-selectable-metric">
+              <text class="settlement-selectable-metric-label">{{item.label}}</text>
+              <text wx:if="{{loadState === 'ready'}}" class="settlement-selectable-metric-value">{{item.value}}</text>
+              <view wx:else class="sk settlement-sk-metric"></view>
+            </view>
+          </view>
+          <view wx:if="{{loadState === 'ready' && giftAccount.visible}}" class="settlement-gift-row">
+            <text class="settlement-gift-label">{{giftAccount.label}}</text>
+            <view class="settlement-gift-copy">
+              <text class="settlement-gift-value">{{giftAccount.value}}</text>
+              <text class="settlement-gift-hint">{{giftAccount.hint}}</text>
+            </view>
+          </view>
+          <view class="settlement-selectable-action" bindtap="handleElection" aria-role="button">{{summary.selectable.actionLabel}}</view>
+        </view>
+
+        <view wx:if="{{loadState === 'ready' && statusNotice.visible}}" class="settlement-status-notice settlement-status-notice-{{statusNotice.tone}}" bindtap="handleStatusNotice" aria-role="button">
+          <view class="settlement-status-notice-icon" aria-hidden="true">!</view>
+          <view class="settlement-status-notice-copy">
+            <text class="settlement-status-notice-title">{{statusNotice.title}}</text>
+            <text class="settlement-status-notice-detail">{{statusNotice.copy}}</text>
+          </view>
+          <view class="settlement-status-notice-arrow" aria-hidden="true"></view>
+        </view>
+
+        <view class="settlement-entry-card" bindtap="handleApplications" aria-role="button" aria-label="我的结算记录">
+          <view class="settlement-entry-icon" aria-hidden="true">
+            <image src="{{UA.src(ui, '/assets/me/quick-orders.svg')}}" mode="aspectFit"></image>
+          </view>
+          <view class="settlement-entry-copy">
+            <text class="settlement-entry-title">我的结算记录</text>
+            <text class="settlement-entry-meta">提现与兑换积分的申请、进度和打款凭证</text>
+          </view>
+          <view class="settlement-service-arrow" aria-hidden="true"></view>
+        </view>
+
+        <view class="settlement-section-heading">
+          <text class="settlement-section-title">结算明细</text>
+          <view class="settlement-view-all" bindtap="handleViewAll" aria-role="button"><text>查看全部</text><view class="settlement-view-all-icon" aria-hidden="true"></view></view>
+        </view>
+
+        <view class="settlement-records-card">
+          <!-- 首次读到明细前：记录卡骨架，不先闪「暂无结算记录」 -->
+          <view wx:if="{{loadState !== 'ready'}}" class="settlement-record-list" aria-label="正在读取结算明细">
+            <view wx:for="{{[0, 1, 2]}}" wx:key="*this" class="settlement-record-item">
+              <view class="settlement-record-copy">
+                <view class="settlement-record-title-row">
+                  <view class="settlement-record-left">
+                    <view class="sk sk-line sk-mid"></view>
+                    <view class="sk sk-line sk-short settlement-sk-date"></view>
+                  </view>
+                  <view class="sk settlement-sk-amount"></view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view wx:elif="{{recordGroups.length}}" class="settlement-record-list">
+            <view wx:for="{{recordGroups}}" wx:for-item="group" wx:key="monthLabel" class="settlement-record-group">
+              <view wx:for="{{group.records}}" wx:for-item="record" wx:key="id" class="settlement-record-item">
+                <view class="settlement-record-copy">
+                  <view class="settlement-record-title-row">
+                    <view class="settlement-record-left">
+                      <text class="settlement-record-title">{{record.title}}{{record.recordNo ? '-' : ''}}{{record.recordNo}}</text>
+                      <text class="settlement-record-date">{{record.detail}} · {{record.statusLabel}}</text>
+                    </view>
+                    <text class="settlement-record-amount {{record.statusKey}}">{{record.amount}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="settlement-records-empty"><text>暂无结算记录</text><text>推广订单结算后，奖励会按时间展示在这里。</text></view>
+        </view>
+
+        <view class="settlement-rules-card">
+          <text class="settlement-rules-title">{{rules.title}}</text>
+          <view wx:for="{{rules.items}}" wx:key="*this" class="settlement-rule-item"><view class="settlement-rule-dot"></view><text>{{item}}</text></view>
+        </view>
+
+        <view class="settlement-service-card" bindtap="handleService" aria-role="button" aria-label="联系企业微信客服">
+          <view class="settlement-service-icon" aria-hidden="true">
+            <image src="{{UA.src(ui, '/assets/icons/headphones.svg')}}" mode="aspectFit"></image>
+          </view>
+          <view class="settlement-service-copy">
+            <text class="settlement-service-title">结算问题找客服</text>
+            <text wx:if="{{loadState === 'ready'}}" class="settlement-service-meta">{{serviceOpening ? '正在打开…' : serviceMeta}}</text>
+            <view wx:else class="sk sk-line settlement-sk-service"></view>
+          </view>
+          <view class="settlement-service-arrow" aria-hidden="true"></view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

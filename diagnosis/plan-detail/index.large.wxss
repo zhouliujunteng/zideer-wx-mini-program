@@ -1,0 +1,44 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.plan-detail{min-height:100vh;padding:0 16px calc(env(safe-area-inset-bottom) + 26px)}
+.plan-detail__inner{padding-top:32px}
+.plan-detail__head{padding:0 4px}
+.plan-detail__eyebrow{font-size:13px;font-weight:700}
+.plan-detail__title{margin-top:7px;font-size:25px;font-weight:700;line-height:1.28}
+.plan-detail__copy{margin-top:8px;font-size:13px;line-height:1.55}
+.plan-detail__empty{margin-top:25px;padding:18px 15px;font-size:14px;line-height:1.55}
+.plan-detail__list{margin-top:25px;padding:0 15px}
+.plan-detail__item{min-height:64px;gap:12px;border-bottom:0.5px solid var(--line)}
+.plan-detail__item:last-child{border-bottom:0}
+.plan-detail__seq{width:25px;height:25px;border-radius:12px;font-size:12px;font-weight:700}
+.plan-detail__topic{font-size:15px;font-weight:700}
+.plan-detail__meta{margin-top:4px;font-size:12px}
+.plan-detail__body{min-width:0;padding:14px 0}
+.plan-detail__arrow{font-size:22px}
+.plan-detail__list{padding:0 4px}
+.state-panel{padding:33px 7px}
+.state-panel__mark{width:43px;height:43px;margin:0 auto 16px;border-radius:50%;font-size:24px}
+.state-panel__title{font-size:19px;line-height:1.5}
+.state-panel__action{margin-top:21px;min-height:52px;border:0.5px solid var(--line);border-radius:7px;font-size:16px}
+.state-panel__action::after{border:0}
+.plan-detail__title-sk{width:60%;height:31px;margin-top:7px}
+.plan-detail__seq-sk{width:25px;height:25px}
+.plan-detail__meta-sk{height:12px}
+}

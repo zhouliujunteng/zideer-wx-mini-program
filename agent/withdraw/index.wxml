@@ -1,0 +1,206 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<view class="withdraw-page">
+  <view class="withdraw-topbar {{isScrolled ? 'is-scrolled' : ''}}">
+    <view class="withdraw-topbar-surface" style="opacity: {{topbarProgress}};"></view>
+    <view class="withdraw-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="withdraw-back" bindtap="handleBack" aria-label="返回结算中心" aria-role="button">
+        <view class="withdraw-back-icon" style="opacity: {{topbarWhiteOpacity}};"></view>
+        <view class="withdraw-back-icon withdraw-back-icon-dark" style="opacity: {{topbarProgress}};"></view>
+      </view>
+      <text class="withdraw-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px; opacity: {{topbarWhiteOpacity}};">{{title}}</text>
+      <text class="withdraw-topbar-title withdraw-topbar-title-dark" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px; opacity: {{topbarProgress}};">{{title}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="withdraw-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscroll="handleScroll">
+    <view class="withdraw-shell" style="padding-top: {{contentTop}}px;">
+      <image class="withdraw-ambient-icon" src="{{UA.src(ui, '/assets/promotion/settlement-reward-bag.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+
+      <view class="withdraw-state" wx:if="{{loadState === 'failed'}}">
+        <text class="withdraw-state-title">奖励结算暂时无法加载</text>
+        <text class="withdraw-state-copy">{{loadError}}</text>
+        <view class="withdraw-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
+      </view>
+
+      <block wx:else>
+        <view class="withdraw-hero" aria-label="可结算奖励">
+          <text class="withdraw-hero-label">{{hero.label}}</text>
+          <view wx:if="{{loadState === 'ready'}}" class="withdraw-hero-value"><text>{{hero.value}}</text></view>
+          <view wx:else class="sk withdraw-sk-hero"></view>
+          <view class="withdraw-hero-metrics">
+            <view wx:for="{{hero.metrics}}" wx:key="id" class="withdraw-hero-metric">
+              <text class="withdraw-hero-metric-label">{{item.label}}</text>
+              <text wx:if="{{loadState === 'ready'}}" class="withdraw-hero-metric-value">{{item.value}}</text>
+              <view wx:else class="sk withdraw-sk-metric"></view>
+            </view>
+          </view>
+          <text wx:if="{{loadState === 'ready'}}" class="withdraw-hero-hint">{{hero.lockHint}}</text>
+        </view>
+
+        <!-- 首次读到数据前：两栏切换与内容卡只画骨架（默认选哪一栏取决于是否已开通推广伙伴） -->
+        <block wx:if="{{loadState !== 'ready'}}">
+          <view class="withdraw-tabs" aria-label="正在读取结算方式">
+            <view class="withdraw-tab"><view class="sk sk-line withdraw-sk-tab"></view></view>
+            <view class="withdraw-tab"><view class="sk sk-line withdraw-sk-tab"></view></view>
+          </view>
+          <view class="withdraw-card">
+            <view class="sk sk-line sk-short"></view>
+            <view wx:for="{{[0, 1, 2]}}" wx:key="*this" class="withdraw-row"><view class="sk sk-line sk-short"></view><view class="sk sk-line withdraw-sk-value"></view></view>
+          </view>
+          <view class="withdraw-card">
+            <view class="sk sk-line sk-short"></view>
+            <view class="sk withdraw-sk-block"></view>
+          </view>
+        </block>
+
+        <block wx:else>
+          <view class="withdraw-tabs" aria-label="结算方式">
+            <view wx:for="{{tabs}}" wx:key="id" class="withdraw-tab {{item.isSelected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="handleTab" aria-role="button">{{item.label}}</view>
+          </view>
+
+          <block wx:if="{{activeTab === 'cash'}}">
+            <!-- ============ 提现到银行卡 ============ -->
+            <view wx:if="{{!cash.ready}}" class="withdraw-notice-card">
+              <view class="withdraw-notice-head">
+                <view class="withdraw-notice-icon" aria-hidden="true">!</view>
+                <text class="withdraw-notice-title">{{cash.notice.title}}</text>
+              </view>
+              <text class="withdraw-notice-copy">{{cash.notice.copy}}</text>
+              <view class="withdraw-primary" bindtap="handleNoticeAction" aria-role="button">{{serviceOpening ? '正在打开…' : cash.notice.actionLabel}}</view>
+              <view wx:if="{{credits.ready}}" class="withdraw-link" bindtap="handleSwitchToCredits" aria-role="button">改为兑换课程积分</view>
+            </view>
+
+            <block wx:else>
+              <view class="withdraw-card">
+                <view class="withdraw-card-head">
+                  <text class="withdraw-card-title">收款信息</text>
+                  <text class="withdraw-card-tip">有误请联系客服修改</text>
+                </view>
+                <view wx:for="{{cash.bankRows}}" wx:key="id" class="withdraw-row">
+                  <text class="withdraw-row-label">{{item.label}}</text>
+                  <text class="withdraw-row-value">{{item.value}}</text>
+                </view>
+              </view>
+
+              <view class="withdraw-card">
+                <view class="withdraw-card-head">
+                  <text class="withdraw-card-title">税费预估</text>
+                  <text class="withdraw-card-tip">{{cash.subjectLabel}}</text>
+                </view>
+                <view wx:for="{{cash.taxRows}}" wx:key="id" class="withdraw-row withdraw-row-top">
+                  <view class="withdraw-row-left">
+                    <text class="withdraw-row-label">{{item.label}}</text>
+                    <text wx:if="{{item.note}}" class="withdraw-row-note">{{item.note}}</text>
+                  </view>
+                  <text class="withdraw-row-value">{{item.value}}</text>
+                </view>
+                <view class="withdraw-net-row">
+                  <text class="withdraw-net-label">预计到账</text>
+                  <text class="withdraw-net-value">¥{{cash.netText}}</text>
+                </view>
+                <text class="withdraw-card-note">{{cash.taxNote}}</text>
+              </view>
+
+              <view class="withdraw-card">
+                <view class="withdraw-card-head">
+                  <text class="withdraw-card-title">上传发票</text>
+                  <text class="withdraw-badge {{cash.invoiceRequired ? 'is-required' : ''}}">{{cash.invoiceRequired ? '必传' : '选填'}}</text>
+                </view>
+                <text class="withdraw-card-note withdraw-card-note-top">{{cash.invoiceHint}}</text>
+                <view class="withdraw-files">
+                  <view wx:for="{{invoices}}" wx:key="key" class="withdraw-file">
+                    <view class="withdraw-file-body" data-key="{{item.key}}" bindtap="handlePreviewInvoice" aria-role="button" aria-label="查看{{item.name}}">
+                      <image wx:if="{{item.isImage}}" class="withdraw-file-image" src="{{item.path}}" mode="aspectFill"></image>
+                      <view wx:else class="withdraw-file-pdf"><text class="withdraw-file-pdf-badge">PDF</text><text class="withdraw-file-name">{{item.name}}</text></view>
+                      <view wx:if="{{item.status === 'uploading'}}" class="withdraw-file-mask"><text>上传中</text></view>
+                    </view>
+                    <view wx:if="{{item.status !== 'uploading'}}" class="withdraw-file-remove" data-key="{{item.key}}" bindtap="handleRemoveInvoice" aria-role="button" aria-label="删除{{item.name}}">×</view>
+                  </view>
+                  <view wx:if="{{invoices.length < 9}}" class="withdraw-file withdraw-file-add" bindtap="handleAddInvoice" aria-role="button" aria-label="添加发票">
+                    <text class="withdraw-file-add-plus">+</text>
+                    <text class="withdraw-file-add-label">添加发票</text>
+                  </view>
+                </view>
+              </view>
+
+              <view class="withdraw-card">
+                <view class="withdraw-agreement" bindtap="handleOpenAgreement" aria-role="button" aria-label="阅读劳务费代扣代发协议">
+                  <view class="withdraw-agreement-icon" aria-hidden="true">
+                    <image src="{{UA.src(ui, '/assets/me/quick-orders.svg')}}" mode="aspectFit"></image>
+                  </view>
+                  <view class="withdraw-agreement-copy">
+                    <text class="withdraw-agreement-title">{{cash.agreement.title}}</text>
+                    <text class="withdraw-agreement-meta">{{openingAgreement ? '正在打开…' : (cash.agreement.meta || '点击阅读协议全文')}}</text>
+                  </view>
+                  <text class="withdraw-agreement-read">阅读</text>
+                </view>
+                <view class="withdraw-agree" bindtap="handleToggleAgree" aria-role="checkbox" aria-checked="{{agreed}}">
+                  <view class="withdraw-check {{agreed ? 'is-checked' : ''}}" aria-hidden="true"></view>
+                  <text class="withdraw-agree-copy">我已阅读并同意《劳务费代扣代发协议》，同意平台按协议代扣代缴税费后发放劳务报酬</text>
+                </view>
+              </view>
+
+              <view wx:if="{{cash.pendingText}}" class="withdraw-pending" bindtap="handleRecords" aria-role="button">
+                <text>{{cash.pendingText}}</text>
+                <view class="withdraw-arrow" aria-hidden="true"></view>
+              </view>
+
+              <view class="withdraw-primary {{canSubmit ? '' : 'is-disabled'}}" bindtap="handleSubmit" aria-role="button" aria-disabled="{{!canSubmit}}">{{submitting ? '正在提交…' : '提交提现申请 · ¥' + cash.amountText}}</view>
+              <text wx:if="{{submitHint}}" class="withdraw-submit-hint">{{submitHint}}</text>
+            </block>
+          </block>
+
+          <block wx:else>
+            <!-- ============ 兑换课程积分 ============ -->
+            <view wx:if="{{!credits.ready}}" class="withdraw-notice-card">
+              <view class="withdraw-notice-head">
+                <view class="withdraw-notice-icon" aria-hidden="true">!</view>
+                <text class="withdraw-notice-title">{{credits.notice.title}}</text>
+              </view>
+              <text class="withdraw-notice-copy">{{credits.notice.copy}}</text>
+            </view>
+
+            <block wx:else>
+              <view class="withdraw-card withdraw-credits-card">
+                <text class="withdraw-card-title">可兑换 ¥{{credits.amountText}}</text>
+                <view class="withdraw-credits-value"><text>{{credits.creditsText}}</text><text class="withdraw-credits-unit">积分</text></view>
+                <text class="withdraw-credits-rate">{{credits.rateText}} · {{credits.validityText}}</text>
+                <view class="withdraw-rules">
+                  <view class="withdraw-rule"><view class="withdraw-rule-dot"></view><text>可结算奖励整笔兑换，不拆分</text></view>
+                  <view class="withdraw-rule"><view class="withdraw-rule-dot"></view><text>积分记入你的学习账户，可用于生成课程</text></view>
+                  <view class="withdraw-rule"><view class="withdraw-rule-dot"></view><text>兑换后不可撤回，也不能再提现</text></view>
+                </view>
+                <text wx:if="{{credits.cashOnlyNote}}" class="withdraw-card-note">{{credits.cashOnlyNote}}</text>
+              </view>
+              <view class="withdraw-primary {{credits.credits > 0 && !exchanging ? '' : 'is-disabled'}}" bindtap="handleExchange" aria-role="button">{{exchanging ? '正在兑换…' : (credits.credits > 0 ? '兑换 ' + credits.creditsText + ' 积分' : '暂无可兑换的奖励')}}</view>
+            </block>
+          </block>
+        </block>
+
+        <view class="withdraw-entry-card withdraw-entry-first" bindtap="handleRecords" aria-role="button" aria-label="我的结算记录">
+          <view class="withdraw-entry-icon" aria-hidden="true">
+            <image src="{{UA.src(ui, '/assets/me/quick-orders.svg')}}" mode="aspectFit"></image>
+          </view>
+          <view class="withdraw-entry-copy">
+            <text class="withdraw-entry-title">我的结算记录</text>
+            <text class="withdraw-entry-meta">提现与兑换积分的申请、进度和打款凭证</text>
+          </view>
+          <view class="withdraw-arrow" aria-hidden="true"></view>
+        </view>
+
+        <view class="withdraw-entry-card" bindtap="handleService" aria-role="button" aria-label="联系企业微信客服">
+          <view class="withdraw-entry-icon withdraw-entry-icon-service" aria-hidden="true">
+            <image src="{{UA.src(ui, '/assets/icons/headphones.svg')}}" mode="aspectFit"></image>
+          </view>
+          <view class="withdraw-entry-copy">
+            <text class="withdraw-entry-title">推广伙伴、结算问题找客服</text>
+            <text wx:if="{{loadState === 'ready'}}" class="withdraw-entry-meta">{{serviceOpening ? '正在打开…' : serviceMeta}}</text>
+            <view wx:else class="sk sk-line withdraw-sk-service"></view>
+          </view>
+          <view class="withdraw-arrow" aria-hidden="true"></view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

@@ -1,8 +1,13 @@
 <view class="report-page">
-  <view class="report-skeleton skeleton" wx:if="{{loading}}"></view>
-  <view class="state-panel" wx:elif="{{failed}}"><view class="state-panel__mark">!</view><text class="state-panel__title">学习报告暂时无法加载</text><text class="state-panel__copy">请确认网络和登录状态后重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
+  <view class="report-head"><text class="report-eyebrow">学习档案</text><text class="report-title">知识点学习报告</text></view>
+  <!-- 第一次读到报告前按学生卡、报告卡、摘要段落的形状画骨架；之后回到页面保留旧报告静默刷新 -->
+  <block wx:if="{{!loaded && !failed}}">
+    <view class="student-switcher surface"><view class="sk sk-round report-avatar-sk"></view><view class="student-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view></view>
+    <view class="report-card surface"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view><view class="sk sk-line"></view></view>
+    <view class="report-section"><text class="report-section__title">学习过程</text><view class="report-panel surface"><view class="sk sk-line"></view><view class="sk sk-line"></view><view class="sk sk-line sk-mid"></view></view></view>
+  </block>
+  <view class="state-panel" wx:elif="{{!loaded}}"><view class="state-panel__mark">!</view><text class="state-panel__title">学习报告暂时无法加载</text><text class="state-panel__copy">请确认网络和登录状态后重新读取。</text><button class="state-panel__action pressable" bindtap="loadPage">重新加载</button></view>
   <block wx:else>
-    <view class="report-head"><text class="report-eyebrow">学习档案</text><text class="report-title">知识点学习报告</text></view>
     <view class="report-empty surface" wx:if="{{!current}}"><text class="report-empty__title">暂无可查看的学习报告</text><text class="report-empty__copy">你只能查看本人或当前有效绑定学生的报告。</text></view>
     <block wx:else>
       <button class="student-switcher surface pressable" bindtap="chooseStudent"><view class="student-avatar">{{current.initial}}</view><view class="student-copy"><text class="student-label">当前学生</text><text class="student-name">{{current.name}} · {{current.gradeLabel}}</text></view><text class="student-action">{{students.length > 1 ? '切换' : '当前档案'}} ›</text></button>

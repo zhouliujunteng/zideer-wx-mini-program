@@ -1,0 +1,92 @@
+/* 结算详情（2026-09-26）：外观照结算中心（红色渐变顶部、白色大圆角卡）。 */
+@import "../../styles/skeleton.wxss";
+
+page { background: #FAFAFA; }
+.application-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.application-topbar { position: fixed; top: 0; right: 0; left: 0; z-index: 20; box-sizing: border-box; background: transparent; }
+.application-topbar-surface { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 0; background: #FAFAFA; pointer-events: none; transition: opacity .16s linear; }
+.application-topbar-inner { position: relative; z-index: 1; display: flex; align-items: center; box-sizing: content-box; padding: 0 36rpx 8rpx; }
+.application-back { position: relative; display: flex; width: 44rpx; height: 44rpx; align-items: center; justify-content: center; }
+.application-back:active { opacity: .65; }
+.application-back-icon { position: absolute; width: 20rpx; height: 20rpx; border-bottom: 3rpx solid #FFFFFF; border-left: 3rpx solid #FFFFFF; transition: opacity .16s linear; transform: rotate(45deg) scale(.72); }
+.application-back-icon-dark { border-color: #24332D; }
+.application-topbar-title { position: absolute; left: 50%; z-index: 2; display: block; color: #FFFFFF; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transition: opacity .16s linear; transform: translateX(-50%); white-space: nowrap; }
+.application-topbar-title-dark { color: #24332D; }
+.application-scroll { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 1; box-sizing: border-box; background: #FAFAFA; }
+.application-shell { position: relative; min-height: 100%; padding: 0 32rpx calc(72rpx + env(safe-area-inset-bottom)); box-sizing: border-box; background: linear-gradient(180deg, #F14677 0%, #EF3E3A 48%, #F5A4A7 68%, #FBE4DF 79%, #FAFAFA 88%, #FAFAFA 100%); background-repeat: no-repeat; background-size: 100% 480rpx; }
+.application-ambient-icon { position: absolute; top: -26rpx; right: -80rpx; z-index: 0; width: 390rpx; height: 390rpx; opacity: .11; pointer-events: none; transform: rotate(13deg); }
+.application-state, .application-hero, .application-card, .application-entry-card { position: relative; z-index: 1; }
+
+.application-state { padding: 90rpx 24rpx 40rpx; text-align: center; }
+.application-state-title { display: block; color: #24332D; font-size: 32rpx; font-weight: 600; }
+.application-state-copy { display: block; margin: 22rpx 0 32rpx; color: #7D877F; font-size: 25rpx; line-height: 1.6; }
+.application-state-action { display: inline-flex; height: 76rpx; align-items: center; padding: 0 44rpx; border-radius: 20rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; }
+.application-state-action:active { opacity: .78; }
+
+.application-hero { padding: 28rpx 30rpx 26rpx; border-radius: 28rpx; background: #FFFFFF; }
+.application-hero-head { display: flex; align-items: center; justify-content: space-between; }
+.application-hero-title { color: #35433B; font-size: 28rpx; font-weight: 700; }
+.application-status { padding: 6rpx 16rpx; border-radius: 999rpx; font-size: 21rpx; line-height: 1.3; }
+.application-status-pending { background: #FFF4E5; color: #D9771A; }
+.application-status-done { background: #EAF6EE; color: #3E8B5A; }
+.application-status-rejected { background: #FFF0EE; color: #D6505A; }
+.application-hero-label { display: block; margin-top: 24rpx; color: #A1AAA4; font-size: 22rpx; font-weight: 600; }
+.application-hero-value { display: flex; align-items: baseline; margin-top: 12rpx; color: #24332D; font-size: 56rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1; }
+.application-hero-unit { margin-left: 10rpx; font-size: 26rpx; font-weight: 650; letter-spacing: 0; }
+.application-hero-meta { display: flex; align-items: center; margin-top: 20rpx; padding-top: 18rpx; border-top: 1rpx solid #F0F2F0; color: #98A39B; font-size: 21rpx; }
+.application-copy { margin-left: 14rpx; color: #E6414C; font-weight: 600; }
+.application-sk-value { width: 220rpx; height: 56rpx; margin-top: 24rpx; }
+.application-sk-meta { margin-top: 24rpx; }
+.application-sk-row { width: 200rpx; }
+
+.application-card { margin-top: 18rpx; padding: 26rpx 28rpx; box-sizing: border-box; border-radius: 30rpx; background: #FFFFFF; }
+.application-card-title { display: block; margin-bottom: 6rpx; color: #35433B; font-size: 28rpx; font-weight: 700; line-height: 1.3; }
+.application-row { display: flex; min-height: 70rpx; align-items: center; justify-content: space-between; border-bottom: 1rpx solid #F2F4F2; }
+.application-row:last-child { border-bottom: 0; }
+.application-row-label { flex: 0 0 auto; color: #7E8A82; font-size: 25rpx; }
+.application-row-value { min-width: 0; margin-left: 20rpx; color: #24332D; font-size: 25rpx; font-weight: 600; text-align: right; word-break: break-all; }
+.application-row-value.is-strong { color: #E6414C; font-size: 30rpx; font-weight: 700; }
+.application-divider { height: 1rpx; margin: 6rpx 0; border-top: 1rpx dashed #E2E7E3; }
+
+.application-steps { margin-top: 12rpx; }
+.application-step { position: relative; display: flex; padding-bottom: 26rpx; }
+.application-step:last-child { padding-bottom: 4rpx; }
+.application-step::before { position: absolute; top: 26rpx; bottom: -2rpx; left: 11rpx; width: 2rpx; background: #E6EAE7; content: ''; }
+.application-step:last-child::before { display: none; }
+.application-step-dot { position: relative; z-index: 1; width: 24rpx; height: 24rpx; flex: 0 0 auto; margin-top: 4rpx; box-sizing: border-box; border: 4rpx solid #D3D9D5; border-radius: 50%; background: #FFFFFF; }
+.application-step-done .application-step-dot { border-color: #3E8B5A; background: #3E8B5A; }
+.application-step-current .application-step-dot { border-color: #F5A53D; }
+.application-step-rejected .application-step-dot { border-color: #D6505A; background: #D6505A; }
+.application-step-copy { min-width: 0; flex: 1; margin-left: 18rpx; }
+.application-step-label { display: block; color: #35433B; font-size: 25rpx; font-weight: 600; line-height: 1.3; }
+.application-step-todo .application-step-label { color: #A8B1AB; font-weight: 500; }
+.application-step-time { display: block; margin-top: 6rpx; color: #A0AAA3; font-size: 20rpx; }
+.application-callout { margin-top: 16rpx; padding: 18rpx 20rpx; border-radius: 20rpx; background: #F6F8F6; }
+.application-callout-rejected { background: #FFF0EE; }
+.application-callout-title { display: block; color: #35433B; font-size: 23rpx; font-weight: 700; }
+.application-callout-rejected .application-callout-title { color: #C2464F; }
+.application-callout-copy { display: block; margin-top: 8rpx; color: #6F7A73; font-size: 23rpx; line-height: 1.6; }
+
+.application-files { display: flex; flex-wrap: wrap; margin: 12rpx -8rpx 0; }
+.application-file { width: calc((100% - 48rpx) / 3); height: 180rpx; margin: 8rpx; overflow: hidden; box-sizing: border-box; border-radius: 20rpx; background: #F5F7F5; }
+.application-file:active { opacity: .78; }
+.application-file-image { display: block; width: 100%; height: 100%; }
+.application-file-pdf { display: flex; height: 100%; padding: 16rpx; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; }
+.application-file-pdf-badge { padding: 6rpx 14rpx; border-radius: 10rpx; background: #E6414C; color: #FFFFFF; font-size: 22rpx; font-weight: 700; }
+.application-file-name { display: -webkit-box; margin-top: 12rpx; overflow: hidden; color: #5F6B63; font-size: 19rpx; line-height: 1.35; text-align: center; word-break: break-all; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.application-empty { display: block; padding: 16rpx 0 4rpx; color: #A0AAA3; font-size: 23rpx; }
+
+.application-entry-card { display: flex; min-height: 112rpx; margin-top: 18rpx; align-items: center; padding: 22rpx 26rpx; box-sizing: border-box; border-radius: 30rpx; background: #FFFFFF; }
+.application-entry-card:active { opacity: .78; }
+.application-entry-icon { display: flex; width: 64rpx; height: 64rpx; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 18rpx; background: #FFF1E5; }
+.application-entry-icon image { width: 34rpx; height: 34rpx; }
+.application-entry-copy { min-width: 0; flex: 1; margin-left: 18rpx; }
+.application-entry-title { display: block; color: #35433B; font-size: 27rpx; font-weight: 650; line-height: 1.25; }
+.application-entry-meta { display: block; margin-top: 8rpx; overflow: hidden; color: #98A39B; font-size: 21rpx; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.application-arrow { width: 14rpx; height: 14rpx; flex: 0 0 auto; margin-left: 12rpx; box-sizing: border-box; border-top: 2rpx solid #B6BFB9; border-right: 2rpx solid #B6BFB9; transform: rotate(45deg); }
+
+@media (max-width: 350px) {
+  .application-shell { padding-right: 28rpx; padding-left: 28rpx; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

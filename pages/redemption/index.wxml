@@ -40,24 +40,36 @@
         <view class="redemption-section-heading">
           <view class="redemption-heading-copy">
             <text class="redemption-section-title">{{model.historyTitle}}</text>
-            <text class="redemption-section-count">{{model.historyCountLabel}}</text>
+            <text wx:if="{{loaded && model.historyCountLabel}}" class="redemption-section-count">{{model.historyCountLabel}}</text>
           </view>
-          <view class="redemption-history-link" aria-role="button"><text>{{model.historyActionLabel}}</text><view class="redemption-history-link-arrow"></view></view>
+          <view wx:if="{{loaded && model.historyActionLabel}}" class="redemption-history-link {{model.historyExpanded ? 'is-expanded' : ''}}" bindtap="toggleHistory" aria-role="button" aria-label="{{model.historyActionLabel}}"><text>{{model.historyActionLabel}}</text><view class="redemption-history-link-arrow"></view></view>
         </view>
-        <view wx:if="{{model.history.length}}" class="redemption-history-list">
+        <!-- 第一次读到记录前只画骨架，不先显示「暂无兑换记录」 -->
+        <view wx:if="{{!loaded && !loadFailed}}" class="redemption-history-list">
+          <view wx:for="{{[1, 2]}}" wx:key="*this" class="redemption-history-item">
+            <view class="redemption-history-main"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view><view class="sk sk-line"></view></view>
+          </view>
+        </view>
+        <view wx:elif="{{!loaded}}" class="redemption-history-empty">
+          <text>兑换记录暂时无法读取</text>
+          <view class="redemption-history-retry" bindtap="loadPage" aria-role="button">重新加载</view>
+        </view>
+        <view wx:elif="{{model.history.length}}" class="redemption-history-list">
           <view wx:for="{{model.history}}" wx:key="id" class="redemption-history-item">
             <view class="redemption-history-main">
               <text class="redemption-history-title">{{item.title}}</text>
-              <text class="redemption-history-description">{{item.description}}</text>
-              <view class="redemption-history-meta">
-                <text>{{item.maskedCode}}</text>
-                <text class="redemption-history-time">{{item.time}}</text>
-              </view>
+              <text class="redemption-history-description">{{item.code}}</text>
             </view>
-            <view class="redemption-history-result"><view class="redemption-history-result-arrow"></view></view>
+            <view class="redemption-history-side">
+              <text class="redemption-history-status is-{{item.statusTone}}">{{item.statusLabel}}</text>
+              <text class="redemption-history-time">{{item.time}}</text>
+            </view>
           </view>
         </view>
-        <view wx:else class="redemption-history-empty">暂无兑换记录</view>
+        <view wx:else class="redemption-history-empty">
+          <text>还没有兑换记录</text>
+          <text class="redemption-history-empty-hint">兑换成功后，记录会显示在这里</text>
+        </view>
       </view>
 
     </view>

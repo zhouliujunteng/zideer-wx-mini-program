@@ -10,7 +10,8 @@ test('birthday validation accepts leap days and rejects impossible or future bir
   for (const value of ['2013-02-29', '2020-02-30', '2030-01-01', '1899-12-31', '2010-1-01']) assert.equal(validBirthday(value, '2026-09-09'), false)
 })
 
-const source = fs.readFileSync(require.resolve('../integrations/zion/profile/save-current-profile.js'), 'utf8')
+// 上线时实名锁定的推算（verified-identity.js）拼在保存资料源码前面，测试照样拼接
+const source = fs.readFileSync(require.resolve('../integrations/zion/profile/verified-identity.js'), 'utf8') + '\n' + fs.readFileSync(require.resolve('../integrations/zion/profile/save-current-profile.js'), 'utf8')
 function save(args, state = {}) {
   const operations = []
   const context = {
@@ -19,6 +20,9 @@ function save(args, state = {}) {
       operations.push({name, query, variables})
       if (name === 'ResolveProfileOwner') return {account_identity: state.disabled ? [] : [{user_principal_id: 42}]}
       if (name === 'CheckProfileOwner') return {user_principal: state.suspended ? [] : [{id:42}]}
+      if (name === 'ReadOwnVerifiedIdentity') return {guardian_verification: state.verified ? [state.verified] : []}
+      if (name === 'ReadOwnAccountType') return {user_profile: state.existingAccountType ? [{account_type: state.existingAccountType}] : []}
+      if (name === 'ReadOwnRoleSwitchState') return {user_profile: state.switchProfile ? [state.switchProfile] : [], guardian_verification: state.verification ? [state.verification] : []}
       if (name === 'ReadOwnBirthday') return {user_profile: state.existingProfile ? [state.existingProfile] : []}
       if (name === 'SaveOwnProfile') return {insert_user_profile_one:{id:9}}
       if (name === 'EnsureStudentBenefitAccounts') { if (state.ensureThrows) throw new Error('account insert failed'); state.ensureVars = variables; state.ensureQuery = query; return {credit:{id:91}, coin:{id:92}} }
@@ -36,7 +40,8 @@ test('declared identity is persisted without granting a verified guardian role; 
     const ops = save({...fields, personal_details:{account_type}})
     assert.equal(ops.find(op => op.name === 'SaveOwnProfile').variables.object.account_type, account_type)
     assert.ok(ops.find(op => op.name === 'SaveOwnProfile').variables.columns.includes('account_type'))
-    assert.equal(ops.some(op => /role_assignment|guardian_verification/.test(op.query)), false)
+    // 声明身份只写资料：不写角色、不写实名记录（切换为家长时只读实名结果做年龄判断）
+    assert.equal(ops.some(op => /(insert|update)_(user_role_assignment|guardian_verification)/.test(op.query)), false)
   }
   assert.equal(save(fields).find(op => op.name === 'SaveOwnProfile').variables.columns.includes('account_type'), false)
   for (const account_type of ['', 'admin', 'teacher', null]) assert.throws(() => save({...fields, personal_details:{account_type}}), /身份/)
@@ -144,4 +149,19 @@ test('profile save still succeeds when benefit account creation fails', () => {
   const ops = save(fields, state)
   assert.ok(ops.find(op => op.name === 'SaveOwnProfile'))
   assert.equal(state.result, 9)
+})
+
+test('guardians save without school, grade or textbook; students still must fill them', () => {
+  const guardian = {accountId:7,nickname:'鹿妈妈',grade:0,semester:'',school_name:'',textbook_version:'',region_detail:'深圳'}
+  const {object} = save({...guardian, personal_details:{account_type:'guardian'}}).find(op => op.name === 'SaveOwnProfile').variables
+  assert.equal(object.current_grade, 0)
+  assert.equal(object.school_name, '')
+  assert.equal(object.textbook_version, '')
+  assert.ok(object.profile_completed_at)
+  // 编辑时没带身份：沿用已存的家长身份
+  assert.equal(save(guardian, {existingAccountType:'guardian'}).find(op => op.name === 'SaveOwnProfile').variables.object.school_name, '')
+  // 旧版小程序给家长也传了年级、学校、教材：照常保存
+  assert.equal(save({...fields, personal_details:{account_type:'guardian'}}).find(op => op.name === 'SaveOwnProfile').variables.object.current_grade, 8)
+  assert.throws(() => save({...guardian, personal_details:{account_type:'student'}}), /完整/)
+  assert.throws(() => save(guardian, {existingAccountType:'student'}), /完整/)
 })
