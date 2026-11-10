@@ -1,5 +1,4 @@
-const { loadCreditProducts, loadPurchaseEligibility, bindCurrentPromotionCode } = require('../../services/identity')
-const { clearPendingReferral } = require('../../utils/referral-context')
+const { loadCreditProducts, loadPurchaseEligibility } = require('../../services/identity')
 const { attachUiAssets } = require('../../services/ui-assets')
 const { priceText } = require('../../services/membership-view')
 const { rpxToPx } = require('../../utils/screen')
@@ -117,35 +116,6 @@ Page({
   handleBack() {
     if (getCurrentPages().length > 1) return wx.navigateBack({ delta: 1 })
     wx.switchTab({ url: '/pages/me/index' })
-  },
-  // 没有推荐人：与会员中心同一个填码框（AF46 bind，填后不可更改），绑定成功后刷新即可购买（2026-09-25 用户规则）
-  openInviteCode() {
-    if (this._inviting) return
-    this._inviting = true
-    wx.showModal({
-      // 可输入的弹窗里 content 是输入框的初始文字，不是说明：不传 content。「填写后不可更改」写在页面上，
-      // 占位文字放不下（弹窗输入框一行约 13 个字）
-      title: '填写邀请码后购买',
-      editable: true,
-      placeholderText: '输入邀请人的邀请码',
-      confirmText: '绑定',
-      success: async (result) => {
-        const code = result.confirm ? String(result.content || '').trim() : ''
-        if (!code) { this._inviting = false; return }
-        try {
-          const bound = await bindCurrentPromotionCode(code)
-          clearPendingReferral()
-          wx.showToast({ title: bound.rewardCredits > 0 ? `绑定成功，获得 ${bound.rewardCredits} 积分` : '已绑定推荐人，可以购买积分包了', icon: 'none', duration: 2400 })
-        } catch (error) {
-          if (error && error.terminalReferral) clearPendingReferral()
-          wx.showToast({ title: error.message || '绑定失败', icon: 'none', duration: 2600 })
-        } finally {
-          this._inviting = false
-          await this.loadPage()
-        }
-      },
-      fail: () => { this._inviting = false }
-    })
   },
   openEligibility() { wx.navigateTo({ url: '/commerce/agent-gate/index' }) },
   openAccount() { wx.navigateTo({ url: '/commerce/entitlements/index' }) },

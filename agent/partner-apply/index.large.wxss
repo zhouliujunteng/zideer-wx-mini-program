@@ -73,4 +73,13 @@
 .apply-row:last-child{border-bottom:0}
 .apply-row-label{font-size:15px}
 .apply-row-value{min-width:0;margin-left:12px;font-size:15px;font-weight:600;line-height:1.4}
+.apply-role-label{width:auto;margin-top:14px}
+.apply-roles{gap:9px;margin-top:9px}
+.apply-role{padding:13px 14px;border:1px solid #ECEFEC;border-radius:14px}
+.apply-role.is-picked{border-color:#EF3E3A}
+.apply-role-name{font-size:16px;font-weight:700}
+.apply-role-check{width:22px;height:22px;border:1px solid #D3D9D4;border-radius:50%}
+.apply-role.is-picked .apply-role-check{border-color:#EF3E3A}
+.apply-role-line{margin-top:7px;font-size:13px;line-height:1.6}
+.apply-role-tag{margin-right:6px;padding:1px 6px;border-radius:4px;font-size:12px}
 }

@@ -2,7 +2,6 @@ const { getMenuButtonRect } = require('../../utils/screen')
 const { getLiveHomeModel } = require('../../services/live-tab-service')
 const { attachUiAssets } = require('../../services/ui-assets')
 const { openCustomCourseIntro } = require('../../utils/membership-gate')
-const { resolvePendingReferral } = require('../../services/referral-binding')
 const { guardAccess } = require('../../utils/access-gate')
 const { LIVE_SCORE_TOOLS } = require('../../utils/score-tools-live')
 
@@ -69,15 +68,7 @@ Page({
   onShow() {
     const app = getApp()
     if (app && app.markTabVisible) app.markTabVisible('pages/home/index')
-    this.resolveReferral()
     return this.loadModel()
-  },
-
-  // 扫小程序码或点分享卡片带来的推荐人在后台绑定，成功只给一行提示，不打断首页。
-  resolveReferral() {
-    resolvePendingReferral()
-      .then((result) => { if (result && result.message) wx.showToast({ title: result.message, icon: 'none', duration: 2600 }) })
-      .catch(() => {})
   },
 
   async loadModel() {

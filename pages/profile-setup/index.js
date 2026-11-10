@@ -1,5 +1,5 @@
-const { loadCurrentUser, saveCurrentLearningProfile, bindCurrentPromotionCode, isAuthenticationRequired } = require('../../services/identity')
-const { postProfileUrl, readPendingReferral, clearPendingReferral } = require('../../utils/referral-context')
+const { loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired } = require('../../services/identity')
+const { postProfileUrl } = require('../../utils/referral-context')
 const { todayDate, validBirthday, normalizeSemester, ageDisplay, gradeForBirthday } = require('../../utils/profile-form')
 const { accountTypeLabels, basicInfoComplete } = require('../../utils/account-switch')
 const { attachUiAssets } = require('../../services/ui-assets')
@@ -105,7 +105,6 @@ Page({
     gradeSheetVisible: false,
     gradeSheetClosing: false,
     successSheetVisible: false,
-    rewardCredits: 0,
     regionPickerValue: [],
     statusBarHeight: 20,
     navigationBarHeight: 44,
@@ -146,9 +145,7 @@ Page({
       schoolName: '',
       textbookVersion: textbookOptions[0],
       textbookIndex: 0,
-      regionDetail: '',
-      // 选填：邀请人的邀请码，保存档案后绑定推荐人（只能绑一次，不覆盖）
-      promotionCode: ''
+      regionDetail: ''
     }
   },
 
@@ -329,8 +326,6 @@ Page({
         : grade === 0 ? -1 : Math.max(0, textbookOptions.indexOf(profile.textbook_version))
       // 服务器已有年级视为用户已手动确定，后续改生日不再自动覆盖
       this.gradeManuallyPicked = !wasGuardian && Boolean(profile.current_grade)
-      const pending = readPendingReferral()
-      const pendingCode = (pending && pending.code) || this.data.form.promotionCode || ''
       const storedType = ['student', 'guardian'].includes(profile.account_type) ? profile.account_type : ''
       // 已建档、身份不是家长的（含早期没记身份的）都按学生算，改家长要走实名
       this.storedAccountType = user.profileCompleted ? (storedType === 'guardian' ? 'guardian' : 'student') : ''
@@ -363,9 +358,7 @@ Page({
           schoolName: profile.school_name || '',
           textbookVersion: textbookIndex >= 0 ? textbookOptions[textbookIndex] : '',
           textbookIndex,
-          regionDetail: profile.region_detail || '',
-          // 扫邀请码进来的用户，建档时直接预填好，他可以改也可以清空
-          promotionCode: pendingCode
+          regionDetail: profile.region_detail || ''
         }
       })
     } catch (error) {
@@ -385,12 +378,7 @@ Page({
   updateTextField(event) {
     if (this.data.saving) return
     const key = event.currentTarget.dataset.key
-    if (!['nickname', 'schoolName', 'regionDetail', 'promotionCode'].includes(key)) return
-    // 邀请码不校验、不报错，统一转成大写显示（后端也按大写比对）
-    if (key === 'promotionCode') {
-      this.setData({ 'form.promotionCode': String(event.detail.value || '').toUpperCase() })
-      return
-    }
+    if (!['nickname', 'schoolName', 'regionDetail'].includes(key)) return
     const errorKey = { nickname: 'name', schoolName: 'school', regionDetail: 'region' }[key]
     this.setData({ [`form.${key}`]: event.detail.value, [`errors.${errorKey}`]: '' })
   },
@@ -524,26 +512,8 @@ Page({
       const user = await saveCurrentLearningProfile(formForSave(this.data.form, this.keptStudentFields))
       getApp().globalData.user = user
       if (this.disposed) return
-      // 邀请码是选填项：绑定失败（码不存在、填了自己的、已有推荐人）只提示，不挡住建档
-      const code = String(this.data.form.promotionCode || '').trim()
-      // 送积分的活动开着时，绑定成功那一刻就到账了，金额跟着成功弹层一起报给用户
-      let rewardCredits = 0
-      if (code) {
-        try {
-          const bound = await bindCurrentPromotionCode(code)
-          clearPendingReferral()
-          rewardCredits = bound.rewardCredits || 0
-          if (!this.disposed && bound.alreadyBound) {
-            wx.showToast({ title: '你已有推荐人，本次邀请码未生效', icon: 'none', duration: 2600 })
-          }
-        } catch (error) {
-          // 码不存在、填的是自己的码这类失败清掉待绑定线索，避免以后反复提示
-          if (error && error.terminalReferral) clearPendingReferral()
-          if (!this.disposed) wx.showToast({ title: error.message || '邀请码未绑定', icon: 'none', duration: 2600 })
-        }
-      }
       if (this.disposed) return
-      this.setData({ saving: false, successSheetVisible: true, rewardCredits })
+      this.setData({ saving: false, successSheetVisible: true })
     } catch (error) {
       if (this.disposed) return
       wx.showToast({ title: error.message || '保存失败，请重试', icon: 'none', duration: 2600 })

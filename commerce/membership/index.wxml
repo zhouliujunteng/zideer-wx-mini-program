@@ -86,7 +86,6 @@
               </view>
             </view>
           </scroll-view>
-          <text wx:if="{{membership.inviteRequired}}" class="plans-invite-note">开通会员需要先填写邀请人的邀请码，填写后不可更改。</text>
           <text wx:if="{{member.active}}" class="plans-note">按所选等级原价购买，开通后再赠送该等级的积分；只能往更高等级升级，不能降级。</text>
           <text wx:else class="plans-note">会员永久有效，赠送积分永久有效；开通后可以随时升级到更高等级（按原价购买），但不能降级。</text>
         </block>
@@ -161,7 +160,6 @@
       <scroll-view class="agreement-sheet-scroll" scroll-y>
         <text class="agreement-sheet-intro">开通前请确认以下内容。</text>
         <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>支付成功并经服务端确认后即成为会员，永久有效，可访问会员课程库。不同等级的价格、赠送积分与权益以会员中心所示为准。</text></view>
-        <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>开通或升级会员前需要先填写邀请人的邀请码（绑定推荐人），填写后不可更改。</text></view>
         <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>开通时按所选等级一次性赠送课程积分，赠送积分永久有效，用于生成专属课程。</text></view>
         <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>开通后可以升级到更高等级：按所选等级原价购买，并再赠送该等级的积分；不能降级到更低等级。积分不够时也可购买积分包，会员享会员价。</text></view>
         <view class="agreement-sheet-row"><view class="agreement-sheet-dot" aria-hidden="true"></view><text>支付成功之日起 7 日内可联系客服申请退款，超过 7 日不支持退款。退款的那个等级取消，并扣回它赠送积分中尚未使用的部分；仍持有的其他等级不受影响。</text></view>

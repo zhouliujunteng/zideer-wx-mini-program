@@ -72,7 +72,6 @@ test('a guardian finishes the profile on the basic step without school, grade or
   await page.handleNext()
   assert.equal(page.data.stepIndex, 1)
   page.data.form.nickname = '鹿妈妈'; page.data.form.gender = 'female'; page.data.form.regionDetail = '上海市'; page.data.form.birthday = '1985-06-15'
-  page.updateTextField({ currentTarget: { dataset: { key: 'promotionCode' } }, detail: { value: 'zla2b3c4d5' } })
   await page.handleNext()
   assert.equal(page.data.stepIndex, 1)
   assert.equal(saved.length, 1)
@@ -81,49 +80,12 @@ test('a guardian finishes the profile on the basic step without school, grade or
   assert.equal(saved[0].schoolName, '')
   assert.equal(saved[0].semester, '')
   assert.equal(saved[0].textbookVersion, '')
-  assert.deepEqual(bound, ['ZLA2B3C4D5'])
+  assert.deepEqual(bound, [], '2026-11-10 起建档不再绑邀请码')
   assert.equal(page.data.successSheetVisible, true)
   // 换回学生身份，学校、年级、教材步重新出现
   page.data.successSheetVisible = false
   page.handleAccountTypePick({ currentTarget: { dataset: { value: 'student' } } })
   assert.equal(page.data.activeSteps.length, 4)
-})
-
-test('the optional promotion code is typed into the form, bound after saving, and then dropped', async () => {
-  const { page, bound, cleared } = fixture()
-  Object.assign(page.data.form, { accountType: 'student', nickname: '小鹿', gender: 'male', birthday: '2012-06-15', regionDetail: '上海', schoolName: '学校' })
-  page.updateTextField({ currentTarget: { dataset: { key: 'promotionCode' } }, detail: { value: 'zla2b3c4d5' } })
-  assert.equal(page.data.form.promotionCode, 'ZLA2B3C4D5')
-  await page.saveProfile()
-  assert.deepEqual(bound, ['ZLA2B3C4D5'])
-  assert.equal(cleared(), 1)
-  assert.equal(page.data.successSheetVisible, true)
-})
-
-test('a scanned promotion code is prefilled for signup and a rejected one never blocks the profile', async () => {
-  const { page, bound, cleared } = fixture({
-    pending: { code: 'ZLA2B3C4D5', createdAt: Date.now() },
-    bindError: Object.assign(Error('不能填写自己的邀请码。'), { terminalReferral: true })
-  })
-  await page.loadProfile()
-  assert.equal(page.data.form.promotionCode, 'ZLA2B3C4D5')
-  Object.assign(page.data.form, { accountType: 'student', nickname: '小鹿', gender: 'male', birthday: '2012-06-15', regionDetail: '上海', schoolName: '学校' })
-  await page.saveProfile()
-  assert.deepEqual(bound, ['ZLA2B3C4D5'])
-  assert.equal(cleared(), 1)
-  assert.equal(page.data.successSheetVisible, true)
-})
-test('the invite-code reward is reported on the success sheet only when the campaign paid out', async () => {
-  const on = fixture({ rewardCredits: 2000 })
-  Object.assign(on.page.data.form, { accountType: 'student', nickname: '小鹿', gender: 'male', birthday: '2012-06-15', regionDetail: '上海', schoolName: '学校', promotionCode: 'ZLA2B3C4D5' })
-  await on.page.saveProfile()
-  assert.equal(on.page.data.rewardCredits, 2000)
-
-  // 活动关着（后端返回 0）时弹层不提积分，也不能出现「获得 0 积分」
-  const off = fixture()
-  Object.assign(off.page.data.form, { accountType: 'student', nickname: '小鹿', gender: 'male', birthday: '2012-06-15', regionDetail: '上海', schoolName: '学校', promotionCode: 'ZLA2B3C4D5' })
-  await off.page.saveProfile()
-  assert.equal(off.page.data.rewardCredits, 0)
 })
 
 test('failed profile save stays editable and never displays the success sheet', async () => {

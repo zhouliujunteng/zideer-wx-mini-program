@@ -14,7 +14,7 @@
       <view class="apply-hero">
         <image class="apply-hero-icon" src="{{UA.src(ui, '/assets/promotion/settlement-reward-bag.svg')}}" mode="aspectFit" aria-hidden="true"></image>
         <text class="apply-hero-title">成为知鹿推广伙伴</text>
-        <text class="apply-hero-copy">开通后签署《劳务费代扣代发协议》，推广奖励就能提现到银行卡。申请前要核验身份证，平台审核通过即开通。</text>
+        <text class="apply-hero-copy">选择要申请的代理身份：爱心妈妈、导师妈妈、爱心妈妈团团长，可以同时申请。平台联系你签合同、审核通过后开通；签署《劳务费代扣代发协议》后，分润就能提现到银行卡。</text>
       </view>
 
       <view wx:if="{{loadState === 'failed'}}" class="apply-state">
@@ -39,10 +39,22 @@
 
       <block wx:else>
         <!-- 已是推广伙伴 / 资格暂停 / 审核中 / 申请表单 -->
-        <view wx:if="{{state === 'active'}}" class="apply-result">
+        <view wx:if="{{state === 'role-pending'}}" class="apply-result">
+          <view class="apply-result-mark is-pending"><view class="apply-result-clock"></view></view>
+          <text class="apply-result-title">申请审核中</text>
+          <text class="apply-result-copy">{{rolePending.proposed ? '团长已替你提交申请，' : ''}}平台会联系你签合同，审核通过后开通，结果会显示在这里。</text>
+          <view class="apply-rows">
+            <view class="apply-row"><text class="apply-row-label">申请身份</text><text class="apply-row-value">{{rolePending.roleText}}</text></view>
+            <view wx:if="{{rolePending.time}}" class="apply-row"><text class="apply-row-label">提交时间</text><text class="apply-row-value">{{rolePending.time}}</text></view>
+            <view wx:if="{{heldRoleText}}" class="apply-row"><text class="apply-row-label">已开通身份</text><text class="apply-row-value">{{heldRoleText}}</text></view>
+          </view>
+          <view class="apply-secondary" bindtap="handleService" role="button">{{serviceOpening ? '正在打开…' : '联系客服询问进度'}}</view>
+        </view>
+
+        <view wx:elif="{{state === 'active'}}" class="apply-result">
           <view class="apply-result-mark is-success"><view class="apply-result-check"></view></view>
           <text class="apply-result-title">你已是推广伙伴</text>
-          <text class="apply-result-copy">推广奖励可以在结算中心提现到银行卡或兑换课程积分。</text>
+          <text class="apply-result-copy">{{heldRoleText ? '已开通：' + heldRoleText + '。' : ''}}分润可以在结算中心提现到银行卡。</text>
           <view class="apply-primary" bindtap="handleGoSettlement" role="button">去结算中心</view>
         </view>
 
@@ -68,6 +80,15 @@
 
         <block wx:else>
           <!-- 申请表单：两步 -->
+          <view wx:if="{{roleRejectNotice}}" class="apply-notice">
+            <view class="apply-notice-head">
+              <view class="apply-notice-icon" aria-hidden="true">!</view>
+              <text class="apply-notice-title">{{roleRejectNotice.title}}</text>
+              <text wx:if="{{roleRejectNotice.time}}" class="apply-notice-time">{{roleRejectNotice.time}}</text>
+            </view>
+            <text class="apply-notice-copy">{{roleRejectNotice.copy}}</text>
+            <text class="apply-notice-copy">可以重新选择身份再申请。</text>
+          </view>
           <view wx:if="{{rejectNotice}}" class="apply-notice">
             <view class="apply-notice-head">
               <view class="apply-notice-icon" aria-hidden="true">!</view>
@@ -115,16 +136,28 @@
               <text class="apply-card-title">2 · 提交申请</text>
             </view>
             <block wx:if="{{step === 2}}">
+              <text wx:if="{{heldRoleText}}" class="apply-card-copy">已开通：{{heldRoleText}}</text>
+              <view class="apply-field-label apply-role-label">申请身份（可多选{{promoterActive ? '' : '，不选则只开通提现账户'}}）</view>
+              <view class="apply-roles">
+                <view wx:for="{{roleOptions}}" wx:key="key" class="apply-role {{item.picked ? 'is-picked' : ''}}" bindtap="toggleRole" data-key="{{item.key}}" role="checkbox" aria-checked="{{item.picked}}">
+                  <view class="apply-role-head">
+                    <text class="apply-role-name">{{item.label}}</text>
+                    <view class="apply-role-check"><view wx:if="{{item.picked}}" class="apply-step-check"></view></view>
+                  </view>
+                  <text class="apply-role-line"><text class="apply-role-tag">做什么</text>{{item.work}}</text>
+                  <text class="apply-role-line"><text class="apply-role-tag">分润</text>{{item.reward}}</text>
+                </view>
+              </view>
               <view class="apply-field">
                 <text class="apply-field-label">联系手机号</text>
                 <input class="apply-input" type="number" value="{{phone}}" maxlength="11" placeholder="审核时客服联系你" placeholder-class="apply-placeholder" bindinput="handlePhoneInput" disabled="{{submitting}}" />
               </view>
               <view class="apply-field apply-field-top">
                 <text class="apply-field-label">申请说明（选填）</text>
-                <textarea class="apply-textarea" value="{{note}}" maxlength="{{noteMax}}" auto-height placeholder="比如你打算在哪里推广、面向哪些家长" placeholder-class="apply-placeholder" bindinput="handleNoteInput" disabled="{{submitting}}"></textarea>
+                <textarea class="apply-textarea" value="{{note}}" maxlength="{{noteMax}}" auto-height placeholder="比如你在哪个城市、身边有多少家长、带孩子学习的经验" placeholder-class="apply-placeholder" bindinput="handleNoteInput" disabled="{{submitting}}"></textarea>
               </view>
               <view class="apply-primary {{canSubmit ? '' : 'is-disabled'}}" bindtap="handleSubmit" role="button">{{submitting ? '提交中…' : '提交申请'}}</view>
-              <text class="apply-privacy">提交后平台审核，通过即开通推广伙伴；之后需签署《劳务费代扣代发协议》才能提现。</text>
+              <text class="apply-privacy">提交后平台会联系你签合同，审核通过即开通；之后需签署《劳务费代扣代发协议》才能提现。</text>
             </block>
             <text wx:else class="apply-card-copy">完成基础核验后填写联系方式并提交。</text>
           </view>

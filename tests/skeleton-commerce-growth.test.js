@@ -279,47 +279,7 @@ test('credit-pack eligibility only needs a referrer, whatever the referrer\'s pa
   }
   delete require.cache[identityPath]
   const wxml = read('commerce/products/index.wxml')
-  assert.match(wxml, /填写邀请码后即可购买/)
-  assert.doesNotMatch(wxml, /绑定推广伙伴后即可购买/)
+  assert.match(wxml, /暂时不能购买积分包/)
+  assert.doesNotMatch(wxml, /邀请码/)
 })
 
-test('without a referrer the packs page offers the invite-code prompt and reloads after binding', async () => {
-  let definition
-  let eligible = false
-  const bound = []
-  const toasts = []
-  vm.runInNewContext(read('commerce/products/index.js'), {
-    Page(value) { definition = value },
-    getCurrentPages: () => [],
-    wx: {
-      showToast(options) { toasts.push(options.title) },
-      showModal(options) { options.success({ confirm: true, content: ' zlabc123 ' }) },
-      getWindowInfo: () => ({ windowWidth: 375, statusBarHeight: 44 }),
-      getMenuButtonBoundingClientRect: () => ({ top: 50, height: 32 })
-    },
-    require(name) {
-      if (name.endsWith('/identity')) return {
-        loadPurchaseEligibility: async () => ({ eligible, balance: { available: '0', frozen: '0' } }),
-        loadCreditProducts: async () => ({ buyerIsMember: false, products: [{ id: 7, name: '小包', credits: 100, amount: '9.90', payableAmount: '9.90' }] }),
-        bindCurrentPromotionCode: async (code) => { bound.push(code); eligible = true; return { rewardCredits: 0 } }
-      }
-      if (name.endsWith('/referral-context')) return { clearPendingReferral() {} }
-      if (name.endsWith('/ui-assets')) return { attachUiAssets() {} }
-      if (name.endsWith('/membership-view')) return require('../services/membership-view')
-      if (name.endsWith('/utils/screen')) return require('../utils/screen')
-      if (name.endsWith('/payment-done')) return { goHomeAfterCreditPayment() {} }
-      if (name.endsWith('/order-view')) return require('../commerce/order-view')
-      if (name.endsWith('/payment-switch')) return paymentSwitchStub({ navigateTo() {}, redirectTo() {} })
-      throw new Error('Unexpected import ' + name)
-    }
-  })
-  const page = { ...definition, data: JSON.parse(JSON.stringify(definition.data)), setData(patch) { Object.assign(this.data, patch) } }
-  await page.loadPage()
-  assert.equal(page.data.eligible, false)
-  page.openInviteCode()
-  for (let i = 0; i < 5; i += 1) await new Promise((resolve) => setImmediate(resolve))
-  assert.deepEqual(bound, ['zlabc123'])
-  assert.equal(toasts[0], '已绑定推荐人，可以购买积分包了')
-  assert.equal(page.data.eligible, true)
-  assert.equal(page.data.packs.length, 1)
-})

@@ -6,7 +6,7 @@
       <image wx:if="{{UA.src(ui, '/assets/brand/app-icon.png')}}" src="{{UA.src(ui, '/assets/brand/app-icon.png')}}" mode="aspectFill" aria-hidden="true"></image>
     </view>
     <text class="share-link-invite-title">好友邀请你来知鹿学习</text>
-    <text class="share-link-invite-copy">点击下方「前往小程序」打开知鹿学习，注册后会自动记下这次邀请。</text>
+    <text class="share-link-invite-copy">点击下方「前往小程序」打开知鹿学习。</text>
   </view>
 
   <block wx:else>
@@ -29,27 +29,13 @@
     <!-- 滚动区从顶栏下沿开始：顶栏透明，内容不从标题底下穿过 -->
     <scroll-view class="share-link-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" style="top: {{statusBarHeight + navigationBarHeight}}px;" bindscroll="handleScroll">
       <view class="share-link-content">
-        <view wx:if="{{loadState === 'failed'}}" class="share-link-state">
-          <text class="share-link-state-title">邀请码暂时无法加载</text>
-          <text class="share-link-state-copy">{{loadError}}</text>
-          <view class="share-link-state-action" bindtap="loadCode" aria-role="button">重新加载</view>
-        </view>
-
-        <block wx:else>
+        <block>
           <view class="share-link-hero">
             <text class="share-link-hero-title">用蓝色链接邀请好友</text>
-            <text class="share-link-hero-copy">在本页复制的小程序链接带着你的邀请码。好友点开就能进入知鹿学习，注册后你就是 TA 的推荐人。</text>
+            <text class="share-link-hero-copy">复制知鹿学习的小程序链接发给好友、微信群，好友点开就能进入知鹿学习。</text>
             <view class="share-link-hero-sample" aria-hidden="true">
               <view class="share-link-glyph is-blue"></view>
               <text>#小程序://知鹿学习/…</text>
-            </view>
-            <view class="share-link-hero-code">
-              <text class="share-link-hero-code-label">已带上我的邀请码</text>
-              <view wx:if="{{loadState === 'ready'}}" class="share-link-hero-code-row" bindtap="copyCode" aria-role="button" aria-label="复制我的邀请码">
-                <text class="share-link-hero-code-value">{{code}}</text>
-                <text class="share-link-hero-code-copy">复制</text>
-              </view>
-              <view wx:else class="sk share-link-sk-code" aria-label="正在读取邀请码"></view>
             </view>
           </view>
 
@@ -58,7 +44,7 @@
               <text class="share-link-step-no">1</text>
               <view class="share-link-step-copy">
                 <text class="share-link-step-title">点本页右上角的「···」</text>
-                <text class="share-link-step-hint">一定要在这一页点，别的页面复制的链接不带你的邀请码</text>
+                <text class="share-link-step-hint">在这一页点，复制出来的是知鹿学习的链接</text>
               </view>
             </view>
             <view class="share-link-figure" aria-hidden="true">
@@ -127,7 +113,6 @@
 
           <view class="share-link-tips">
             <text class="share-link-tips-title">小提示</text>
-            <text class="share-link-tip">好友点开链接后完成注册，就会记为你邀请的好友；好友已经有推荐人时不会改绑。</text>
             <text class="share-link-tip">链接只能在微信里打开。发朋友圈也可以保存海报，让好友长按识别海报上的小程序码。</text>
           </view>
         </block>

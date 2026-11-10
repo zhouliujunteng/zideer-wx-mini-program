@@ -82,27 +82,6 @@
         <view wx:if="{{!profileLoaded && profileFailed}}" class="profile-load-failed" bindtap="retryLoadProfile" aria-role="button"><text>资料暂时无法读取</text><text class="profile-load-retry">重新加载</text></view>
       </view>
 
-      <!-- 推荐人（2026-09-22）：只展示，不能改；没有推荐人时可补填一次。
-           2026-09-23：只显示推荐人的邀请码，不显示昵称，也不再显示推荐人的小程序码。
-           「我的邀请码」已移到推广伙伴 › 我的邀请码，这里不再重复。
-           左右留白与分隔线跟上方资料行同一套尺寸。 -->
-      <view class="profile-card profile-promotion-card">
-        <view class="profile-promotion-row is-last">
-          <view class="profile-promotion-main">
-            <text class="profile-row-label">推荐人</text>
-            <!-- 第一次读到推荐人前只画骨架，不显示「读取中」或「暂无推荐人」 -->
-            <block wx:if="{{!promotion.loaded}}"><view class="sk sk-line profile-promotion-sk"></view><view class="sk sk-line sk-mid"></view></block>
-            <block wx:else>
-            <text class="profile-promotion-code {{promotion.referrerCode ? '' : 'is-empty'}}">{{promotion.referrerCode || '暂无推荐人'}}</text>
-            <text class="profile-promotion-hint">{{promotion.referrerCode ? '你是通过这个邀请码进来的，不可更改' : '填写邀请码后不可更改，只能绑定一次'}}</text>
-            </block>
-          </view>
-          <view class="profile-promotion-side">
-            <view wx:if="{{promotion.loaded && !promotion.loading && !promotion.referrerCode}}" class="profile-promotion-bind" bindtap="bindReferrerCode" aria-role="button">填写邀请码</view>
-          </view>
-        </view>
-      </view>
-
       <view class="profile-note"><view class="profile-note-dot"></view><text>{{model.footerNote}}</text></view>
     </view>
   </scroll-view>

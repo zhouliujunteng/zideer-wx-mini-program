@@ -273,55 +273,6 @@ test('benefit cards: custom per-tier benefits from the backend replace the defau
 })
 
 // 2026-09-24 用户规则：没填邀请码不能付款成为会员。按钮先引导填码，绑定后刷新回到「开通」。
-test('without an invite code the membership center asks for one before any payment', async () => {
-  const bound = []
-  let current = { status: 'inactive', eligible: false, tiers, tier: null, order: null, inviteRequired: true }
-  let creates = 0
-  let modal
-  const { page } = setup({
-    loadCurrentMembership: async () => current,
-    createMembershipOrder: async () => { creates++; return pending },
-    bindCurrentPromotionCode: async code => { bound.push(code); current = { ...current, inviteRequired: false }; return { alreadyBound: false, rewardCredits: 0 } },
-    clearPendingReferral() {},
-    wx: { showModal: options => { modal = options } }
-  })
-  page.data.selectedTierId = ''
-  page.applyMembership(current)
-  assert.equal(page.data.primaryLabel, '填写邀请码后开通')
-  assert.equal(page.data.primaryAction, 'invite')
-  assert.equal(page.data.showPlan, true)
-  page.handlePrimaryAction()
-  assert.equal(creates, 0)
-  // 可输入弹窗的 content 会成为输入框初始文字：不传，说明放在占位文字里
-  assert.equal(modal.content, undefined)
-  assert.equal(modal.editable, true)
-  assert.equal(modal.placeholderText, '输入邀请人的邀请码')
-  await modal.success({ confirm: true, content: ' ABC123 ' })
-  assert.equal(JSON.stringify(bound), JSON.stringify(['ABC123']))
-  assert.equal(page.data.primaryAction, 'purchase')
-  assert.equal(page.data.primaryLabel, '开通基础会员 ¥49.9')
-})
-
-test('a server-side invite refusal refreshes the page into the invite prompt', async () => {
-  let current = { status: 'inactive', eligible: false, tiers, tier: null, order: null }
-  let modal
-  const { page } = setup({
-    loadCurrentMembership: async () => current,
-    createMembershipOrder: async () => { current = { ...current, inviteRequired: true }; throw Object.assign(new Error('开通会员需要先填写邀请码。'), { code: 'MEMBERSHIP_INVITE_REQUIRED' }) },
-    wx: { showModal: options => { modal = options } }
-  })
-  page.data.selectedTierId = ''
-  page.applyMembership(current)
-  assert.equal(page.data.primaryAction, 'purchase')
-  await page.purchase()
-  assert.equal(page.data.primaryAction, 'invite')
-  assert.equal(page.data.membership.inviteRequired, true)
-  assert.equal(modal.title, '填写邀请码后开通')
-  // 取消填码：不绑定、不下单，按钮保持「填写邀请码后开通」
-  await modal.success({ confirm: false })
-  assert.equal(page.data.primaryLabel, '填写邀请码后开通')
-})
-
 // 2026-09-30 用户规则：支付开关关着时会员中心进不去——弹「会员功能准备中，敬请期待。」后离开，
 // 不读会员状态，弹窗后面仍是骨架，不显示等级与价格
 test('with the payment switch closed the membership center shows the notice and never reads membership', async () => {

@@ -9,7 +9,7 @@ const vm = require('node:vm')
 const root = path.join(__dirname, '..')
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8')
 
-const AGENT_PAGES = ['share-tools', 'promotion', 'poster-detail', 'my-promotion', 'settlement', 'settlement-records']
+const AGENT_PAGES = ['promotion', 'poster-detail', 'settlement', 'settlement-records']
 
 function stubWx(extra = {}) {
   return {
@@ -92,7 +92,6 @@ test('every agent page and the growth component import the shared skeleton style
 test('agent pages keep the empty copy behind a successful load', () => {
   const emptyCopy = {
     promotion: '<view wx:elif="{{posterState !== \'ready\'}}" class="promotion-poster-empty">',
-    'my-promotion': '<scroll-view wx:else class="records-card my-promotion-records-card"',
     settlement: '<view wx:elif="{{recordGroups.length}}" class="settlement-record-list">',
     'settlement-records': '<scroll-view wx:else class="settlement-records-list-card"'
   }
@@ -110,12 +109,6 @@ test('promotion balance card starts with fixed labels only, no 0.00 amounts', ()
   assert.equal(page.data.balance.availableValue, undefined)
   assert.equal(page.data.balance.lockedValue, undefined)
   assert.match(read('agent/promotion/index.wxml'), /wx:if="\{\{loadState === 'ready'\}\}" class="promotion-balance-metric-value"/)
-})
-
-test('my promotion starts without a default 0 head count', () => {
-  const page = loadPage('agent/my-promotion/index.js', { '/identity': {}, '/ui-assets': { attachUiAssets() {} } })
-  assert.equal(page.data.summary.invitedValue, '')
-  assert.match(read('agent/my-promotion/index.wxml'), /wx:if="\{\{loadState === 'ready'\}\}" class="my-promotion-section-count"/)
 })
 
 test('settlement centre shows no default name, avatar initial or service placeholder before the first load', () => {

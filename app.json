@@ -130,19 +130,19 @@
         "dashboard/index",
         "clients/index",
         "client-detail/index",
-        "share-tools/index",
         "share-link/index",
         "ai-poster/index",
         "material-library/index",
         "promotion/index",
         "poster-detail/index",
-        "my-promotion/index",
         "settlement/index",
         "settlement-records/index",
         "withdraw/index",
         "settlement-applications/index",
         "settlement-application/index",
-        "partner-apply/index"
+        "partner-apply/index",
+        "bind-family/index",
+        "team-apply/index"
       ]
     },
     {

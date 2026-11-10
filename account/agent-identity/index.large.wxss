@@ -33,6 +33,7 @@
 .ai-help-title{font-size:15px;font-weight:600}
 .ai-help-sub{font-size:13px}
 .ai-copy{padding:4px 12px;border-radius:599px;font-size:13px;font-weight:600}
+.ai-chevron{width:8px;height:8px;margin-right:3px;border-top:1px solid #B0B4BA;border-right:1px solid #B0B4BA}
 .ai-state{gap:13px;padding:24px 14px}
 .ai-card.ai-state{padding:24px 14px}
 .ai-state-text{font-size:14px;line-height:1.5}

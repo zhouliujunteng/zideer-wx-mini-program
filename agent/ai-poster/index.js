@@ -419,7 +419,7 @@ Page({
   // 「复制链接」要在小程序链接页里操作：那一页的地址带着邀请码，复制出来的链接才带得上邀请人。
   // 邀请码一般在合成海报时已经取到；还没取到就让那一页自己取。
   handleOpenShareLink() {
-    wx.navigateTo({ url: shareLinkPageUrl(this._promotionCode) })
+    wx.navigateTo({ url: shareLinkPageUrl() })
   },
 
   closeShare() {

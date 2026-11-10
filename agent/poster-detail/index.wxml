@@ -92,22 +92,13 @@
     <!-- 离屏画布：海报 + 我的小程序码合成成一张图再存相册（不能 display:none，否则拿不到节点） -->
     <canvas type="2d" id="promote-canvas" class="promotion-share-canvas" aria-hidden="true"></canvas>
 
-    <view wx:if="{{showPromoteSheet || promoteSheetClosing}}" class="promotion-share-mask {{promoteSheetClosing ? 'promotion-share-mask-closing' : ''}} {{promotionCode ? 'has-promotion-code' : ''}}" bindtap="handleClosePromoteSheet">
+    <view wx:if="{{showPromoteSheet || promoteSheetClosing}}" class="promotion-share-mask {{promoteSheetClosing ? 'promotion-share-mask-closing' : ''}} " bindtap="handleClosePromoteSheet">
       <view class="promotion-share-poster-stage">
         <view class="promotion-share-poster-card promotion-share-poster-card-{{poster.ratioClass}}" catchtap="noop" style="{{promotePosterStyle}}">
           <image wx:if="{{shareImageSrc}}" class="promotion-share-poster-image" src="{{shareImageSrc}}" mode="aspectFill" aria-label="{{poster.label}}"></image>
           <view wx:else class="promotion-share-poster-placeholder" aria-hidden="true"></view>
           <view wx:if="{{composingPoster}}" class="promotion-share-qr-pending" aria-label="正在生成我的小程序码">正在生成我的小程序码…</view>
           <view wx:elif="{{composeFailed}}" class="promotion-share-qr-pending" aria-label="小程序码生成失败">小程序码暂不可用，保存的是原图</view>
-        </view>
-      </view>
-      <view wx:if="{{promotionCode}}" class="promotion-share-code-float" catchtap="noop">
-        <text class="promotion-share-code-title">我的邀请码</text>
-        <view class="promotion-share-code-row">
-          <text class="promotion-share-code-value">{{promotionCode}}</text>
-          <view class="promotion-share-code-copy {{promotionCodeCopied ? 'is-copied' : ''}}" catchtap="handleCopyPromotionCode" aria-role="button" aria-label="复制邀请码">
-            <view class="promotion-share-code-copy-icon"></view>
-          </view>
         </view>
       </view>
       <view class="promotion-share-sheet" catchtap="noop">
@@ -124,7 +115,7 @@
             <text>复制链接</text>
           </view>
         </view>
-        <view class="promotion-share-sheet-note">保存海报让好友扫码，或复制带邀请码的小程序链接发出去</view>
+        <view class="promotion-share-sheet-note">保存海报让好友扫码进入知鹿学习，或复制小程序链接发出去</view>
         <view class="promotion-share-sheet-cancel" bindtap="handleClosePromoteSheet">取消</view>
       </view>
     </view>

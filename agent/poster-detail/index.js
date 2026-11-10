@@ -1,9 +1,8 @@
-const { loadCurrentGrowthCenter, loadPublishedPromotionAssets, createCurrentPromoterInvitation, loadCurrentPromotionPosterParts } = require('../../services/identity')
+const { loadCurrentGrowthCenter, loadPublishedPromotionAssets, loadCurrentPromotionPosterParts } = require('../../services/identity')
 const { attachUiAssets } = require('../../services/ui-assets')
 const { rpxToPx, columnWidth } = require('../../utils/screen')
 const { buildPosters, posterQrLayout, shareLinkPageUrl, inviteFriendCover } = require('../../services/promotion-view')
 const { prepareShareCover, shareWithCover } = require('../../services/share-cover')
-const { captureReferralContext, validPromotionCode } = require('../../utils/referral-context')
 const { isTimelineSinglePage } = require('../../utils/timeline-single-page')
 
 // 海报详情（M57）：界面取自 UI 设计仓库 JiahaoTang-Alvin/zhilu-miniprogram 提交 295f610
@@ -21,12 +20,6 @@ const SHEET_TRANSITION_MS = 420
 const SHARE_SHEET_CLOSE_MS = 320
 const PROMOTION_CODE_RESET_MS = 1800
 const RATIO_MAP = { 'ratio-3-4': 3 / 4, 'ratio-9-16': 9 / 16, 'ratio-1-1': 1, 'ratio-16-9': 16 / 9 }
-// 分享出去的查询串只带邀请参数（pc=邀请码 或 token=邀请），这里原样接住，落地页再转发时照带。
-function incomingReferralQuery(options) {
-  const context = captureReferralContext(options)
-  if (!context) return ''
-  return context.token ? `token=${context.token}` : `pc=${context.code}`
-}
 
 Page({
   data: {
@@ -66,11 +59,9 @@ Page({
     // 进了完整小程序就送回首页，推荐人线索已由 app.js 记下，首页在后台兑现。
     if (!options.id) {
       if (isTimelineSinglePage()) {
-        this._landingQuery = incomingReferralQuery(options)
         this.setData({ loadState: 'timeline' })
         return
       }
-      captureReferralContext(options)
       wx.reLaunch({ url: '/pages/home/index' })
       return
     }
@@ -133,7 +124,7 @@ Page({
     const shareLayout = this.posterLayout(poster.ratioClass, {
       contentTop: topbarBottom + this.toPx(12),
       posterGap: this.toPx(12),
-      sheetMinHeight: this.toPx(promotionCode ? 540 : 366),
+      sheetMinHeight: this.toPx(366),
       maxWidthScale: poster.ratioClass === 'ratio-16-9' ? .78 : .90
     })
     const sheetCollapsedTopPx = Math.round(contentTop + previewLayout.height + posterGap)
@@ -266,7 +257,7 @@ Page({
 
   // 「复制链接」要在小程序链接页里操作：那一页的地址带着邀请码，复制出来的链接才带得上邀请人
   handleOpenShareLink() {
-    wx.navigateTo({ url: shareLinkPageUrl(this.data.promotionCode) })
+    wx.navigateTo({ url: shareLinkPageUrl() })
   },
 
   handlePromoteAction() {
@@ -275,22 +266,10 @@ Page({
       promoteSheetClosing: false,
       shareImageSrc: this.data.shareImageSrc || this.data.poster.coverSrc || ''
     })
-    return Promise.all([this.ensureInvitation(), this.ensurePromotionPoster()])
+    return this.ensurePromotionPoster()
   },
 
-  // 分享卡片的归因链接由服务端签发；同一次浏览只申请一条，失败不阻塞分享层。
-  async ensureInvitation() {
-    if (this._sharePath || this._creatingInvitation) return
-    this._creatingInvitation = true
-    try {
-      const result = await createCurrentPromoterInvitation({ targetPath: '/pages/home/index', sceneType: 'poster' })
-      this._sharePath = result.sharePath
-    } catch (error) {
-      this._sharePath = ''
-    } finally {
-      this._creatingInvitation = false
-    }
-  },
+
 
   // 合成图＝海报 + 我的小程序码（圆形、透明底、画在右下角，占海报宽度 14%）。
   // 服务端不合成：微信小程序码最小只能出 280×280，贴到 1024 宽的海报上太大。
@@ -485,8 +464,8 @@ Page({
   // 不用海报原图——竖版海报被微信裁成 5:4 只剩上半截，网络图读不到时还会退回页面截图
   onShareAppMessage() {
     const poster = this.data.poster || {}
-    const share = { title: poster.label || '知鹿学习', path: this._sharePath || '/pages/home/index' }
-    return shareWithCover(this, share, inviteFriendCover(this.data.promotionCode))
+    const share = { title: poster.label || '知鹿学习', path: '/pages/home/index' }
+    return shareWithCover(this, share, inviteFriendCover())
   },
 
   onShareTimeline() {
@@ -494,12 +473,9 @@ Page({
     return { title: poster.label || '知鹿学习', query: this.shareQuery(), imageUrl: poster.coverSrc || '' }
   },
 
-  // 朋友圈卡片与复制出去的链接会被留很久，优先带不过期的邀请码（与海报上的小程序码同一个）；
-  // 没有邀请码才用「立即推广」申请的邀请 token（服务端 7 天有效）。都不带海报 id，见 onLoad。
+  // 朋友圈卡片与复制出去的链接不带海报 id（见 onLoad），2026-11-10 起也不带邀请码：好友点开直接进小程序。
   shareQuery() {
-    const code = validPromotionCode(this.data.promotionCode)
-    if (code) return `pc=${code}`
-    return String(this._sharePath || '').split('?')[1] || this._landingQuery || ''
+    return ''
   },
 
   // 右上角「复制链接」得到的 #小程序:// 链接打开当前页，查询串由这里给，与朋友圈卡片同一套。

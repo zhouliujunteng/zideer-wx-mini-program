@@ -42,10 +42,8 @@
         <view class="packs-state-action" bindtap="loadPage" aria-role="button">重新加载</view>
       </view>
       <view class="packs-state" wx:elif="{{!eligible}}">
-        <text class="packs-state-title">填写邀请码后即可购买</text>
-        <text class="packs-state-copy">购买积分包需要先有推荐人：填写邀请你的人的邀请码，填写后不可更改。</text>
-        <view class="packs-state-action is-primary" bindtap="openInviteCode" aria-role="button">填写邀请码</view>
-        <view class="packs-state-link" bindtap="openEligibility" aria-role="button">没有邀请码？申请分配推广伙伴</view>
+        <text class="packs-state-title">暂时不能购买积分包</text>
+        <view class="packs-state-link" bindtap="openEligibility" aria-role="button">了解购买资格</view>
       </view>
       <view class="packs-state" wx:elif="{{!packs.length}}">
         <text class="packs-state-title">积分包还没有上架</text>

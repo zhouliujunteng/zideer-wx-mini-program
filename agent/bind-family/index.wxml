@@ -1,0 +1,61 @@
+<!-- 绑定家庭：输入家长用户 ID → 看是谁 → 确认绑定；下面是我绑定的家庭。样式照「我的代理身份」（account/agent-identity）。 -->
+<view class="bf-page">
+  <view class="bf-ambient" aria-hidden="true"></view>
+  <view class="bf-topbar">
+    <view class="bf-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="bf-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="bf-back-icon"></view></view>
+      <text class="bf-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">绑定家庭</text>
+    </view>
+  </view>
+
+  <scroll-view class="bf-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="bf-shell">
+      <view wx:if="{{loadFailed}}" class="bf-card bf-state">
+        <text class="bf-state-text">{{errorMessage}}</text>
+        <view class="bf-button" bindtap="retry" aria-role="button">重新读取</view>
+      </view>
+      <block wx:elif="{{!loaded}}">
+        <view class="bf-card"><view class="sk sk-line sk-mid"></view><view class="sk bf-sk-input"></view></view>
+        <view class="bf-card"><view class="sk sk-line"></view><view class="sk sk-line sk-short"></view></view>
+      </block>
+      <view wx:elif="{{!canBind}}" class="bf-card bf-state">
+        <text class="bf-state-text">开通爱心妈妈或爱心妈妈团团长身份后，才能绑定家庭。</text>
+      </view>
+      <block wx:else>
+        <view class="bf-section">
+          <view class="bf-heading">输入家长的用户 ID</view>
+          <view class="bf-card">
+            <text class="bf-tip">请家长打开知鹿学习小程序「我的」，把头像下方的 ID 告诉你。绑定后家长会收到通知；一个家庭只能被一位代理绑定，绑定后不能自己修改。</text>
+            <view class="bf-input-row">
+              <input class="bf-input" type="number" maxlength="12" value="{{publicId}}" placeholder="家长的用户 ID" placeholder-class="bf-placeholder" bindinput="handleInput" disabled="{{looking || binding}}" />
+              <view class="bf-button {{looking ? 'is-disabled' : ''}}" bindtap="handleLookup" aria-role="button">{{looking ? '查询中…' : '查询'}}</view>
+            </view>
+            <text wx:if="{{lookupError}}" class="bf-error">{{lookupError}}</text>
+            <view wx:if="{{candidate}}" class="bf-candidate">
+              <view class="bf-candidate-copy">
+                <text class="bf-name">{{candidate.name}}</text>
+                <text class="bf-sub">ID {{candidate.publicId}} · 孩子：{{candidate.childrenText}}</text>
+              </view>
+              <view class="bf-button {{binding ? 'is-disabled' : ''}}" bindtap="handleBind" aria-role="button">{{binding ? '绑定中…' : '确认绑定'}}</view>
+            </view>
+          </view>
+        </view>
+
+        <view class="bf-section">
+          <view class="bf-heading">我绑定的家庭 · {{families.length}}</view>
+          <view class="bf-card">
+            <view wx:if="{{!families.length}}" class="bf-state"><text class="bf-state-text">还没有绑定家庭。</text></view>
+            <view wx:for="{{families}}" wx:key="publicId" class="bf-row">
+              <view class="bf-candidate-copy">
+                <text class="bf-name">{{item.name}}</text>
+                <text class="bf-sub">ID {{item.publicId}} · 孩子：{{item.childrenText}}</text>
+              </view>
+              <text class="bf-date">{{item.dateText}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

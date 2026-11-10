@@ -5,7 +5,6 @@ require('./helpers/stub-ui-assets')
 const view = require('../services/settlement-view')
 const settlementPath = require.resolve('../agent/settlement/index.js')
 const recordsPath = require.resolve('../agent/settlement-records/index.js')
-const myPromotionPath = require.resolve('../agent/my-promotion/index.js')
 const identityPath = require.resolve('../services/identity.js')
 
 const NOW = Date.parse('2026-09-21T12:00:00+08:00')
@@ -288,38 +287,6 @@ test('invite records show the desensitised summary with a readable school stage'
   assert.equal(record.stageLabel, '初中')
   assert.equal(record.attributedLabel, '绑定日期 2026.09.05')
   assert.equal(record.membershipKey, 'member')
-})
-
-test('the my promotion page splits members from non members and opens the client detail', async () => {
-  const { page, calls } = loadPage(myPromotionPath, {
-    loadCurrentGrowthCenter: async () => ({
-      promoter: { status: 'active' },
-      clients: [
-        client({ id: 1, displayName: '林同学', membershipActive: true }),
-        client({ id: 2, displayName: '陈同学', membershipActive: false, stageLabel: 'primary' })
-      ]
-    })
-  })
-  page.onLoad()
-  await page.loadPage()
-  assert.equal(page.data.summary.invitedValue, '2')
-  assert.deepEqual(page.data.visibleRecords.map((item) => item.name), ['林同学'])
-  page.handleRecordTab({ currentTarget: { dataset: { id: 'non-member' } } })
-  assert.deepEqual(page.data.visibleRecords.map((item) => item.name), ['陈同学'])
-  assert.equal(page.data.visibleRecords[0].stageLabel, '小学')
-  page.handleRecordTap({ currentTarget: { dataset: { id: '2' } } })
-  assert.deepEqual(calls.navigate, ['/agent/client-detail/index?id=2'])
-})
-
-test('a promoter without attributions sees an empty invite list instead of demo rows', async () => {
-  const { page } = loadPage(myPromotionPath, {
-    loadCurrentGrowthCenter: async () => ({ promoter: { status: 'active' }, clients: [] })
-  })
-  page.onLoad()
-  await page.loadPage()
-  assert.equal(page.data.loadState, 'ready')
-  assert.equal(page.data.summary.invitedValue, '0')
-  assert.deepEqual(page.data.visibleRecords, [])
 })
 
 test('a suspended partner still reaches customer service from the notice', async () => {

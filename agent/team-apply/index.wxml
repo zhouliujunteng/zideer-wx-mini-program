@@ -1,0 +1,54 @@
+<!-- 团长替别人申请爱心妈妈：表单 + 提交过的申请。样式复用「绑定家庭」（agent/bind-family）。 -->
+<view class="bf-page">
+  <view class="bf-ambient" aria-hidden="true"></view>
+  <view class="bf-topbar">
+    <view class="bf-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="bf-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="bf-back-icon"></view></view>
+      <text class="bf-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">邀请成为爱心妈妈</text>
+    </view>
+  </view>
+
+  <scroll-view class="bf-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="bf-shell">
+      <view wx:if="{{loadFailed}}" class="bf-card bf-state">
+        <text class="bf-state-text">{{errorMessage}}</text>
+        <view class="bf-button" bindtap="retry" aria-role="button">重新读取</view>
+      </view>
+      <block wx:elif="{{!loaded}}">
+        <view class="bf-card"><view class="sk sk-line sk-mid"></view><view class="sk bf-sk-input"></view><view class="sk bf-sk-input"></view></view>
+      </block>
+      <view wx:elif="{{!canPropose}}" class="bf-card bf-state">
+        <text class="bf-state-text">开通爱心妈妈团团长身份后，才能替别人申请爱心妈妈。</text>
+      </view>
+      <block wx:else>
+        <view class="bf-section">
+          <view class="bf-heading">替她提交申请</view>
+          <view class="bf-card">
+            <text class="bf-tip">填好对方的用户 ID 和手机号，平台会联系她签合同；审核通过后她就是爱心妈妈，并自动加入你的团。</text>
+            <view class="bf-input-row"><input class="bf-input" type="number" maxlength="12" value="{{publicId}}" placeholder="对方的用户 ID" placeholder-class="bf-placeholder" bindinput="handleIdInput" disabled="{{submitting}}" /></view>
+            <view class="bf-input-row"><input class="bf-input" type="number" maxlength="11" value="{{phone}}" placeholder="对方的手机号" placeholder-class="bf-placeholder" bindinput="handlePhoneInput" disabled="{{submitting}}" /></view>
+            <view class="bf-input-row"><input class="bf-input" maxlength="200" value="{{note}}" placeholder="备注（选填），比如怎么认识的" placeholder-class="bf-placeholder" bindinput="handleNoteInput" disabled="{{submitting}}" /></view>
+            <text wx:if="{{formError}}" class="bf-error">{{formError}}</text>
+            <view class="bf-button bf-submit {{submitting ? 'is-disabled' : ''}}" bindtap="handleSubmit" aria-role="button">{{submitting ? '提交中…' : '提交申请'}}</view>
+          </view>
+        </view>
+
+        <view class="bf-section">
+          <view class="bf-heading">我提交的申请</view>
+          <view class="bf-card">
+            <view wx:if="{{!proposals.length}}" class="bf-state"><text class="bf-state-text">还没有提交过。</text></view>
+            <view wx:for="{{proposals}}" wx:key="id" class="bf-row">
+              <view class="bf-candidate-copy">
+                <text class="bf-name">{{item.name}}</text>
+                <text class="bf-sub">ID {{item.publicId}}{{item.phone ? ' · ' + item.phone : ''}} · {{item.dateText}}</text>
+                <text wx:if="{{item.reviewNote}}" class="bf-sub">原因：{{item.reviewNote}}</text>
+              </view>
+              <text class="bf-status is-{{item.status}}">{{item.statusText}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

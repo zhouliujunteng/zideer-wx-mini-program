@@ -114,21 +114,10 @@ page { background: #FAFAFA; }
 
 /* 推荐人：左文右码，只读（没有推荐人时给一个填写入口）。
    行的左右留白（32rpx）与上方资料行完全一致，否则文字贴左、码贴右。 */
-.profile-promotion-card { margin-top: 24rpx; }
-.profile-promotion-row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 24rpx; min-height: 112rpx; padding: 26rpx 32rpx; box-sizing: border-box; }
-.profile-promotion-row:not(.is-last)::after { position: absolute; right: 28rpx; bottom: 0; left: 28rpx; height: 1rpx; background: #F0F2EF; content: ''; }
-.profile-promotion-main { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 10rpx; }
-.profile-promotion-code { min-width: 0; overflow: hidden; color: #24332D; font-size: 30rpx; font-weight: 700; letter-spacing: 2rpx; text-overflow: ellipsis; white-space: nowrap; }
-.profile-promotion-code.is-empty { color: #B8C0B9; font-size: 26rpx; font-weight: 400; letter-spacing: 0; }
-.profile-promotion-hint { color: #99A39C; font-size: 21rpx; line-height: 1.5; }
-.profile-promotion-side { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; }
-.profile-promotion-bind { padding: 14rpx 26rpx; border-radius: 999rpx; background: #FFF1E3; color: #C25A02; font-size: 23rpx; }
-.profile-promotion-bind:active { opacity: .7; }
 
 /* 首次读取资料时的骨架与失败重试 */
 .profile-avatar-sk { width: 100%; height: 100%; border-radius: 50%; }
 .profile-value-sk { width: 180rpx; }
-.profile-promotion-sk { width: 200rpx; }
 .profile-load-failed { display: flex; align-items: center; justify-content: space-between; padding: 28rpx 32rpx; color: #7E8A82; font-size: 25rpx; }
 .profile-load-retry { color: #FD7C02; font-weight: 600; }
 

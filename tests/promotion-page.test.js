@@ -335,8 +335,8 @@ test('promoting composes my own mini-program code into the poster and saves that
   assert.equal(page.data.shareImageSrc, 'wxfile://composed.png')
   assert.equal(page.data.promotionCode, 'ZLK7M2X4QP', '邀请码以后端下发的为准')
   assert.equal(page.data.composeFailed, false)
-  // 朋友圈卡片留得久，带不过期的邀请码，不带 7 天就过期的 token
-  assert.equal(page.onShareTimeline().query, 'pc=ZLK7M2X4QP')
+  // 2026-11-10 起分享不带邀请码，好友点开直接进小程序
+  assert.equal(page.onShareTimeline().query, '')
 
   // 合成图已经是本地文件，保存时不该再走一次下载
   await page.handleSavePoster()
@@ -386,55 +386,19 @@ test('an unknown or withdrawn poster id fails instead of showing another poster'
   assert.match(page.data.loadError, /已下架/)
 })
 
-test('promoting a poster asks the server for a real attribution link used by the share card', async () => {
-  const { page, invitations } = loadDetail()
-  await page.onLoad({ id: '71' })
-  assert.equal(page.onShareAppMessage().path, '/pages/home/index')
-  await page.handlePromoteAction()
-  assert.equal(page.data.showPromoteSheet, true)
-  assert.deepEqual(invitations, [{ targetPath: '/pages/home/index', sceneType: 'poster' }])
-  const share = page.onShareAppMessage()
-  assert.equal(share.path, '/pages/referral-entry/index?token=abcdefghijklmnop')
-  // 卡片封面是本页画的「好友邀请你」（services/share-cover.js），不再用海报原图；
-  // 测试里没有画布、画不出封面，promise 交回不带图的卡片，微信用默认截图
-  assert.equal(share.imageUrl, undefined)
-  assert.deepEqual({ ...(await share.promise) }, { title: share.title, path: share.path })
-  // 这里合成失败、档案里的码不合格式，朋友圈卡片只能退回 token
-  assert.equal(page.onShareTimeline().query, 'token=abcdefghijklmnop')
-})
-
-test('the moments card falls back to the invitation token when there is no valid promotion code', async () => {
-  const { page } = loadDetail({
-    loadCurrentPromotionPosterParts: async () => { throw new Error('小程序码生成失败，请稍后重试。') }
-  })
-  await page.onLoad({ id: '71' })
-  assert.equal(page.onShareTimeline().query, '', '还没申请邀请、档案里的码也不合格式时什么都不带')
-  await page.handlePromoteAction()
-  assert.equal(page.onShareTimeline().query, 'token=abcdefghijklmnop')
-})
-
 test('the moments card and copied link never carry the poster id', async () => {
   const { page, calls } = loadDetail({
     loadCurrentGrowthCenter: async () => ({ promoter: { status: 'active', promotion_code: 'zlk7m2x4qp' }, rewards: [] })
   })
   await page.onLoad({ id: '71' })
-  assert.equal(page.onShareTimeline().query, 'pc=ZLK7M2X4QP')
+  assert.equal(page.onShareTimeline().query, '')
   page.onShow()
   assert.equal(calls.copyUrl.length, 1)
-  assert.deepEqual(calls.copyUrl[0](), { query: 'pc=ZLK7M2X4QP' })
+  assert.deepEqual(calls.copyUrl[0](), { query: '' })
   page.onShow()
   assert.equal(calls.copyUrl.length, 1, '回到页面不重复注册')
   page.onHide()
   assert.equal(calls.copyUrl.length, 0, '离开页面就注销，不影响别的页面复制链接')
-})
-
-test('the share sheet sends the promoter to the link page with the code in its address', async () => {
-  const { page, calls } = loadDetail({
-    loadCurrentGrowthCenter: async () => ({ promoter: { status: 'active', promotion_code: 'ZLK7M2X4QP' }, rewards: [] })
-  })
-  await page.onLoad({ id: '71' })
-  page.handleOpenShareLink()
-  assert.deepEqual(calls.navigate, ['/agent/share-link/index?pc=ZLK7M2X4QP'])
 })
 
 test('a friend opening the shared page from moments sees an invitation note instead of an error', async () => {
@@ -447,15 +411,15 @@ test('a friend opening the shared page from moments sees an invitation note inst
   assert.equal(page.data.loadState, 'timeline')
   assert.equal(loaded, 0, '单页模式不能登录，不读要登录的推广数据')
   assert.deepEqual(calls.reLaunch, [], '单页模式不能跳页')
-  assert.equal(storage.pending_referral_context.code, 'ZLK7M2X4QP')
-  assert.equal(page.onShareTimeline().query, 'pc=ZLK7M2X4QP', '好友再转发时照带原邀请人')
+  assert.equal(storage.pending_referral_context, undefined, '2026-11-10 起不再记推荐人线索')
+  assert.equal(page.onShareTimeline().query, '')
 })
 
-test('opening the shared page inside the full mini program keeps the referral and goes home', async () => {
+test('opening the shared page inside the full mini program goes home', async () => {
   const { page, calls, storage } = loadDetail({}, { launchScene: 1155 })
   await page.onLoad({ token: 'abcdefghijklmnop' })
   assert.deepEqual(calls.reLaunch, ['/pages/home/index'])
-  assert.equal(storage.pending_referral_context.token, 'abcdefghijklmnop')
+  assert.equal(storage.pending_referral_context, undefined)
   assert.notEqual(page.data.loadState, 'failed')
 })
 

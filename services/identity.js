@@ -558,6 +558,23 @@ function requestAgentCourses(path, token, options = {}) {
         // 课后作业（课程服务 lib/course/homework）
         HOMEWORK_NOT_FOUND: '这节课还没有课后作业，学完整节课后才会出题。',
         HOMEWORK_NOT_READY: '练习题还没出好，请稍后再来做。',
+        // 代理绑定家庭、身份申请（课程服务 lib/agent-roles，2026-11-10）
+        INVALID_PUBLIC_ID: '请输入正确的用户 ID（「我的」页头像下方的数字）。',
+        USER_NOT_FOUND: '没有找到这个用户，请核对用户 ID。',
+        NOT_GUARDIAN: '请输入家长的用户 ID：这个账号是学生账号。',
+        OWN_FAMILY: '不能绑定自己家。',
+        FAMILY_ALREADY_BOUND: '这个家庭已经被别的代理绑定了。',
+        FAMILY_ALREADY_MINE: '这个家庭你已经绑定过了。',
+        NOT_BINDING_AGENT: '开通爱心妈妈或团长身份后才能绑定家庭。',
+        NOT_TEAM_LEADER: '只有爱心妈妈团团长能替别人申请。',
+        TEAM_SELF: '不能替自己申请，请在申请页自己提交。',
+        AGENT_IN_TEAM: '对方已经在别的团里了。',
+        ROLES_ALREADY_HELD: '勾选的身份都已经开通了。',
+        APPLICATION_PENDING: '已经有一份申请在审核中，请等审核结果。',
+        VERIFICATION_REQUIRED: '请先完成实名认证再申请。',
+        INVALID_PHONE: '请输入正确的 11 位手机号。',
+        AGENT_ROLES_REQUIRED: '请至少选择一个身份。',
+        AGENT_SERVICE_UNAVAILABLE: '代理服务暂时不可用，请稍后重试。',
         CHOICES_INVALID: '答案没有对上题目，请刷新后再交一次。',
         HOMEWORK_UNAVAILABLE: '课后作业暂时无法读取，请稍后重试。',
         STUDENT_INVALID: '孩子信息不完整，请刷新后重试。',
@@ -993,6 +1010,56 @@ async function loadAgentIdentity() {
     ? { count: Number(result.team.count) || 0, members: (Array.isArray(result.team.members) ? result.team.members : []).map(person).filter(Boolean) }
     : null
   return { roles, leader: person(result && result.leader), team }
+}
+
+/**
+ * 爱心妈妈 / 团长绑定家庭（2026-11-10，课程服务 /api/learn/agent-family）：输入家长用户 ID，先看是谁再确认；绑定后自己不能改。
+ * 回包 { canBind, families: [{ publicId, name, boundAt, children: [{ name, grade }] }] }。
+ */
+async function loadAgentFamilies() {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/agent-family', token, { fallbackMessage: '绑定的家庭暂时无法读取，请稍后重试。' })
+}
+
+async function lookupAgentFamily(publicId) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/agent-family', token, {
+    method: 'POST', data: { operation: 'lookup', publicId: String(publicId || '').trim() }, fallbackMessage: '暂时查不到这个用户，请稍后重试。'
+  })
+}
+
+async function bindAgentFamily(publicId) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/agent-family', token, {
+    method: 'POST', data: { operation: 'bind', publicId: String(publicId || '').trim() }, fallbackMessage: '绑定没有成功，请稍后重试。'
+  })
+}
+
+/**
+ * 代理身份申请（2026-11-10，课程服务 /api/learn/agent-application）：本人勾选身份申请；团长替别人申请爱心妈妈。
+ * 回包 { catalog, roles, verified, application, canPropose, proposals }。
+ */
+async function loadAgentApplication() {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/agent-application', token, { fallbackMessage: '代理申请暂时无法读取，请稍后重试。' })
+}
+
+async function submitAgentApplication({ roles, contactPhone, note } = {}) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/agent-application', token, {
+    method: 'POST',
+    data: { operation: 'submit', roles: roles || [], contactPhone: String(contactPhone || '').replace(/\s+/g, ''), note: String(note || '').trim() },
+    fallbackMessage: '申请没有提交成功，请稍后重试。'
+  })
+}
+
+async function proposeLoveMom({ publicId, contactPhone, note } = {}) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/agent-application', token, {
+    method: 'POST',
+    data: { operation: 'propose', publicId: String(publicId || '').trim(), contactPhone: String(contactPhone || '').replace(/\s+/g, ''), note: String(note || '').trim() },
+    fallbackMessage: '申请没有提交成功，请稍后重试。'
+  })
 }
 
 /**
@@ -4499,6 +4566,12 @@ module.exports = {
   loadLearnerBaseline,
   loadLearningPreference,
   loadAgentIdentity,
+  loadAgentFamilies,
+  lookupAgentFamily,
+  bindAgentFamily,
+  loadAgentApplication,
+  submitAgentApplication,
+  proposeLoveMom,
   saveLearningPreference,
   loadLearningGoal,
   loadGoalDiagnosis,

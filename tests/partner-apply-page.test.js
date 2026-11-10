@@ -23,13 +23,20 @@ const overview = (extra = {}) => ({
 function stub(path, exports) { require.cache[path] = { id: path, filename: path, loaded: true, exports } }
 const flush = async () => { for (let i = 0; i < 6; i += 1) await new Promise((resolve) => setImmediate(resolve)) }
 
-function loadPage({ load, verify, apply, pagePath = applyPagePath, pages } = {}) {
+// 代理身份（2026-11-10）：默认三种身份都已开通，页面行为与原来只申请推广伙伴时一样
+const ALL_ROLES = [{ key: 'love_mom', label: '爱心妈妈' }, { key: 'mentor_mom', label: '导师妈妈' }, { key: 'team_leader', label: '爱心妈妈团团长' }]
+const rolesOverview = (extra = {}) => ({ roles: ALL_ROLES, application: null, verified: true, ...extra })
+
+function loadPage({ load, verify, apply, roles, pagePath = applyPagePath, pages } = {}) {
   delete require.cache[pagePath]
-  const calls = { verify: [], apply: [], navigate: [], toast: [], customerService: [] }
+  const calls = { verify: [], apply: [], roleApply: [], navigate: [], toast: [], customerService: [] }
+  let currentRoles = roles || rolesOverview()
   let current = typeof load === 'function' ? load : async () => load || overview()
   stub(identityPath, {
     submitCurrentGuardianIdentityVerification: async (form) => { calls.verify.push(form); return verify ? verify(form) : { message: '该身份已完成核验', duplicate: true } },
-    loadCurrentServiceContacts: async () => ({ status: 'ready', contacts: [CONTACT] })
+    loadCurrentServiceContacts: async () => ({ status: 'ready', contacts: [CONTACT] }),
+    loadAgentApplication: async () => currentRoles,
+    submitAgentApplication: async (form) => { calls.roleApply.push(form); return rolesOverview() }
   })
   stub(servicePath, {
     loadPartnerApplication: (...args) => current(...args),
@@ -56,7 +63,11 @@ function loadPage({ load, verify, apply, pagePath = applyPagePath, pages } = {})
   }
   for (const [key, value] of Object.entries(definition)) if (typeof value === 'function') instance[key] = value
   instance.onLoad()
-  return { page: instance, calls, setLoad: (next) => { current = typeof next === 'function' ? next : async () => next } }
+  return {
+    page: instance, calls,
+    setLoad: (next) => { current = typeof next === 'function' ? next : async () => next },
+    setRoles: (next) => { currentRoles = next }
+  }
 }
 
 const ACTIVE = { status: 'active', active: true }
@@ -161,4 +172,37 @@ test('the application page is registered and the face check is gone everywhere',
   const promotion = require('../services/promotion-view')
   assert.equal(promotion.buildPartnerNotice(null, 'settlement').url, '/agent/partner-apply/index')
   assert.equal(fs.existsSync(path.join(__dirname, '../services/partner-gate.js')), false, '不再先查实名再找客服')
+})
+
+test('代理身份：勾选身份后一起提交身份申请与推广伙伴申请', async () => {
+  const { page, calls } = loadPage({ roles: rolesOverview({ roles: [] }) })
+  await page.onShow()
+  assert.deepEqual(page.data.roleOptions.map((r) => r.key), ['love_mom', 'mentor_mom', 'team_leader'])
+  assert.ok(page.data.roleOptions.every((r) => r.work && r.reward), '每种身份写明做什么与分润')
+  page.toggleRole({ currentTarget: { dataset: { key: 'mentor_mom' } } })
+  page.toggleRole({ currentTarget: { dataset: { key: 'love_mom' } } })
+  page.handlePhoneInput({ detail: { value: '13800000000' } })
+  assert.equal(page.data.canSubmit, true)
+  await page.handleSubmit()
+  assert.deepEqual(calls.roleApply, [{ roles: ['love_mom', 'mentor_mom'], contactPhone: '13800000000', note: '' }])
+  assert.equal(calls.apply.length, 1, '还没开通推广伙伴的一起申请提现账户')
+})
+
+test('代理身份：已是推广伙伴还能申请没开通的身份，必须勾一个；审核中显示申请的身份', async () => {
+  const { page, calls, setRoles } = loadPage({
+    load: overview({ promoter: ACTIVE }),
+    roles: rolesOverview({ roles: [{ key: 'love_mom', label: '爱心妈妈' }] })
+  })
+  await page.onShow()
+  assert.equal(page.data.state, 'form')
+  assert.deepEqual(page.data.roleOptions.map((r) => r.key), ['mentor_mom', 'team_leader'])
+  page.handlePhoneInput({ detail: { value: '13800000000' } })
+  assert.equal(page.data.canSubmit, false, '已是推广伙伴必须勾选身份')
+  page.toggleRole({ currentTarget: { dataset: { key: 'team_leader' } } })
+  assert.equal(page.data.canSubmit, true)
+  setRoles(rolesOverview({ roles: [{ key: 'love_mom', label: '爱心妈妈' }], application: { status: 'submitted', roles: [{ key: 'team_leader', label: '爱心妈妈团团长' }], submittedAt: '2026-11-10T02:00:00Z', proposed: false } }))
+  await page.handleSubmit()
+  assert.equal(calls.apply.length, 0, '已开通推广伙伴不再申请提现账户')
+  assert.equal(page.data.state, 'role-pending')
+  assert.equal(page.data.rolePending.roleText, '爱心妈妈团团长')
 })

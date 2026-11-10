@@ -1,6 +1,5 @@
 const supportDiagnostics = require('./utils/support-diagnostics')
 const { getNavigationMetrics } = require('./utils/navigation')
-const { captureReferralContext } = require('./utils/referral-context')
 const { resetPhoneSessionVerification, getStoredToken, registerServiceAccountLink } = require('./services/identity')
 const { loadUiAssets } = require('./services/ui-assets')
 
@@ -11,7 +10,6 @@ App({
     supportDiagnostics.install()
     supportDiagnostics.record('launch')
     this.globalData.navigation = getNavigationMetrics()
-    captureReferralContext(options && options.query)
     // 界面图片由后端下发，启动即预取；失败时各页面挂载时会再试。
     loadUiAssets().catch(() => {})
   },
@@ -19,7 +17,6 @@ App({
   onShow(options) {
     supportDiagnostics.record('show')
     resetPhoneSessionVerification()
-    captureReferralContext(options && options.query)
     // 服务号菜单「已定课程」：小程序已在后台时也带着 tab=custom 回到学习页（tab 页 onLoad 不会再跑）
     if (options && options.path === 'pages/learning/index' && options.query && options.query.tab) this.globalData.learningTab = String(options.query.tab)
     this.linkServiceAccount()

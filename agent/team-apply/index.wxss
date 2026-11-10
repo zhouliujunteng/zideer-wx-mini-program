@@ -1,0 +1,9 @@
+@import "../bind-family/index.wxss";
+/* 团长替别人申请爱心妈妈：沿用绑定家庭页的样式，只补提交按钮与状态标签 */
+.bf-submit { margin-top: 26rpx; }
+.bf-status { flex: 0 0 auto; padding: 4rpx 16rpx; border-radius: 999rpx; background: #F1F3F1; color: #7E8A82; font-size: 22rpx; }
+.bf-status.is-submitted { background: rgba(253, 124, 2, .10); color: #FD7C02; }
+.bf-status.is-approved { background: #EDF7EF; color: #3E8A57; }
+.bf-status.is-rejected { background: #FDECEC; color: #D14343; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -115,12 +115,6 @@
           <text wx:elif="{{form.accountType === 'guardian'}}" class="profile-setup-input-hint">完成实名认证后会按身份证自动填写</text>
           <view class="profile-setup-error-wrap {{errors.birthday ? 'is-visible' : ''}}"><text class="profile-setup-error">{{errors.birthday}}</text></view>
         </view>
-        <!-- 邀请码放在基本信息步最下面：家长两步就建完档，走不到后面的学校、教材步 -->
-        <view wx:if="{{!editing && !switching}}" class="profile-setup-field">
-          <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">邀请码</text><text class="profile-setup-optional">选填</text></view>
-          <input class="profile-setup-pill-input" type="text" value="{{form.promotionCode}}" placeholder="填写邀请人的邀请码" placeholder-class="profile-setup-placeholder" maxlength="16" disabled="{{saving}}" data-key="promotionCode" bindinput="updateTextField" />
-          <text class="profile-setup-input-hint">填了就绑定推荐人，只能绑一次；没有可以留空</text>
-        </view>
       </view>
 
       <view wx:if="{{activeSteps[stepIndex].id === 'school'}}" class="profile-setup-fields">
@@ -193,7 +187,6 @@
         <text class="profile-success-title">{{switching ? '已' + switchTitle : (editing ? '个人资料已保存' : '学习档案完成')}}</text>
         <text wx:if="{{switching === 'guardian'}}" class="profile-success-subtitle">绑定学生前，请先在「身份与登录」完成实名认证。</text>
         <text wx:else class="profile-success-subtitle">接下来，我们会为你安排更合适的学习内容。</text>
-        <text wx:if="{{rewardCredits > 0}}" class="profile-success-reward">邀请码已生效，{{rewardCredits}} 积分已到账</text>
       </view>
       <view class="profile-success-actionbar">
         <button class="profile-success-button" bindtap="handleSuccessContinue">{{switching ? '返回' : (editing ? '返回我的' : '继续学习')}}</button>

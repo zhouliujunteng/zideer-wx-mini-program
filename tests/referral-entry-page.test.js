@@ -22,17 +22,17 @@ function open(options) {
   definition.onLoad(options)
 }
 
-test('a shared invitation link keeps the invite and lands on the home tab, never on a full invitation page', () => {
+test('a shared invitation link lands on the home tab, never on a full invitation page', () => {
   const token = 'z'.repeat(43)
   open({ token })
-  // 线索留给首页在后台兑现；用户看到的是首页，不是「推广伙伴邀请」整页
-  assert.equal(storage.get('pending_referral_context').token, token)
+  // 2026-11-10 起不再记推荐人线索，直接进首页
+  assert.equal(storage.get('pending_referral_context'), undefined)
   assert.deepEqual(routes, ['/pages/home/index'])
 })
 
-test('a promotion code carried by the link is captured the same way', () => {
+test('a promotion code carried by the link is ignored the same way', () => {
   open({ pc: 'ZLA2B3C4D5' })
-  assert.equal(storage.get('pending_referral_context').code, 'ZLA2B3C4D5')
+  assert.equal(storage.get('pending_referral_context'), undefined)
   assert.deepEqual(routes, ['/pages/home/index'])
 })
 

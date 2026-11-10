@@ -42,12 +42,13 @@
                   <text>结算中心</text>
                 </view>
                 <view class="promotion-balance-action-divider" aria-hidden="true"></view>
-                <view class="promotion-balance-action" data-url="/agent/my-promotion/index" bindtap="navigate" aria-role="button">
-                  <text>我的推广</text>
+                <!-- 2026-11-10 起没有邀请码：原「我的推广」「我的邀请码」换成绑定家庭、代理身份 -->
+                <view class="promotion-balance-action" data-url="/agent/bind-family/index" bindtap="navigate" aria-role="button">
+                  <text>绑定家庭</text>
                 </view>
                 <view class="promotion-balance-action-divider" aria-hidden="true"></view>
-                <view class="promotion-balance-action" data-url="/agent/share-tools/index" bindtap="navigate" aria-role="button">
-                  <text>我的邀请码</text>
+                <view class="promotion-balance-action" data-url="/account/agent-identity/index" bindtap="navigate" aria-role="button">
+                  <text>代理身份</text>
                 </view>
               </view>
             </view>

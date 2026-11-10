@@ -1,0 +1,43 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.bf-page{height:100vh}
+.bf-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
+.bf-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
+.bf-topbar-inner{padding:0 19px 9px}
+.bf-back{width:32px;height:32px;border-radius:50%}
+.bf-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.bf-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.bf-scroll{height:100vh}
+.bf-shell{min-height:100%;padding:0 19px calc(28px + env(safe-area-inset-bottom))}
+.bf-section{margin-top:22px}
+.bf-section:first-child{margin-top:12px}
+.bf-heading{padding:0 2px;font-size:18px;font-weight:700;line-height:1.2}
+.bf-card{margin-top:13px;padding:14px;border-radius:21px}
+.bf-shell > .bf-card:first-child{margin-top:12px}
+.bf-tip{font-size:13px;line-height:1.6}
+.bf-input-row{gap:9px;margin-top:13px}
+.bf-input{min-width:0;height:50px;padding:0 14px;border-radius:13px;font-size:16px}
+.bf-button{padding:0 18px;height:43px;border-radius:599px;font-size:15px;font-weight:600;line-height:43px}
+.bf-error{margin-top:8px;font-size:13px}
+.bf-candidate{gap:12px;margin-top:13px;padding:13px;border:1px solid #FD7C02;border-radius:14px}
+.bf-candidate-copy{min-width:0;gap:4px}
+.bf-name{font-size:16px;font-weight:700}
+.bf-sub{font-size:13px;line-height:1.5}
+.bf-row{gap:12px;padding:13px 0;border-bottom:1px solid #F0F3F0}
+.bf-row:last-child{border-bottom:0}
+.bf-date{font-size:13px}
+.bf-state{gap:13px;padding:14px}
+.bf-state-text{font-size:14px;line-height:1.5}
+.bf-sk-input{height:50px;margin-top:13px;border-radius:13px}
+.bf-submit{margin-top:15px}
+.bf-status{padding:2px 9px;border-radius:599px;font-size:13px}
+}

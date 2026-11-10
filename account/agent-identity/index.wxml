@@ -22,6 +22,7 @@
         </view>
         <view wx:elif="{{!roles.length}}" class="ai-card ai-state">
           <text class="ai-state-text">你还没有开通代理身份。</text>
+          <view class="ai-state-button" bindtap="openApply" aria-role="button">去申请</view>
         </view>
         <view wx:else class="ai-card">
           <view wx:for="{{roles}}" wx:key="key" class="ai-row">
@@ -29,6 +30,24 @@
               <text class="ai-role-pill ai-role-pill-{{item.key}}">{{item.label}}</text>
             </view>
             <text class="ai-row-value ai-muted">已开通</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{loaded && roles.length}}" class="ai-section">
+        <view class="ai-heading">常用操作</view>
+        <view class="ai-card">
+          <view wx:if="{{canBind}}" class="ai-row" bindtap="openBindFamily" aria-role="button">
+            <view class="ai-help-copy"><text class="ai-help-title">绑定家庭</text><text class="ai-help-sub">输入家长的用户 ID，绑定后成交有分润</text></view>
+            <view class="ai-chevron" aria-hidden="true"></view>
+          </view>
+          <view wx:if="{{isLeader}}" class="ai-row" bindtap="openTeamApply" aria-role="button">
+            <view class="ai-help-copy"><text class="ai-help-title">邀请成为爱心妈妈</text><text class="ai-help-sub">替身边的人申请，通过后自动进你的团</text></view>
+            <view class="ai-chevron" aria-hidden="true"></view>
+          </view>
+          <view class="ai-row" bindtap="openApply" aria-role="button">
+            <view class="ai-help-copy"><text class="ai-help-title">申请更多身份</text><text class="ai-help-sub">爱心妈妈、导师妈妈、爱心妈妈团团长可以同时申请</text></view>
+            <view class="ai-chevron" aria-hidden="true"></view>
           </view>
         </view>
       </view>

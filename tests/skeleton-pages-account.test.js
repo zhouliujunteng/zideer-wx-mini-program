@@ -191,7 +191,6 @@ test('profile never shows the demo name or default values before the backend pro
   assert.equal(page.data.model.name, '')
   assert.ok(page.data.model.rows.every((row) => row.value === ''))
   assert.doesNotMatch(JSON.stringify(page.data.model.rows), /五年级|周流君腾/)
-  assert.equal(page.data.promotion.loaded, false)
   // 资料没读到时不能用空值覆盖后端
   await page.handleSave()
   assert.equal(saves.length, 0)

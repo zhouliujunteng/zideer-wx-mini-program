@@ -18,6 +18,7 @@ Page({
     needLogin: false,
     roles: [],
     isLeader: false,
+    canBind: false,
     leader: null,
     team: null,
     helpSiteUrl: HELP_SITE_URL
@@ -42,6 +43,7 @@ Page({
         needLogin: false,
         roles: result.roles,
         isLeader: result.roles.some((item) => item.key === 'team_leader'),
+        canBind: result.roles.some((item) => item.key === 'team_leader' || item.key === 'love_mom'),
         leader: result.leader,
         team: result.team
       })
@@ -65,6 +67,9 @@ Page({
     const id = String(event.currentTarget.dataset.id || '')
     if (id) wx.setClipboardData({ data: id, success: () => wx.showToast({ title: 'ID 已复制', icon: 'none' }) })
   },
+  openBindFamily() { wx.navigateTo({ url: '/agent/bind-family/index' }) },
+  openTeamApply() { wx.navigateTo({ url: '/agent/team-apply/index' }) },
+  openApply() { wx.navigateTo({ url: '/agent/partner-apply/index' }) },
   copyHelpSite() {
     wx.setClipboardData({ data: HELP_SITE_URL, success: () => wx.showToast({ title: '链接已复制，请在微信里打开', icon: 'none' }) })
   }

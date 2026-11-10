@@ -104,4 +104,16 @@ page { background: #FAFAFA; }
   .apply-field-label { width: 130rpx; font-size: 23rpx; }
 }
 
+/* 代理身份多选卡片（2026-11-10）：勾选态跟本页主色（#EF3E3A）一致 */
+.apply-role-label { display: block; width: auto; margin-top: 24rpx; }
+.apply-roles { display: flex; flex-direction: column; gap: 16rpx; margin-top: 16rpx; }
+.apply-role { padding: 22rpx 24rpx; border: 2rpx solid #ECEFEC; border-radius: 24rpx; background: #FAFBFA; }
+.apply-role.is-picked { border-color: #EF3E3A; background: #FFF6F5; }
+.apply-role-head { display: flex; align-items: center; justify-content: space-between; }
+.apply-role-name { color: #24332D; font-size: 28rpx; font-weight: 700; }
+.apply-role-check { display: flex; align-items: center; justify-content: center; width: 38rpx; height: 38rpx; box-sizing: border-box; border: 3rpx solid #D3D9D4; border-radius: 50%; }
+.apply-role.is-picked .apply-role-check { border-color: #EF3E3A; background: #EF3E3A; }
+.apply-role-line { display: block; margin-top: 12rpx; color: #5F6B63; font-size: 23rpx; line-height: 1.6; }
+.apply-role-tag { margin-right: 10rpx; padding: 2rpx 10rpx; border-radius: 8rpx; background: #EEF1EE; color: #7E8A83; font-size: 20rpx; }
+.apply-role.is-picked .apply-role-tag { background: #FFF0EE; color: #EF3E3A; }
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

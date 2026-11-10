@@ -1,4 +1,5 @@
-const { submitCurrentGuardianIdentityVerification, loadCurrentServiceContacts } = require('../../services/identity')
+const { submitCurrentGuardianIdentityVerification, loadCurrentServiceContacts, loadAgentApplication, submitAgentApplication } = require('../../services/identity')
+const { AGENT_ROLE_INFO } = require('../../utils/agent-roles')
 const { loadPartnerApplication, submitPartnerApplication } = require('../../services/settlement-service')
 const view = require('../../services/partner-apply-view')
 const { attachUiAssets } = require('../../services/ui-assets')
@@ -8,6 +9,9 @@ const { openCustomerServiceChat, customerServiceErrorMessage } = require('../../
 // 1. 基础核验：填身份证姓名、身份证号，走「提交当前家长实名认证」——没实名的就此完成实名；已实名的直接算完成。
 // 2. 提交申请：填联系手机号（和可选的申请说明），后台「佣金管理 → 开通申请」审核，通过即开通推广伙伴。
 // 首次读到状态前只画骨架；读失败显示错误与重试（不显示表单）。
+// 2026-11-10 用户规则：第 2 步同时勾选要申请的代理身份（爱心妈妈 / 导师妈妈 / 爱心妈妈团团长，可多选），
+// 身份申请交课程服务（/api/learn/agent-application），推广伙伴（提现账户）申请照旧交 AF49；后台联系签合同后一起审核。
+// 已是推广伙伴的只交身份申请；还没开通推广伙伴的可以不勾身份、只开提现账户。
 
 const NOTE_MAX = 200
 
@@ -35,7 +39,14 @@ Page({
     submitting: false,
     canSubmit: false,
     serviceContact: null,
-    serviceOpening: false
+    serviceOpening: false,
+    // 代理身份（课程服务）：可选的身份卡片、已开通的身份、待审核 / 被驳回的身份申请
+    roleOptions: [],
+    heldRoleText: '',
+    rolePending: null,
+    roleRejectNotice: null,
+    pickedCount: 0,
+    promoterActive: false
   },
 
   onLoad() {
@@ -59,12 +70,14 @@ Page({
     if (this.data.loadState !== 'ready') this.setData({ loadState: 'loading', loadError: '' })
     try {
       // 企微客服入口读失败只降级（改去真人服务页），不影响申请状态
-      const [data, service] = await Promise.all([
+      const [data, roles, service] = await Promise.all([
         loadPartnerApplication(),
+        loadAgentApplication(),
         loadCurrentServiceContacts().catch(() => ({ contacts: [] }))
       ])
       if (requestId !== this._loadRequestId) return
       this.overview = data
+      this.roleOverview = roles || {}
       this.applyOverview({ serviceContact: (service && service.contacts || [])[0] || null })
     } catch (error) {
       if (requestId !== this._loadRequestId) return
@@ -78,8 +91,24 @@ Page({
 
   applyOverview(extra = {}) {
     const data = this.overview || {}
-    const state = view.applyState(data)
+    const roles = this.roleOverview || {}
+    const held = (roles.roles || []).map((item) => item.key)
+    const picked = new Set((this.data.roleOptions || []).filter((item) => item.picked).map((item) => item.key))
+    const roleOptions = AGENT_ROLE_INFO.filter((item) => !held.includes(item.key)).map((item) => ({ ...item, picked: picked.has(item.key) }))
+    const application = roles.application || null
+    const rolePending = application && application.status === 'submitted'
+      ? { roleText: application.roles.map((item) => item.label).join('、'), time: view.formatTime(application.submittedAt), proposed: application.proposed }
+      : null
+    const roleRejectNotice = application && application.status === 'rejected'
+      ? { title: '代理身份申请未通过', copy: application.reviewNote || '请联系客服了解原因。', time: view.formatTime(application.reviewedAt) }
+      : null
+    const zionState = view.applyState(data)
+    // 身份申请在审核中优先显示；已是推广伙伴、身份都开通了才显示「已开通」；已是推广伙伴但还有身份可申请就显示表单
+    let state = zionState
+    if (rolePending) state = 'role-pending'
+    else if (zionState === 'active') state = roleOptions.length ? 'form' : 'active'
     const step = view.currentStep(data)
+    extra = { ...extra, roleOptions, heldRoleText: (roles.roles || []).map((item) => item.label).join('、'), rolePending, roleRejectNotice, pickedCount: picked.size, promoterActive: zionState === 'active' }
     this.setData({
       ...extra,
       loadState: 'ready',
@@ -93,13 +122,20 @@ Page({
   },
 
   updateSubmitState() {
-    const canSubmit = this.data.step === 2 && !this.data.submitting && view.PHONE_PATTERN.test(view.normalizePhone(this.data.phone))
+    // 已是推广伙伴的必须勾至少一个身份；还没开通的可以只申请推广伙伴（提现账户）
+    const rolesOk = this.data.promoterActive ? this.data.pickedCount > 0 : true
+    const canSubmit = this.data.step === 2 && !this.data.submitting && rolesOk && view.PHONE_PATTERN.test(view.normalizePhone(this.data.phone))
     if (canSubmit !== this.data.canSubmit) this.setData({ canSubmit })
   },
 
   handleNameInput(event) { this.setData({ name: event.detail.value, basicError: '' }) },
   handleIdInput(event) { this.setData({ idCard: view.normalizeIdCard(event.detail.value), basicError: '' }) },
   handlePhoneInput(event) { this.setData({ phone: event.detail.value }, () => this.updateSubmitState()) },
+  toggleRole(event) {
+    const key = String(event.currentTarget.dataset.key || '')
+    const roleOptions = this.data.roleOptions.map((item) => item.key === key ? { ...item, picked: !item.picked } : item)
+    this.setData({ roleOptions, pickedCount: roleOptions.filter((item) => item.picked).length }, () => this.updateSubmitState())
+  },
   handleNoteInput(event) { this.setData({ note: String(event.detail.value || '').slice(0, NOTE_MAX) }) },
 
   // 第 1 步：基础核验（实名认证流程）
@@ -129,13 +165,22 @@ Page({
       wx.showToast({ title: '请输入正确的 11 位手机号', icon: 'none' })
       return
     }
+    const roles = this.data.roleOptions.filter((item) => item.picked).map((item) => item.key)
+    if (this.data.promoterActive && !roles.length) return wx.showToast({ title: '请至少选择一个身份', icon: 'none' })
     this.setData({ submitting: true }, () => this.updateSubmitState())
+    let rolesSent = false
     try {
-      await submitPartnerApplication({ contactPhone: phone, note: this.data.note })
+      if (roles.length) {
+        await submitAgentApplication({ roles, contactPhone: phone, note: this.data.note })
+        rolesSent = true
+      }
+      // 还没开通推广伙伴（提现账户）的一起申请；已开通、或已在审核中的跳过
+      if (this.data.state === 'form' && !this.data.promoterActive) await submitPartnerApplication({ contactPhone: phone, note: this.data.note })
       wx.showToast({ title: '申请已提交', icon: 'success' })
-      this.setData({ phone: '', note: '' })
+      this.setData({ phone: '', note: '', roleOptions: [], pickedCount: 0 })
     } catch (error) {
-      wx.showToast({ title: error && error.message || '申请提交失败，请稍后重试', icon: 'none' })
+      const message = error && error.message || '申请提交失败，请稍后重试'
+      wx.showToast({ title: rolesSent ? '身份申请已提交，提现账户申请没成功，请稍后在本页重试' : message, icon: 'none', duration: 3000 })
     } finally {
       this.setData({ submitting: false })
       await this.loadPage()

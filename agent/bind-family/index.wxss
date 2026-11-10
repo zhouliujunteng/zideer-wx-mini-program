@@ -1,0 +1,44 @@
+@import "../../styles/skeleton.wxss";
+/* 我的代理身份：照「关于知鹿」（account/about）的顶栏、小节标题与白色大圆角行卡片，氛围光换成主题橙。 */
+page { background: #FAFAFA; }
+
+.bf-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.bf-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(125% 52% at 100% 0, rgba(255, 222, 190, .84) 0%, rgba(255, 236, 218, .48) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.bf-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.bf-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.bf-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.bf-back:active { background: #F0F2EF; }
+.bf-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.bf-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.bf-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.bf-shell { min-height: 100%; padding: 0 32rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+.bf-section { margin-top: 38rpx; }
+.bf-section:first-child { margin-top: 20rpx; }
+.bf-heading { padding: 0 4rpx; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.2; }
+.bf-card { margin-top: 22rpx; padding: 24rpx; border-radius: 36rpx; background: #fff; }
+.bf-shell > .bf-card:first-child { margin-top: 20rpx; }
+.bf-tip { display: block; color: #7E8A82; font-size: 23rpx; line-height: 1.6; }
+.bf-input-row { display: flex; align-items: center; gap: 16rpx; margin-top: 22rpx; }
+.bf-input { flex: 1; min-width: 0; height: 84rpx; padding: 0 24rpx; border-radius: 22rpx; background: #F5F7F5; color: #24332D; font-size: 28rpx; }
+.bf-placeholder { color: #B0B8B2; }
+.bf-button { flex: 0 0 auto; padding: 0 30rpx; height: 72rpx; border-radius: 999rpx; background: #FD7C02; color: #fff; font-size: 25rpx; font-weight: 600; line-height: 72rpx; text-align: center; }
+.bf-button:active { opacity: .7; }
+.bf-button.is-disabled { opacity: .5; }
+.bf-error { display: block; margin-top: 14rpx; color: #E5484D; font-size: 23rpx; }
+.bf-candidate { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; margin-top: 22rpx; padding: 22rpx; border: 2rpx solid #FD7C02; border-radius: 24rpx; background: rgba(253, 124, 2, .05); }
+.bf-candidate-copy { display: flex; min-width: 0; flex-direction: column; gap: 8rpx; }
+.bf-name { color: #24332D; font-size: 28rpx; font-weight: 700; }
+.bf-sub { color: #7E8A82; font-size: 22rpx; line-height: 1.5; }
+.bf-row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; padding: 22rpx 0; border-bottom: 2rpx solid #F0F3F0; }
+.bf-row:last-child { border-bottom: 0; }
+.bf-date { flex: 0 0 auto; color: #9AA39C; font-size: 22rpx; }
+.bf-state { display: flex; flex-direction: column; align-items: center; gap: 22rpx; padding: 24rpx; text-align: center; }
+.bf-state-text { color: #7E8A82; font-size: 24rpx; line-height: 1.5; }
+.bf-sk-input { height: 84rpx; margin-top: 22rpx; border-radius: 22rpx; }
+
+@media (min-width: 450px) {
+  page { --lg-col: 760px; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

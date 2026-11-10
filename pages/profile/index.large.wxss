@@ -84,18 +84,8 @@
 .profile-textbook-fan.is-expanded .fan-card-front{border-color:#FD7C02;transform:translate(0, -17px) rotate(3deg)}
 .profile-textbook-actions{right:0;bottom:0;left:0;padding:10px 16px calc(13px + env(safe-area-inset-bottom));box-sizing:border-box}
 .profile-textbook-confirm{width:100%;height:57px;margin:0;padding:0;line-height:57px}
-.profile-promotion-card{margin-top:14px}
-.profile-promotion-row{gap:14px;min-height:67px;padding:15px 19px;box-sizing:border-box}
-.profile-promotion-row:not(.is-last)::after{right:16px;bottom:0;left:16px;height:0.5px}
-.profile-promotion-main{min-width:0;flex:1;flex-direction:column;gap:6px}
-.profile-promotion-code{min-width:0;font-size:18px;font-weight:700;letter-spacing:1px}
-.profile-promotion-code.is-empty{font-size:15px;font-weight:400;letter-spacing:0}
-.profile-promotion-hint{font-size:12px;line-height:1.5}
-.profile-promotion-side{flex:0 0 auto}
-.profile-promotion-bind{padding:8px 15px;border-radius:599px;font-size:13px}
 .profile-avatar-sk{width:100%;height:100%;border-radius:50%}
 .profile-value-sk{width:108px}
-.profile-promotion-sk{width:120px}
 .profile-load-failed{padding:16px 19px;font-size:15px}
 .profile-load-retry{font-weight:600}
 }

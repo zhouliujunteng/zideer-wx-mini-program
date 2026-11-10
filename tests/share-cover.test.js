@@ -37,13 +37,11 @@ test('the meeting cover leads with the student name, then 专属诊断会议 and
   assert.equal(inviteCoverOptions({ studentName: '小鹿' }).iconKey, '/assets/help/share-meeting.png')
 })
 
-test('the invite-a-friend cover shows the invite code only when it is a real one', () => {
+test('the invite-a-friend cover no longer carries an invite code (2026-11-10)', () => {
   assert.deepEqual(inviteFriendCover('zlk7m2x4qp'), {
     iconKey: '/assets/help/guide-invite.png',
-    text: { kicker: '好友邀请你', title: '一起来知鹿学习', label: '邀请码 ZLK7M2X4QP' }
+    text: { kicker: '好友邀请你', title: '一起来知鹿学习', label: '' }
   })
-  assert.equal(inviteFriendCover('').text.label, '')
-  assert.equal(inviteFriendCover('not-a-code').text.label, '')
 })
 
 test('a cover with a kicker stacks logo, icon, name, title and pill in the middle, all centred and inside the card', () => {

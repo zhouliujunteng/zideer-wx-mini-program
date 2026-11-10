@@ -1,10 +1,8 @@
 const { getProfileModel } = require('../../services/mock-service')
 const {
-  loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired,
-  loadCurrentReferrer, bindCurrentPromotionCode
+  loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired
 } = require('../../services/identity')
 const { attachUiAssets } = require('../../services/ui-assets')
-const { clearPendingReferral } = require('../../utils/referral-context')
 
 const STORAGE_KEY = 'zhilu-mock-profile-setup'
 
@@ -48,7 +46,6 @@ Page({
     profileLoaded: false,
     profileFailed: false,
     // 推荐人：进页面后单独拉，读失败只降级显示，不影响资料本身（我的邀请码在推广伙伴 › 我的邀请码）
-    promotion: { loading: true, loaded: false, referrerCode: '' },
     statusBarHeight: 20,
     navigationBarHeight: 44,
     contentTop: 80,
@@ -109,55 +106,6 @@ Page({
     // 已读到过资料就保留在屏上静默刷新；头像只以后端为准，本地只保留尚未保存的新头像预览
     if (!this.data.model || !this.data.model.rows) this.setData({ model: blankProfileModel() })
     await this.loadBackendProfile()
-    void this.loadPromotionSection()
-  },
-
-  // 谁把我带进来的。读失败只降级成「暂无推荐人」，不影响资料本身。
-  async loadPromotionSection() {
-    if (this._promotionLoading) return
-    this._promotionLoading = true
-    this.setData({ 'promotion.loading': true })
-    const referrer = await loadCurrentReferrer().catch(() => null)
-    this._promotionLoading = false
-    if (this.disposed) return
-    this.setData({
-      promotion: {
-        loading: false,
-        loaded: true,
-        referrerCode: referrer && referrer.referrer && referrer.referrer.promotionCode || ''
-      }
-    })
-  },
-
-  // 没有推荐人时可以补填一次；绑定成功或已有推荐人都重新拉一次展示。
-  bindReferrerCode() {
-    wx.showModal({
-      title: '填写邀请码',
-      editable: true,
-      placeholderText: '输入邀请人的邀请码',
-      confirmText: '绑定',
-      success: async (result) => {
-        if (!result.confirm) return
-        const code = String(result.content || '').trim()
-        if (!code) return
-        try {
-          const bound = await bindCurrentPromotionCode(code)
-          // 手填成功后，扫码留下的待绑定线索就没用了，清掉免得首页再试一次
-          clearPendingReferral()
-          wx.showToast({
-            title: bound.alreadyBound ? '你已有推荐人'
-              : bound.rewardCredits > 0 ? `绑定成功，获得 ${bound.rewardCredits} 积分`
-              : '已绑定推荐人',
-            icon: bound.alreadyBound ? 'none' : 'success',
-            duration: bound.rewardCredits > 0 ? 2600 : 1500
-          })
-          void this.loadPromotionSection()
-        } catch (error) {
-          if (error && error.terminalReferral) clearPendingReferral()
-          wx.showToast({ title: error.message || '绑定失败', icon: 'none', duration: 2600 })
-        }
-      }
-    })
   },
 
   async loadBackendProfile() {

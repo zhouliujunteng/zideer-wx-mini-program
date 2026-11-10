@@ -6,7 +6,6 @@
 // - 海报只展示后端已发布的推广素材；失效时间在 3 天内的标「即将结束」。
 //   后端动作流已过滤掉过期素材，因此「已结束」态正常情况下不会出现，仅作兜底。
 
-const { validPromotionCode } = require('../utils/referral-context')
 
 const ENDING_SOON_MS = 3 * 24 * 60 * 60 * 1000
 const RATIO_CLASSES = [
@@ -199,20 +198,17 @@ function matchRatioClass(width, height) {
   return matched.name
 }
 
-// 小程序链接页：右上角「复制链接」复制的是当前页地址，邀请码要写进页面地址才带得上邀请人。
-// 没有合格的邀请码时照样打开，由那一页自己去取。
-function shareLinkPageUrl(promotionCode) {
-  const code = validPromotionCode(promotionCode)
-  return code ? `/agent/share-link/index?pc=${code}` : '/agent/share-link/index'
+// 小程序链接页（2026-11-10 起链接不带邀请码）。
+function shareLinkPageUrl() {
+  return '/agent/share-link/index'
 }
 
 // 邀请好友卡片的封面（utils/share-cover.js 画，2026-10-04）：海报详情「邀请好友一起」和小程序链接页转发都用它。
-// 橙字「好友邀请你」、大标题「一起来知鹿学习」、胶囊写邀请码（好友开会员时要填邀请人的邀请码）；还没拿到邀请码就不写胶囊。
-function inviteFriendCover(promotionCode) {
-  const code = validPromotionCode(promotionCode)
+// 橙字「好友邀请你」、大标题「一起来知鹿学习」（2026-11-10 起不再写邀请码胶囊）。
+function inviteFriendCover() {
   return {
     iconKey: '/assets/help/guide-invite.png',
-    text: { kicker: '好友邀请你', title: '一起来知鹿学习', label: code ? `邀请码 ${code}` : '' }
+    text: { kicker: '好友邀请你', title: '一起来知鹿学习', label: '' }
   }
 }
 

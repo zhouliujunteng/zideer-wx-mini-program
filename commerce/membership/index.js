@@ -1,7 +1,6 @@
-const { loadCurrentMembership, createMembershipOrder, payWechatOrder, isWechatPaymentCancelled, loadMeDashboard, bindCurrentPromotionCode } = require('../../services/identity')
+const { loadCurrentMembership, createMembershipOrder, payWechatOrder, isWechatPaymentCancelled, loadMeDashboard } = require('../../services/identity')
 const { membershipView, benefitCards, dateText, creditsText, priceText } = require('../../services/membership-view')
 const { attachUiAssets } = require('../../services/ui-assets')
-const { clearPendingReferral } = require('../../utils/referral-context')
 const { checkPaymentPage, showPaymentClosed, isPaymentDisabled, leavePaymentPage, openPaymentPage } = require('../../services/payment-switch')
 const { shouldPayOnWeb, openWebPay } = require('../../services/web-pay')
 const WAITING_KEY = 'library_membership_confirming_order'
@@ -49,10 +48,7 @@ function actionView(membership, member, confirming, selectedTierId) {
     note: Number(item.creditAmount) > 0 ? `赠送 ${creditsText(item.creditAmount)} 积分` : '永久会员', isSelected: String(item.productVersionId) === selected }))
   const resumable = pending && pending.canPay === true && String(pending.productVersionId) === selected
   const label = resumable ? `继续支付 ¥${priceText(pending.amount)}` : `${member.active ? '升级为' : '开通'}${tier.name} ¥${priceText(tier.amount)}`
-  // 没填邀请码（没有推荐人）不能付款成为会员（2026-09-24 用户规则，服务端同样拦截）：按钮先引导填码。
-  if (membership.inviteRequired === true) {
-    return { primaryLabel: `填写邀请码后${member.active ? '升级' : '开通'}`, primaryAction: 'invite', showPlan: true, plans, selectedTierId: selected, ...benefitsView(membership, member, tier) }
-  }
+  // 2026-11-10 起没有邀请码 / 推荐人，开通会员不再要求先填码。
   return { primaryLabel: label, primaryAction: 'purchase', showPlan: true, plans, selectedTierId: selected, ...benefitsView(membership, member, tier) }
 }
 
@@ -171,7 +167,6 @@ Page({
     this.setData({ paying: true, notice: '', error: '', agreementChecked: true })
     let order
     let cancelled = false
-    let inviteRequired = false
     let paymentDisabled = false
     let webPay = false
     try {
@@ -190,8 +185,6 @@ Page({
       wx.setStorageSync(WAITING_KEY, String(order.orderId))
       await payWechatOrder(order)
     } catch (error) {
-      // 页面还没拿到「需要邀请码」就点了开通：服务端拦下后刷新状态，按钮变成「填写邀请码后开通」。
-      inviteRequired = error.code === 'MEMBERSHIP_INVITE_REQUIRED'
       // 停留在页面时后台关了支付开关：下单或发起支付被拒，弹提示后离开
       paymentDisabled = isPaymentDisabled(error)
       cancelled = isWechatPaymentCancelled(error) || error.paymentNotStarted === true
@@ -200,44 +193,12 @@ Page({
     } finally {
       this._paying = false
       if (!this._disposed) this.setData({ paying: false })
-      if (this._visible && ((order && !cancelled && !webPay) || inviteRequired)) await this.refresh()
-      // 用户本来就是要开通：服务端要求邀请码时直接弹出填码框。
-      if (inviteRequired && this._visible && !this._disposed) this.openInviteCode()
+      if (this._visible && order && !cancelled && !webPay) await this.refresh()
       if (paymentDisabled && this._visible && !this._disposed) showPaymentClosed('membership', leavePaymentPage)
     }
   },
-  // 填邀请码：与资料页「填写邀请码」同一个绑定（AF46 bind），绑定后不可更改；成功后刷新会员状态，按钮回到「开通」。
-  openInviteCode() {
-    if (this._inviting || this._paying) return
-    this._inviting = true
-    wx.showModal({
-      // 可输入的弹窗里 content 是输入框的初始文字，不是说明：不传 content。「填写后不可更改」写在页面上，
-      // 占位文字放不下（弹窗输入框一行约 13 个字）
-      title: '填写邀请码后开通',
-      editable: true,
-      placeholderText: '输入邀请人的邀请码',
-      confirmText: '绑定',
-      success: async (result) => {
-        const code = result.confirm ? String(result.content || '').trim() : ''
-        if (!code) { this._inviting = false; return }
-        try {
-          const bound = await bindCurrentPromotionCode(code)
-          clearPendingReferral()
-          wx.showToast({ title: bound.rewardCredits > 0 ? `绑定成功，获得 ${bound.rewardCredits} 积分` : '已绑定推荐人，可以开通会员了', icon: 'none', duration: 2400 })
-        } catch (error) {
-          if (error && error.terminalReferral) clearPendingReferral()
-          wx.showToast({ title: error.message || '绑定失败', icon: 'none', duration: 2600 })
-        } finally {
-          this._inviting = false
-          await this.refresh()
-        }
-      },
-      fail: () => { this._inviting = false }
-    })
-  },
   handlePrimaryAction() {
     if (this.data.primaryAction === 'openLibrary') return this.openLibrary()
-    if (this.data.primaryAction === 'invite') return this.openInviteCode()
     if (this.data.primaryAction === 'purchase') return this.purchase()
   },
   handleBack() {

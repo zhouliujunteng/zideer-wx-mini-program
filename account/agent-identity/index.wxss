@@ -36,6 +36,9 @@ page { background: #FAFAFA; }
 .ai-copy { flex: 0 0 auto; padding: 8rpx 20rpx; border-radius: 999rpx; background: #FD7C02; color: #fff; font-size: 22rpx; font-weight: 600; }
 .ai-row:active .ai-copy { opacity: .7; }
 
+.ai-chevron { flex: 0 0 auto; width: 14rpx; height: 14rpx; margin-right: 6rpx; border-top: 3rpx solid #B0B4BA; border-right: 3rpx solid #B0B4BA; transform: rotate(45deg); }
+.ai-row:active .ai-help-title { opacity: .6; }
+
 .ai-state { display: flex; flex-direction: column; align-items: center; gap: 22rpx; padding: 40rpx 24rpx; text-align: center; }
 .ai-card.ai-state { padding: 40rpx 24rpx; }
 .ai-state-text { color: #7E8A82; font-size: 24rpx; line-height: 1.5; }
