@@ -147,23 +147,17 @@ test('every entry to the membership center and credit packs goes through the swi
   }
   walk(root)
   // 唯一例外：「我的」先核开关、再按访问状态分流（游客去登录），最后才 navigateTo
-  const allowed = offenders.filter((line) => !line.startsWith('pages/me/index.js:') && !line.startsWith('commerce/order-confirm/index.js:'))
+  const allowed = offenders.filter((line) => !line.startsWith('pages/me/index.js:'))
   assert.deepEqual(allowed, [])
   assert.match(fs.readFileSync(path.join(root, 'pages/me/index.js'), 'utf8'), /await confirmPaymentOpen\('membership'\)\)\) return\s+if \(guardAccess/)
-  // 确认订单页没有上一页时回积分包页：积分包页自己会核开关
-  assert.match(fs.readFileSync(path.join(root, 'commerce/products/index.js'), 'utf8'), /checkPaymentPage\('credits'\)/)
+  // 2026-11-10 起没有积分包：积分包、商品详情、确认订单、购买资格四页已删
+  for (const page of ['products', 'product-detail', 'order-confirm', 'agent-gate']) assert.equal(fs.existsSync(path.join(root, `commerce/${page}/index.js`)), false, page)
 })
 
 test('payment pages check the switch before reading anything', () => {
   const read = (file) => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')
   const membership = read('commerce/membership/index.js')
   assert.ok(membership.indexOf("checkPaymentPage('membership')") < membership.indexOf('await loadCurrentMembership()'))
-  for (const file of ['commerce/products/index.js', 'commerce/order-confirm/index.js', 'commerce/product-detail/index.js']) {
-    const source = read(file)
-    const check = source.indexOf("checkPaymentPage('credits')")
-    assert.ok(check > 0, file)
-    assert.ok(check < source.indexOf('try {', check), file)
-  }
 })
 
 // 2026-09-30 用户改规则：关着时入口直接不显示，而不是点了再弹窗
@@ -214,13 +208,12 @@ test('every visible entry to membership, credit packs and payment is hidden whil
     ['commerce/order-detail/index.wxml', /wx:if="\{\{loaded && view\.action && paymentOpen\}\}" class="detail-bar"/],
     ['commerce/payment-result/index.wxml', /view\.kind === 'closed' && paymentOpen/],
     ['commerce/payment-result/index.wxml', /view\.kind === 'pending' && paymentOpen/],
-    ['commerce/agent-gate/index.wxml', /<button wx:if="\{\{paymentOpen\}\}" class="gate-primary pressable" bindtap="goProducts">/],
     ['pages/product-intro/index.wxml', /<button wx:if="\{\{paymentOpen\}\}" class="intro-action surface pressable" bindtap="openProducts">/]
   ]
   for (const [file, pattern] of guarded) assert.match(read(file), pattern, file)
   // 这些页面都在 onShow 里读开关，且 paymentOpen 初始为关（没读到过不显示入口）
   for (const file of ['pages/me/index.js', 'learning/library/index.js', 'learning/custom-course-intro/index.js', 'commerce/order-detail/index.js',
-    'commerce/payment-result/index.js', 'commerce/agent-gate/index.js', 'pages/product-intro/index.js']) {
+    'commerce/payment-result/index.js', 'pages/product-intro/index.js']) {
     const source = read(file)
     assert.match(source, /attachPaymentSwitch\(this\)/, file)
     assert.match(source, /paymentOpen: false/, file)

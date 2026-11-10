@@ -65,7 +65,7 @@
               <view class="payguide-mock-head"><text>{{mpName || '知鹿学习'}}</text><text class="payguide-mock-tools">···</text></view>
               <view class="payguide-message">
                 <text class="payguide-message-title">订单创建成功通知</text>
-                <view class="payguide-message-row"><text>商品</text><text>你选购的会员或积分包</text></view>
+                <view class="payguide-message-row"><text>商品</text><text>你选购的会员</text></view>
                 <view class="payguide-message-row"><text>订单金额</text><text>核对本次付款金额</text></view>
                 <view class="payguide-message-link"><text>查看详情</text><text>›</text><view class="payguide-tap-ring"></view></view>
               </view>

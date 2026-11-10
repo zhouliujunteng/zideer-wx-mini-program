@@ -46,7 +46,7 @@
         </view>
         <view wx:else class="orders-empty">
           <text>{{activeTabId === 'all' ? '暂时没有订单记录' : '没有' + activeTabId + '的订单'}}</text>
-          <text>购买积分包或开通会员后，订单会按时间展示在这里。</text>
+          <text>开通会员后，订单会按时间展示在这里。</text>
         </view>
       </scroll-view>
     </view>

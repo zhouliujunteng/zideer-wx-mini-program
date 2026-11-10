@@ -61,7 +61,8 @@ async function untilCalled(service, count) {
   for (let i = 0; i < 10 && service.calls.length < count; i += 1) await Promise.resolve()
 }
 
-const PAGES = ['membership', 'agent-gate', 'assignment-request', 'products', 'product-detail', 'order-confirm', 'payment-result', 'orders', 'order-detail', 'entitlements']
+// 2026-11-10 起没有积分包：products / product-detail / order-confirm / agent-gate 四页已删
+const PAGES = ['membership', 'assignment-request', 'payment-result', 'orders', 'order-detail', 'entitlements']
 
 test('commerce and coin pages use shape-matched skeletons instead of the flat grey block or loading copy', () => {
   for (const name of PAGES) {
@@ -77,8 +78,6 @@ test('commerce and coin pages use shape-matched skeletons instead of the flat gr
 })
 
 test('empty-state copy is only reachable after the loaded branch', () => {
-  const products = read('commerce/products/index.wxml')
-  assert.ok(products.indexOf('wx:if="{{!loaded && !failed}}"') < products.indexOf('积分包还没有上架'))
   const orders = read('commerce/orders/index.wxml')
   assert.ok(orders.indexOf('wx:if="{{!loaded && !failed}}"') < orders.indexOf('暂时没有订单记录'))
   for (const file of ['commerce/entitlements/index.wxml', 'growth/coins/index.wxml']) {
@@ -92,10 +91,8 @@ test('empty-state copy is only reachable after the loaded branch', () => {
 
 const ORDERS = [{ id: 1, title: '体验积分包', order_kind: 'course_credit', status: '已支付', statusLabel: '已支付', amountDisplay: '9.90', beneficiaryName: '小鹿', created_at: '2026-09-25T10:00:00+08:00' }]
 const simplePages = [
-  { file: 'commerce/agent-gate/index.js', service: 'loadPurchaseEligibility', value: { eligible: true, promoter: { name: '伙伴' } }, key: 'eligibility' },
   { file: 'commerce/orders/index.js', service: 'loadOrders', value: ORDERS, key: 'recordGroups', expected: require('../commerce/order-view').groupOrdersByMonth(ORDERS, 'all') },
   { file: 'commerce/order-detail/index.js', service: 'loadOrderDetail', value: { id: 1, title: '积分包' }, key: 'order', query: { orderId: '1' } },
-  { file: 'commerce/product-detail/index.js', service: 'loadCreditProduct', value: { id: 9, name: '积分包' }, key: 'product', query: { productVersionId: '9' } },
   { file: 'commerce/assignment-request/index.js', service: 'loadPromoterAssignmentRequest', value: { request: null, attribution: { promoter: {} } }, key: 'attribution', expected: { promoter: {} } },
   { file: 'commerce/payment-result/index.js', service: 'loadOrderDetail', value: { id: 3, status: '已支付', order_no: 'N3' }, key: 'order', query: { orderId: '3', orderNo: 'N3', amount: '9.90' } }
 ]
@@ -136,43 +133,6 @@ for (const spec of simplePages) {
     assert.deepEqual(page.data[spec.key], expected)
   })
 }
-
-test('products: loaded only once products arrive; refresh keeps the list', async () => {
-  const eligibility = controllable()
-  const products = controllable()
-  const page = loadPage('commerce/products/index.js', { '/identity': { loadPurchaseEligibility: eligibility.fn, loadCreditProducts: products.fn },
-    '/ui-assets': { attachUiAssets() {} }, '/membership-view': require('../services/membership-view') })
-  const first = page.loadPage()
-  await untilCalled(eligibility, 1)
-  eligibility.last().resolve({ eligible: true })
-  for (let i = 0; i < 5 && !products.calls.length; i += 1) await Promise.resolve()
-  assert.equal(page.data.loaded, false)
-  products.last().resolve({ products: [{ id: 1 }] })
-  await first
-  assert.equal(page.data.loaded, true)
-  const again = page.loadPage()
-  await untilCalled(eligibility, 2)
-  assert.equal(page.data.products.length, 1)
-  eligibility.last().reject(new Error('offline'))
-  await again
-  assert.equal(page.data.products.length, 1)
-  assert.equal(page.data.failed, false)
-})
-
-test('order confirm keeps the create-order button hidden until product and beneficiary are loaded', async () => {
-  const product = controllable()
-  const user = controllable()
-  const page = loadPage('commerce/order-confirm/index.js', { '/identity': { loadCreditProduct: product.fn, loadCurrentUser: user.fn },
-    '/membership-view': require('../services/membership-view') }, { query: { productVersionId: '9' } })
-  assert.match(read('commerce/order-confirm/index.wxml'), /<button wx:if="\{\{loaded\}\}" class="confirm-button/)
-  const first = page.loadPage()
-  await untilCalled(product, 1)
-  product.last().resolve({ id: 9, name: '积分包' })
-  user.last().resolve({ profileCompleted: true, profile: { id: 5, nickname: '小鹿' } })
-  await first
-  assert.equal(page.data.loaded, true)
-  assert.equal(page.data.beneficiary.name, '小鹿')
-})
 
 test('payment result without an order id has nothing to load and shows its state immediately', async () => {
   const page = loadPage('commerce/payment-result/index.js', { '/identity': { loadOrderDetail() { throw new Error('should not load') } } }, { query: {} })
@@ -237,49 +197,4 @@ test('membership hero shows skeletons instead of the neutral name until the prof
 })
 
 // 积分包页（2026-09-24 重做）：上面选积分包、下面看购买须知、底部购买直接进确认订单；会员价与余额只来自服务端。
-test('credit packs: select a pack, see its rules, and buy straight into order confirm', async () => {
-  const packs = [
-    { id: 11, name: '入门积分包', credits: '1000', amount: '49.00', payableAmount: '39.00', memberAmount: '39.00', memberPriceApplied: true, estimatedCourseCount: 5, validityRule: { description: '永久有效' } },
-    { id: 12, name: '进阶积分包', credits: '5000', amount: '199.00', payableAmount: '199.00', memberAmount: '', memberPriceApplied: false, estimatedCourseCount: 0 }
-  ]
-  const page = loadPage('commerce/products/index.js', {
-    '/identity': { loadPurchaseEligibility: async () => ({ eligible: true, balance: { available: '286', frozen: '0' } }), loadCreditProducts: async () => ({ buyerIsMember: true, products: packs }) },
-    '/ui-assets': { attachUiAssets() {} }, '/membership-view': require('../services/membership-view')
-  }, { query: { productVersionId: '12' } })
-  page.onLoad({ productVersionId: '12' })
-  await page.loadPage()
-  assert.equal(page.data.balance.available, '286')
-  assert.equal(page.data.selected.id, '12')
-  page.selectPack({ currentTarget: { dataset: { id: '11' } } })
-  assert.equal(JSON.stringify(page.data.packs.map((p) => [p.price, p.listPrice, p.memberTag, p.isSelected])), JSON.stringify([['39', '49', '会员价', true], ['199', '', '', false]]))
-  assert.equal(page.data.selected.savedText, '已享会员价，省 ¥10')
-  assert.equal(JSON.stringify(page.data.selected.rows.map((r) => r.value).slice(0, 2)), JSON.stringify(['约 5 节', '永久有效']))
-  assert.equal(page.data.memberOffer, false)
-  // 购买须知已在本页，购买直接进确认订单，不再经过商品详情页
-  assert.match(read('commerce/products/index.js'), /order-confirm\/index\?productVersionId=/)
-  assert.doesNotMatch(read('commerce/products/index.js'), /product-detail\/index/)
-})
-
 // 2026-09-25 用户规则：买积分包只要有推荐人（与开通会员同一口径），推荐人不必是已开通的推广伙伴
-test('credit-pack eligibility only needs a referrer, whatever the referrer\'s partner status', async () => {
-  const identityPath = require.resolve('../services/identity.js')
-  const account = (status) => ({ account: { available_credits: 0 }, attribution: { id: 5, status: 'active', source_type: 'code', promoter_profile: { id: 21, status, display_name: '' } }, orders: [], batches: [], ledger: [] })
-  for (const [payload, eligible] of [[account('inactive'), true], [account('active'), true], [{ ...account('active'), attribution: null }, false]]) {
-    delete require.cache[identityPath]
-    global.wx = {
-      getStorageSync: () => 'token', setStorageSync() {}, removeStorageSync() {},
-      request(options) {
-        if (JSON.stringify(options.data || {}).includes('PhoneAuthentication')) return options.success({ statusCode: 200, data: { data: { result: { authenticated: true, phoneVerified: true } } } })
-        options.success({ statusCode: 200, data: { data: { result: JSON.stringify(payload) } } })
-      }
-    }
-    global.getCurrentPages = () => []
-    const result = await require(identityPath).loadPurchaseEligibility()
-    assert.equal(result.eligible, eligible, JSON.stringify(payload.attribution))
-  }
-  delete require.cache[identityPath]
-  const wxml = read('commerce/products/index.wxml')
-  assert.match(wxml, /暂时不能购买积分包/)
-  assert.doesNotMatch(wxml, /邀请码/)
-})
-

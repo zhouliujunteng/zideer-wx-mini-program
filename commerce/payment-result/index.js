@@ -76,7 +76,8 @@ Page({
     this.goHome()
   },
   goHome() { wx.switchTab({ url: '/pages/home/index' }) },
-  goProducts() { return openPaymentPage('/commerce/products/index', 'credits', { redirect: true }) },
+  // 2026-11-10 起没有积分包，「重新购买」去会员中心
+  goProducts() { return openPaymentPage('/commerce/membership/index', 'membership', { redirect: true }) },
   goOrder() {
     if (!this.data.orderId) return
     wx.redirectTo({ url: `/commerce/order-detail/index?orderId=${encodeURIComponent(this.data.orderId)}` })

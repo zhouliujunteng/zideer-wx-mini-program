@@ -7,5 +7,6 @@ Page({
   onShow() { attachPaymentSwitch(this) },
   startAssessment() { wx.navigateTo({ url: '/assessment/center/index' }) },
   openKnowledgeMap() { wx.switchTab({ url: '/pages/knowledge-map/index' }) },
-  openProducts() { return openPaymentPage('/commerce/products/index', 'credits') }
+  // 2026-11-10 起没有积分包，去会员中心
+  openProducts() { return openPaymentPage('/commerce/membership/index', 'membership') }
 })

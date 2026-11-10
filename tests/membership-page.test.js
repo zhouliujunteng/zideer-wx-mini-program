@@ -184,8 +184,8 @@ test('tier cards and the primary action follow server tiers and the selected tie
   page.applyMembership({ status: 'active', eligible: true, permanent: true, expiresAt: null, tiers: [], tier: gold, order: null })
   assert.equal(page.data.showPlan, false)
   page.handlePrimaryAction()
-  await page.openProducts()
-  assert.equal(JSON.stringify(navigations), JSON.stringify(['/learning/library/index', '/commerce/products/index']))
+  assert.equal(JSON.stringify(navigations), JSON.stringify(['/learning/library/index']))
+  assert.equal(page.openProducts, undefined, '2026-11-10 起没有积分包')
 })
 
 test('purchase needs a selected tier', async () => {
@@ -231,10 +231,10 @@ test('a member sees only higher tiers, upgrades at full price, and the benefits 
   page.data.selectedTierId = ''
   page.applyMembership(silverMember)
   assert.equal(JSON.stringify(page.data.plans.map(p => p.name)), JSON.stringify(['黄金会员']))
-  assert.equal(page.data.primaryLabel, '升级为黄金会员 ¥99')
+  assert.equal(page.data.primaryLabel, '再次购买黄金会员 ¥99')
   assert.equal(page.data.benefitsHeading, '黄金会员权益')
   assert.equal(JSON.stringify(page.data.benefits.map(b => [b.title, b.state])),
-    JSON.stringify([['会员课程库', '永久可用'], ['课程积分', '赠送 1000 积分'], ['积分包', '享会员价']]))
+    JSON.stringify([['会员课程库', '永久可用'], ['课程积分', '赠送 1000 积分'], ['全家共用', '开通即享']]))
   await page.purchase()
   assert.equal(JSON.stringify(paid), JSON.stringify(['22']))
   assert.equal(page.data.confirming, true)
@@ -250,7 +250,7 @@ test('a member sees only higher tiers, upgrades at full price, and the benefits 
   assert.equal(page.data.primaryLabel, '进入会员课程库')
   assert.equal(page.data.benefitsHeading, '我的会员权益')
   assert.equal(JSON.stringify(page.data.benefits.map(b => [b.state, b.action])),
-    JSON.stringify([['永久可用 ›', 'openLibrary'], ['开通赠送 1000 积分', ''], ['去购买 ›', 'openProducts']]))
+    JSON.stringify([['永久可用 ›', 'openLibrary'], ['开通赠送 1000 积分', ''], ['已拥有', '']]))
 })
 
 test('an unpaid upgrade order is resumed instead of creating a new one', () => {
@@ -266,7 +266,7 @@ test('benefit cards: custom per-tier benefits from the backend replace the defau
   const { benefitCards } = require('../services/membership-view')
   const custom = benefitCards({ ...gold, benefits: [{ title: '专属老师答疑', description: '每月 2 次' }] }, 'preview')
   assert.equal(JSON.stringify(custom.map(b => [b.title, b.subtitle, b.state])), JSON.stringify([['专属老师答疑', '每月 2 次', '']]))
-  assert.equal(benefitCards(null, 'none').map(b => b.state).join('|'), '未开通|按等级赠送|开通会员享会员价')
+  assert.equal(benefitCards(null, 'none').map(b => b.state).join('|'), '未开通|开通赠送|开通即享')
   assert.equal(benefitCards({ ...gold, creditAmount: '0' }, 'preview')[1].state, '不赠送积分')
   const { priceText } = require('../services/membership-view')
   assert.equal(['28.80', '298.00', '1080.00', '9800.00', '0.01'].map(priceText).join('|'), '28.8|298|1080|9800|0.01')
@@ -312,4 +312,13 @@ test('Android opens the web payment page instead of paying inside the mini progr
   assert.notEqual(page.data.confirming, true)
   assert.equal(timers.size, 0)
   assert.equal(page.data.paying, false)
+})
+
+test('2026-11-10: a child covered by a parent membership is shown as a family member', () => {
+  const { membershipView } = require('../services/membership-view')
+  const view = membershipView({ status: 'active', eligible: true, permanent: true, expiresAt: null, sharedFrom: 'guardian', tier: { name: '全能课会员', creditAmount: '100000' } })
+  assert.equal(view.active, true)
+  assert.equal(view.shared, true)
+  assert.equal(view.statusLabel, '家长已开通，全家共用')
+  assert.equal(view.giftCreditsText, '课程积分在家长名下，全家共用')
 })

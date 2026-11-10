@@ -47,7 +47,7 @@ function actionView(membership, member, confirming, selectedTierId) {
   const plans = tiers.map(item => ({ id: String(item.productVersionId), name: item.name, price: priceText(item.amount), priceLong: priceText(item.amount).length >= 5,
     note: Number(item.creditAmount) > 0 ? `赠送 ${creditsText(item.creditAmount)} 积分` : '永久会员', isSelected: String(item.productVersionId) === selected }))
   const resumable = pending && pending.canPay === true && String(pending.productVersionId) === selected
-  const label = resumable ? `继续支付 ¥${priceText(pending.amount)}` : `${member.active ? '升级为' : '开通'}${tier.name} ¥${priceText(tier.amount)}`
+  const label = resumable ? `继续支付 ¥${priceText(pending.amount)}` : `${member.active ? '再次购买' : '开通'}${tier.name} ¥${priceText(tier.amount)}`
   // 2026-11-10 起没有邀请码 / 推荐人，开通会员不再要求先填码。
   return { primaryLabel: label, primaryAction: 'purchase', showPlan: true, plans, selectedTierId: selected, ...benefitsView(membership, member, tier) }
 }
@@ -219,7 +219,6 @@ Page({
     if (action === 'openLibrary') return this.openLibrary()
     if (action === 'openProducts') return this.openProducts()
   },
-  openProducts() { return openPaymentPage('/commerce/products/index', 'credits') },
   openLibrary() { wx.navigateTo({ url: '/learning/library/index' }) },
   openOrders() { wx.navigateTo({ url: '/commerce/orders/index' }) },
   openOrder() {

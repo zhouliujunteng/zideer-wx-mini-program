@@ -26,7 +26,7 @@
           <text class="result-subtitle">{{view.subtitle}}</text>
         </view>
         <view class="result-card">
-          <view wx:if="{{order.title}}" class="result-row"><text>积分包</text><text>{{order.title}}</text></view>
+          <view wx:if="{{order.title}}" class="result-row"><text>商品</text><text>{{order.title}}</text></view>
           <view wx:if="{{orderNo}}" class="result-row"><text>订单编号</text><text>{{orderNo}}</text></view>
           <view class="result-row"><text>订单金额</text><text class="result-amount">¥{{amount}}</text></view>
           <view wx:if="{{order}}" class="result-row"><text>当前状态</text><text>{{order.statusLabel}}</text></view>

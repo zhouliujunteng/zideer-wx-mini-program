@@ -50,33 +50,6 @@ const product = { id: 9, name: '积分包', credits: 100, amount: 1, payableAmou
 const user = { profileCompleted: true, profile: { id: 5, nickname: '小鹿' } }
 const order = { orderId: 31, orderNo: 'CL31', amount: 1, description: '积分包' }
 
-test('credit package: a successful payment goes straight back to the home tab', async () => {
-  const { page, calls } = loadPage('commerce/order-confirm/index.js', {
-    loadCreditProduct: async () => product, loadCurrentUser: async () => user,
-    createSecureCreditOrder: async () => order, payWechatOrder: async () => ({ orderId: 31 }), isWechatPaymentCancelled: () => false
-  })
-  page.onLoad({ productVersionId: '9' })
-  await page.loadPage()
-  await page.createOrder()
-  assert.deepEqual(calls.switchTab, ['/pages/home/index'])
-  assert.deepEqual(calls.redirectTo, [])
-  assert.match(calls.toasts[0], /支付成功/)
-})
-
-test('credit package: a cancelled payment opens the order status page to continue paying', async () => {
-  const cancelled = Object.assign(new Error('requestPayment:fail cancel'), { errMsg: 'requestPayment:fail cancel' })
-  const { page, calls } = loadPage('commerce/order-confirm/index.js', {
-    loadCreditProduct: async () => product, loadCurrentUser: async () => user,
-    createSecureCreditOrder: async () => order, payWechatOrder: async () => { throw cancelled }, isWechatPaymentCancelled: (error) => error === cancelled
-  })
-  page.onLoad({ productVersionId: '9' })
-  await page.loadPage()
-  await page.createOrder()
-  assert.deepEqual(calls.switchTab, [])
-  assert.equal(calls.redirectTo.length, 1)
-  assert.match(calls.redirectTo[0], /^\/commerce\/payment-result\/index\?orderId=31&/)
-})
-
 test('order status page: continuing payment goes home; closed orders cannot be paid', async () => {
   let paid = 0
   const identity = (status) => ({
@@ -104,23 +77,6 @@ test('order status page: continuing payment goes home; closed orders cannot be p
   done.page.onLoad({ orderId: '31' })
   await done.page.loadPage()
   assert.equal(done.page.data.view.kind, 'paid')
-})
-
-test('Android: the confirm page hands a new credit order to web payment instead of paying in the mini program', async () => {
-  let paid = 0
-  const { page, calls } = loadPage('commerce/order-confirm/index.js', {
-    loadCreditProduct: async () => product, loadCurrentUser: async () => user,
-    createSecureCreditOrder: async () => order, payWechatOrder: async () => { paid += 1 }, isWechatPaymentCancelled: () => false
-  }, { android: true })
-  page.onLoad({ productVersionId: '9' })
-  await page.loadPage()
-  await page.createOrder()
-  assert.equal(paid, 0)
-  // 等待页换掉确认订单页：返回回到积分包，不会再下一单
-  assert.deepEqual(calls.redirectTo, ['/commerce/web-pay/index?orderId=31&kind=credit'])
-  assert.deepEqual(calls.switchTab, [])
-  assert.equal(page.pendingOrder, null)
-  assert.equal(page.data.submitting, false)
 })
 
 test('Android: continuing a pending order from the status page opens web payment', async () => {

@@ -84,11 +84,7 @@
       "root": "commerce",
       "pages": [
         "membership/index",
-        "agent-gate/index",
         "assignment-request/index",
-        "products/index",
-        "product-detail/index",
-        "order-confirm/index",
         "payment-result/index",
         "orders/index",
         "order-detail/index",
