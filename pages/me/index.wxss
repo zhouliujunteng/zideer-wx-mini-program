@@ -55,6 +55,12 @@ page { background: #FAFAFA; }
 .profile-status-row { margin-top: 8rpx; }
 .profile-school-pill { padding: 0 16rpx; justify-content: center; }
 .profile-verified-pill { background: rgba(253, 124, 2, 0.10); color: #FD7C02; }
+/* 代理身份标签（2026-11-10）：资料区 ID 下方居中一行，可换行；团长深橙底白字，爱心妈妈、导师妈妈淡橙底 */
+.profile-agent-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10rpx; width: 100%; margin-top: 16rpx; }
+.profile-agent-row:active { opacity: .7; }
+.profile-agent-pill { display: inline-flex; align-items: center; height: 40rpx; padding: 0 16rpx; box-sizing: border-box; border-radius: 999rpx; background: rgba(253, 124, 2, 0.10); color: #FD7C02; font-size: 21rpx; font-weight: 600; line-height: 1; white-space: nowrap; }
+.profile-agent-pill-team_leader { background: #FD7C02; color: #fff; }
+.profile-agent-chevron { width: 12rpx; height: 12rpx; margin-left: 2rpx; border-top: 3rpx solid #FDB066; border-right: 3rpx solid #FDB066; transform: rotate(45deg); }
 .wallet-grid { display: flex; gap: 24rpx; margin-top: 2rpx; }
 .wallet-module { flex: 1; min-width: 0; padding: 22rpx 24rpx 24rpx; border-radius: 40rpx; background: #fff; }
 .wallet-module-heading { display: flex; align-items: center; min-width: 0; }

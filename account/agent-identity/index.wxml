@@ -1,0 +1,74 @@
+<!-- 我的代理身份：身份、所在团 / 我的团、知鹿问答链接。样式照「关于知鹿」那一系（顶栏、小节标题、白色大圆角卡片）。 -->
+<view class="ai-page">
+  <view class="ai-ambient" aria-hidden="true"></view>
+  <view class="ai-topbar">
+    <view class="ai-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="ai-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="ai-back-icon"></view></view>
+      <text class="ai-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">我的代理身份</text>
+    </view>
+  </view>
+
+  <scroll-view class="ai-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="ai-shell">
+      <view class="ai-section">
+        <view class="ai-heading">我的身份</view>
+        <view wx:if="{{loadFailed}}" class="ai-card ai-state">
+          <text class="ai-state-text">{{errorMessage}}</text>
+          <view class="ai-state-button" bindtap="retry" aria-role="button">{{needLogin ? '去登录' : '重新读取'}}</view>
+        </view>
+        <view wx:elif="{{!loaded}}" class="ai-card">
+          <view class="ai-row"><view class="sk sk-line sk-mid"></view></view>
+          <view class="ai-row"><view class="sk sk-line sk-short"></view></view>
+        </view>
+        <view wx:elif="{{!roles.length}}" class="ai-card ai-state">
+          <text class="ai-state-text">你还没有开通代理身份。</text>
+        </view>
+        <view wx:else class="ai-card">
+          <view wx:for="{{roles}}" wx:key="key" class="ai-row">
+            <view class="ai-role">
+              <text class="ai-role-pill ai-role-pill-{{item.key}}">{{item.label}}</text>
+            </view>
+            <text class="ai-row-value ai-muted">已开通</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{loaded && leader}}" class="ai-section">
+        <view class="ai-heading">所在团</view>
+        <view class="ai-card">
+          <view class="ai-row" bindtap="copyId" data-id="{{leader.publicId}}" aria-role="button" aria-label="复制团长 ID">
+            <text class="ai-row-label">团长</text>
+            <view class="ai-row-value"><text>{{leader.name}}</text><text class="ai-id">ID {{leader.publicId}}</text></view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{loaded && isLeader && team}}" class="ai-section">
+        <view class="ai-heading">我的团 · {{team.count}} 位爱心妈妈</view>
+        <view class="ai-card">
+          <view wx:if="{{!team.members.length}}" class="ai-state">
+            <text class="ai-state-text">团里还没有爱心妈妈，由知鹿后台为你绑定。</text>
+          </view>
+          <view wx:for="{{team.members}}" wx:key="publicId" class="ai-row" bindtap="copyId" data-id="{{item.publicId}}" aria-role="button" aria-label="复制 {{item.name}} 的 ID">
+            <text class="ai-member-name">{{item.name}}</text>
+            <text class="ai-id">ID {{item.publicId}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{loaded && roles.length}}" class="ai-section">
+        <view class="ai-heading">知鹿问答</view>
+        <view class="ai-card">
+          <view class="ai-row" bindtap="copyHelpSite" aria-role="button" aria-label="复制知鹿问答链接">
+            <view class="ai-help-copy">
+              <text class="ai-help-title">代理专属图文知识库</text>
+              <text class="ai-help-sub">复制链接，在微信聊天里打开即可查看</text>
+            </view>
+            <text class="ai-copy">复制链接</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

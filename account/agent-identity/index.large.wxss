@@ -1,0 +1,40 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.ai-page{height:100vh}
+.ai-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
+.ai-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
+.ai-topbar-inner{padding:0 19px 9px}
+.ai-back{width:32px;height:32px;border-radius:50%}
+.ai-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.ai-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.ai-scroll{height:100vh}
+.ai-shell{min-height:100%;padding:0 19px calc(28px + env(safe-area-inset-bottom))}
+.ai-section{margin-top:22px}
+.ai-section:first-child{margin-top:12px}
+.ai-heading{padding:0 2px;font-size:18px;font-weight:700;line-height:1.2}
+.ai-card{margin-top:13px;padding:3px 14px;border-radius:21px}
+.ai-row{gap:13px;min-height:26px;padding:16px 0;border-bottom:1px solid #F0F3F0;font-size:14px;line-height:1.4}
+.ai-row:last-child{border-bottom:0}
+.ai-row-value{min-width:0;gap:8px}
+.ai-id{font-size:13px}
+.ai-member-name{min-width:0;font-size:15px;font-weight:600}
+.ai-role{min-width:0}
+.ai-role-pill{height:28px;padding:0 12px;border-radius:599px;font-size:15px;font-weight:700;line-height:1}
+.ai-help-copy{min-width:0;gap:4px}
+.ai-help-title{font-size:15px;font-weight:600}
+.ai-help-sub{font-size:13px}
+.ai-copy{padding:4px 12px;border-radius:599px;font-size:13px;font-weight:600}
+.ai-state{gap:13px;padding:24px 14px}
+.ai-card.ai-state{padding:24px 14px}
+.ai-state-text{font-size:14px;line-height:1.5}
+.ai-state-button{padding:8px 24px;border-radius:599px;font-size:14px;font-weight:600}
+}

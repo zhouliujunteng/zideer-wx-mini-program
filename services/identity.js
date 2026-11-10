@@ -977,6 +977,25 @@ async function registerServiceAccountLink() {
 }
 
 /**
+ * 自己的代理身份（2026-11-10，课程服务 lib/agent-roles/self.ts）：爱心妈妈、导师妈妈、爱心妈妈团团长，管理端开通。
+ * 回包 { roles: [{ key, label }], leader: { name, publicId } | null, team: { count, members } | null }；roles 为空就是不是代理。
+ * 用本机凭证、不走 getRuntimeToken：「我的」对游客开放，凭证失效时这里只报错，不把人带去登录页。
+ */
+async function loadAgentIdentity() {
+  const token = getStoredToken()
+  if (!token) throw new Error('NOT_LOGGED_IN')
+  const result = await requestAgentCourses('/api/learn/agent-identity', token, { timeout: 15000, fallbackMessage: '代理身份暂时无法读取，请稍后重试。' })
+  const roles = (result && Array.isArray(result.roles) ? result.roles : [])
+    .filter((item) => item && item.key && item.label)
+    .map((item) => ({ key: String(item.key), label: String(item.label) }))
+  const person = (item) => item && item.publicId ? { name: String(item.name || '未命名'), publicId: String(item.publicId) } : null
+  const team = result && result.team
+    ? { count: Number(result.team.count) || 0, members: (Array.isArray(result.team.members) ? result.team.members : []).map(person).filter(Boolean) }
+    : null
+  return { roles, leader: person(result && result.leader), team }
+}
+
+/**
  * 学生的学习偏好（课程服务 lib/course/learning-preference.ts，2026-10-07）：「学习宇宙 › 学习偏好」读写自己的，
  * 回包带内置提示词目录。诊断会议开场时随学习基本盘一起交给 AI 老师（loadLearnerBaseline）。
  */
@@ -4479,6 +4498,7 @@ module.exports = {
   loadKnowledgeTopic,
   loadLearnerBaseline,
   loadLearningPreference,
+  loadAgentIdentity,
   saveLearningPreference,
   loadLearningGoal,
   loadGoalDiagnosis,

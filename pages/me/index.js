@@ -1,6 +1,6 @@
 const { getMeModel } = require('../../services/mock-service')
 const { getLiveMeModel, withGuardianQuickActions } = require('../../services/live-tab-service')
-const { loadCurrentMembership, loadCurrentTeacherWorkspace, hasSession } = require('../../services/identity')
+const { loadCurrentMembership, loadCurrentTeacherWorkspace, loadAgentIdentity, hasSession } = require('../../services/identity')
 const { openLogin, openProfileSetup, guardAccess } = require('../../utils/access-gate')
 const { membershipView } = require('../../services/membership-view')
 const { attachUiAssets } = require('../../services/ui-assets')
@@ -49,6 +49,8 @@ Page({
     membershipLoaded: false,
     // 只有后台开通的有效老师才有值；读取失败时保持隐藏，普通用户永远看不到老师入口。
     teacherEntry: null,
+    // 代理身份（爱心妈妈 / 导师妈妈 / 爱心妈妈团团长，2026-11-10）：头像下方的标签；不是代理或读取失败都不显示。
+    agentRoles: [],
     statusBarHeight: 20,
     navigationBarHeight: 44,
     contentTop: 80,
@@ -95,7 +97,7 @@ Page({
     if (app && app.markTabVisible) app.markTabVisible('pages/me/index')
     // 游客（2026-09-27 起未登录也能浏览）：没有会员、老师身份可读，资料位换成「登录 / 注册」
     if (!hasSession()) {
-      this.setData({ member: membershipView(null), membershipLoading: false, membershipLoaded: true, membershipError: '', teacherEntry: null })
+      this.setData({ member: membershipView(null), membershipLoading: false, membershipLoaded: true, membershipError: '', teacherEntry: null, agentRoles: [] })
       await this.loadProfile(version)
       return
     }
@@ -103,7 +105,7 @@ Page({
     if (this.data.model.access === 'guest') this.setData({ model: loadingMeModel(), profileLoaded: false, profileFailed: false, membershipLoaded: false, walletValueSizes: [] })
     // 保留上次读到的资料、会员状态直到本次读取完成，避免每次切回「我的」都先闪一下占位内容。
     this.setData({ membershipLoading: true, membershipError: '' })
-    await Promise.all([this.loadProfile(version), this.loadMembership(version), this.loadTeacherEntry(version)])
+    await Promise.all([this.loadProfile(version), this.loadMembership(version), this.loadTeacherEntry(version), this.loadAgentRoles(version)])
   },
   // 骨架阶段先量出钱包卡的可用宽度，数据到了就能直接按宽度定字号，不先撑出去再缩。
   onReady() { this.fitWalletValues() },
@@ -142,6 +144,14 @@ Page({
       if (version === this._version) this.setData({ teacherEntry: null })
     }
   },
+  // 读不到时保留上次显示的标签（回页静默刷新），第一次就读不到则不显示
+  async loadAgentRoles(version) {
+    try {
+      const result = await loadAgentIdentity()
+      if (version === this._version) this.setData({ agentRoles: result.roles })
+    } catch (error) {}
+  },
+  openAgentIdentity() { wx.navigateTo({ url: '/account/agent-identity/index' }) },
   // 积分、金币位数多（如 200000）时缩小字号，不撑出卡片：按量到的卡内宽度估算。
   estimateWalletValueSizes(model) {
     const widths = this._walletBoxWidths || []

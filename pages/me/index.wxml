@@ -34,6 +34,11 @@
           <text class="profile-id">{{model.profile.id}}</text>
           <view class="profile-action profile-copy-action" aria-label="复制用户 ID" catchtap="copyProfileId"><view class="profile-copy-icon"></view></view>
         </view>
+        <!-- 代理身份标签（2026-11-10）：点开「我的代理身份」，不触发资料区的编辑资料 -->
+        <view wx:if="{{profileLoaded && model.access !== 'guest' && agentRoles.length}}" class="profile-agent-row" catchtap="openAgentIdentity" aria-role="button" aria-label="查看我的代理身份">
+          <text wx:for="{{agentRoles}}" wx:key="key" class="profile-agent-pill profile-agent-pill-{{item.key}}">{{item.label}}</text>
+          <view class="profile-agent-chevron" aria-hidden="true"></view>
+        </view>
         <!-- 未登录、没完善学习资料（2026-09-27 起未登录也能浏览）：点资料区去登录 / 去完善 -->
         <view wx:if="{{profileLoaded && (model.access === 'guest' || model.access === 'profile')}}" class="profile-id-row profile-access-row">
           <text class="profile-access-hint">{{model.access === 'guest' ? '登录后查看学习资料和账户' : '学习资料未完善，点这里去完善'}}</text>
