@@ -5,12 +5,14 @@
     <view class="pr-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
       <view class="pr-close" bindtap="handleBack" role="button" aria-label="退出练习"><view class="pr-close-icon"></view></view>
       <view wx:if="{{practice && practice.status === 'ready'}}" class="pr-bar" aria-label="已闯过 {{percent}}%">
-        <view class="pr-bar-fill" style="width: {{percent}}%;"></view>
+        <view class="pr-bar-fill" style="width: {{percent}}%;"><view class="pr-bar-shine"></view></view>
       </view>
       <text wx:else class="pr-topbar-title">互动练习</text>
-      <view wx:if="{{practice && practice.status === 'ready' && practice.progress && practice.progress.streak >= 2}}" class="pr-streak">
+      <view wx:if="{{practice && practice.status === 'ready' && practice.progress && practice.progress.streak >= 2}}" class="pr-streak {{combo ? 'is-hot' : ''}}">
         <view class="pr-streak-flame" aria-hidden="true"></view><text>{{practice.progress.streak}}</text>
       </view>
+      <!-- 连对提示：从进度条下方弹出，一会儿淡掉 -->
+      <view wx:if="{{combo}}" class="pr-combo" data-key="{{combo.key}}">{{combo.text}}</view>
     </view>
   </view>
 
@@ -50,12 +52,15 @@
     </view>
 
     <view wx:elif="{{practice.status === 'done'}}" class="pr-clear">
+      <view wx:if="{{celebrate}}" class="pr-confetti" aria-hidden="true">
+        <view wx:for="{{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]}}" wx:key="*this" class="pr-confetti-piece piece-{{item}}"></view>
+      </view>
       <view class="pr-clear-badge" aria-hidden="true"><view class="pr-clear-check"></view></view>
       <text class="pr-clear-title">通关啦！</text>
       <text class="pr-clear-course">{{practice.title}}</text>
       <view class="pr-clear-stats">
-        <view class="pr-clear-stat"><text class="pr-clear-value">{{summary.total}}</text><text class="pr-clear-label">道小题</text></view>
-        <view class="pr-clear-stat"><text class="pr-clear-value">{{summary.first}}</text><text class="pr-clear-label">一次答对</text></view>
+        <view class="pr-clear-stat stat-total"><text class="pr-clear-value">{{celebrate ? statShown.total : summary.total}}</text><text class="pr-clear-label">道小题</text></view>
+        <view class="pr-clear-stat stat-first"><text class="pr-clear-value">{{celebrate ? statShown.first : summary.first}}</text><text class="pr-clear-label">一次答对</text></view>
       </view>
       <text class="pr-clear-comment">{{summary.comment}}</text>
       <view wx:if="{{summary.review.length}}" class="pr-review-toggle" bindtap="toggleReview" role="button">{{showReview ? '收起题目' : '看看每道题'}}</view>
@@ -69,7 +74,8 @@
       </view>
     </view>
 
-    <view wx:elif="{{screen}}" class="pr-question">
+    <view wx:elif="{{screen}}" class="pr-question {{shake ? 'is-shake' : ''}}">
+      <view wx:if="{{practice.progress.retry}}" class="pr-again"><view class="pr-again-icon" aria-hidden="true"></view><text>之前错过，再来一次</text></view>
       <view class="pr-tag"><text class="pr-tag-type">{{screen.typeLabel}}</text><text class="pr-tag-hint">{{screen.hint}}</text></view>
       <text class="pr-prompt">{{screen.prompt}}</text>
 

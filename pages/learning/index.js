@@ -1,7 +1,9 @@
 const { getLiveLearningModel, getLearningSkeletonModel } = require('../../services/live-tab-service')
 const { takeAgentCourseFocus } = require('../../utils/agent-course-focus')
-const { loadCurrentServiceContacts, hasSession, loadQuestPath } = require('../../services/identity')
-const { normalizeQuestPath, questPathView, nodeTarget } = require('../../utils/quest-path-view')
+const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest } = require('../../services/identity')
+const { normalizeQuestPath, questPathView, nodeTarget, nodePopover, findNode, questTransition } = require('../../utils/quest-path-view')
+// 上次看到的当前关（回到学习页时做过关动效用，多邻国式）
+const QUEST_CURRENT_KEY = 'zhilu_quest_current'
 const { openLogin, openAccessStep, guardAccess } = require('../../utils/access-gate')
 const { openCustomerServiceChat, customerServiceErrorMessage } = require('../../utils/customer-service')
 const { attachUiAssets } = require('../../services/ui-assets')
@@ -66,6 +68,11 @@ Page({
     quest: null,
     questLoaded: false,
     questFailed: false,
+    // 点关卡弹出的说明卡、过关动效（刚过的关 / 新解锁的关）、开宝箱浮层、当前关滚出屏幕时的「回到当前关」
+    questPopover: null,
+    questFx: { doneId: '', unlockId: '' },
+    chestReveal: null,
+    questCurrentVisible: true,
     customFilter: 'unlearned',
     customView: customCourseView([], 'unlearned'),
     focusCourseId: '',
@@ -139,6 +146,9 @@ Page({
     const scrollTop = Math.max(0, e.detail && e.detail.scrollTop ? e.detail.scrollTop : 0)
     // 顶栏在头图上方时与头图同色（融为一体），滚过头图后换回页面底色
     this.setTopbarOnHero(scrollTop < 60)
+    // 滚动时收起关卡说明卡（多邻国一样，卡片不跟着滚走）
+    if (this.data.questPopover && Math.abs(scrollTop - (this._popoverScrollTop || 0)) > 40) this.setData({ questPopover: null })
+    if (!this.data.questPopover) this._popoverScrollTop = scrollTop
     const threshold = this.data.calendarPinThreshold
     if (!threshold) return
     const calendarPinned = scrollTop >= threshold
@@ -174,7 +184,13 @@ Page({
     try {
       const path = normalizeQuestPath(await loadQuestPath())
       if (version !== this._questVersion) return
-      this.setData({ quest: questPathView(path), questLoaded: true, questFailed: false })
+      const quest = questPathView(path)
+      let previous = ''
+      try { previous = wx.getStorageSync(QUEST_CURRENT_KEY) || '' } catch (error) { previous = '' }
+      const fx = questTransition(previous, quest)
+      try { wx.setStorageSync(QUEST_CURRENT_KEY, quest.currentId || '') } catch (error) { /* 只影响动效 */ }
+      this.setData({ quest, questLoaded: true, questFailed: false, questPopover: null }, () => this.watchQuestCurrent())
+      if (fx) this.playQuestTransition(fx)
     } catch (error) {
       if (version === this._questVersion && !this.data.questLoaded) this.setData({ questFailed: true })
     }
@@ -185,19 +201,111 @@ Page({
     return this.loadQuest()
   },
 
+  // 过关动效：刚过的关打勾弹一下，路径滚到新的当前关，新关「解锁弹起 + 光圈扩散」（多邻国式）
+  playQuestTransition(fx) {
+    if (this._questFxTimer) clearTimeout(this._questFxTimer)
+    this.setData({ questFx: { doneId: fx.doneId, unlockId: '' }, courseScrollAnchor: '' }, () => {
+      this.setData({ courseScrollAnchor: 'quest-current' })
+      this._questFxTimer = setTimeout(() => {
+        this.setData({ questFx: { doneId: '', unlockId: fx.unlockId } })
+        this._questFxTimer = setTimeout(() => {
+          this._questFxTimer = null
+          this.setData({ questFx: { doneId: '', unlockId: '' } })
+        }, 1400)
+      }, 650)
+    })
+    try { wx.vibrateShort({ type: 'light' }) } catch (error) { /* 没有震动也照常 */ }
+  },
+
+  // 当前关滚出屏幕时，右下角出现「回到当前关」
+  watchQuestCurrent() {
+    if (this._questObserver) this._questObserver.disconnect()
+    this._questObserver = null
+    if (!this.data.quest || !this.data.quest.currentId || typeof this.createIntersectionObserver !== 'function') return
+    const observer = this.createIntersectionObserver()
+    this._questObserver = observer
+    observer.relativeToViewport().observe('#quest-current-node', (result) => {
+      const visible = result.intersectionRatio > 0
+      if (visible !== this.data.questCurrentVisible) this.setData({ questCurrentVisible: visible })
+    })
+  },
+
+  jumpToQuestCurrent() {
+    this.setData({ courseScrollAnchor: '' }, () => this.setData({ courseScrollAnchor: 'quest-current' }))
+  },
+
+  // 点关卡：先弹出说明卡（多邻国式），再点卡上的按钮进去；再点同一关收起
   openQuestNode(event) {
     const id = String(event.currentTarget.dataset.id || '')
-    const quest = this.data.quest
-    if (!quest) return
-    let node = null
-    quest.sections.some((section) => (node = section.nodes.find((item) => item.id === id)))
+    if (this.data.questPopover && this.data.questPopover.id === id) {
+      this.setData({ questPopover: null })
+      return
+    }
+    const popover = nodePopover(findNode(this.data.quest, id))
+    if (!popover) return
+    try { wx.vibrateShort({ type: 'light' }) } catch (error) { /* 没有震动也照常 */ }
+    this.setData({ questPopover: popover })
+  },
+
+  noop() {},
+
+  closeQuestPopover() {
+    if (this.data.questPopover) this.setData({ questPopover: null })
+  },
+
+  startQuestNode() {
+    const popover = this.data.questPopover
+    const node = popover && findNode(this.data.quest, popover.id)
     const target = nodeTarget(node)
+    this.setData({ questPopover: null })
     if (!target) return
     if (target.toast) {
       wx.showToast({ title: target.toast, icon: 'none' })
       return
     }
+    if (target.chest) {
+      this.openLessonChest(target.chest)
+      return
+    }
     wx.navigateTo({ url: target.url })
+  },
+
+  // 开宝箱：先播箱子落下、抖动（phase shake），接口回来后盖子飞开、光芒旋转、奖励弹出（phase open）。
+  async openLessonChest(stageId) {
+    if (this._chestBusy) return
+    this._chestBusy = true
+    this.setData({ chestReveal: { phase: 'shake', draws: 0, bonusDraws: 0, bonusShown: 0, error: '' } })
+    const started = Date.now()
+    try {
+      const result = await openQuestChest(stageId)
+      // 抖动至少播 1.1 秒，接口再快也让箱子先晃完
+      await new Promise((resolve) => setTimeout(resolve, Math.max(0, 1100 - (Date.now() - started))))
+      const bonusDraws = Number(result && result.bonusDraws) || 0
+      const draws = Number(result && result.draws) || 1
+      try { wx.vibrateShort({ type: 'heavy' }) } catch (error) { /* 没有震动也照常 */ }
+      this.setData({ chestReveal: { phase: 'open', draws, bonusDraws, bonusShown: Math.max(0, bonusDraws - draws), error: '' } })
+      // 剩余次数从开箱前滚到开箱后
+      this._chestCountTimer = setTimeout(() => {
+        if (this.data.chestReveal) this.setData({ 'chestReveal.bonusShown': bonusDraws })
+      }, 900)
+      this.loadQuest()
+      this.loadCards()
+    } catch (error) {
+      this.setData({ chestReveal: { phase: 'error', draws: 0, bonusDraws: 0, bonusShown: 0, error: error.message || '宝箱暂时打不开，请稍后再试。' } })
+    } finally {
+      this._chestBusy = false
+    }
+  },
+
+  closeChestReveal() {
+    if (this._chestCountTimer) clearTimeout(this._chestCountTimer)
+    this._chestCountTimer = null
+    this.setData({ chestReveal: null })
+  },
+
+  openCardsFromChest() {
+    this.closeChestReveal()
+    this.openAllCards()
   },
 
   // 成就卡：只给已建档的学生读（游客、没建档的显示提示卡）。第一次读到前画骨架，之后静默刷新保留旧数据。
@@ -334,6 +442,11 @@ Page({
 
   onHide() {
     this._visible = false
+    if (this._questFxTimer) clearTimeout(this._questFxTimer)
+    this._questFxTimer = null
+    if (this._questObserver) this._questObserver.disconnect()
+    this._questObserver = null
+    if (this.data.questPopover) this.setData({ questPopover: null })
     this._dateLoadVersion = (this._dateLoadVersion || 0) + 1
     this.stopProgressPolling()
     this.clearCourseHighlight()

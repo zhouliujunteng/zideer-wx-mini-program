@@ -589,6 +589,8 @@ function requestAgentCourses(path, token, options = {}) {
         PRACTICE_DONE: '这节课的互动练习已经通关了。',
         PRACTICE_NOT_FOUND: '互动练习还没准备好，请稍后再试。',
         QUEST_PATH_UNAVAILABLE: '学习路径暂时无法读取，请稍后重试。',
+        CHEST_LOCKED: '先把这节课看完，宝箱就能打开了。',
+        CHEST_UNAVAILABLE: '宝箱暂时打不开，请稍后再试。',
         CHOICES_INVALID: '答案没有对上题目，请刷新后再交一次。',
         HOMEWORK_UNAVAILABLE: '课后作业暂时无法读取，请稍后重试。',
         STUDENT_INVALID: '孩子信息不完整，请刷新后重试。',
@@ -762,6 +764,15 @@ async function loadQuestPath() {
   const token = await getRuntimeToken()
   const data = await requestAgentCourses('/api/learn/quest-path', token, { timeout: 20000, fallbackMessage: '学习路径暂时无法读取，请稍后重试。' })
   return data && data.path
+}
+
+/** 打开闯关路径上一节课的宝箱（课程服务 /api/learn/quest-chest）：{ draws, alreadyOpened, bonusDraws }。 */
+async function openQuestChest(stageId) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/quest-chest', token, {
+    method: 'POST', data: { stageId }, timeout: 20000, fallbackMessage: '宝箱暂时打不开，请稍后再试。'
+  })
 }
 
 /** 家长学生看板「作业动态」：一个绑定孩子最近 60 天的课后作业（课程服务按家长绑定校验）。 */
@@ -4653,6 +4664,7 @@ module.exports = {
   answerAgentCoursePractice,
   retryAgentCoursePractice,
   loadQuestPath,
+  openQuestChest,
   getStoredToken,
   hasSession,
   isProfileRequired,

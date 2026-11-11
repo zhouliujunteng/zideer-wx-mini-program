@@ -5,7 +5,7 @@ const path = require('node:path')
 const {
   normalizePractice, emptyAnswer, responseOf, questionScreen, toggleOrder, tapMatch, feedbackOf, clearSummary, practiceCard, gateReview
 } = require('../utils/practice-view')
-const { normalizeQuestPath, questPathView, nodeTarget } = require('../utils/quest-path-view')
+const { normalizeQuestPath, questPathView, nodeTarget, nodePopover, questTransition } = require('../utils/quest-path-view')
 
 // 闯关学习（2026-11-11）：互动练习一题一屏（learning/practice）与学习页闯关路径（pages/learning）。
 
@@ -67,7 +67,7 @@ test('the quest path zigzags nodes, marks the current step and routes taps', () 
     stages: [
       {
         id: '7-c1', kind: 'condition', title: '分数运算', subtitle: '占分多',
-        lessons: [{ stageId: 'stage-a', title: '约分', steps: [
+        lessons: [{ stageId: 'stage-a', title: '约分', chest: { state: 'ready' }, steps: [
           { key: 'watch', state: 'done', label: '看课', detail: '已学完' },
           { key: 'practice', state: 'current', label: '互动练习', detail: '6 道小题' },
           { key: 'accept', state: 'locked', label: 'AI 老师验收', detail: '' }
@@ -79,14 +79,26 @@ test('the quest path zigzags nodes, marks the current step and routes taps', () 
     ]
   }))
   const nodes = view.sections[0].nodes
-  assert.deepEqual(nodes.map((n) => n.kind), ['step', 'step', 'step', 'review', 'chest'])
-  assert.deepEqual(nodes.map((n) => n.offset), [0, 90, 150, 90, 0])
+  // 每节课看课之后有一个宝箱（看完就能开，不算一关）
+  assert.deepEqual(nodes.map((n) => n.kind), ['step', 'lesson-chest', 'step', 'step', 'review', 'chest'])
+  assert.deepEqual(nodes.map((n) => n.offset), [0, 90, 150, 90, 0, -90])
   assert.equal(nodes[0].lessonTitle, '约分')
   assert.equal(view.currentId, 'stage-a-practice')
-  assert.equal(nodeTarget(nodes[1]).url, '/learning/practice/index?stageId=stage-a')
-  assert.equal(nodeTarget(nodes[2]).toast, '先通关互动练习')
-  assert.equal(nodeTarget(nodes[3]).url, '/learning/review/index?stageId=stage-a')
-  assert.ok(nodeTarget(nodes[4]).toast)
+  assert.deepEqual(nodeTarget(nodes[1]), { chest: 'stage-a' })
+  assert.equal(nodeTarget(nodes[2]).url, '/learning/practice/index?stageId=stage-a')
+  assert.equal(nodeTarget(nodes[3]).toast, '先通关互动练习')
+  assert.equal(nodeTarget(nodes[4]).url, '/learning/review/index?stageId=stage-a')
+  assert.ok(nodeTarget(nodes[5]).toast)
+  // 点关卡先弹说明卡：能进的有按钮，锁着的写原因
+  assert.deepEqual(nodePopover(nodes[2]), { id: 'stage-a-practice', title: '互动练习', detail: '6 道小题', course: '约分', position: '第 2 关 / 共 3 关', action: '开始', note: '' })
+  assert.equal(nodePopover(nodes[1]).action, '打开宝箱')
+  assert.equal(nodePopover(nodes[3]).action, '')
+  assert.equal(nodePopover(nodes[3]).note, '先通关互动练习')
+  assert.equal(nodes[2].ring, 33, '当前关外圈：这节课 3 关过了 1 关')
+  // 回到学习页：上次的当前关过了 → 完成弹跳，新的当前关解锁
+  assert.deepEqual(questTransition('stage-a-watch', view), { doneId: 'stage-a-watch', unlockId: 'stage-a-practice' })
+  assert.equal(questTransition('stage-a-practice', view), null)
+  assert.equal(questTransition('', view), null)
   assert.equal(view.sections[1].nodes[0].kind, 'placeholder')
 })
 
@@ -103,7 +115,9 @@ test('chapter steps of watching get their own nodes and open the course at their
     ] }] }]
   }))
   const nodes = view.sections[0].nodes
-  assert.deepEqual(nodes.map((n) => n.id), ['stage-a-watch-1', 'stage-a-watch-2', 'stage-a-watch-3', 'stage-a-practice', 'stage-a-accept'])
+  assert.deepEqual(nodes.map((n) => n.id), ['stage-a-watch-1', 'stage-a-watch-2', 'stage-a-watch-3', 'stage-a-chest', 'stage-a-practice', 'stage-a-accept'])
+  assert.equal(nodes[3].state, 'locked', '没看完宝箱锁着')
+  assert.equal(nodeTarget(nodes[3]).toast, '看完这节课，宝箱就能打开')
   assert.equal(view.currentId, 'stage-a-watch-2')
   assert.equal(nodeTarget(nodes[1]).url, '/learning/course/index?agentCourseId=stage-a&sceneId=scene-4')
   assert.equal(nodeTarget(nodes[2]).toast, '先学完上一段')

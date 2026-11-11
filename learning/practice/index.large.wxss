@@ -106,4 +106,31 @@
 .pr-review-text{margin-top:3px;font-size:14px;line-height:1.55}
 .pr-button{height:52px;margin-top:16px;padding:0 33px;border-radius:14px;font-size:18px;font-weight:700;line-height:52px}
 .pr-spinner{width:38px;height:38px;margin-bottom:12px;border:3px solid #FFE3C8;border-top-color:#FD7C02;border-radius:50%}
+.pr-bar-shine{top:3px;right:7px;left:7px;height:3px;border-radius:599px}
+.pr-combo{bottom:-33px;left:50%;padding:4px 14px;border-radius:599px;font-size:15px;font-weight:900}
+@keyframes pr-combo{0%{opacity:0;transform:translate(-50%, -12px) scale(.6)}15%{opacity:1;transform:translate(-50%, 0) scale(1.08)}25%{transform:translate(-50%, 0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%, -6px) scale(1)}}
+@keyframes pr-shake{0%, 100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(3px)}}
+@keyframes pr-question-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+.pr-again{gap:6px;margin-bottom:10px;font-size:14px;font-weight:800}
+.pr-again-icon{width:15px;height:15px;border:3px solid #E2577A;border-right-color:transparent;border-radius:50%;box-sizing:border-box}
+.pr-confetti{top:0;right:max(0px, 50% - var(--lg-col) / 2);left:max(0px, 50% - var(--lg-col) / 2);height:100vh}
+.pr-confetti-piece{top:-24px;width:9px;height:16px;border-radius:2px}
+.piece-0{left:6%}
+.piece-1{left:13%}
+.piece-2{left:20%}
+.piece-3{left:27%}
+.piece-4{left:34%}
+.piece-5{left:41%}
+.piece-6{left:48%}
+.piece-7{left:55%}
+.piece-8{left:62%}
+.piece-9{left:69%}
+.piece-10{left:76%}
+.piece-11{left:83%}
+.piece-12{left:90%}
+.piece-13{left:95%}
+.piece-14{left:3%}
+.piece-15{left:59%}
+@keyframes pr-fall{0%{opacity:1;transform:translateY(0) rotate(0)}25%{transform:translateY(25vh) translateX(18px) rotate(160deg)}50%{transform:translateY(50vh) translateX(-12px) rotate(320deg)}80%{opacity:1}100%{opacity:0;transform:translateY(95vh) translateX(14px) rotate(560deg)}}
+@keyframes pr-stat-in{from{opacity:0;transform:translateY(18px) scale(.85)}to{opacity:1;transform:translateY(0) scale(1)}}
 }

@@ -9,7 +9,8 @@ const {
   tapMatch,
   feedbackOf,
   clearSummary,
-  progressPercent
+  progressPercent,
+  comboText
 } = require('../../utils/practice-view')
 const { rpxToPx } = require('../../utils/screen')
 
@@ -34,6 +35,11 @@ Page({
     summary: null,
     showReview: false,
     pollStopped: false,
+    // 动效（多邻国式）：连对提示、答错时题目左右抖、通关时彩带和数字滚动
+    combo: null,
+    shake: false,
+    celebrate: false,
+    statShown: { total: 0, first: 0 },
     statusBarHeight: 20,
     navigationBarHeight: 44,
     contentTop: 80
@@ -63,6 +69,14 @@ Page({
   onHide() {
     this._visible = false
     this.stopPolling()
+    this.stopEffects()
+  },
+
+  stopEffects() {
+    for (const key of ['_comboTimer', '_shakeTimer', '_statTimer']) {
+      if (this[key]) clearTimeout(this[key])
+      this[key] = null
+    }
   },
 
   onUnload() { this.onHide() },
@@ -182,11 +196,21 @@ Page({
       const result = await answerAgentCoursePractice(this.stageId, screen.index, responseOf(question, answer))
       this._next = normalizePractice(result && result.practice)
       if (wx.vibrateShort) wx.vibrateShort({ type: result && result.correct ? 'light' : 'heavy' })
+      const streak = this._next.progress ? this._next.progress.streak : 0
+      const combo = result && result.correct ? comboText(streak) : ''
       this.setData({
         feedback: feedbackOf(result),
         screen: questionScreen(practice, answer, true),
-        percent: progressPercent(this._next)
+        percent: progressPercent(this._next),
+        shake: !(result && result.correct),
+        ...(combo ? { combo: { text: combo, key: Date.now() } } : {})
       })
+      if (combo) {
+        if (this._comboTimer) clearTimeout(this._comboTimer)
+        this._comboTimer = setTimeout(() => { this._comboTimer = null; this.setData({ combo: null }) }, 1800)
+      }
+      if (this._shakeTimer) clearTimeout(this._shakeTimer)
+      this._shakeTimer = setTimeout(() => { this._shakeTimer = null; if (this.data.shake) this.setData({ shake: false }) }, 520)
     } catch (error) {
       if (error && error.code === 'PRACTICE_STALE') {
         this.setData({ feedback: null })
@@ -202,8 +226,30 @@ Page({
     const practice = this._next
     this._next = null
     if (!practice) return this.refresh()
+    const justCleared = practice.status === 'done' && this.data.practice && this.data.practice.status === 'ready'
     this.setData({ feedback: null, screen: null })
     this.apply(practice)
+    if (justCleared) this.celebrate()
+  },
+
+  // 刚通关：彩带飘落，「几道小题」「一次答对」两个数字依次从 0 滚上去
+  celebrate() {
+    const summary = this.data.summary
+    if (!summary) return
+    this.setData({ celebrate: true, statShown: { total: 0, first: 0 } })
+    if (wx.vibrateShort) wx.vibrateShort({ type: 'medium' })
+    const steps = [['total', summary.total], ['first', summary.first]]
+    let field = 0
+    let value = 0
+    const tick = () => {
+      if (field >= steps.length) { this._statTimer = null; return }
+      const [key, target] = steps[field]
+      value = Math.min(target, value + 1)
+      this.setData({ [`statShown.${key}`]: value })
+      if (value >= target) { field += 1; value = 0 }
+      this._statTimer = setTimeout(tick, value === 0 ? 260 : 70)
+    }
+    this._statTimer = setTimeout(tick, 450)
   },
 
   async retryGenerate() {

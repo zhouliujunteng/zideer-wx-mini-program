@@ -1060,6 +1060,95 @@ page {
 .icon-chest-open::before { background: #FFFFFF; }
 .icon-chest-open::after { position: absolute; top: -4rpx; left: 2rpx; width: 48rpx; height: 14rpx; border-radius: 12rpx 12rpx 2rpx 2rpx; background: #FFF4C7; content: ''; transform: rotate(-16deg); }
 
+/* ---------- 闯关动效（2026-11-11，参考多邻国的交互节奏，画面用自己的；说明见 docs/闯关学习动效设计记录.md） ---------- */
+.quest-node { position: relative; z-index: 1; transition: transform 80ms ease-out, box-shadow 80ms ease-out; }
+.quest-start { top: -96rpx; }
+/* 当前关：外圈进度环（这节课过了几关）+ 呼吸光晕 */
+.quest-ring { position: absolute; top: -24rpx; left: 50%; width: 180rpx; height: 180rpx; margin-left: -90rpx; border-radius: 50%; background: conic-gradient(var(--tone) calc(var(--ring) * 1%), #E5E3DF 0); -webkit-mask: radial-gradient(circle, transparent 76rpx, #000 77rpx); mask: radial-gradient(circle, transparent 76rpx, #000 77rpx); }
+.quest-halo { position: absolute; top: -6rpx; right: -6rpx; bottom: -6rpx; left: -6rpx; border: 6rpx solid var(--tone); border-radius: 50%; opacity: 0; animation: quest-halo 2.2s ease-out infinite; }
+@keyframes quest-halo { 0% { opacity: .55; transform: scale(.92); } 70%, 100% { opacity: 0; transform: scale(1.22); } }
+.quest-anchor { position: absolute; top: -420rpx; width: 1rpx; height: 1rpx; }
+/* 刚过的关：打勾弹一下；新解锁的关：从小弹起 + 光圈扩散 */
+.quest-node.fx-done { animation: quest-done-pop .6s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes quest-done-pop { 0% { transform: scale(1); } 35% { transform: scale(1.22); } 65% { transform: scale(.94); } 100% { transform: scale(1); } }
+.quest-node.fx-unlock { animation: quest-unlock .8s cubic-bezier(.2, 1.7, .4, 1); }
+@keyframes quest-unlock { 0% { transform: scale(.55); filter: grayscale(1); } 45% { filter: grayscale(0); } 100% { transform: scale(1); } }
+.quest-burst { position: absolute; top: -10rpx; left: 50%; z-index: 0; width: 152rpx; height: 152rpx; margin-left: -76rpx; border: 10rpx solid var(--tone); border-radius: 50%; box-sizing: border-box; animation: quest-burst .9s ease-out forwards; }
+.quest-burst::after { position: absolute; top: -10rpx; right: -10rpx; bottom: -10rpx; left: -10rpx; border: 6rpx solid var(--tone); border-radius: 50%; content: ''; animation: quest-burst .9s .18s ease-out both; }
+@keyframes quest-burst { 0% { opacity: .9; transform: scale(.6); } 100% { opacity: 0; transform: scale(1.9); } }
+/* 每节课中间的宝箱：能开时金色、隔一会儿晃一下 */
+.quest-node.kind-lesson-chest { border-radius: 34rpx; }
+.quest-node.kind-lesson-chest.is-open { background: #F5B301; box-shadow: 0 10rpx 0 #C98F00; animation: quest-wiggle 2.4s ease-in-out infinite; }
+.quest-node.kind-lesson-chest.is-open:active { box-shadow: 0 4rpx 0 #C98F00; }
+.quest-node.kind-lesson-chest.is-done { background: #FCE7A6; box-shadow: 0 10rpx 0 #E3C468; }
+.quest-node.kind-lesson-chest.is-open .icon-chest::before { background: #FFFFFF; }
+.quest-node.kind-lesson-chest.is-open .icon-chest::after { background: #FFF4C7; }
+.quest-node.kind-lesson-chest.is-done .icon-chest-open::before { background: #E0A800; }
+.quest-node.kind-lesson-chest.is-done .icon-chest-open::after { background: #F5C842; }
+@keyframes quest-wiggle { 0%, 76%, 100% { transform: rotate(0); } 80% { transform: rotate(-9deg); } 85% { transform: rotate(8deg); } 90% { transform: rotate(-6deg); } 95% { transform: rotate(4deg); } }
+/* 点关卡弹出的说明卡：卡片回到中线，箭头对着关卡 */
+.quest-row.has-popover { position: relative; z-index: 20; }
+.quest-pop { position: absolute; top: 150rpx; left: 50%; z-index: 20; width: 600rpx; padding: 30rpx 32rpx 32rpx; border-radius: 28rpx; background: var(--tone); box-sizing: border-box; transform: translateX(calc(-50% - var(--x) * 1000rpx / 1000)); transform-origin: calc(50% + var(--x) * 1000rpx / 1000) 0; animation: quest-pop-in .24s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes quest-pop-in { from { opacity: 0; transform: translateX(calc(-50% - var(--x) * 1000rpx / 1000)) scale(.7); } to { opacity: 1; transform: translateX(calc(-50% - var(--x) * 1000rpx / 1000)) scale(1); } }
+.quest-pop-arrow { position: absolute; top: -14rpx; left: calc(50% + var(--x) * 1000rpx / 1000); width: 30rpx; height: 30rpx; margin-left: -15rpx; border-radius: 4rpx; background: var(--tone); transform: rotate(45deg); }
+.quest-pop-title { position: relative; display: block; color: #FFFFFF; font-size: 32rpx; font-weight: 800; }
+.quest-pop-course { position: relative; display: block; margin-top: 6rpx; color: rgba(255, 255, 255, .9); font-size: 24rpx; font-weight: 600; }
+.quest-pop-meta { position: relative; display: block; margin-top: 6rpx; color: rgba(255, 255, 255, .82); font-size: 22rpx; }
+.quest-pop-button { position: relative; display: flex; height: 84rpx; margin-top: 24rpx; align-items: center; justify-content: center; border-radius: 22rpx; background: #FFFFFF; box-shadow: 0 8rpx 0 rgba(0, 0, 0, .14); color: var(--tone-deep); font-size: 30rpx; font-weight: 800; letter-spacing: 2rpx; transition: transform 80ms ease-out, box-shadow 80ms ease-out; }
+.quest-pop-button:active { transform: translateY(6rpx); box-shadow: 0 2rpx 0 rgba(0, 0, 0, .14); }
+.quest-pop.is-muted { border: 3rpx solid #ECE9E4; background: #FFFFFF; }
+.quest-pop.is-muted .quest-pop-arrow { top: -17rpx; border-top: 3rpx solid #ECE9E4; border-left: 3rpx solid #ECE9E4; background: #FFFFFF; }
+.quest-pop.is-muted .quest-pop-title { color: #24332D; }
+.quest-pop.is-muted .quest-pop-course, .quest-pop.is-muted .quest-pop-meta { color: #8A948D; }
+.quest-pop-note { position: relative; display: block; margin-top: 18rpx; padding: 18rpx 20rpx; border-radius: 18rpx; background: #F4F3F0; color: #6E7871; font-size: 24rpx; line-height: 1.5; }
+/* 回到当前关 */
+.quest-jump { position: fixed; right: 32rpx; bottom: calc(49px + env(safe-area-inset-bottom) + 28rpx); z-index: 40; display: flex; width: 96rpx; height: 96rpx; align-items: center; justify-content: center; border: 3rpx solid #ECE9E4; border-radius: 50%; background: #FFFFFF; box-shadow: 0 6rpx 0 #E1DED8; animation: quest-jump-in .3s cubic-bezier(.2, 1.5, .4, 1); }
+.quest-jump:active { transform: translateY(4rpx); box-shadow: 0 2rpx 0 #E1DED8; }
+.quest-jump-arrow { width: 26rpx; height: 26rpx; margin-top: -10rpx; border-right: 7rpx solid #FD7C02; border-bottom: 7rpx solid #FD7C02; border-radius: 3rpx; transform: rotate(45deg); }
+@keyframes quest-jump-in { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
+
+/* ---------- 开宝箱浮层 ---------- */
+.chest-reveal { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 64rpx; background: rgba(20, 26, 24, .78); animation: chest-fade .2s ease-out; }
+@keyframes chest-fade { from { opacity: 0; } to { opacity: 1; } }
+.chest-stage { position: relative; width: 460rpx; height: 460rpx; }
+.chest-rays { position: absolute; top: -60rpx; right: -60rpx; bottom: -60rpx; left: -60rpx; border-radius: 50%; background: repeating-conic-gradient(rgba(255, 214, 120, .42) 0deg 11deg, rgba(255, 214, 120, 0) 11deg 30deg); -webkit-mask: radial-gradient(circle, #000 30%, transparent 70%); mask: radial-gradient(circle, #000 30%, transparent 70%); opacity: 0; }
+.phase-open .chest-rays { animation: chest-rays-in .5s ease-out forwards, chest-spin 9s linear infinite; }
+@keyframes chest-rays-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes chest-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.chest-box { position: absolute; bottom: 70rpx; left: 50%; width: 240rpx; height: 200rpx; margin-left: -120rpx; }
+.phase-shake .chest-box { animation: chest-drop .5s cubic-bezier(.3, 1.4, .5, 1), chest-shake .6s .55s ease-in-out infinite; }
+@keyframes chest-drop { 0% { opacity: 0; transform: translateY(-320rpx); } 60% { opacity: 1; transform: translateY(12rpx); } 100% { transform: translateY(0); } }
+@keyframes chest-shake { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-7deg); } 40% { transform: rotate(6deg); } 60% { transform: rotate(-4deg); } 80% { transform: rotate(3deg); } }
+.phase-open .chest-box { animation: chest-squash .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes chest-squash { 0% { transform: scale(1, 1); } 30% { transform: scale(1.12, .86); } 100% { transform: scale(1, 1); } }
+.chest-lid { position: absolute; top: 0; left: 0; z-index: 2; width: 240rpx; height: 84rpx; border-radius: 40rpx 40rpx 12rpx 12rpx; background: linear-gradient(180deg, #FFC56B, #FD7C02); box-shadow: inset 0 -8rpx 0 rgba(0, 0, 0, .12); transform-origin: 20rpx 84rpx; }
+.chest-lid-band, .chest-body::before { position: absolute; top: 0; bottom: 0; left: 50%; width: 36rpx; margin-left: -18rpx; background: #F5C842; content: ''; }
+.phase-open .chest-lid { animation: chest-lid-off .55s cubic-bezier(.2, .9, .3, 1) forwards; }
+@keyframes chest-lid-off { 0% { transform: translate(0, 0) rotate(0); } 100% { opacity: .0; transform: translate(-90rpx, -240rpx) rotate(-42deg); } }
+.chest-body { position: absolute; bottom: 0; left: 0; width: 240rpx; height: 128rpx; overflow: hidden; border-radius: 10rpx 10rpx 28rpx 28rpx; background: linear-gradient(180deg, #F08A12, #C95F00); box-shadow: 0 12rpx 0 rgba(0, 0, 0, .25); }
+.chest-lock { position: absolute; top: 18rpx; left: 50%; z-index: 1; width: 52rpx; height: 56rpx; margin-left: -26rpx; border-radius: 12rpx; background: #FFF4C7; box-shadow: inset 0 -6rpx 0 #E0B84A; }
+.phase-open .chest-lock { opacity: 0; transition: opacity .15s; }
+.chest-spark { position: absolute; top: 50%; left: 50%; width: 22rpx; height: 22rpx; margin: -11rpx 0 0 -11rpx; border-radius: 50%; background: #FFE08A; opacity: 0; }
+.spark-0 { --a: 0deg; } .spark-1 { --a: 45deg; background: #FFFFFF; } .spark-2 { --a: 90deg; } .spark-3 { --a: 135deg; background: #FFB25B; }
+.spark-4 { --a: 180deg; } .spark-5 { --a: 225deg; background: #FFFFFF; } .spark-6 { --a: 270deg; } .spark-7 { --a: 315deg; background: #FFB25B; }
+.phase-open .chest-spark { animation: chest-spark .8s .1s ease-out forwards; }
+@keyframes chest-spark { 0% { opacity: 1; transform: rotate(var(--a)) translateY(0) scale(1); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-230rpx) scale(.4); } }
+.chest-reward { position: absolute; top: 40rpx; left: 50%; z-index: 3; display: flex; width: 200rpx; margin-left: -100rpx; flex-direction: column; align-items: center; animation: chest-reward .7s .2s cubic-bezier(.2, 1.5, .4, 1) both; }
+@keyframes chest-reward { 0% { opacity: 0; transform: translateY(150rpx) scale(.3); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+.chest-reward-card { width: 112rpx; height: 148rpx; border: 6rpx solid #FFFFFF; border-radius: 18rpx; background: linear-gradient(150deg, #7C9CFF, #FD7C02); box-shadow: 0 10rpx 24rpx rgba(0, 0, 0, .3); transform: rotate(-8deg); }
+.chest-reward-count { margin-top: 12rpx; color: #FFFFFF; font-size: 56rpx; font-weight: 900; text-shadow: 0 4rpx 0 rgba(0, 0, 0, .25); }
+.chest-title { margin-top: 12rpx; color: #FFFFFF; font-size: 44rpx; font-weight: 900; animation: chest-title .45s .35s cubic-bezier(.2, 1.5, .4, 1) both; }
+@keyframes chest-title { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
+.chest-copy { margin-top: 12rpx; color: rgba(255, 255, 255, .86); font-size: 28rpx; text-align: center; line-height: 1.5; }
+.chest-opening { margin-top: 24rpx; }
+.chest-wallet { display: flex; margin-top: 22rpx; align-items: center; gap: 10rpx; padding: 12rpx 26rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .12); color: rgba(255, 255, 255, .9); font-size: 26rpx; }
+.chest-wallet-num { display: inline-block; color: #FFD36B; font-size: 34rpx; font-weight: 900; }
+.chest-wallet-num.is-final { animation: chest-num .45s cubic-bezier(.2, 1.8, .4, 1); }
+@keyframes chest-num { 0% { transform: translateY(-24rpx) scale(1.5); opacity: .3; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+.chest-button { display: flex; width: 100%; max-width: 560rpx; height: 92rpx; margin-top: 52rpx; align-items: center; justify-content: center; border-radius: 24rpx; background: #FD7C02; box-shadow: 0 8rpx 0 #C95F00; color: #FFFFFF; font-size: 32rpx; font-weight: 800; transition: transform 80ms ease-out, box-shadow 80ms ease-out; }
+.chest-button:active { transform: translateY(6rpx); box-shadow: 0 2rpx 0 #C95F00; }
+.chest-secondary { margin-top: 28rpx; padding: 12rpx 24rpx; color: rgba(255, 255, 255, .78); font-size: 28rpx; font-weight: 700; }
+
 /* 2026-11-11 学习页去掉了左栏（日历、今日统计、学习任务）：大屏不再分两栏，闯关路径居中铺开 */
 @media (min-width:450px) {
 .learning-page .page-shell { display:block; }

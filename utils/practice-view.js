@@ -28,7 +28,9 @@ function normalizePractice(raw) {
     cleared: Number(value.progress.cleared) || 0,
     streak: Number(value.progress.streak) || 0,
     bestStreak: Number(value.progress.bestStreak) || 0,
-    answered: Number(value.progress.answered) || 0
+    answered: Number(value.progress.answered) || 0,
+    // 当前这道之前答错过（又轮到它）
+    retry: value.progress.retry === true
   } : null
   return {
     stageId: String(value.stageId || ''),
@@ -181,6 +183,12 @@ function clearSummary(practice) {
   }
 }
 
+/** 连对到这几道时，进度条上方弹一句（多邻国式连对提示）。 */
+const COMBO_STEPS = [3, 5, 8, 12]
+function comboText(streak) {
+  return COMBO_STEPS.includes(streak) ? `连对 ${streak} 道！` : ''
+}
+
 /** 进度条（0～100）。 */
 function progressPercent(practice) {
   const progress = practice && practice.progress
@@ -230,6 +238,7 @@ function gateReview(review, card) {
 }
 
 module.exports = {
+  comboText,
   practiceCard,
   gateReview,
   TYPE_LABELS,
