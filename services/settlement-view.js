@@ -161,6 +161,17 @@ function buildGiftAccount(giftAccount) {
   }
 }
 
+// 奖励流水的名称按种类（2026-11-10 代理分润：课程服务写进同一张奖励流水，entry_type 是种类）
+const REWARD_TITLES = {
+  agent_commission: '爱心妈妈佣金',
+  team_service_fee: '团队服务费',
+  mentor_service_start: '导师服务费（开始服务）',
+  mentor_service_done: '导师服务费（服务完成）'
+}
+function rewardTitle(reward) {
+  return REWARD_TITLES[String(reward && reward.entry_type || '')] || '发放推广金'
+}
+
 // 奖励流水 + 奖励追偿 → 一条时间线；追偿是负向金额，原奖励流水保持不动。
 function buildRecords(rewards, recoveries, now = Date.now()) {
   const records = []
@@ -172,7 +183,7 @@ function buildRecords(rewards, recoveries, now = Date.now()) {
       kind: 'reward',
       statusKey: bucket,
       statusLabel: bucketLabel(bucket),
-      title: '发放推广金',
+      title: rewardTitle(reward),
       recordNo: String(reward && reward.entry_no || ''),
       monthLabel: monthLabel(occurredAt),
       detail: formatMinute(occurredAt),
@@ -270,6 +281,7 @@ function filterInviteRecords(records, tabId) {
 }
 
 module.exports = {
+  rewardTitle,
   formatAmount,
   formatDay,
   formatMinute,

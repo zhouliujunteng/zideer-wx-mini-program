@@ -298,3 +298,11 @@ test('a suspended partner still reaches customer service from the notice', async
   assert.equal(calls.customerService.length, 1)
   assert.deepEqual(calls.navigate, [])
 })
+
+test('2026-11-10: agent reward kinds get their own titles in the records', () => {
+  const { rewardTitle } = require('../services/settlement-view')
+  assert.equal(rewardTitle({ entry_type: 'agent_commission' }), '爱心妈妈佣金')
+  assert.equal(rewardTitle({ entry_type: 'team_service_fee' }), '团队服务费')
+  assert.equal(rewardTitle({ entry_type: 'mentor_service_done' }), '导师服务费（服务完成）')
+  assert.equal(rewardTitle({ entry_type: 'reward' }), '发放推广金')
+})
