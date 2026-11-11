@@ -225,12 +225,13 @@ function normalizeAgentLearning(raw) {
   }
   return {
     completed: done, total, finished, percent: finished ? 100 : Math.min(99, Math.round(done / total * 100)), scenes,
-    beyond: finished ? {} : beyondCurrentPart(ordered)
+    beyond: finished ? {} : beyondCurrentPart(ordered, raw.parts)
   }
 }
 
-// 闯关学习（2026-11-11 用户规则：看课按章节拆的小关不能跳）：与课程服务 lib/course/quest-path.ts chapterParts 同一规则——
-// 1～2 页一段、3～5 页两段、再多三段；第一段没学完的之后的页都还锁着（课堂里也翻不过去）。改规则两边一起改。
+// 闯关学习（2026-11-11 用户规则：看课按章节拆的小关不能跳）：第一段没学完的之后的页都还锁着（课堂里也翻不过去）。
+// 怎么分段以课程服务给的 learning.parts 为准（关卡规划按知识点切的，lib/course/quest-plan.ts）；
+// 旧版课程服务没给时，按与 lib/course/quest-path.ts chapterParts 同一规则平分：1～2 页一段、3～5 页两段、再多三段。
 function chapterParts(list) {
   const n = list.length
   const count = n <= 2 ? 1 : n <= 5 ? 2 : 3
@@ -239,8 +240,19 @@ function chapterParts(list) {
   return parts.filter((part) => part.length)
 }
 
-function beyondCurrentPart(ordered) {
-  const parts = chapterParts(ordered)
+function plannedParts(ordered, rawParts) {
+  if (!Array.isArray(rawParts) || !rawParts.length) return null
+  const byId = {}
+  ordered.forEach((item) => { byId[item.sceneId] = item })
+  const parts = rawParts.map((part) => (Array.isArray(part && part.sceneIds) ? part.sceneIds : []).map((id) => byId[id]))
+  const flat = [].concat(...parts)
+  // 必须正好是这些页、顺序一致，否则不用
+  if (flat.length !== ordered.length || flat.some((item, index) => !item || item !== ordered[index])) return null
+  return parts
+}
+
+function beyondCurrentPart(ordered, rawParts) {
+  const parts = plannedParts(ordered, rawParts) || chapterParts(ordered)
   const open = parts.findIndex((part) => !part.every((item) => item.done))
   const beyond = {}
   if (open < 0) return beyond

@@ -80,8 +80,15 @@ test('the quest path zigzags nodes, marks the current step and routes taps', () 
   }))
   const nodes = view.parts[0].nodes
   // 每节课看课之后有一个宝箱（看完就能开，不算一关）
-  assert.deepEqual(nodes.map((n) => n.kind), ['step', 'lesson-chest', 'step', 'step', 'review', 'chest'])
-  assert.deepEqual(nodes.map((n) => n.offset), [0, 90, 150, 90, 0, -90])
+  // 部分末尾一个奖杯（这节课每关都过了才点亮），阶段末尾是阶段徽章
+  assert.deepEqual(nodes.map((n) => n.kind), ['step', 'lesson-chest', 'step', 'step', 'review', 'trophy', 'chest'])
+  assert.deepEqual(nodes.map((n) => n.offset), [0, 90, 150, 90, 0, -90, -150])
+  // 图标：学习关是星星，别的关换各自的图标，锁着画锁
+  assert.deepEqual(nodes.map((n) => n.glyph.replace('/assets/quest/', '')), ['star.svg', 'chest.svg', 'dumbbell.svg', 'lock.svg', 'repeat.svg', 'trophy-locked.svg', 'badge-locked.svg'])
+  assert.equal(nodes[6].badge, 1)
+  assert.equal(nodes[2].segs, 3)
+  // 小鹿在路径弯出去的另一侧，三颗星 = 看完 / 练习通关 / 验收通过
+  assert.deepEqual(view.parts[0].mascot, { side: 'left', stars: [true, false, false], dim: false })
   // 一节课 = 一个部分（多邻国式「第 N 阶段，第 M 部分」）
   assert.deepEqual(view.parts.map((p) => [p.phaseNumber, p.partNumber, p.title]), [[1, 1, '约分'], [2, 1, '应用题']])
   assert.equal(view.currentPartId, 'part-stage-a')
@@ -91,6 +98,8 @@ test('the quest path zigzags nodes, marks the current step and routes taps', () 
   assert.equal(nodeTarget(nodes[3]).toast, '先通关互动练习')
   assert.equal(nodeTarget(nodes[4]).url, '/learning/review/index?stageId=stage-a')
   assert.ok(nodeTarget(nodes[5]).toast)
+  assert.ok(nodeTarget(nodes[6]).toast)
+  assert.equal(nodePopover(nodes[5]).note, '这节课每一关都过了，奖杯就点亮')
   // 点关卡先弹说明卡：能进的有按钮，锁着的写原因
   assert.deepEqual(nodePopover(nodes[2]), { id: 'stage-a-practice', title: '互动练习', detail: '6 道小题', course: '约分', position: '第 2 关 / 共 3 关', action: '开始', note: '' })
   assert.equal(nodePopover(nodes[1]).action, '打开宝箱')
@@ -117,12 +126,30 @@ test('chapter steps of watching get their own nodes and open the course at their
     ] }] }]
   }))
   const nodes = view.parts[0].nodes
-  assert.deepEqual(nodes.map((n) => n.id), ['stage-a-watch-1', 'stage-a-watch-2', 'stage-a-watch-3', 'stage-a-chest', 'stage-a-practice', 'stage-a-accept'])
+  assert.deepEqual(nodes.map((n) => n.id), ['stage-a-watch-1', 'stage-a-watch-2', 'stage-a-watch-3', 'stage-a-chest', 'stage-a-practice', 'stage-a-accept', 'stage-a-trophy'])
+  assert.equal(nodes[3].glyph, '/assets/quest/chest-locked.svg')
   assert.equal(nodes[3].state, 'locked', '没看完宝箱锁着')
   assert.equal(nodeTarget(nodes[3]).toast, '看完这节课，宝箱就能打开')
   assert.equal(view.currentId, 'stage-a-watch-2')
   assert.equal(nodeTarget(nodes[1]).url, '/learning/course/index?agentCourseId=stage-a&sceneId=scene-4')
   assert.equal(nodeTarget(nodes[2]).toast, '先学完上一段')
+})
+
+test('neighbouring parts bend to opposite sides and a lesson not started dims its mascot', () => {
+  const lesson = (id, state) => ({ stageId: id, title: id, locked: state === 'locked', steps: [
+    { key: 'watch', state: state === 'locked' ? 'locked' : 'current', label: '看课' },
+    { key: 'practice', state: 'locked', label: '练习' },
+    { key: 'accept', state: 'locked', label: '验收' }
+  ] })
+  const view = questPathView(normalizeQuestPath({
+    current: { stageId: 'a', step: 'watch' },
+    stats: { lessons: 2, done: 0 },
+    stages: [{ id: 's', title: '分数', lessons: [lesson('a', 'current'), lesson('b', 'locked')] }]
+  }))
+  assert.deepEqual(view.parts[0].nodes.slice(0, 3).map((n) => n.offset), [0, 90, 150])
+  assert.deepEqual(view.parts[1].nodes.slice(0, 3).map((n) => n.offset), [0, -90, -150])
+  assert.deepEqual(view.parts.map((p) => p.mascot.side), ['left', 'right'])
+  assert.deepEqual(view.parts.map((p) => p.mascot.dim), [false, true])
 })
 
 test('the practice page is registered and its wxml has no inline rpx', () => {
@@ -141,4 +168,14 @@ test('course detail only opens the pages of the current chapter step', () => {
   assert.deepEqual(Object.keys(learning.beyond), ['a5', 'a6'], '第 2 段（第 3–4 页）在学，第 3 段锁着')
   const finished = normalizeAgentLearning({ total: 6, completed: 6, allRecorded: true, scenes })
   assert.deepEqual(finished.beyond, {})
+})
+
+// 2026-11-11：看课怎么分段以课程服务的关卡规划为准（learning.parts，按知识点切的），对不上页时才按页数平分
+test('course detail locks pages by the planned chapter steps from the course service', () => {
+  const { normalizeAgentLearning } = require('../utils/agent-course-view')
+  const scenes = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'].map((sceneId, i) => ({ sceneId, state: i < 1 ? 'completed' : 'not_started', counts: true }))
+  const parts = [{ title: '认识面积', sceneIds: ['a1'] }, { title: '数格子', sceneIds: ['a2', 'a3', 'a4', 'a5'] }, { title: '面积单位', sceneIds: ['a6'] }]
+  assert.deepEqual(Object.keys(normalizeAgentLearning({ total: 6, completed: 1, allRecorded: false, scenes, parts }).beyond), ['a6'])
+  const stale = [{ sceneIds: ['a1', 'a2'] }, { sceneIds: ['a3'] }]
+  assert.deepEqual(Object.keys(normalizeAgentLearning({ total: 6, completed: 1, allRecorded: false, scenes, parts: stale }).beyond), ['a3', 'a4', 'a5', 'a6'])
 })
