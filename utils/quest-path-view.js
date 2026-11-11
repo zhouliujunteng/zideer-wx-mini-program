@@ -2,12 +2,28 @@
 // 一段 = 目标导图里的一个大条件（没有导图的按系列）；一节课 = 连续几关（看课按章节拆成 1～3 段 → 互动练习 → AI 老师验收），
 // 必须完成一关才解锁下一关；
 // 每节课看课和互动练习之间有一个宝箱（看完这节课就能开，送成就卡抽卡次数，不算一关、不挡后面）；
-// 段末是复习关（今天该复习的课）和宝箱（这一段的课都过了验收就打开，去成就卡）。
+// 每部分（一节课）末尾一个奖杯；阶段末尾是阶段徽章（这一阶段的课都过了验收就点亮，去成就卡）。
 // 点关卡先弹出说明卡（多邻国式），再点「开始」才进去；动效设计见 docs/闯关学习动效设计记录.md。
 // 关卡在路径上左右摆动排开（ZIGZAG，单位 rpx，相对中线的偏移），当前关上面飘一个「开始」气泡。
 
 const ZIGZAG = [0, 90, 150, 90, 0, -90, -150, -90]
 const STEP_ICONS = { watch: 'play', practice: 'pencil', accept: 'mic' }
+// 关卡钮上的图标（2026-11-11 晚，照多邻国：学习关是星星，别的关换成各自的图标；锁着画锁）。
+// 素材在后端 ui_asset（scripts/ui-assets/quest/），路径写全，verify-ui-assets 才扫得到。
+const GLYPHS = {
+  watch: '/assets/quest/star.svg',
+  practice: '/assets/quest/dumbbell.svg',
+  accept: '/assets/quest/mic.svg',
+  review: '/assets/quest/repeat.svg',
+  lock: '/assets/quest/lock.svg',
+  trophy: '/assets/quest/trophy.svg',
+  trophyLocked: '/assets/quest/trophy-locked.svg',
+  chest: '/assets/quest/chest.svg',
+  chestOpen: '/assets/quest/chest-open.svg',
+  chestLocked: '/assets/quest/chest-locked.svg',
+  badge: '/assets/quest/badge.svg',
+  badgeLocked: '/assets/quest/badge-locked.svg'
+}
 const STEP_STATES = ['done', 'current', 'open', 'locked']
 const STAGE_TONES = ['orange', 'blue', 'violet', 'teal', 'rose']
 const CHEST_STATES = ['locked', 'ready', 'opened']
@@ -67,12 +83,16 @@ function normalizeQuestPath(raw) {
  *   阶段最后一个部分末尾放阶段宝箱。还没有课的阶段给一个「联系老师定制」的部分。
  * 返回 { goal, progressText, percent, currentId, currentPartId, parts: [{ id, phaseNumber, partNumber, tone, phaseTitle,
  *   phaseSubtitle, firstOfPhase, title, stageId, progress, nodes }] }。
- * 节点 kind：step（一关）/ lesson-chest（这节课的宝箱）/ review（复习关）/ chest（阶段宝箱）/ placeholder。
+ * 节点 kind：step（一关）/ lesson-chest（这节课的宝箱）/ review（复习关）/ trophy（部分末尾的奖杯，这节课每关都过了才点亮）/
+ *   chest（阶段徽章：这一阶段的课都过了验收就点亮，点了去成就卡）/ placeholder。每个节点带 glyph（图标素材路径）。
+ * 部分还带 mascot（路径旁的小鹿：side 在路径弯出去的另一侧，stars = 看完 / 练习通关 / 验收通过 各一颗，dim = 这节课还没开始）。
+ * 相邻两个部分左右镜像排开（多邻国路径一段往右弯、下一段往左弯）。
  */
 function questPathView(path) {
   if (!path) return null
   const parts = []
   let currentPartId = ''
+  let partIndex = 0
   path.stages.forEach((stage, stageIndex) => {
     const tone = STAGE_TONES[stageIndex % STAGE_TONES.length]
     const phase = { phaseNumber: stageIndex + 1, tone, phaseTitle: stage.title, phaseSubtitle: stage.subtitle }
@@ -84,12 +104,15 @@ function questPathView(path) {
         title: stage.title,
         stageId: '',
         progress: '',
-        nodes: [{ id: `${stage.id}-placeholder`, kind: 'placeholder', state: 'locked', offset: 0, label: '联系老师定制这一部分', detail: '', icon: 'lock' }]
+        nodes: [{ id: `${stage.id}-placeholder`, kind: 'placeholder', state: 'locked', offset: 0, label: '联系老师定制这一部分', detail: '', icon: 'lock', glyph: GLYPHS.lock }],
+        mascot: null
       })
+      partIndex++
     }
     stage.lessons.forEach((lesson) => {
       let position = 0
-      const nextOffset = () => ZIGZAG[(position++) % ZIGZAG.length]
+      const sign = partIndex++ % 2 ? -1 : 1
+      const nextOffset = () => sign * ZIGZAG[(position++) % ZIGZAG.length] || 0
       const nodes = []
       const total = lesson.steps.length
       const passed = lesson.steps.filter((step) => step.state === 'done').length
@@ -104,6 +127,7 @@ function questPathView(path) {
           sceneId: step.sceneId,
           state: step.state,
           icon: step.state === 'locked' ? 'lock' : step.state === 'done' ? 'check' : STEP_ICONS[step.key],
+          glyph: step.state === 'locked' ? GLYPHS.lock : GLYPHS[step.key],
           offset: nextOffset(),
           label: step.label,
           detail: step.detail,
@@ -111,16 +135,32 @@ function questPathView(path) {
           position: `第 ${stepIndex + 1} 关 / 共 ${total} 关`,
           // 当前关外圈的进度环：这节课过了几关（百分比）
           ring: total ? Math.round((passed / total) * 100) : 0,
+          segs: Math.max(total, 1),
           lockedBy: lesson.lockedBy
         })
         if (stepIndex === lastWatch) nodes.push(lessonChestNode(lesson, nextOffset()))
       })
       if (reviewDue.has(lesson.stageId)) {
-        nodes.push({ id: `${lesson.stageId}-review`, kind: 'review', state: 'open', icon: 'review', offset: nextOffset(), label: '复习关', detail: '这节课今天该复习了', stageId: lesson.stageId, course: lesson.title })
+        nodes.push({ id: `${lesson.stageId}-review`, kind: 'review', state: 'open', icon: 'review', glyph: GLYPHS.review, offset: nextOffset(), label: '复习关', detail: '这节课今天该复习了', stageId: lesson.stageId, course: lesson.title })
       }
+      // 部分末尾的奖杯（多邻国每个单元最后一个钮）：这节课每一关都过了才点亮；不算一关
+      const cleared = total > 0 && passed === total
+      nodes.push({
+        id: `${lesson.stageId}-trophy`,
+        kind: 'trophy',
+        stageId: lesson.stageId,
+        state: cleared ? 'done' : 'locked',
+        icon: 'trophy',
+        glyph: cleared ? GLYPHS.trophy : GLYPHS.trophyLocked,
+        offset: nextOffset(),
+        label: cleared ? '这一部分通关了' : '部分奖杯',
+        detail: cleared ? '' : `这节课过了 ${passed}/${total} 关`,
+        course: lesson.title,
+        lockedBy: null
+      })
       const partId = `part-${lesson.stageId}`
       if (path.current && path.current.stageId === lesson.stageId) currentPartId = partId
-      stageParts.push({ id: partId, title: lesson.title, stageId: lesson.stageId, progress: `${passed}/${total}`, nodes, offsetNext: nextOffset })
+      stageParts.push({ id: partId, title: lesson.title, stageId: lesson.stageId, progress: `${passed}/${total}`, nodes, offsetNext: nextOffset, mascot: lessonMascot(lesson, sign) })
     })
     if (stage.chest && stageParts.length) {
       const last = stageParts[stageParts.length - 1]
@@ -129,8 +169,10 @@ function questPathView(path) {
         kind: 'chest',
         state: stage.chest.opened ? 'done' : 'locked',
         icon: stage.chest.opened ? 'chest-open' : 'chest',
+        glyph: stage.chest.opened ? GLYPHS.badge : GLYPHS.badgeLocked,
+        badge: stageIndex + 1,
         offset: last.offsetNext ? last.offsetNext() : 0,
-        label: stage.chest.opened ? '阶段宝箱已打开' : '阶段宝箱',
+        label: stage.chest.opened ? `第 ${stageIndex + 1} 阶段徽章` : '阶段徽章',
         detail: stage.chest.opened ? '去成就卡看看' : `这一阶段过了 ${stage.chest.done}/${stage.chest.total} 节`
       })
     }
@@ -151,6 +193,19 @@ function questPathView(path) {
   }
 }
 
+/**
+ * 路径旁的小鹿（多邻国部分中间那个角色 + 下面三颗星）：放在路径弯出去的另一侧。
+ * 三颗星 = 看完这节课、互动练习通关、AI 老师验收通过；这节课还一关都没开时小鹿暗着。
+ */
+function lessonMascot(lesson, sign) {
+  const steps = lesson.steps
+  const watched = steps.some((step) => step.key === 'watch') && steps.filter((step) => step.key === 'watch').every((step) => step.state === 'done')
+  const passedKey = (key) => steps.some((step) => step.key === key && step.state === 'done')
+  const stars = [watched, passedKey('practice'), passedKey('accept')].filter(Boolean).length
+  const started = steps.some((step) => step.state !== 'locked')
+  return { side: sign > 0 ? 'left' : 'right', stars: [0, 1, 2].map((index) => index < stars), dim: lesson.locked || !started }
+}
+
 /** 每节课的宝箱节点（看课之后、互动练习之前）。 */
 function lessonChestNode(lesson, offset) {
   const state = lesson.chest.state
@@ -160,6 +215,7 @@ function lessonChestNode(lesson, offset) {
     stageId: lesson.stageId,
     state: state === 'opened' ? 'done' : state === 'ready' ? 'open' : 'locked',
     icon: state === 'opened' ? 'chest-open' : 'chest',
+    glyph: state === 'opened' ? GLYPHS.chestOpen : state === 'ready' ? GLYPHS.chest : GLYPHS.chestLocked,
     offset,
     label: state === 'opened' ? '宝箱已打开' : '宝箱',
     detail: state === 'ready' ? '看完这节课的奖励' : state === 'opened' ? '' : '看完这节课就能打开',
@@ -183,7 +239,8 @@ function nodePopover(node) {
   if (!node) return null
   const base = { id: node.id, title: node.label, detail: node.detail, course: node.course || '', position: node.position || '', action: '', note: '' }
   if (node.kind === 'placeholder') return { ...base, title: '这一段还没有课', note: '联系老师，按你的目标定制这一段' }
-  if (node.kind === 'chest') return node.state === 'done' ? { ...base, action: '去成就卡' } : { ...base, note: '这一段的课都过了验收，宝箱就打开了' }
+  if (node.kind === 'chest') return node.state === 'done' ? { ...base, action: '去成就卡' } : { ...base, note: '这一阶段的课都过了验收，徽章就点亮了' }
+  if (node.kind === 'trophy') return node.state === 'done' ? { ...base, note: '这节课每一关都过了' } : { ...base, note: '这节课每一关都过了，奖杯就点亮' }
   if (node.kind === 'lesson-chest') {
     if (node.state === 'open') return { ...base, title: '宝箱', detail: '打开送 1 次成就卡抽卡机会', action: '打开宝箱' }
     if (node.state === 'done') return { ...base, note: '这个宝箱已经开过了' }
@@ -212,7 +269,8 @@ function nodeTarget(node) {
   if (!node) return null
   const stage = encodeURIComponent(node.stageId || '')
   if (node.kind === 'placeholder') return { toast: '这一段还没有课，联系老师按你的目标定制' }
-  if (node.kind === 'chest') return node.state === 'done' ? { url: '/learning/achievement-cards/index' } : { toast: '这一段的课都过了验收，宝箱就打开了' }
+  if (node.kind === 'chest') return node.state === 'done' ? { url: '/learning/achievement-cards/index' } : { toast: '这一阶段的课都过了验收，徽章就点亮了' }
+  if (node.kind === 'trophy') return { toast: node.state === 'done' ? '这节课每一关都过了' : '这节课每一关都过了，奖杯就点亮' }
   if (node.kind === 'review') return { url: `/learning/review/index?stageId=${stage}` }
   if (node.kind === 'lesson-chest') {
     if (node.state === 'open') return { chest: node.stageId }

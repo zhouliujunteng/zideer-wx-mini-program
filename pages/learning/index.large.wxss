@@ -282,45 +282,33 @@ page{background:#FAFAFA}
 .quest-node:active{transform:translateY(3px);box-shadow:0 2px 0 #CBC8C2}
 .quest-node.is-done{background:var(--tone);box-shadow:0 6px 0 var(--tone-deep)}
 .quest-node.is-open, .quest-node.is-current{background:var(--tone);box-shadow:0 6px 0 var(--tone-deep)}
-.quest-node.is-current{outline:4px solid var(--tone-soft)}
 .quest-node.is-done:active, .quest-node.is-open:active, .quest-node.is-current:active{box-shadow:0 2px 0 var(--tone-deep)}
-.quest-node.kind-chest, .quest-node.kind-review{border-radius:20px}
+.quest-node.kind-review{border-radius:50%}
 .quest-node.kind-review.is-open{background:#23A391;box-shadow:0 6px 0 #17806F}
-.quest-node.kind-chest.is-done{background:#F5B301;box-shadow:0 6px 0 #C98F00}
 .quest-node-label{margin-top:10px;font-size:14px;font-weight:700}
 .quest-node-detail{margin-top:1px;max-width:180px;font-size:12px;text-align:center}
 .quest-start{top:-35px;padding:4px 13px;border:1px solid #ECE9E4;border-radius:9px;background:#FFFFFF;font-size:14px;font-weight:800}
 .quest-start::after{bottom:-8px;left:50%;width:10px;height:10px;border-right:1px solid #ECE9E4;border-bottom:1px solid #ECE9E4;background:#FFFFFF;transform:translateX(-50%) rotate(45deg)}
 @keyframes quest-bob{0%, 100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-.quest-icon{width:31px;height:31px}
-.icon-play::before{top:3px;left:8px;border-top:12px solid transparent;border-bottom:12px solid transparent;border-left:18px solid #FFFFFF}
-.icon-pencil::before{top:2px;left:12px;width:8px;height:24px;border-radius:2px 2px 0 0;background:#FFFFFF;transform:rotate(40deg)}
-.icon-pencil::after{top:22px;left:4px;border-top:4px solid transparent;border-bottom:4px solid transparent;border-right:7px solid #FFFFFF;transform:rotate(-50deg)}
-.icon-mic::before{top:0;left:9px;width:13px;height:19px;border-radius:6px;background:#FFFFFF}
-.icon-mic::after{top:10px;left:4px;width:18px;height:13px;border:3px solid #FFFFFF;border-top:0;border-radius:0 0 10px 10px}
-.icon-check::before{top:1px;left:9px;width:9px;height:19px;border-right:4px solid #FFFFFF;border-bottom:4px solid #FFFFFF;transform:rotate(45deg)}
-.icon-lock::before{top:1px;left:7px;width:12px;height:12px;border:3px solid #A9A59E;border-bottom:0;border-radius:9px 9px 0 0}
-.icon-lock::after{top:13px;left:3px;width:24px;height:16px;border-radius:3px;background:#A9A59E}
-.icon-review::before{top:2px;left:2px;width:20px;height:20px;border:4px solid #FFFFFF;border-right-color:transparent;border-radius:50%}
-.icon-review::after{top:2px;right:2px;border-top:6px solid transparent;border-bottom:6px solid transparent;border-left:8px solid #FFFFFF;transform:rotate(60deg)}
-.icon-chest::before, .icon-chest-open::before{top:10px;left:1px;width:28px;height:18px;border-radius:2px 2px 4px 4px;background:#A9A59E}
-.icon-chest::after{top:3px;left:1px;width:28px;height:8px;border-radius:7px 7px 1px 1px;background:#BDB9B2}
-.icon-chest-open::before{background:#FFFFFF}
-.icon-chest-open::after{top:-3px;left:1px;width:28px;height:8px;border-radius:7px 7px 1px 1px;background:#FFF4C7;transform:rotate(-16deg)}
 .quest-start{top:-58px}
-.quest-ring{top:-15px;left:50%;width:108px;height:108px;margin-left:-54px;border-radius:50%;background:conic-gradient(var(--tone) calc(var(--ring) * 1%), #E5E3DF 0);-webkit-mask:radial-gradient(circle, transparent 45px, #000 46px);mask:radial-gradient(circle, transparent 45px, #000 46px)}
-.quest-halo{top:-4px;right:-4px;bottom:-4px;left:-4px;border:3px solid var(--tone);border-radius:50%}
+.quest-ring{top:-16px;left:50%;width:115px;height:115px;margin-left:-58px;border-radius:50%;background:repeating-conic-gradient(from -4deg, #FAFAFA 0 8deg, rgba(250, 250, 250, 0) 8deg calc(360deg / var(--segs))), conic-gradient(var(--tone) calc(var(--ring) * 1%), #E5E3DF 0);-webkit-mask:radial-gradient(circle, transparent 48px, #000 48px);mask:radial-gradient(circle, transparent 48px, #000 48px)}
+.quest-zap{top:-28px;left:50%;width:139px;height:139px;margin-left:-70px}
+.quest-node.is-here::after{top:0;right:0;bottom:0;left:0;border-radius:50%;background:linear-gradient(115deg, rgba(255, 255, 255, 0) 42%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, 0) 58%) no-repeat;background-size:320% 100%}
 .quest-anchor{top:-252px;width:0.5px;height:0.5px}
 .quest-burst{top:-6px;left:50%;width:91px;height:91px;margin-left:-46px;border:6px solid var(--tone);border-radius:50%;box-sizing:border-box}
 .quest-burst::after{top:-6px;right:-6px;bottom:-6px;left:-6px;border:3px solid var(--tone);border-radius:50%}
-.quest-node.kind-lesson-chest{border-radius:20px}
-.quest-node.kind-lesson-chest.is-open{background:#F5B301;box-shadow:0 6px 0 #C98F00}
-.quest-node.kind-lesson-chest.is-open:active{box-shadow:0 2px 0 #C98F00}
-.quest-node.kind-lesson-chest.is-done{background:#FCE7A6;box-shadow:0 6px 0 #E3C468}
-.quest-node.kind-lesson-chest.is-open .icon-chest::before{background:#FFFFFF}
-.quest-node.kind-lesson-chest.is-open .icon-chest::after{background:#FFF4C7}
-.quest-node.kind-lesson-chest.is-done .icon-chest-open::before{background:#E0A800}
-.quest-node.kind-lesson-chest.is-done .icon-chest-open::after{background:#F5C842}
+.quest-node.kind-lesson-chest, .quest-node.kind-chest{width:90px;height:79px;border-radius:0;background:transparent;box-shadow:none}
+.quest-node.kind-lesson-chest:active, .quest-node.kind-chest:active{transform:translateY(2px);box-shadow:none}
+.quest-node.kind-lesson-chest .quest-glyph{width:84px;height:73px}
+.quest-node.kind-chest{height:90px}
+.quest-node.kind-chest .quest-glyph{width:81px;height:88px}
+.quest-badge-no{top:13px;right:0;left:0;font-size:26px;font-weight:900;line-height:36px;text-align:center;text-shadow:0 1px 0 rgba(0, 0, 0, .18)}
+.quest-node.kind-chest.is-locked .quest-badge-no{text-shadow:none}
+.quest-sparkle{width:18px;height:18px}
+.quest-sparkle.sparkle-0{top:3px;left:-21px}
+.quest-sparkle.sparkle-1{top:38px;right:-24px;width:13px;height:13px}
+.quest-sparkle.sparkle-2{top:67px;left:-16px;width:12px;height:12px}
+.quest-sparkle.sparkle-3{top:-9px;right:-11px;width:14px;height:14px}
 .quest-pop{top:90px;left:50%;width:360px;padding:18px 19px 19px;border-radius:16px;background:var(--tone);box-sizing:border-box;transform:translateX(calc(-50% - var(--x) * 600px / 1000));transform-origin:calc(50% + var(--x) * 600px / 1000) 0}
 @keyframes quest-pop-in{from{opacity:0;transform:translateX(calc(-50% - var(--x) * 600px / 1000)) scale(.7)}to{opacity:1;transform:translateX(calc(-50% - var(--x) * 600px / 1000)) scale(1)}}
 .quest-pop-arrow{top:-9px;left:calc(50% + var(--x) * 600px / 1000);width:18px;height:18px;margin-left:-9px;border-radius:2px;background:var(--tone);transform:rotate(45deg)}
@@ -401,4 +389,20 @@ page{background:#FAFAFA}
 .quest-pop{top:96px}
 .learning-page .my-courses-section{max-width:720px;margin-left:auto;margin-right:auto}
 .learning-page .quest, .learning-page .quest-sk, .learning-page .quest-empty{max-width:720px;margin-left:auto;margin-right:auto}
+.quest-node-wrap.is-here-wrap{margin:50px 0 20px}
+.quest-node-wrap.is-here-wrap .quest-start{top:-74px}
+.quest-node{width:84px;height:76px;box-shadow:0 7px 0 #CBC8C2}
+.quest-node.is-done, .quest-node.is-open, .quest-node.is-current{box-shadow:0 7px 0 var(--tone-deep)}
+.quest-node::before{top:0;right:0;bottom:0;left:0;border-radius:50%;background:linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .2) 39%, rgba(255, 255, 255, 0) 39%, rgba(255, 255, 255, 0) 45%, rgba(255, 255, 255, .13) 45%, rgba(255, 255, 255, .13) 50%, rgba(255, 255, 255, 0) 50%)}
+.quest-glyph{width:40px;height:40px}
+.quest-node.kind-trophy .quest-glyph{width:43px;height:43px}
+.quest-node.kind-lesson-chest, .quest-node.kind-chest, .quest-node.kind-lesson-chest:active, .quest-node.kind-chest:active{box-shadow:none}
+.quest-mascot{top:138px;width:120px;flex-direction:column}
+.quest-mascot.side-left{left:12px}
+.quest-mascot.side-right{right:12px}
+.quest-mascot-img{width:108px;height:121px;transform-origin:50% 100%}
+@keyframes quest-idle{0%, 100%{transform:translateY(0) scale(1, 1)}40%{transform:translateY(0) scale(1.03, .97)}52%{transform:translateY(-6px) scale(.98, 1.03)}64%{transform:translateY(0) scale(1.02, .98)}74%{transform:translateY(0) scale(1, 1)}}
+.quest-mascot-stars{margin-top:1px}
+.quest-mascot-star{width:22px;height:22px}
+.quest-mascot-star.star-1{margin:6px 1px 0}
 }

@@ -59,14 +59,30 @@
         <view wx:if="{{part.firstOfPhase}}" class="quest-phase"><text class="quest-phase-no">第 {{part.phaseNumber}} 阶段</text><text class="quest-phase-title">{{part.phaseTitle}}</text></view>
         <view wx:if="{{index > 0}}" class="quest-divider"><view class="quest-divider-line"></view><text class="quest-divider-text">{{part.title}}</text><view class="quest-divider-line"></view></view>
         <view class="quest-track">
+          <!-- 路径旁的小鹿（多邻国部分中间的角色）：三颗星 = 看完 / 练习通关 / 验收通过；还没开始的课暗着 -->
+          <view wx:if="{{part.mascot}}" class="quest-mascot side-{{part.mascot.side}} {{part.mascot.dim ? 'is-dim' : ''}}" aria-hidden="true">
+            <image class="quest-mascot-img" src="{{UA.src(ui, '/assets/quest/deer.svg')}}" mode="aspectFit"></image>
+            <view class="quest-mascot-stars">
+              <image wx:for="{{part.mascot.stars}}" wx:for-item="lit" wx:key="index" class="quest-mascot-star star-{{index}}" src="{{UA.src(ui, lit ? '/assets/quest/rating-star.svg' : '/assets/quest/rating-star-empty.svg')}}" mode="aspectFit"></image>
+            </view>
+          </view>
           <view wx:for="{{part.nodes}}" wx:key="id" class="quest-row {{questPopover && questPopover.id === item.id ? 'has-popover' : ''}}">
-            <view class="quest-node-wrap" style="--x: {{item.offset}};">
+            <view class="quest-node-wrap {{item.id === quest.currentId ? 'is-here-wrap' : ''}}" style="--x: {{item.offset}};">
               <view wx:if="{{item.id === quest.currentId}}" id="quest-current" class="quest-anchor"></view>
               <view wx:if="{{item.id === quest.currentId}}" class="quest-start">开始</view>
-              <view wx:if="{{item.id === quest.currentId}}" class="quest-ring" style="--ring: {{item.ring}};"><view class="quest-halo"></view></view>
+              <!-- 当前关：分段进度环（这节课几关过了几关）+ 外圈闪电（多邻国当前关的电光） -->
+              <view wx:if="{{item.id === quest.currentId}}" class="quest-ring" style="--ring: {{item.ring}}; --segs: {{item.segs}};"></view>
+              <block wx:if="{{item.id === quest.currentId}}">
+                <image class="quest-zap zap-a" src="{{UA.src(ui, '/assets/quest/lightning-a.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+                <image class="quest-zap zap-b" src="{{UA.src(ui, '/assets/quest/lightning-b.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+              </block>
               <view wx:if="{{item.id === questFx.unlockId}}" class="quest-burst" aria-hidden="true"></view>
-              <view id="{{item.id === quest.currentId ? 'quest-current-node' : ''}}" class="quest-node is-{{item.state}} kind-{{item.kind}} {{item.id === questFx.doneId ? 'fx-done' : ''}} {{item.id === questFx.unlockId ? 'fx-unlock' : ''}}" data-id="{{item.id}}" catchtap="openQuestNode" role="button" aria-label="{{item.label}}，{{item.detail}}">
-                <view class="quest-icon icon-{{item.icon}}"></view>
+              <block wx:if="{{item.kind === 'chest' && item.state === 'done'}}">
+                <image wx:for="{{[0, 1, 2, 3]}}" wx:for-item="spark" wx:key="*this" class="quest-sparkle sparkle-{{spark}}" src="{{UA.src(ui, '/assets/quest/sparkle.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+              </block>
+              <view id="{{item.id === quest.currentId ? 'quest-current-node' : ''}}" class="quest-node is-{{item.state}} kind-{{item.kind}} {{item.id === quest.currentId ? 'is-here' : ''}} {{item.id === questFx.doneId ? 'fx-done' : ''}} {{item.id === questFx.unlockId ? 'fx-unlock' : ''}}" data-id="{{item.id}}" catchtap="openQuestNode" role="button" aria-label="{{item.label}}，{{item.detail}}">
+                <image class="quest-glyph" src="{{UA.src(ui, item.glyph)}}" mode="aspectFit"></image>
+                <text wx:if="{{item.badge}}" class="quest-badge-no">{{item.badge}}</text>
               </view>
               <!-- 点关卡弹出的说明卡（多邻国式），箭头对着关卡，卡片本身回到中线 -->
               <view wx:if="{{questPopover && questPopover.id === item.id}}" class="quest-pop {{questPopover.action ? '' : 'is-muted'}}" catchtap="noop">

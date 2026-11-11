@@ -1031,42 +1031,28 @@ page {
 .quest-node:active { transform: translateY(6rpx); box-shadow: 0 4rpx 0 #CBC8C2; }
 .quest-node.is-done { background: var(--tone); box-shadow: 0 10rpx 0 var(--tone-deep); }
 .quest-node.is-open, .quest-node.is-current { background: var(--tone); box-shadow: 0 10rpx 0 var(--tone-deep); }
-.quest-node.is-current { outline: 8rpx solid var(--tone-soft); }
 .quest-node.is-done:active, .quest-node.is-open:active, .quest-node.is-current:active { box-shadow: 0 4rpx 0 var(--tone-deep); }
-.quest-node.kind-chest, .quest-node.kind-review { border-radius: 34rpx; }
+.quest-node.kind-review { border-radius: 50%; }
 .quest-node.kind-review.is-open { background: #23A391; box-shadow: 0 10rpx 0 #17806F; }
-.quest-node.kind-chest.is-done { background: #F5B301; box-shadow: 0 10rpx 0 #C98F00; }
 .quest-node-label { margin-top: 18rpx; color: #24332D; font-size: 24rpx; font-weight: 700; }
 .quest-node-detail { margin-top: 2rpx; max-width: 300rpx; color: #8A948D; font-size: 20rpx; text-align: center; }
 .quest-start { position: absolute; top: -58rpx; z-index: 2; padding: 8rpx 22rpx; border: 3rpx solid #ECE9E4; border-radius: 16rpx; background: #FFFFFF; color: var(--tone); font-size: 24rpx; font-weight: 800; animation: quest-bob 1.4s ease-in-out infinite; }
 .quest-start::after { position: absolute; bottom: -12rpx; left: 50%; width: 18rpx; height: 18rpx; border-right: 3rpx solid #ECE9E4; border-bottom: 3rpx solid #ECE9E4; background: #FFFFFF; content: ''; transform: translateX(-50%) rotate(45deg); }
 @keyframes quest-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8rpx); } }
 
-/* 关卡图标：CSS 画，白色；没开放时灰 */
-.quest-icon { position: relative; width: 52rpx; height: 52rpx; }
-.quest-node.is-locked .quest-icon { opacity: .9; }
-.icon-play::before { position: absolute; top: 6rpx; left: 14rpx; border-top: 20rpx solid transparent; border-bottom: 20rpx solid transparent; border-left: 30rpx solid #FFFFFF; content: ''; }
-.icon-pencil::before { position: absolute; top: 4rpx; left: 20rpx; width: 14rpx; height: 40rpx; border-radius: 4rpx 4rpx 0 0; background: #FFFFFF; content: ''; transform: rotate(40deg); }
-.icon-pencil::after { position: absolute; top: 38rpx; left: 8rpx; border-top: 8rpx solid transparent; border-bottom: 8rpx solid transparent; border-right: 12rpx solid #FFFFFF; content: ''; transform: rotate(-50deg); }
-.icon-mic::before { position: absolute; top: 0; left: 15rpx; width: 22rpx; height: 32rpx; border-radius: 11rpx; background: #FFFFFF; content: ''; }
-.icon-mic::after { position: absolute; top: 18rpx; left: 8rpx; width: 30rpx; height: 22rpx; border: 5rpx solid #FFFFFF; border-top: 0; border-radius: 0 0 18rpx 18rpx; content: ''; }
-.icon-check::before { position: absolute; top: 2rpx; left: 16rpx; width: 16rpx; height: 32rpx; border-right: 8rpx solid #FFFFFF; border-bottom: 8rpx solid #FFFFFF; content: ''; transform: rotate(45deg); }
-.icon-lock::before { position: absolute; top: 2rpx; left: 12rpx; width: 20rpx; height: 20rpx; border: 6rpx solid #A9A59E; border-bottom: 0; border-radius: 16rpx 16rpx 0 0; content: ''; }
-.icon-lock::after { position: absolute; top: 22rpx; left: 6rpx; width: 40rpx; height: 28rpx; border-radius: 6rpx; background: #A9A59E; content: ''; }
-.icon-review::before { position: absolute; top: 4rpx; left: 4rpx; width: 34rpx; height: 34rpx; border: 7rpx solid #FFFFFF; border-right-color: transparent; border-radius: 50%; content: ''; }
-.icon-review::after { position: absolute; top: 4rpx; right: 4rpx; border-top: 10rpx solid transparent; border-bottom: 10rpx solid transparent; border-left: 14rpx solid #FFFFFF; content: ''; transform: rotate(60deg); }
-.icon-chest::before, .icon-chest-open::before { position: absolute; top: 18rpx; left: 2rpx; width: 48rpx; height: 30rpx; border-radius: 4rpx 4rpx 8rpx 8rpx; background: #A9A59E; content: ''; }
-.icon-chest::after { position: absolute; top: 6rpx; left: 2rpx; width: 48rpx; height: 14rpx; border-radius: 12rpx 12rpx 2rpx 2rpx; background: #BDB9B2; content: ''; }
-.icon-chest-open::before { background: #FFFFFF; }
-.icon-chest-open::after { position: absolute; top: -4rpx; left: 2rpx; width: 48rpx; height: 14rpx; border-radius: 12rpx 12rpx 2rpx 2rpx; background: #FFF4C7; content: ''; transform: rotate(-16deg); }
 
 /* ---------- 闯关动效（2026-11-11，参考多邻国的交互节奏，画面用自己的；说明见 docs/闯关学习动效设计记录.md） ---------- */
 .quest-node { position: relative; z-index: 1; transition: transform 80ms ease-out, box-shadow 80ms ease-out; }
 .quest-start { top: -96rpx; }
-/* 当前关：外圈进度环（这节课过了几关）+ 呼吸光晕 */
-.quest-ring { position: absolute; top: -24rpx; left: 50%; width: 180rpx; height: 180rpx; margin-left: -90rpx; border-radius: 50%; background: conic-gradient(var(--tone) calc(var(--ring) * 1%), #E5E3DF 0); -webkit-mask: radial-gradient(circle, transparent 76rpx, #000 77rpx); mask: radial-gradient(circle, transparent 76rpx, #000 77rpx); }
-.quest-halo { position: absolute; top: -6rpx; right: -6rpx; bottom: -6rpx; left: -6rpx; border: 6rpx solid var(--tone); border-radius: 50%; opacity: 0; animation: quest-halo 2.2s ease-out infinite; }
-@keyframes quest-halo { 0% { opacity: .55; transform: scale(.92); } 70%, 100% { opacity: 0; transform: scale(1.22); } }
+/* 当前关（多邻国式）：分段进度环——灰底轨道按这节课的关数切成几段、过了的段填段落色；
+   外圈两道电光每 3.2 秒绕一圈闪一下；钮面一道斜光扫过 */
+.quest-ring { position: absolute; top: -26rpx; left: 50%; width: 192rpx; height: 192rpx; margin-left: -96rpx; border-radius: 50%; background: repeating-conic-gradient(from -4deg, #FAFAFA 0 8deg, rgba(250, 250, 250, 0) 8deg calc(360deg / var(--segs))), conic-gradient(var(--tone) calc(var(--ring) * 1%), #E5E3DF 0); -webkit-mask: radial-gradient(circle, transparent 80rpx, #000 81rpx); mask: radial-gradient(circle, transparent 80rpx, #000 81rpx); }
+.quest-zap { position: absolute; top: -46rpx; left: 50%; z-index: 3; width: 232rpx; height: 232rpx; margin-left: -116rpx; opacity: 0; pointer-events: none; animation: quest-zap 3.2s linear infinite; }
+.quest-zap.zap-b { animation-name: quest-zap-b; }
+@keyframes quest-zap { 0%, 55% { opacity: 0; transform: rotate(0); } 57% { opacity: 1; transform: rotate(0); } 60% { opacity: .2; transform: rotate(40deg); } 63% { opacity: 1; transform: rotate(95deg); } 68% { opacity: 1; transform: rotate(160deg); } 71% { opacity: .3; transform: rotate(205deg); } 75% { opacity: 1; transform: rotate(260deg); } 81% { opacity: .9; transform: rotate(330deg); } 85%, 100% { opacity: 0; transform: rotate(380deg); } }
+@keyframes quest-zap-b { 0%, 58% { opacity: 0; transform: rotate(180deg); } 60% { opacity: 1; transform: rotate(180deg); } 64% { opacity: .25; transform: rotate(240deg); } 67% { opacity: 1; transform: rotate(290deg); } 72% { opacity: .9; transform: rotate(350deg); } 75% { opacity: .2; transform: rotate(390deg); } 79% { opacity: 1; transform: rotate(440deg); } 84%, 100% { opacity: 0; transform: rotate(520deg); } }
+.quest-node.is-here::after { position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 50%; background: linear-gradient(115deg, rgba(255, 255, 255, 0) 42%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, 0) 58%) no-repeat; background-size: 320% 100%; content: ''; pointer-events: none; animation: quest-shine 3.2s ease-in-out infinite; }
+@keyframes quest-shine { 0%, 40% { background-position: 110% 0; } 62%, 100% { background-position: -10% 0; } }
 .quest-anchor { position: absolute; top: -420rpx; width: 1rpx; height: 1rpx; }
 /* 刚过的关：打勾弹一下；新解锁的关：从小弹起 + 光圈扩散 */
 .quest-node.fx-done { animation: quest-done-pop .6s cubic-bezier(.3, 1.6, .5, 1); }
@@ -1077,14 +1063,22 @@ page {
 .quest-burst::after { position: absolute; top: -10rpx; right: -10rpx; bottom: -10rpx; left: -10rpx; border: 6rpx solid var(--tone); border-radius: 50%; content: ''; animation: quest-burst .9s .18s ease-out both; }
 @keyframes quest-burst { 0% { opacity: .9; transform: scale(.6); } 100% { opacity: 0; transform: scale(1.9); } }
 /* 每节课中间的宝箱：能开时金色、隔一会儿晃一下 */
-.quest-node.kind-lesson-chest { border-radius: 34rpx; }
-.quest-node.kind-lesson-chest.is-open { background: #F5B301; box-shadow: 0 10rpx 0 #C98F00; animation: quest-wiggle 2.4s ease-in-out infinite; }
-.quest-node.kind-lesson-chest.is-open:active { box-shadow: 0 4rpx 0 #C98F00; }
-.quest-node.kind-lesson-chest.is-done { background: #FCE7A6; box-shadow: 0 10rpx 0 #E3C468; }
-.quest-node.kind-lesson-chest.is-open .icon-chest::before { background: #FFFFFF; }
-.quest-node.kind-lesson-chest.is-open .icon-chest::after { background: #FFF4C7; }
-.quest-node.kind-lesson-chest.is-done .icon-chest-open::before { background: #E0A800; }
-.quest-node.kind-lesson-chest.is-done .icon-chest-open::after { background: #F5C842; }
+/* 宝箱、阶段徽章不是圆钮，直接画图（多邻国路径上的箱子、单元徽章）；能开的宝箱隔一会儿晃一下 */
+.quest-node.kind-lesson-chest, .quest-node.kind-chest { width: 150rpx; height: 132rpx; border-radius: 0; background: transparent; box-shadow: none; }
+.quest-node.kind-lesson-chest:active, .quest-node.kind-chest:active { transform: translateY(4rpx); box-shadow: none; }
+.quest-node.kind-lesson-chest::before, .quest-node.kind-chest::before { display: none; }
+.quest-node.kind-lesson-chest .quest-glyph { width: 140rpx; height: 122rpx; }
+.quest-node.kind-lesson-chest.is-open { animation: quest-wiggle 2.4s ease-in-out infinite; }
+.quest-node.kind-chest { height: 150rpx; }
+.quest-node.kind-chest .quest-glyph { width: 136rpx; height: 148rpx; }
+.quest-badge-no { position: absolute; top: 22rpx; right: 0; left: 0; z-index: 2; color: #FFFFFF; font-size: 44rpx; font-weight: 900; line-height: 60rpx; text-align: center; text-shadow: 0 3rpx 0 rgba(0, 0, 0, .18); }
+.quest-node.kind-chest.is-locked .quest-badge-no { color: #A9A49C; text-shadow: none; }
+.quest-sparkle { position: absolute; z-index: 3; width: 30rpx; height: 30rpx; opacity: 0; pointer-events: none; animation: quest-twinkle 2.4s ease-in-out infinite; }
+.quest-sparkle.sparkle-0 { top: 6rpx; left: -34rpx; }
+.quest-sparkle.sparkle-1 { top: 64rpx; right: -40rpx; width: 22rpx; height: 22rpx; animation-delay: .6s; }
+.quest-sparkle.sparkle-2 { top: 112rpx; left: -26rpx; width: 20rpx; height: 20rpx; animation-delay: 1.2s; }
+.quest-sparkle.sparkle-3 { top: -14rpx; right: -18rpx; width: 24rpx; height: 24rpx; animation-delay: 1.8s; }
+@keyframes quest-twinkle { 0%, 100% { opacity: 0; transform: scale(.2) rotate(0); } 30% { opacity: 1; transform: scale(1) rotate(45deg); } 55% { opacity: 0; transform: scale(.3) rotate(90deg); } }
 @keyframes quest-wiggle { 0%, 76%, 100% { transform: rotate(0); } 80% { transform: rotate(-9deg); } 85% { transform: rotate(8deg); } 90% { transform: rotate(-6deg); } 95% { transform: rotate(4deg); } }
 /* 点关卡弹出的说明卡：卡片回到中线，箭头对着关卡 */
 .quest-row.has-popover { position: relative; z-index: 20; }
@@ -1199,5 +1193,29 @@ page {
 .learning-page .my-courses-section { max-width:720px; margin-left:auto; margin-right:auto; }
 .learning-page .quest, .learning-page .quest-sk, .learning-page .quest-empty { max-width:720px; margin-left:auto; margin-right:auto; }
 }
+
+
+/* ---------- 关卡钮与路径旁的小鹿（2026-11-11 晚，照多邻国路径：学习关星星、别的关各自的图标，钮面两道斜高光，
+   部分末尾奖杯，阶段末尾带数字的徽章；图标是后端素材 quest/*，源文件 scripts/ui-assets/quest/） ---------- */
+.quest-track { position: relative; }
+/* 当前关上下多留地方：「开始」气泡在进度环上面，不压着环和上一关 */
+.quest-node-wrap.is-here-wrap { margin: 84rpx 0 34rpx; }
+.quest-node-wrap.is-here-wrap .quest-start { top: -122rpx; }
+.quest-node { width: 140rpx; height: 128rpx; box-shadow: 0 12rpx 0 #CBC8C2; }
+.quest-node.is-done, .quest-node.is-open, .quest-node.is-current { box-shadow: 0 12rpx 0 var(--tone-deep); }
+.quest-node::before { position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 50%; background: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .2) 39%, rgba(255, 255, 255, 0) 39%, rgba(255, 255, 255, 0) 45%, rgba(255, 255, 255, .13) 45%, rgba(255, 255, 255, .13) 50%, rgba(255, 255, 255, 0) 50%); content: ''; pointer-events: none; }
+.quest-node.is-locked::before { display: none; }
+.quest-glyph { position: relative; z-index: 1; width: 68rpx; height: 68rpx; }
+.quest-node.kind-trophy .quest-glyph { width: 72rpx; height: 72rpx; }
+.quest-node.kind-lesson-chest, .quest-node.kind-chest, .quest-node.kind-lesson-chest:active, .quest-node.kind-chest:active { box-shadow: none; }
+.quest-mascot { position: absolute; top: 230rpx; z-index: 0; display: flex; width: 200rpx; flex-direction: column; align-items: center; pointer-events: none; }
+.quest-mascot.side-left { left: 20rpx; }
+.quest-mascot.side-right { right: 20rpx; }
+.quest-mascot-img { width: 180rpx; height: 202rpx; transform-origin: 50% 100%; animation: quest-idle 3.4s ease-in-out infinite; }
+@keyframes quest-idle { 0%, 100% { transform: translateY(0) scale(1, 1); } 40% { transform: translateY(0) scale(1.03, .97); } 52% { transform: translateY(-10rpx) scale(.98, 1.03); } 64% { transform: translateY(0) scale(1.02, .98); } 74% { transform: translateY(0) scale(1, 1); } }
+.quest-mascot.is-dim .quest-mascot-img { opacity: .4; filter: grayscale(1); animation: none; }
+.quest-mascot-stars { display: flex; margin-top: 2rpx; align-items: flex-start; }
+.quest-mascot-star { width: 38rpx; height: 38rpx; }
+.quest-mascot-star.star-1 { margin: 10rpx 2rpx 0; }
 
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */
