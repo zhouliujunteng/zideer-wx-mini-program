@@ -70,6 +70,7 @@ function setupPage({ code = '123456AS', finish = async () => ({}) } = {}) {
     Page: (value) => { definition = value },
     require: (name) => {
       if (name.endsWith('agent-course-view')) return require('../utils/agent-course-view')
+      if (name.endsWith('practice-view')) return require('../utils/practice-view')
       if (name.endsWith('utils/screen')) return require('../utils/screen')
       if (name.endsWith('ui-assets')) return { attachUiAssets() {} }
       if (name.endsWith('utils/dev-reset')) {

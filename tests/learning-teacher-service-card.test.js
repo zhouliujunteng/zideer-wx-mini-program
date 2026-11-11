@@ -19,7 +19,8 @@ function setup(contactResult, { session = true } = {}) {
     clearTimeout() {},
     wx: { showToast() {}, navigateTo: (options) => navigations.push(options.url) },
     require(name) {
-      if (name.endsWith('/identity')) return { loadCurrentServiceContacts: async () => contactResult, hasSession: () => session }
+      if (name.endsWith('/identity')) return { loadCurrentServiceContacts: async () => contactResult, hasSession: () => session, loadQuestPath: async () => null }
+      if (name.endsWith('/utils/quest-path-view')) return require('../utils/quest-path-view')
       if (name.endsWith('/utils/access-gate')) return require('../utils/access-gate')
       if (name.endsWith('/customer-service')) return { openCustomerServiceChat: async (contact) => { openedContacts.push(contact) }, customerServiceErrorMessage: () => '' }
       if (name.endsWith('/live-tab-service')) return { getLiveLearningModel: async () => ({ model: { myCourses: [] }, dashboard: {} }), getLearningSkeletonModel: () => ({}) }

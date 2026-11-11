@@ -28,6 +28,7 @@ function loadPage(file, modules) {
       if (name.endsWith('/utils/score-tools-live')) return require('../utils/score-tools-live')
       if (name.endsWith('/utils/mini-program-version')) return require('../utils/mini-program-version')
       if (name.endsWith('/utils/my-course-groups')) return require('../utils/my-course-groups')
+      if (name.endsWith('/utils/quest-path-view')) return require('../utils/quest-path-view')
       if (name.endsWith('/payment-switch') && !key) return paymentSwitchStub({ navigateTo() {}, redirectTo() {} })
       if (!key) throw new Error(`Unexpected import ${name}`)
       return modules[key]

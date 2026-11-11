@@ -1,0 +1,118 @@
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
+/* 互动练习：多邻国式一题一屏。主题橙 #FD7C02，对用橙、错用暖红（课程详情 2026-10-04「绿色不搭」）。
+   顶栏是关闭键 + 进度条 + 连对火苗；底部「检查」按钮，答完从底部弹出反馈条。 */
+page { background: #FFFFFF; }
+
+.pr-page { min-height: 100vh; background: #FFFFFF; color: #24332D; }
+.pr-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: #FFFFFF; }
+.pr-topbar-inner { position: relative; display: flex; align-items: center; gap: 20rpx; box-sizing: content-box; padding: 0 200rpx 16rpx 24rpx; }
+.pr-topbar-title { color: #24332D; font-size: 32rpx; font-weight: 700; }
+.pr-close { display: flex; flex: 0 0 auto; width: 56rpx; height: 56rpx; align-items: center; justify-content: center; border-radius: 50%; }
+.pr-close:active { background: #F2F2F0; }
+.pr-close-icon { position: relative; width: 30rpx; height: 30rpx; }
+.pr-close-icon::before, .pr-close-icon::after { position: absolute; top: 13rpx; left: -2rpx; width: 34rpx; height: 4rpx; border-radius: 4rpx; background: #9AA39D; content: ''; }
+.pr-close-icon::before { transform: rotate(45deg); }
+.pr-close-icon::after { transform: rotate(-45deg); }
+.pr-bar { flex: 1; height: 22rpx; overflow: hidden; border-radius: 999rpx; background: #F0EEEA; }
+.pr-bar-fill { height: 100%; min-width: 22rpx; border-radius: 999rpx; background: linear-gradient(90deg, #FFB25B, #FD7C02); transition: width .35s ease; }
+.pr-streak { display: flex; flex: 0 0 auto; align-items: center; gap: 6rpx; color: #FD7C02; font-size: 28rpx; font-weight: 800; }
+.pr-streak-flame { width: 22rpx; height: 28rpx; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: linear-gradient(180deg, #FFB25B, #FD7C02); transform: rotate(-8deg); }
+
+.pr-shell { padding: 0 40rpx calc(420rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.pr-sk-tag { width: 180rpx; margin: 24rpx 0; }
+.pr-sk-option { height: 96rpx; margin-top: 20rpx; border-radius: 24rpx; }
+
+.pr-question { padding-top: 24rpx; }
+.pr-tag { display: flex; align-items: center; gap: 14rpx; }
+.pr-tag-type { padding: 6rpx 18rpx; border-radius: 999rpx; background: #FFF0E4; color: #F07A22; font-size: 22rpx; font-weight: 700; }
+.pr-tag-hint { color: #8A948D; font-size: 24rpx; }
+.pr-prompt { display: block; margin-top: 28rpx; color: #24332D; font-size: 36rpx; font-weight: 700; line-height: 1.55; word-break: break-all; }
+
+.pr-options { margin-top: 40rpx; }
+.pr-options.is-judge { display: flex; gap: 24rpx; }
+.pr-option { display: flex; align-items: center; gap: 20rpx; margin-top: 20rpx; padding: 26rpx 28rpx; border: 3rpx solid #ECE9E4; border-bottom-width: 7rpx; border-radius: 26rpx; background: #FFFFFF; }
+.pr-options.is-judge .pr-option { flex: 1; justify-content: center; margin-top: 0; padding: 40rpx 0; }
+.pr-option:active { transform: translateY(2rpx); }
+.pr-option.is-selected { border-color: #FD7C02; background: #FFF6EE; }
+.pr-option-letter { display: flex; flex: 0 0 auto; width: 48rpx; height: 48rpx; align-items: center; justify-content: center; border: 3rpx solid #ECE9E4; border-radius: 14rpx; color: #8A948D; font-size: 24rpx; font-weight: 700; }
+.pr-option.is-selected .pr-option-letter { border-color: #FD7C02; background: #FD7C02; color: #FFFFFF; }
+.pr-option-label { flex: 1; color: #24332D; font-size: 30rpx; line-height: 1.45; word-break: break-all; }
+.pr-options.is-judge .pr-option-label { flex: 0 0 auto; font-size: 36rpx; font-weight: 700; }
+
+.pr-fill { margin-top: 44rpx; }
+.pr-fill-input { height: 104rpx; padding: 0 28rpx; border: 3rpx solid #ECE9E4; border-bottom-width: 7rpx; border-radius: 26rpx; background: #FAFAF8; color: #24332D; font-size: 34rpx; }
+
+.pr-order { margin-top: 40rpx; }
+.pr-order-slots { display: flex; min-height: 120rpx; flex-wrap: wrap; align-content: flex-start; gap: 16rpx; padding: 20rpx; border-radius: 26rpx; background: #FAFAF8; box-shadow: inset 0 0 0 3rpx #F0EEEA; }
+.pr-order-empty { align-self: center; padding: 0 8rpx; color: #B1B8B3; font-size: 26rpx; }
+.pr-order-pool { display: flex; flex-wrap: wrap; gap: 16rpx; margin-top: 36rpx; }
+.pr-chip { display: flex; align-items: center; gap: 10rpx; padding: 18rpx 24rpx; border: 3rpx solid #ECE9E4; border-bottom-width: 7rpx; border-radius: 22rpx; background: #FFFFFF; color: #24332D; font-size: 28rpx; line-height: 1.4; }
+.pr-chip.is-placed { border-color: #FFC48A; background: #FFF6EE; }
+.pr-chip.is-used { border-color: #F0EEEA; background: #F0EEEA; color: transparent; }
+.pr-chip-number { display: flex; width: 36rpx; height: 36rpx; align-items: center; justify-content: center; border-radius: 50%; background: #FD7C02; color: #FFFFFF; font-size: 20rpx; font-weight: 700; }
+
+.pr-match { display: flex; gap: 24rpx; margin-top: 40rpx; }
+.pr-match-col { display: flex; flex: 1; flex-direction: column; gap: 20rpx; }
+.pr-match-item { padding: 24rpx 20rpx; border: 3rpx solid #ECE9E4; border-bottom-width: 7rpx; border-radius: 22rpx; background: #FFFFFF; color: #24332D; font-size: 28rpx; line-height: 1.4; text-align: center; word-break: break-all; }
+.pr-match-item.is-active { border-color: #FD7C02; box-shadow: 0 0 0 4rpx rgba(253, 124, 2, .16); }
+.pr-match-item.tone-orange { border-color: #FFC48A; background: #FFF4EA; }
+.pr-match-item.tone-blue { border-color: #A9C8F2; background: #EEF5FF; }
+.pr-match-item.tone-violet { border-color: #C9B6EE; background: #F5F0FF; }
+.pr-match-item.tone-teal { border-color: #A6DCD3; background: #ECF8F5; }
+
+.pr-bottom { position: fixed; right: 0; bottom: 0; left: 0; z-index: 30; padding: 24rpx 40rpx calc(28rpx + env(safe-area-inset-bottom)); border-top: 2rpx solid #F0EEEA; background: #FFFFFF; }
+.pr-check { height: 96rpx; border-radius: 26rpx; background: #ECE9E4; color: #B1B8B3; font-size: 32rpx; font-weight: 800; line-height: 96rpx; text-align: center; letter-spacing: 2rpx; }
+.pr-check.is-ready { background: #FD7C02; box-shadow: 0 7rpx 0 #D96400; color: #FFFFFF; }
+.pr-check.is-ready:active { transform: translateY(4rpx); box-shadow: 0 3rpx 0 #D96400; }
+.pr-check.is-busy { opacity: .7; }
+.pr-secondary { margin-top: 18rpx; color: #8A948D; font-size: 26rpx; text-align: center; }
+
+.pr-feedback { position: fixed; right: 0; bottom: 0; left: 0; z-index: 30; padding: 32rpx 40rpx calc(28rpx + env(safe-area-inset-bottom)); border-radius: 32rpx 32rpx 0 0; animation: pr-rise .22s ease-out; }
+.pr-feedback.is-right { background: #FFF1E3; }
+.pr-feedback.is-wrong { background: #FDECE9; }
+@keyframes pr-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.pr-feedback-head { display: flex; align-items: center; gap: 18rpx; }
+.pr-feedback-mark { display: flex; width: 56rpx; height: 56rpx; align-items: center; justify-content: center; border-radius: 50%; background: #FFFFFF; }
+.pr-mark-check { width: 14rpx; height: 26rpx; margin-top: -6rpx; border-right: 6rpx solid #FD7C02; border-bottom: 6rpx solid #FD7C02; transform: rotate(45deg); }
+.pr-mark-cross { position: relative; width: 26rpx; height: 26rpx; }
+.pr-mark-cross::before, .pr-mark-cross::after { position: absolute; top: 10rpx; left: -2rpx; width: 30rpx; height: 6rpx; border-radius: 6rpx; background: #C94F3F; content: ''; }
+.pr-mark-cross::before { transform: rotate(45deg); }
+.pr-mark-cross::after { transform: rotate(-45deg); }
+.pr-feedback-title { font-size: 36rpx; font-weight: 800; }
+.pr-feedback.is-right .pr-feedback-title { color: #E06A00; }
+.pr-feedback.is-wrong .pr-feedback-title { color: #C94F3F; }
+.pr-feedback-answer { display: block; margin-top: 18rpx; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.5; word-break: break-all; }
+.pr-feedback-text { display: block; margin-top: 10rpx; color: #4A5650; font-size: 26rpx; line-height: 1.6; }
+.pr-feedback-hint { display: block; margin-top: 10rpx; color: #C94F3F; font-size: 24rpx; }
+.pr-continue { height: 96rpx; margin-top: 28rpx; border-radius: 26rpx; color: #FFFFFF; font-size: 32rpx; font-weight: 800; line-height: 96rpx; text-align: center; }
+.pr-feedback.is-right .pr-continue { background: #FD7C02; box-shadow: 0 7rpx 0 #D96400; }
+.pr-feedback.is-wrong .pr-continue { background: #C94F3F; box-shadow: 0 7rpx 0 #A23C2E; }
+
+.pr-clear { display: flex; flex-direction: column; align-items: center; padding-top: 60rpx; }
+.pr-clear-badge { display: flex; width: 168rpx; height: 168rpx; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(160deg, #FFB25B, #FD7C02); box-shadow: 0 12rpx 0 #D96400; animation: pr-pop .45s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes pr-pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.pr-clear-check { width: 36rpx; height: 70rpx; margin-top: -16rpx; border-right: 14rpx solid #FFFFFF; border-bottom: 14rpx solid #FFFFFF; transform: rotate(45deg); }
+.pr-clear-title { margin-top: 44rpx; color: #E06A00; font-size: 48rpx; font-weight: 900; }
+.pr-clear-course { margin-top: 10rpx; color: #8A948D; font-size: 26rpx; text-align: center; }
+.pr-clear-stats { display: flex; gap: 24rpx; width: 100%; margin-top: 44rpx; }
+.pr-clear-stat { display: flex; flex: 1; flex-direction: column; align-items: center; padding: 26rpx 0; border: 3rpx solid #FFD7B0; border-radius: 26rpx; }
+.pr-clear-value { color: #FD7C02; font-size: 48rpx; font-weight: 900; }
+.pr-clear-label { margin-top: 6rpx; color: #8A948D; font-size: 24rpx; }
+.pr-clear-comment { margin-top: 28rpx; color: #4A5650; font-size: 28rpx; text-align: center; }
+.pr-review-toggle { margin-top: 32rpx; color: #F07A22; font-size: 26rpx; font-weight: 700; }
+.pr-review { width: 100%; margin-top: 12rpx; }
+.pr-review-item { margin-top: 20rpx; padding: 24rpx; border-radius: 24rpx; background: #FAFAF8; }
+.pr-review-head { display: flex; align-items: center; justify-content: space-between; }
+.pr-review-number { color: #24332D; font-size: 24rpx; font-weight: 700; }
+.pr-review-tag { color: #C94F3F; font-size: 22rpx; }
+.pr-review-prompt { display: block; margin-top: 10rpx; color: #24332D; font-size: 27rpx; line-height: 1.55; }
+.pr-review-answer { display: block; margin-top: 10rpx; color: #E06A00; font-size: 26rpx; font-weight: 700; }
+.pr-review-text { display: block; margin-top: 6rpx; color: #6B766F; font-size: 24rpx; line-height: 1.55; }
+
+.pr-button { height: 88rpx; margin-top: 28rpx; padding: 0 56rpx; border-radius: 24rpx; background: #F2F2F0; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 88rpx; text-align: center; }
+.pr-button.is-primary { background: #FD7C02; color: #FFFFFF; }
+.pr-spinner { width: 64rpx; height: 64rpx; margin-bottom: 20rpx; border: 6rpx solid #FFE3C8; border-top-color: #FD7C02; border-radius: 50%; animation: pr-spin 1s linear infinite; }
+@keyframes pr-spin { to { transform: rotate(360deg); } }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

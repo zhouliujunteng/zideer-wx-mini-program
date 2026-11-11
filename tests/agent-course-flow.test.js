@@ -166,6 +166,7 @@ function setupProgressPage(replies, learning = { value: null }) {
     Page: (value) => { definition = value },
     require: (name) => {
       if (name.endsWith('agent-course-view')) return require('../utils/agent-course-view')
+      if (name.endsWith('practice-view')) return require('../utils/practice-view')
       if (name.endsWith('utils/screen')) return require('../utils/screen')
       if (name.endsWith('ui-assets')) return { attachUiAssets() {} }
       // 测试快捷方式的开关：这里的用例都是没输入过开启码的手机（见 agent-course-test-finish.test.js）

@@ -1,0 +1,109 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.surface{border-radius:14px}
+.skeleton{border-radius:9px}
+.state-panel{padding:72px 14px 24px}
+.state-panel__mark{margin-bottom:14px;font-size:31px}
+.state-panel__title{font-size:19px;font-weight:600}
+.state-panel__copy{margin:13px 0 19px;font-size:15px;line-height:1.6}
+.state-panel__action{border-radius:12px}
+.state-panel__action::after{border:0}
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.pr-page{min-height:100vh}
+.pr-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));box-sizing:border-box}
+.pr-topbar-inner{gap:12px;box-sizing:content-box;padding:0 120px 9px 14px}
+.pr-topbar-title{font-size:19px;font-weight:700}
+.pr-close{width:33px;height:33px;border-radius:50%}
+.pr-close-icon{width:18px;height:18px}
+.pr-close-icon::before, .pr-close-icon::after{top:7px;left:-2px;width:20px;height:2px;border-radius:2px}
+.pr-close-icon::before{transform:rotate(45deg)}
+.pr-close-icon::after{transform:rotate(-45deg)}
+.pr-bar{height:13px;border-radius:599px}
+.pr-bar-fill{height:100%;min-width:13px;border-radius:599px}
+.pr-streak{gap:3px;font-size:16px;font-weight:800}
+.pr-streak-flame{width:13px;height:16px;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;transform:rotate(-8deg)}
+.pr-shell{padding:0 24px calc(252px + env(safe-area-inset-bottom));box-sizing:border-box}
+.pr-sk-tag{width:108px;margin:14px 0}
+.pr-sk-option{height:57px;margin-top:12px;border-radius:14px}
+.pr-question{padding-top:14px}
+.pr-tag{gap:8px}
+.pr-tag-type{padding:3px 10px;border-radius:599px;font-size:13px;font-weight:700}
+.pr-tag-hint{font-size:14px}
+.pr-prompt{margin-top:16px;font-size:21px;font-weight:700;line-height:1.55}
+.pr-options{margin-top:24px}
+.pr-options.is-judge{gap:14px}
+.pr-option{gap:12px;margin-top:12px;padding:15px 16px;border:1px solid #ECE9E4;border-bottom-width:4px;border-radius:15px}
+.pr-options.is-judge .pr-option{margin-top:0;padding:24px 0}
+.pr-option:active{transform:translateY(1px)}
+.pr-option.is-selected{border-color:#FD7C02}
+.pr-option-letter{width:28px;height:28px;border:1px solid #ECE9E4;border-radius:8px;font-size:14px;font-weight:700}
+.pr-option.is-selected .pr-option-letter{border-color:#FD7C02}
+.pr-option-label{font-size:18px;line-height:1.45}
+.pr-options.is-judge .pr-option-label{font-size:21px;font-weight:700}
+.pr-fill{margin-top:26px}
+.pr-fill-input{height:62px;padding:0 16px;border:1px solid #ECE9E4;border-bottom-width:4px;border-radius:15px;font-size:20px}
+.pr-order{margin-top:24px}
+.pr-order-slots{min-height:72px;gap:9px;padding:12px;border-radius:15px;box-shadow:inset 0 0 0 1px #F0EEEA}
+.pr-order-empty{padding:0 4px;font-size:15px}
+.pr-order-pool{gap:9px;margin-top:21px}
+.pr-chip{gap:6px;padding:10px 14px;border:1px solid #ECE9E4;border-bottom-width:4px;border-radius:13px;font-size:16px;line-height:1.4}
+.pr-chip.is-placed{border-color:#FFC48A}
+.pr-chip.is-used{border-color:#F0EEEA}
+.pr-chip-number{width:21px;height:21px;border-radius:50%;font-size:12px;font-weight:700}
+.pr-match{gap:14px;margin-top:24px}
+.pr-match-col{gap:12px}
+.pr-match-item{padding:14px 12px;border:1px solid #ECE9E4;border-bottom-width:4px;border-radius:13px;font-size:16px;line-height:1.4}
+.pr-match-item.is-active{border-color:#FD7C02;box-shadow:0 0 0 2px rgba(253, 124, 2, .16)}
+.pr-match-item.tone-orange{border-color:#FFC48A}
+.pr-match-item.tone-blue{border-color:#A9C8F2}
+.pr-match-item.tone-violet{border-color:#C9B6EE}
+.pr-match-item.tone-teal{border-color:#A6DCD3}
+.pr-bottom{right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);padding:14px 24px calc(16px + env(safe-area-inset-bottom));border-top:1px solid #F0EEEA}
+.pr-check{height:57px;border-radius:15px;font-size:19px;font-weight:800;line-height:57px;letter-spacing:1px}
+.pr-check.is-ready{box-shadow:0 4px 0 #D96400}
+.pr-check.is-ready:active{transform:translateY(2px);box-shadow:0 1px 0 #D96400}
+.pr-secondary{margin-top:10px;font-size:15px}
+.pr-feedback{right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);padding:19px 24px calc(16px + env(safe-area-inset-bottom));border-radius:19px 19px 0 0}
+.pr-feedback-head{gap:10px}
+.pr-feedback-mark{width:33px;height:33px;border-radius:50%}
+.pr-mark-check{width:8px;height:15px;margin-top:-4px;border-right:3px solid #FD7C02;border-bottom:3px solid #FD7C02;transform:rotate(45deg)}
+.pr-mark-cross{width:15px;height:15px}
+.pr-mark-cross::before, .pr-mark-cross::after{top:6px;left:-2px;width:18px;height:3px;border-radius:3px}
+.pr-mark-cross::before{transform:rotate(45deg)}
+.pr-mark-cross::after{transform:rotate(-45deg)}
+.pr-feedback-title{font-size:21px;font-weight:800}
+.pr-feedback-answer{margin-top:10px;font-size:16px;font-weight:700;line-height:1.5}
+.pr-feedback-text{margin-top:6px;font-size:15px;line-height:1.6}
+.pr-feedback-hint{margin-top:6px;font-size:14px}
+.pr-continue{height:57px;margin-top:16px;border-radius:15px;font-size:19px;font-weight:800;line-height:57px}
+.pr-feedback.is-right .pr-continue{box-shadow:0 4px 0 #D96400}
+.pr-feedback.is-wrong .pr-continue{box-shadow:0 4px 0 #A23C2E}
+.pr-clear{padding-top:36px}
+.pr-clear-badge{width:100px;height:100px;border-radius:50%;box-shadow:0 7px 0 #D96400}
+.pr-clear-check{width:21px;height:42px;margin-top:-10px;border-right:8px solid #FFFFFF;border-bottom:8px solid #FFFFFF;transform:rotate(45deg)}
+.pr-clear-title{margin-top:26px;font-size:28px;font-weight:900}
+.pr-clear-course{margin-top:6px;font-size:15px}
+.pr-clear-stats{gap:14px;width:100%;margin-top:26px}
+.pr-clear-stat{padding:15px 0;border:1px solid #FFD7B0;border-radius:15px}
+.pr-clear-value{font-size:28px;font-weight:900}
+.pr-clear-label{margin-top:3px;font-size:14px}
+.pr-clear-comment{margin-top:16px;font-size:16px}
+.pr-review-toggle{margin-top:19px;font-size:15px;font-weight:700}
+.pr-review{width:100%;margin-top:7px}
+.pr-review-item{margin-top:12px;padding:14px;border-radius:14px}
+.pr-review-number{font-size:14px;font-weight:700}
+.pr-review-tag{font-size:13px}
+.pr-review-prompt{margin-top:6px;font-size:16px;line-height:1.55}
+.pr-review-answer{margin-top:6px;font-size:15px;font-weight:700}
+.pr-review-text{margin-top:3px;font-size:14px;line-height:1.55}
+.pr-button{height:52px;margin-top:16px;padding:0 33px;border-radius:14px;font-size:18px;font-weight:700;line-height:52px}
+.pr-spinner{width:38px;height:38px;margin-bottom:12px;border:3px solid #FFE3C8;border-top-color:#FD7C02;border-radius:50%}
+}

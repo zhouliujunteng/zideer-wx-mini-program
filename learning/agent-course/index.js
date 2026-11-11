@@ -1,5 +1,5 @@
-const { loadAgentCourse, loadAgentCourseAcceptance, loadAgentCourseHomework, loadCourseCovers, finishAgentCourseForTest, getStoredToken } = require('../../services/identity')
-const { normalizeHomework, homeworkCard } = require('../../utils/homework-view')
+const { loadAgentCourse, loadAgentCourseAcceptance, loadAgentCoursePractice, loadCourseCovers, finishAgentCourseForTest, getStoredToken } = require('../../services/identity')
+const { normalizePractice, practiceCard, gateReview } = require('../../utils/practice-view')
 const { readDevResetCode, onDevResetChange } = require('../../utils/dev-reset')
 const { isAgentCourseId, agentCourseDetail, normalizeAgentLearning } = require('../../utils/agent-course-view')
 const { rpxToPx } = require('../../utils/screen')
@@ -20,7 +20,7 @@ Page({
     coverUrl: '',
     errorMessage: '',
     refreshing: false,
-    // 课后作业卡片（utils/homework-view.js homeworkCard）：第一次读到前画骨架，读不到显示「点一下重读」。
+    // 第二关「互动练习」卡片（utils/practice-view.js practiceCard；以前的课后作业也用它）：第一次读到前画骨架，读不到显示「点一下重读」。
     homework: null,
     homeworkFailed: false,
     // 测试快捷方式「标记学完，去验收」：只在输入过「重置测试账号」开启码的手机上显示（与右下角重置按钮同一个开关）。
@@ -96,7 +96,11 @@ Page({
       const learning = course.canLearn ? await (learningRequest || this.readLearning()) : null
       if (!this._visible || version !== this._version) return
       this._notFound = 0
-      this.setData({ loading: false, course, detail: agentCourseDetail(course, learning), errorMessage: '' })
+      const detail = agentCourseDetail(course, learning)
+      // 验收卡要等互动练习通关（闯关学习，2026-11-11）：练习卡读到过就按它锁 / 放开
+      this._review = detail.review
+      detail.review = gateReview(detail.review, this.data.homework)
+      this.setData({ loading: false, course, detail, errorMessage: '' })
       this.loadCover()
       if (course.canLearn) this.loadHomework()
       if (course.isGenerating) this.schedule()
@@ -117,18 +121,22 @@ Page({
       .catch(() => null)
   },
 
-  // 课后作业（2026-10-13）：整节学完后才有；读到过一次后再回到页面保留旧卡片，静默刷新。
+  // 第二关「互动练习」（2026-11-11 闯关学习，取代 2026-10-13 的课后作业；以前排的作业照旧显示成课后作业）：
+  // 整节学完后才有；读到过一次后再回到页面保留旧卡片，静默刷新。练习没通关时验收卡锁住（gateReview）。
   loadHomework() {
     const stageId = this.stageId
-    return loadAgentCourseHomework(stageId)
+    return Promise.resolve()
+      .then(() => loadAgentCoursePractice(stageId))
       .then((data) => {
         if (stageId !== this.stageId) return
-        const homework = normalizeHomework(data && data.homework)
-        this.setData({ homework: homeworkCard(homework), homeworkFailed: false })
+        const card = practiceCard(normalizePractice(data && data.practice))
+        const update = { homework: card, homeworkFailed: false }
+        if (this._review) update['detail.review'] = gateReview(this._review, card)
+        this.setData(update)
       })
       .catch(() => {
         if (stageId !== this.stageId || this.data.homework) return
-        this.setData({ homework: homeworkCard(null, true), homeworkFailed: true })
+        this.setData({ homework: practiceCard(null, true), homeworkFailed: true })
       })
   },
 
@@ -136,14 +144,15 @@ Page({
     const card = this.data.homework
     if (!card) return
     if (!card.available) {
-      wx.showToast({ title: card.toast || '学完整节课后才有课后作业', icon: 'none' })
+      wx.showToast({ title: card.toast || '先把这节课学完', icon: 'none' })
       return
     }
     if (card.action === 'reload') {
       this.setData({ homework: null, homeworkFailed: false })
       return this.loadHomework()
     }
-    wx.navigateTo({ url: `/learning/homework/index?stageId=${encodeURIComponent(this.stageId)}` })
+    const page = card.homework ? 'homework' : 'practice'
+    wx.navigateTo({ url: `/learning/${page}/index?stageId=${encodeURIComponent(this.stageId)}` })
   },
 
   // 封面与「我的课程」卡片同一张（课程服务按 stageId 存）；还没生成好就显示设计稿的淡灰占位。

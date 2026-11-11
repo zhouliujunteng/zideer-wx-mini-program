@@ -128,14 +128,19 @@ function guardianHomeworkSection(state, date) {
     const count = Number(item.questionCount) || 0
     let detail = ''
     let statusLabel = ''
+    // 互动练习（kind = practice，2026-11-11 闯关学习）：全部做对才通关，所以写「一次答对几道」
+    const practice = item.kind === 'practice'
+    const noun = practice ? '互动练习' : '练习题'
     if (item.status === 'done') {
-      detail = `${count} 道练习题 · ${clockText(item.submittedAt)} 完成 · 答对 ${Number(item.correctCount) || 0} 道`
-      statusLabel = '已完成'
+      detail = practice
+        ? `${count} 道${noun} · ${clockText(item.submittedAt)} 通关 · 一次答对 ${Number(item.correctCount) || 0} 道`
+        : `${count} 道${noun} · ${clockText(item.submittedAt)} 完成 · 答对 ${Number(item.correctCount) || 0} 道`
+      statusLabel = practice ? '已通关' : '已完成'
     } else if (item.status === 'ready') {
-      detail = `${count} 道练习题 · 还没做`
+      detail = `${count} 道${noun} · 还没做完`
       statusLabel = '待完成'
     } else if (item.status === 'preparing') {
-      detail = '练习题正在准备'
+      detail = practice ? '互动练习正在准备' : '练习题正在准备'
       statusLabel = '准备中'
     } else continue
     rows.push({ id: `homework-${item.stageId}`, title: item.title || '定制课程', detail, statusLabel })

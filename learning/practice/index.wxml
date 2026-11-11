@@ -1,0 +1,130 @@
+<!-- 互动练习（2026-11-11 用户规则「闯关学习」第二关）：一屏一道，答完马上给对错和解析，答错的放到后面再做，
+     全部做对才通关，通关后去「AI 老师验收」。第一次读到前画骨架；出题中、出题失败、还没看完课各有提示。 -->
+<view class="pr-page">
+  <view class="pr-topbar">
+    <view class="pr-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="pr-close" bindtap="handleBack" role="button" aria-label="退出练习"><view class="pr-close-icon"></view></view>
+      <view wx:if="{{practice && practice.status === 'ready'}}" class="pr-bar" aria-label="已闯过 {{percent}}%">
+        <view class="pr-bar-fill" style="width: {{percent}}%;"></view>
+      </view>
+      <text wx:else class="pr-topbar-title">互动练习</text>
+      <view wx:if="{{practice && practice.status === 'ready' && practice.progress && practice.progress.streak >= 2}}" class="pr-streak">
+        <view class="pr-streak-flame" aria-hidden="true"></view><text>{{practice.progress.streak}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="pr-shell" style="padding-top: {{contentTop}}px;">
+    <block wx:if="{{!loaded && !loadFailed}}">
+      <view class="sk sk-line sk-short pr-sk-tag"></view>
+      <view class="sk sk-line"></view>
+      <view class="sk sk-line sk-mid"></view>
+      <view wx:for="{{[0, 1, 2, 3]}}" wx:key="*this" class="sk pr-sk-option"></view>
+    </block>
+
+    <view wx:elif="{{loadFailed}}" class="state-panel">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">互动练习暂时没有打开</text>
+      <text class="state-panel__copy">{{errorMessage}}</text>
+      <view class="pr-button is-primary" bindtap="reload" role="button">重新读取</view>
+    </view>
+
+    <view wx:elif="{{practice.status === 'locked'}}" class="state-panel">
+      <text class="state-panel__title">先把这节课看完</text>
+      <text class="state-panel__copy">看完整节课，就会按这节课的知识点出几道小题，做对了才能去找老师验收。</text>
+      <view class="pr-button is-primary" bindtap="openCourse" role="button">回到课程</view>
+    </view>
+
+    <view wx:elif="{{practice.status === 'preparing'}}" class="state-panel">
+      <view class="pr-spinner" aria-hidden="true"></view>
+      <text class="state-panel__title">正在出题</text>
+      <text class="state-panel__copy">按这节课的知识点出 5～8 道小题，每道题都会另外核对一遍答案，一般一两分钟就好。</text>
+      <view wx:if="{{pollStopped}}" class="pr-button is-primary" bindtap="reload" role="button">刷新看看</view>
+    </view>
+
+    <view wx:elif="{{practice.status === 'failed'}}" class="state-panel">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">这次没出好题</text>
+      <text class="state-panel__copy">可以再出一次；也可以直接去找老师验收。</text>
+      <view class="pr-button is-primary" bindtap="retryGenerate" role="button">重新出题</view>
+      <view class="pr-button" bindtap="openAcceptance" role="button">去验收</view>
+    </view>
+
+    <view wx:elif="{{practice.status === 'done'}}" class="pr-clear">
+      <view class="pr-clear-badge" aria-hidden="true"><view class="pr-clear-check"></view></view>
+      <text class="pr-clear-title">通关啦！</text>
+      <text class="pr-clear-course">{{practice.title}}</text>
+      <view class="pr-clear-stats">
+        <view class="pr-clear-stat"><text class="pr-clear-value">{{summary.total}}</text><text class="pr-clear-label">道小题</text></view>
+        <view class="pr-clear-stat"><text class="pr-clear-value">{{summary.first}}</text><text class="pr-clear-label">一次答对</text></view>
+      </view>
+      <text class="pr-clear-comment">{{summary.comment}}</text>
+      <view wx:if="{{summary.review.length}}" class="pr-review-toggle" bindtap="toggleReview" role="button">{{showReview ? '收起题目' : '看看每道题'}}</view>
+      <view wx:if="{{showReview}}" class="pr-review">
+        <view wx:for="{{summary.review}}" wx:key="number" class="pr-review-item">
+          <view class="pr-review-head"><text class="pr-review-number">第 {{item.number}} 题</text><text wx:if="{{item.firstTry === false}}" class="pr-review-tag">错过一次</text></view>
+          <text class="pr-review-prompt">{{item.prompt}}</text>
+          <text class="pr-review-answer">答案：{{item.answer}}</text>
+          <text wx:if="{{item.explanation}}" class="pr-review-text">{{item.explanation}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:elif="{{screen}}" class="pr-question">
+      <view class="pr-tag"><text class="pr-tag-type">{{screen.typeLabel}}</text><text class="pr-tag-hint">{{screen.hint}}</text></view>
+      <text class="pr-prompt">{{screen.prompt}}</text>
+
+      <view wx:if="{{screen.type === 'single' || screen.type === 'judge'}}" class="pr-options {{screen.type === 'judge' ? 'is-judge' : ''}}">
+        <view wx:for="{{screen.options}}" wx:key="letter" class="pr-option {{item.selected ? 'is-selected' : ''}}" data-letter="{{item.letter}}" bindtap="chooseOption" role="button" aria-label="{{item.label}}">
+          <text wx:if="{{screen.type === 'single'}}" class="pr-option-letter">{{item.letter}}</text>
+          <text class="pr-option-label">{{item.label}}</text>
+        </view>
+      </view>
+
+      <view wx:elif="{{screen.type === 'fill'}}" class="pr-fill">
+        <input class="pr-fill-input" value="{{screen.fill}}" placeholder="在这里填写" maxlength="40" disabled="{{screen.locked}}" bindinput="inputFill" confirm-type="done" bindconfirm="check" />
+      </view>
+
+      <view wx:elif="{{screen.type === 'order'}}" class="pr-order">
+        <view class="pr-order-slots">
+          <view wx:for="{{screen.picked}}" wx:key="optionIndex" class="pr-chip is-placed" data-option="{{item.optionIndex}}" bindtap="tapOrder" role="button" aria-label="第 {{item.number}} 个：{{item.label}}，点一下拿掉">
+            <text class="pr-chip-number">{{item.number}}</text><text>{{item.label}}</text>
+          </view>
+          <text wx:if="{{!screen.picked.length}}" class="pr-order-empty">按顺序点下面的条目</text>
+        </view>
+        <view class="pr-order-pool">
+          <view wx:for="{{screen.pool}}" wx:key="optionIndex" class="pr-chip {{item.used ? 'is-used' : ''}}" data-option="{{item.optionIndex}}" bindtap="tapOrder" role="button" aria-label="{{item.label}}">{{item.label}}</view>
+        </view>
+      </view>
+
+      <view wx:elif="{{screen.type === 'match'}}" class="pr-match">
+        <view class="pr-match-col">
+          <view wx:for="{{screen.left}}" wx:key="i" class="pr-match-item {{item.tone ? 'tone-' + item.tone : ''}} {{item.active ? 'is-active' : ''}}" data-index="{{item.i}}" bindtap="tapMatchLeft" role="button" aria-label="{{item.label}}">{{item.label}}</view>
+        </view>
+        <view class="pr-match-col">
+          <view wx:for="{{screen.right}}" wx:key="j" class="pr-match-item {{item.tone ? 'tone-' + item.tone : ''}}" data-index="{{item.j}}" bindtap="tapMatchRight" role="button" aria-label="{{item.label}}">{{item.label}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部：检查 / 反馈 + 继续 / 通关后去验收 -->
+  <view wx:if="{{practice && practice.status === 'ready' && screen && !feedback}}" class="pr-bottom">
+    <view class="pr-check {{screen.ready ? 'is-ready' : ''}} {{checking ? 'is-busy' : ''}}" bindtap="check" role="button">{{checking ? '正在检查' : '检查'}}</view>
+  </view>
+  <view wx:elif="{{feedback}}" class="pr-feedback {{feedback.correct ? 'is-right' : 'is-wrong'}}">
+    <view class="pr-feedback-head">
+      <view class="pr-feedback-mark" aria-hidden="true"><view class="{{feedback.correct ? 'pr-mark-check' : 'pr-mark-cross'}}"></view></view>
+      <text class="pr-feedback-title">{{feedback.title}}</text>
+    </view>
+    <text wx:if="{{feedback.answer}}" class="pr-feedback-answer">正确答案：{{feedback.answer}}</text>
+    <text wx:if="{{feedback.explanation}}" class="pr-feedback-text">{{feedback.explanation}}</text>
+    <text wx:if="{{feedback.retryHint}}" class="pr-feedback-hint">{{feedback.retryHint}}</text>
+    <view class="pr-continue" bindtap="next" role="button">继续</view>
+  </view>
+  <view wx:elif="{{practice && practice.status === 'done'}}" class="pr-bottom">
+    <view class="pr-check is-ready" bindtap="openAcceptance" role="button">下一关：AI 老师验收</view>
+    <view class="pr-secondary" bindtap="openCourse" role="button">回到课程</view>
+  </view>
+</view>
+<dev-reset-fab />

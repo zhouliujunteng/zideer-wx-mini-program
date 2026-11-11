@@ -179,12 +179,31 @@ Page({
       // 读的途中学生已经发出了回答：以那次回包为准，不拿这份旧的盖掉刚放上去的气泡
       if (this._isDestroyed || this.data.sending) return
       this.apply(result)
+      // 闯关学习（2026-11-11）：第三关要先通关第二关「互动练习」，还没开始过验收的先引导去做练习
+      const status = result && result.acceptance && result.acceptance.status
+      if (result && result.practice && !result.practice.cleared && (!status || status === 'not_started')) this.guidePractice()
       const last = this.data.turns[this.data.turns.length - 1]
       if (resume && this.data.state === 'chat' && last && last.role === 'user') this.resume()
     } catch (error) {
       if (this._isDestroyed || this.data.loaded) return
       this.setData({ loadFailed: true, errorMessage: error && error.message || '验收状态暂时无法读取，请稍后重试。' })
     }
+  },
+
+  guidePractice() {
+    if (this._guidingPractice || this._isDestroyed) return
+    this._guidingPractice = true
+    wx.showModal({
+      title: '先闯过互动练习',
+      content: '这节课的小题都做对了，再来讲给老师听。',
+      confirmText: '去闯关',
+      cancelText: '再看看',
+      success: (result) => {
+        this._guidingPractice = false
+        if (result.confirm) wx.redirectTo({ url: `/learning/practice/index?stageId=${encodeURIComponent(this.stageId)}` })
+      },
+      fail: () => { this._guidingPractice = false }
+    })
   },
 
   retry() {
@@ -267,6 +286,7 @@ Page({
     try {
       this.apply(await sendAgentCourseAcceptance(this.stageId, ''))
     } catch (error) {
+      if (error && error.code === 'PRACTICE_REQUIRED') return this.guidePractice()
       wx.showToast({ title: error && error.message || '验收暂时无法开始', icon: 'none', duration: 3000 })
     } finally {
       if (!this._isDestroyed) this.setData({ sending: false })

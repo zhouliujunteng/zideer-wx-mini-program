@@ -1,6 +1,7 @@
 const { getLiveLearningModel, getLearningSkeletonModel } = require('../../services/live-tab-service')
 const { takeAgentCourseFocus } = require('../../utils/agent-course-focus')
-const { loadCurrentServiceContacts, hasSession } = require('../../services/identity')
+const { loadCurrentServiceContacts, hasSession, loadQuestPath } = require('../../services/identity')
+const { normalizeQuestPath, questPathView, nodeTarget } = require('../../utils/quest-path-view')
 const { openLogin, openAccessStep, guardAccess } = require('../../utils/access-gate')
 const { openCustomerServiceChat, customerServiceErrorMessage } = require('../../utils/customer-service')
 const { attachUiAssets } = require('../../services/ui-assets')
@@ -58,8 +59,13 @@ Page({
     seriesTabs: [],
     seriesCourses: [],
     // 「我的课程」两栏：全部课程 / 我的定制课程（未学、已学，按系列分组；utils/my-course-groups.js）
-    myCourseTabs: MY_COURSE_TABS.map((tab) => ({ ...tab, active: tab.id === 'all' })),
-    myCourseTab: 'all',
+    // 闯关学习（2026-11-11）：默认打开「我的定制课程」，画成多邻国式的闯关路径
+    myCourseTabs: MY_COURSE_TABS.map((tab) => ({ ...tab, active: tab.id === 'custom' })),
+    myCourseTab: 'custom',
+    // 闯关路径（utils/quest-path-view.js）：第一次读到前画骨架，读不到给重试；之后静默刷新保留旧路径
+    quest: null,
+    questLoaded: false,
+    questFailed: false,
     customFilter: 'unlearned',
     customView: customCourseView([], 'unlearned'),
     focusCourseId: '',
@@ -158,6 +164,40 @@ Page({
     this.loadEnterpriseContacts()
     await this.refreshLearning()
     if (!this.data.openCard) this.loadCards()
+    this.loadQuest()
+  },
+
+  // 闯关路径：只给已建档的学生读。课程、练习、验收的状态都在课程服务现算。
+  async loadQuest() {
+    if (this.data.access !== 'ready' || !this.data.loaded) return
+    const version = this._questVersion = (this._questVersion || 0) + 1
+    try {
+      const path = normalizeQuestPath(await loadQuestPath())
+      if (version !== this._questVersion) return
+      this.setData({ quest: questPathView(path), questLoaded: true, questFailed: false })
+    } catch (error) {
+      if (version === this._questVersion && !this.data.questLoaded) this.setData({ questFailed: true })
+    }
+  },
+
+  retryQuest() {
+    this.setData({ questFailed: false })
+    return this.loadQuest()
+  },
+
+  openQuestNode(event) {
+    const id = String(event.currentTarget.dataset.id || '')
+    const quest = this.data.quest
+    if (!quest) return
+    let node = null
+    quest.sections.some((section) => (node = section.nodes.find((item) => item.id === id)))
+    const target = nodeTarget(node)
+    if (!target) return
+    if (target.toast) {
+      wx.showToast({ title: target.toast, icon: 'none' })
+      return
+    }
+    wx.navigateTo({ url: target.url })
   },
 
   // 成就卡：只给已建档的学生读（游客、没建档的显示提示卡）。第一次读到前画骨架，之后静默刷新保留旧数据。
@@ -286,7 +326,7 @@ Page({
 
   async onPullDownRefresh() {
     await this.refreshLearning()
-    await this.loadCards()
+    await Promise.all([this.loadCards(), this.loadQuest()])
     wx.stopPullDownRefresh()
   },
 

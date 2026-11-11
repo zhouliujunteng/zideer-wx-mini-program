@@ -8,9 +8,10 @@
  *
  * 课程卡片字段见 utils/agent-course-view.js agentCourseCard（kind / seriesId / seriesTitle / learned）。
  */
+// 2026-11-11 闯关学习：「我的定制课程」排第一、默认打开，画成闯关路径（utils/quest-path-view.js）。
 const MY_COURSE_TABS = [
-  { id: 'all', label: '全部课程' },
-  { id: 'custom', label: '我的定制课程' }
+  { id: 'custom', label: '闯关学习' },
+  { id: 'all', label: '全部课程' }
 ]
 
 const CUSTOM_FILTERS = [

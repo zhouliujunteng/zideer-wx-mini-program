@@ -107,10 +107,33 @@
           </view>
         </view>
 
+        <!-- 闯关学习（2026-11-11）：第一关看课（底部按钮）→ 第二关互动练习（这张卡）→ 第三关 AI 老师验收（下面那张）。
+             以前排的课后作业照旧显示成「课后作业」。图标与验收卡同一套；第一次读到前画骨架 -->
+        <view wx:if="{{course.canLearn}}" class="course-review-section">
+          <view class="course-section-head"><text class="course-section-title">{{homework && homework.homework ? '课后作业' : '第二关 · 互动练习'}}</text></view>
+          <view wx:if="{{!homework}}" class="course-review-card">
+            <view class="course-review-tile sk"></view>
+            <view class="course-review-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid cd-sk-gap"></view></view>
+          </view>
+          <view wx:else class="course-review-card is-{{homework.icon}} {{homework.available ? 'is-available' : ''}}" bindtap="openHomework" role="button" aria-label="{{homework.title}}">
+            <view class="course-review-tile">
+              <view wx:if="{{homework.icon === 'talk'}}" class="review-glyph review-glyph--talk"><view class="review-glyph__dot"></view><view class="review-glyph__dot"></view><view class="review-glyph__dot"></view></view>
+              <view wx:elif="{{homework.icon === 'waiting'}}" class="review-glyph review-glyph--clock"></view>
+              <view wx:elif="{{homework.icon === 'passed'}}" class="review-glyph review-glyph--check"></view>
+              <view wx:else class="review-glyph review-glyph--lock"><view class="review-glyph__shackle"></view><view class="review-glyph__body"></view></view>
+            </view>
+            <view class="course-review-copy">
+              <text class="course-review-title">{{homework.title}}</text>
+              <text class="course-review-text">{{homework.text}}</text>
+            </view>
+            <view wx:if="{{homework.cta}}" class="course-review-cta {{homework.cta === '去做题' || homework.cta === '去闯关' ? 'is-primary' : ''}}">{{homework.cta}}</view>
+          </view>
+        </view>
+
         <!-- 做好的课：两件事分开，先学课程（底部按钮），学完再去验收（2026-09-24 用户规则，「我的课程」卡片上不放验收按钮）。
              没学完时这张卡锁住，与验收页同一口径 -->
         <view class="course-review-section">
-          <view class="course-section-head"><text class="course-section-title">复述验收</text></view>
+          <view class="course-section-head"><text class="course-section-title">{{course.canLearn ? '第三关 · AI 老师验收' : '复述验收'}}</text></view>
           <view class="course-review-card is-{{detail.review.icon}} {{detail.review.available ? 'is-available' : ''}}" bindtap="openAcceptance" role="button" aria-label="{{detail.review.available ? '去验收：' + detail.review.title : detail.review.title}}">
             <!-- 图标按验收进度换（utils/agent-course-view.js REVIEW_ICONS），用 CSS 画在橙色图标块里：
                  对勾只在老师确认通过后出现；锁住时是灰色锁 -->
@@ -133,29 +156,6 @@
           <view wx:if="{{testFinishVisible && course.canLearn}}" class="course-test-finish {{testFinishing ? 'is-busy' : ''}}" bindtap="finishForTest" role="button" aria-label="测试：标记学完，去验收">
             <text class="course-test-finish__tag">测试</text>
             <text class="course-test-finish__label">标记学完，去验收</text>
-          </view>
-        </view>
-
-        <!-- 课后作业（2026-10-13 用户规则）：整节学完后按本课知识点出 3～5 道练习题，做完马上判分。
-             图标与「复述验收」卡同一套；第一次读到前画骨架 -->
-        <view wx:if="{{course.canLearn}}" class="course-review-section">
-          <view class="course-section-head"><text class="course-section-title">课后作业</text></view>
-          <view wx:if="{{!homework}}" class="course-review-card">
-            <view class="course-review-tile sk"></view>
-            <view class="course-review-copy"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid cd-sk-gap"></view></view>
-          </view>
-          <view wx:else class="course-review-card is-{{homework.icon}} {{homework.available ? 'is-available' : ''}}" bindtap="openHomework" role="button" aria-label="{{homework.title}}">
-            <view class="course-review-tile">
-              <view wx:if="{{homework.icon === 'talk'}}" class="review-glyph review-glyph--talk"><view class="review-glyph__dot"></view><view class="review-glyph__dot"></view><view class="review-glyph__dot"></view></view>
-              <view wx:elif="{{homework.icon === 'waiting'}}" class="review-glyph review-glyph--clock"></view>
-              <view wx:elif="{{homework.icon === 'passed'}}" class="review-glyph review-glyph--check"></view>
-              <view wx:else class="review-glyph review-glyph--lock"><view class="review-glyph__shackle"></view><view class="review-glyph__body"></view></view>
-            </view>
-            <view class="course-review-copy">
-              <text class="course-review-title">{{homework.title}}</text>
-              <text class="course-review-text">{{homework.text}}</text>
-            </view>
-            <view wx:if="{{homework.cta}}" class="course-review-cta {{homework.cta === '去做题' ? 'is-primary' : ''}}">{{homework.cta}}</view>
           </view>
         </view>
 

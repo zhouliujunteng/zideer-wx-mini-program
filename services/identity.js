@@ -583,6 +583,12 @@ function requestAgentCourses(path, token, options = {}) {
         SCRIPT_UNAVAILABLE: '话术没有写好，请再点一次。',
         MEETING_NOTE_REQUIRED: '请写一下方便的时间和想解决的问题。',
         TRIAL_MEETING_USED: '这个家庭已经申请过免费诊断会议了。',
+        // 闯关学习（课程服务 lib/course/homework/practice.ts、quest-path.ts，2026-11-11）
+        PRACTICE_REQUIRED: '先把这节课的互动练习闯过去，再来找老师验收。',
+        PRACTICE_STALE: '这道题已经答过了，正在刷新。',
+        PRACTICE_DONE: '这节课的互动练习已经通关了。',
+        PRACTICE_NOT_FOUND: '互动练习还没准备好，请稍后再试。',
+        QUEST_PATH_UNAVAILABLE: '学习路径暂时无法读取，请稍后重试。',
         CHOICES_INVALID: '答案没有对上题目，请刷新后再交一次。',
         HOMEWORK_UNAVAILABLE: '课后作业暂时无法读取，请稍后重试。',
         STUDENT_INVALID: '孩子信息不完整，请刷新后重试。',
@@ -651,7 +657,8 @@ function assertStageId(stageId) {
 async function loadAgentCourseAcceptance(stageId) {
   assertStageId(stageId)
   const token = await getRuntimeToken()
-  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, { fallbackMessage: '验收状态暂时无法读取，请稍后重试。' })
+  // practiceFirst（闯关学习，2026-11-11）：附上互动练习通关没有；没通关时验收页先引导去做练习
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance?practiceFirst=1`, token, { fallbackMessage: '验收状态暂时无法读取，请稍后重试。' })
 }
 
 /** message 为空：开始或继续验收（验收智能体先提问）。回答要等模型，超时放宽到 60 秒。 */
@@ -659,7 +666,7 @@ async function sendAgentCourseAcceptance(stageId, message = '') {
   assertStageId(stageId)
   const token = await getRuntimeToken()
   return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, {
-    method: 'POST', data: { message: String(message || '') }, timeout: 60000, fallbackMessage: '验收暂时无法继续，请稍后重试。'
+    method: 'POST', data: { message: String(message || ''), practiceFirst: true }, timeout: 60000, fallbackMessage: '验收暂时无法继续，请稍后重试。'
   })
 }
 
@@ -719,6 +726,42 @@ async function retryAgentCourseHomework(stageId) {
   return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/homework`, token, {
     method: 'POST', data: { action: 'retry' }, timeout: 20000, fallbackMessage: '没有重新出题，请稍后再试。'
   })
+}
+
+/**
+ * 互动练习（闯关学习第二关，课程服务 lib/course/homework/practice.ts，2026-11-11）：
+ * 返回 { practice: { kind, status: locked / preparing / ready / failed / done, questions, progress, review } }。
+ * 一屏一道：answerAgentCoursePractice 答当前这道，返回 { correct, answer, explanation, practice }。
+ */
+async function loadAgentCoursePractice(stageId) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/homework?practice=1`, token, {
+    timeout: 20000, fallbackMessage: '互动练习暂时无法读取，请稍后重试。'
+  })
+}
+
+async function answerAgentCoursePractice(stageId, index, response) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/homework?practice=1`, token, {
+    method: 'POST', data: { action: 'answer', index: Number(index), response }, timeout: 20000, fallbackMessage: '没有提交上去，请再点一次。'
+  })
+}
+
+async function retryAgentCoursePractice(stageId) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/homework?practice=1`, token, {
+    method: 'POST', data: { action: 'retry' }, timeout: 20000, fallbackMessage: '没有重新出题，请稍后再试。'
+  })
+}
+
+/** 学习页闯关路径（课程服务 /api/learn/quest-path）：{ path: { goal, stages, current, stats } }。 */
+async function loadQuestPath() {
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses('/api/learn/quest-path', token, { timeout: 20000, fallbackMessage: '学习路径暂时无法读取，请稍后重试。' })
+  return data && data.path
 }
 
 /** 家长学生看板「作业动态」：一个绑定孩子最近 60 天的课后作业（课程服务按家长绑定校验）。 */
@@ -4606,6 +4649,10 @@ async function requestK12Assessment(payload) {
 }
 
 module.exports = {
+  loadAgentCoursePractice,
+  answerAgentCoursePractice,
+  retryAgentCoursePractice,
+  loadQuestPath,
   getStoredToken,
   hasSession,
   isProfileRequired,
