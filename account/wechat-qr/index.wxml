@@ -1,0 +1,38 @@
+<!-- 我的微信二维码：说明 + 预览 + 上传。样式照「我的代理身份」（account/agent-identity）那一系。 -->
+<view class="qr-page">
+  <view class="qr-ambient" aria-hidden="true"></view>
+  <view class="qr-topbar">
+    <view class="qr-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="qr-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="qr-back-icon"></view></view>
+      <text class="qr-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">我的微信二维码</text>
+    </view>
+  </view>
+
+  <scroll-view class="qr-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="qr-shell">
+      <view class="qr-card qr-intro">
+        <text class="qr-intro-title">{{fromMembership ? '开通会员前，请先上传你的微信二维码' : '上传你的微信加好友二维码'}}</text>
+        <text class="qr-intro-copy">开通会员后，知鹿客服和为孩子服务的导师妈妈会通过它加你微信。打开微信「我 › 头像旁的二维码」截图上传即可，二维码只给客服和你的导师妈妈看。</text>
+      </view>
+
+      <view wx:if="{{loadFailed}}" class="qr-card qr-state">
+        <text class="qr-state-text">{{errorMessage}}</text>
+        <view class="qr-button" bindtap="retry" aria-role="button">重新读取</view>
+      </view>
+      <view wx:elif="{{!loaded}}" class="qr-card qr-state">
+        <view class="sk qr-sk-image"></view>
+        <view class="sk qr-sk-button"></view>
+      </view>
+      <view wx:else class="qr-card qr-state">
+        <view wx:if="{{previewSrc}}" class="qr-preview" bindtap="preview" aria-role="button" aria-label="查看大图">
+          <image class="qr-preview-image" src="{{previewSrc}}" mode="aspectFit"></image>
+        </view>
+        <view wx:elif="{{uploaded}}" class="qr-placeholder"><text>已上传</text></view>
+        <view wx:else class="qr-placeholder" bindtap="choose" aria-role="button"><view class="qr-plus"></view><text>还没有上传</text></view>
+        <text wx:if="{{uploaded && uploadedText}}" class="qr-state-text">{{uploadedText}} 上传</text>
+        <view class="qr-button {{uploading ? 'is-disabled' : ''}}" bindtap="choose" aria-role="button">{{uploading ? '上传中…' : uploaded ? '重新上传' : '上传二维码'}}</view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+<dev-reset-fab />

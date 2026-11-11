@@ -1,4 +1,4 @@
-const { loadCurrentMembership, createMembershipOrder, payWechatOrder, isWechatPaymentCancelled, loadMeDashboard } = require('../../services/identity')
+const { loadCurrentMembership, createMembershipOrder, payWechatOrder, isWechatPaymentCancelled, loadMeDashboard, loadFamilyWechatQr } = require('../../services/identity')
 const { membershipView, benefitCards, dateText, creditsText, priceText } = require('../../services/membership-view')
 const { attachUiAssets } = require('../../services/ui-assets')
 const { checkPaymentPage, showPaymentClosed, isPaymentDisabled, leavePaymentPage, openPaymentPage } = require('../../services/payment-switch')
@@ -159,8 +159,30 @@ Page({
     }, 280)
   },
   // 未开通时开通、已开通时升级，都是下一笔会员订单；等级是否比已有的高由服务端判定（MEMBERSHIP_TIER_NOT_HIGHER）。
+  // 付款前必须上传本人的微信加好友二维码（2026-11-11 用户规则）：没传就去上传页，传完回来再点开通；读不到不放行。
+  async requireWechatQr() {
+    try {
+      const state = await loadFamilyWechatQr()
+      if (state.uploaded) return true
+    } catch (error) {
+      wx.showToast({ title: error.message || '微信二维码状态暂时读不到，请稍后重试。', icon: 'none' })
+      return false
+    }
+    wx.showModal({
+      title: '先上传你的微信二维码',
+      content: '开通会员后，客服和导师妈妈会通过它加你微信，为孩子服务。',
+      confirmText: '去上传',
+      confirmColor: '#FD7C02',
+      success: (res) => { if (res.confirm) wx.navigateTo({ url: '/account/wechat-qr/index?from=membership' }) }
+    })
+    return false
+  },
   async purchase() {
     if (this._paying || this.data.confirming || this.data.loading || this.data.error || !this.data.membership || !this.data.selectedTierId) return
+    if (this._checkingQr) return
+    this._checkingQr = true
+    const qrReady = await this.requireWechatQr().finally(() => { this._checkingQr = false })
+    if (!qrReady) return
     const selectedTierId = this.data.selectedTierId
     this._paying = true
     this.stopPolling()

@@ -29,6 +29,7 @@
 .balance-eyebrow{font-size:17px;font-weight:700;line-height:1.25}
 .balance-value{margin-top:8px;font-size:57px;font-weight:500;letter-spacing:-2px;line-height:.95}
 .balance-icon{width:120px;height:122px;margin:-3px 2px 0 9px}
+.balance-family{margin-top:7px;font-size:13px;line-height:1.3}
 .balance-debt{margin-top:8px;font-size:13px;font-weight:600;line-height:1.3}
 .usage-rules{gap:0;padding:9px 0 0;font-size:12px;line-height:1.2}
 .usage-rules-frozen{margin-right:14px}

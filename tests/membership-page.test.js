@@ -13,7 +13,8 @@ function setup(overrides = {}, storage = new Map()) {
   const timers = new Map()
   const navigations = []
   let id = 0
-  const api = { loadCurrentMembership: async () => pending, createMembershipOrder: async () => pending,
+  // 付款前必传微信二维码（2026-11-11）：默认已上传
+  const api = { loadFamilyWechatQr: async () => ({ uploaded: true, uploadedAt: '2026-11-11T02:00:00Z' }), loadCurrentMembership: async () => pending, createMembershipOrder: async () => pending,
     payWechatOrder: async () => {}, isWechatPaymentCancelled: e => /cancel/.test(e.errMsg || ''), ...overrides }
   const paymentSwitch = paymentSwitchStub({ navigateTo: o => navigations.push(o.url) }, { enabled: overrides.paymentEnabled !== false })
   const webPay = webPayStub({ navigateTo: o => navigations.push(o.url) }, { android: overrides.android === true })
@@ -59,6 +60,8 @@ test('repeated tap cannot create two orders or invoke two payments', async () =>
   let pays = 0
   const { page } = setup({ createMembershipOrder: () => { creates++; return new Promise(r => { resolve = r }) }, payWechatOrder: async () => { pays++ } })
   const first = page.purchase()
+  // 付款前先核对微信二维码（异步）：等下单真正发出去再点第二次
+  for (let i = 0; i < 10 && !resolve; i += 1) await Promise.resolve()
   await page.purchase()
   resolve(pending)
   await first
@@ -321,4 +324,16 @@ test('2026-11-10: a child covered by a parent membership is shown as a family me
   assert.equal(view.shared, true)
   assert.equal(view.statusLabel, '家长已开通，全家共用')
   assert.equal(view.giftCreditsText, '课程积分在家长名下，全家共用')
+})
+
+test('2026-11-11: paying needs the parent WeChat QR first; without it no order is created and the upload page opens', async () => {
+  let creates = 0
+  const modals = []
+  const { page, navigations } = setup({ loadFamilyWechatQr: async () => ({ uploaded: false }), createMembershipOrder: async () => { creates++; return pending },
+    wx: { showModal: (options) => { modals.push(options.title); options.success({ confirm: true }) } } })
+  await page.onShow()
+  await page.purchase()
+  assert.equal(creates, 0)
+  assert.deepEqual(modals, ['先上传你的微信二维码'])
+  assert.ok(navigations.includes('/account/wechat-qr/index?from=membership'), JSON.stringify(navigations))
 })

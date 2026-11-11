@@ -20,9 +20,10 @@
         <view class="points-overview">
           <view class="points-overview-main">
             <view class="points-overview-copy">
-              <text class="balance-eyebrow">当前可用积分</text>
+              <text class="balance-eyebrow">{{model.familyNote ? '家庭可用积分' : '当前可用积分'}}</text>
               <text wx:if="{{loaded}}" class="balance-value">{{model.balance.available}}</text>
               <view wx:else class="sk balance-value-skeleton"></view>
+              <text wx:if="{{loaded && model.familyNote}}" class="balance-family">{{model.familyNote}}</text>
               <text wx:if="{{loaded && model.balance.debt}}" class="balance-debt">待补扣 {{model.balance.debt}} 积分 · 获得积分后自动扣除</text>
               <view class="usage-rules" bindtap="handleUsageRules" aria-label="查看使用规则" aria-role="button"><text wx:if="{{loaded}}" class="usage-rules-frozen">冻结中：{{model.balance.frozen}}</text><view wx:else class="usage-rules-frozen"><text>冻结中：</text><view class="sk sk-inline frozen-skeleton"></view></view><text class="usage-rules-label">使用规则</text><view class="usage-rules-icon"></view></view>
             </view>

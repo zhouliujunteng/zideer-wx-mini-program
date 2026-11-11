@@ -1013,6 +1013,48 @@ async function loadAgentIdentity() {
 }
 
 /**
+ * 家长微信加好友二维码（2026-11-11 用户规则，课程服务 /api/learn/family-wechat-qr）：开会员付款前必须上传，
+ * 客服和接单的导师妈妈用它加家长微信。一个账号一张，重新上传覆盖。
+ */
+async function loadFamilyWechatQr() {
+  const token = await getRuntimeToken()
+  const result = await requestAgentCourses('/api/learn/family-wechat-qr', token, { fallbackMessage: '微信二维码状态暂时读不到，请稍后重试。' })
+  return { uploaded: result && result.uploaded === true, uploadedAt: result && result.uploadedAt || '' }
+}
+
+// 本人上传过的二维码存成本地文件给 <image> 预览（课程服务只回 JPEG 字节）
+async function downloadFamilyWechatQr() {
+  const token = await getRuntimeToken()
+  const filePath = `${wx.env.USER_DATA_PATH}/family-wechat-qr.jpg`
+  const bytes = await new Promise((resolve, reject) => wx.request({
+    url: `${coursePortalOrigin()}/api/learn/family-wechat-qr?image=1`, method: 'GET', timeout: 20000,
+    header: { authorization: `Bearer ${token}` }, responseType: 'arraybuffer',
+    success(response) {
+      if (response.statusCode === 200 && response.data && response.data.byteLength) return resolve(response.data)
+      reject(new Error('二维码暂时读不到，请稍后重试。'))
+    },
+    fail(error) { reject(courseConnectionError(error)) }
+  }))
+  wx.getFileSystemManager().writeFileSync(filePath, bytes)
+  return filePath
+}
+
+async function uploadFamilyWechatQr(filePath) {
+  const file = await readLocalFile(filePath).catch(() => null)
+  const bytes = file && file.data
+  if (!bytes || !bytes.byteLength) throw new Error('图片读取失败，请重新选择。')
+  if (bytes.byteLength > 8 * 1024 * 1024) throw new Error('图片太大了，请换一张截图。')
+  const extension = String(filePath).split('.').pop().toLowerCase()
+  const contentType = extension === 'png' ? 'image/png' : extension === 'webp' ? 'image/webp' : 'image/jpeg'
+  const response = await requestCourseUpload('/api/learn/family-wechat-qr', { bytes, fileName: `wechat-qr.${extension === 'png' || extension === 'webp' ? extension : 'jpg'}`, contentType })
+  if (response.statusCode !== 201 || !response.data || response.data.uploaded !== true) {
+    const code = response.data && response.data.code
+    throw new Error(code === 'IMAGE_INVALID' ? '这张图片打不开，请换一张截图。' : code === 'FILE_TOO_LARGE' ? '图片太大了，请换一张截图。' : code === 'LOGIN_REQUIRED' ? '请重新登录后再上传。' : '上传没有成功，请稍后重试。')
+  }
+  return { uploaded: true, uploadedAt: response.data.uploadedAt || '' }
+}
+
+/**
  * 爱心妈妈 / 团长绑定家庭（2026-11-10，课程服务 /api/learn/agent-family）：输入家长用户 ID，先看是谁再确认；绑定后自己不能改。
  * 回包 { canBind, families: [{ publicId, name, boundAt, children: [{ name, grade }] }] }。
  */
@@ -4318,6 +4360,8 @@ async function loadCurrentCreditAccount(studentId) {
     studentId: payload.studentId || null,
     viewer: { studentId: viewerId || null, isSelf: !targetId || viewerId === targetId },
     student: payload.student ? { id: String(payload.student.id), name: ledgerProfileName(payload.student, '') } : null,
+    // 2026-11-11 全家共用：家长的会员为这个孩子出积分时，下面的余额、批次、流水是家长名下的家庭账户
+    family: payload.family ? { profileId: String(payload.family.profileId), name: ledgerProfileName(payload.family.profile || {}, '家长') } : null,
     account: {
       status: account.status || 'inactive',
       available: roundedCredits(account.available_credits),
@@ -4567,6 +4611,9 @@ module.exports = {
   loadLearningPreference,
   loadAgentIdentity,
   loadAgentFamilies,
+  loadFamilyWechatQr,
+  downloadFamilyWechatQr,
+  uploadFamilyWechatQr,
   lookupAgentFamily,
   bindAgentFamily,
   loadAgentApplication,

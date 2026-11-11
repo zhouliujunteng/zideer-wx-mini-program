@@ -42,6 +42,7 @@
         "parent-reports/index",
         "about/index",
         "agent-identity/index",
+        "wechat-qr/index",
         "agreement/index"
       ]
     },

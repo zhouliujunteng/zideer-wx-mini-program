@@ -24,6 +24,7 @@ page { background: #FAFAFA; }
 .balance-eyebrow { display: block; color: #24332D; font-size: 29rpx; font-weight: 700; line-height: 1.25; }
 .balance-value { display: block; margin-top: 14rpx; color: #24332D; font-size: 96rpx; font-weight: 500; letter-spacing: -2rpx; line-height: .95; }
 .balance-icon { display: block; flex: 0 0 auto; width: 200rpx; height: 204rpx; margin: -4rpx 4rpx 0 16rpx; transform: rotate(8deg); }
+.balance-family { display: block; margin-top: 12rpx; color: #7E8A82; font-size: 23rpx; line-height: 1.3; }
 .balance-debt { display: block; margin-top: 14rpx; color: #E56F00; font-size: 23rpx; font-weight: 600; line-height: 1.3; }
 .usage-rules { display: flex; align-items: center; justify-content: flex-start; gap: 0; padding: 16rpx 0 0; color: #98A49C; font-size: 21rpx; line-height: 1.2; }
 .usage-rules-frozen { margin-right: 24rpx; }

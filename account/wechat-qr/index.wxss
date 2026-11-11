@@ -1,0 +1,38 @@
+@import "../../styles/skeleton.wxss";
+/* 我的代理身份：照「关于知鹿」（account/about）的顶栏、小节标题与白色大圆角行卡片，氛围光换成主题橙。 */
+page { background: #FAFAFA; }
+
+.qr-page { position: relative; height: 100vh; overflow: hidden; background: #FAFAFA; color: #24332D; }
+.qr-ambient { position: fixed; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(125% 52% at 100% 0, rgba(255, 222, 190, .84) 0%, rgba(255, 236, 218, .48) 40%, rgba(250, 250, 250, 0) 76%), #FAFAFA; }
+.qr-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: transparent; }
+.qr-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.qr-back { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 54rpx; height: 54rpx; border-radius: 50%; }
+.qr-back:active { background: #F0F2EF; }
+.qr-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+.qr-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 36rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.qr-scroll { position: relative; z-index: 1; height: 100vh; box-sizing: border-box; background: transparent; }
+.qr-shell { min-height: 100%; padding: 0 32rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+.qr-card { margin-top: 22rpx; padding: 28rpx; border-radius: 36rpx; background: #fff; }
+.qr-shell > .qr-card:first-child { margin-top: 20rpx; }
+.qr-intro-title { display: block; color: #24332D; font-size: 30rpx; font-weight: 700; line-height: 1.4; }
+.qr-intro-copy { display: block; margin-top: 14rpx; color: #7E8A82; font-size: 24rpx; line-height: 1.6; }
+.qr-state { display: flex; flex-direction: column; align-items: center; gap: 22rpx; text-align: center; }
+.qr-state-text { color: #7E8A82; font-size: 23rpx; line-height: 1.5; }
+.qr-preview { width: 420rpx; height: 420rpx; border-radius: 24rpx; overflow: hidden; background: #F5F7F5; }
+.qr-preview-image { width: 100%; height: 100%; }
+.qr-placeholder { display: flex; width: 420rpx; height: 420rpx; flex-direction: column; align-items: center; justify-content: center; gap: 16rpx; box-sizing: border-box; border: 3rpx dashed #D3D9D4; border-radius: 24rpx; color: #9AA39C; font-size: 24rpx; }
+.qr-plus { position: relative; width: 56rpx; height: 56rpx; }
+.qr-plus::before, .qr-plus::after { position: absolute; top: 50%; left: 50%; width: 56rpx; height: 5rpx; border-radius: 4rpx; background: #B0B8B2; content: ''; transform: translate(-50%, -50%); }
+.qr-plus::after { transform: translate(-50%, -50%) rotate(90deg); }
+.qr-button { min-width: 320rpx; padding: 0 40rpx; height: 84rpx; border-radius: 999rpx; background: #FD7C02; color: #fff; font-size: 28rpx; font-weight: 600; line-height: 84rpx; text-align: center; }
+.qr-button:active { opacity: .7; }
+.qr-button.is-disabled { opacity: .5; }
+.qr-sk-image { width: 420rpx; height: 420rpx; border-radius: 24rpx; }
+.qr-sk-button { width: 320rpx; height: 84rpx; border-radius: 999rpx; }
+
+@media (min-width: 450px) {
+  page { --lg-col: 760px; }
+}
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

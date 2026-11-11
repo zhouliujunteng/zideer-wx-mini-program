@@ -184,6 +184,7 @@ Page({
       this.batches = data.batches || []
       this.viewer = data.viewer || { isSelf: true }
       this.student = data.student || null
+      this.family = data.family || null
       const firstLoad = !this.data.loaded
       this.applyModel(this.data.activeTab)
       // 批次区在首次读到后才出现，记录卡位置下移，重新量一次高度
@@ -202,6 +203,8 @@ Page({
       recordTabs: recordTabsFor(tabId),
       model: {
         title: this.viewer && this.viewer.isSelf === false && this.student && this.student.name ? `${this.student.name}的课程积分` : '课程积分',
+        // 2026-11-11：孩子由家长的会员出积分时显示家庭账户（家长名下，全家共用）
+        familyNote: this.family ? `家庭账户 · ${this.family.name}名下，全家共用` : '',
         balance: {
           available: account.available != null ? String(account.available) : '—',
           frozen: account.frozen != null ? String(account.frozen) : '—',
