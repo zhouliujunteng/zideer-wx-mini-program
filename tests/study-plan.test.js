@@ -479,7 +479,7 @@ test('tapping a teacher task starts the course at its first unlearned page', () 
     '/learning/course/index?agentCourseId=stage-b&sceneId=b3',
     '/learning/agent-course/index?stageId=stage-a'
   ])
-  assert.match(read('pages/learning/index.wxml'), /data-kind="\{\{item\.kind\}\}" data-stage-id="\{\{item\.stageId\}\}" data-scene-id="\{\{item\.sceneId\}\}" data-done="\{\{item\.done\}\}" bindtap="openTask"/)
+  // 2026-11-11 起学习页不再显示「学习任务」列表（只留闯关学习），openTask 保留给以后的入口
 })
 
 // 间隔复习（2026-10-08）：复习任务排在当天最前面，点进去做复习小测；老师看到但不能挪、不能删。

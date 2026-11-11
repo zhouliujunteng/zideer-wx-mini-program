@@ -1060,4 +1060,10 @@ page {
 .icon-chest-open::before { background: #FFFFFF; }
 .icon-chest-open::after { position: absolute; top: -4rpx; left: 2rpx; width: 48rpx; height: 14rpx; border-radius: 12rpx 12rpx 2rpx 2rpx; background: #FFF4C7; content: ''; transform: rotate(-16deg); }
 
+/* 2026-11-11 学习页去掉了左栏（日历、今日统计、学习任务）：大屏不再分两栏，闯关路径居中铺开 */
+@media (min-width:450px) {
+.learning-page .page-shell { display:block; }
+.learning-page .my-courses-section { max-width:720px; margin-left:auto; margin-right:auto; }
+}
+
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

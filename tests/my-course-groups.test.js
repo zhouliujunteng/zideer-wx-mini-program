@@ -135,14 +135,8 @@ test('学习页「我的课程」switches to 我的定制课程 and between 未�
   page.scheduleProgressPolling = () => {}
   page.applyAgentCourseFocus = () => {}
   await page.refreshLearning(true)
-  // 2026-11-11 闯关学习：默认打开「闯关学习」（我的定制课程），可切到全部课程再切回来
+  // 2026-11-11 用户要求：学习页只留闯关学习，没有「全部课程」栏
   assert.equal(page.data.myCourseTab, 'custom')
-  assert.equal(page.data.visibleMyCourses.length, 3)
-  page.switchMyCourseTab({ currentTarget: { dataset: { id: 'all' } } })
-  assert.deepEqual(page.data.myCourseTabs.map((tab) => tab.active), [false, true])
-  page.switchMyCourseTab({ currentTarget: { dataset: { id: 'custom' } } })
-  assert.equal(page.data.myCourseTab, 'custom')
-  assert.deepEqual(page.data.myCourseTabs.map((tab) => tab.active), [true, false])
   assert.deepEqual(page.data.customView.groups.map((group) => group.title), ['分数加减法', '单节课程'])
   page.switchCustomFilter({ currentTarget: { dataset: { id: 'learned' } } })
   assert.deepEqual(page.data.customView.groups.map((group) => group.courses.map((item) => item.stageId)), [['stage-a1']])
@@ -153,9 +147,8 @@ test('学习页「我的课程」switches to 我的定制课程 and between 未�
   assert.equal(page.data.customFilter, 'learned', '搜索不重置已选的状态')
 
   const wxml = read('pages/learning/index.wxml')
-  assert.match(wxml, /bindtap="switchMyCourseTab"/)
+  assert.doesNotMatch(wxml, /bindtap="switchMyCourseTab"/)
   assert.match(wxml, /bindtap="switchCustomFilter"/)
-  assert.match(wxml, /class="more-course-series"/)
 })
 
 test('课程库 page filters my courses by series', async () => {
