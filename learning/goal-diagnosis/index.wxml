@@ -8,7 +8,7 @@
   <view class="pref-topbar">
     <view class="pref-topbar-inner" style="padding-top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
       <view class="pref-back" bindtap="handleBack" aria-role="button" aria-label="返回上一页"><view class="pref-back-icon"></view></view>
-      <text class="pref-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{teacher ? '学生目标导图' : '按目标测评'}}</text>
+      <text class="pref-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{teacher ? '学生目标导图' : (diagnosis && diagnosis.basic ? '免费基础测评' : '按目标测评')}}</text>
     </view>
   </view>
 

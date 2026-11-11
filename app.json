@@ -139,6 +139,7 @@
         "settlement-application/index",
         "partner-apply/index",
         "bind-family/index",
+        "family-trial/index",
         "team-apply/index"
       ]
     },

@@ -45,12 +45,16 @@
           <view class="bf-heading">我绑定的家庭 · {{families.length}}</view>
           <view class="bf-card">
             <view wx:if="{{!families.length}}" class="bf-state"><text class="bf-state-text">还没有绑定家庭。</text></view>
-            <view wx:for="{{families}}" wx:key="publicId" class="bf-row">
+            <view wx:for="{{families}}" wx:key="publicId" class="bf-row" bindtap="openFamily" data-id="{{item.publicId}}" aria-role="button">
               <view class="bf-candidate-copy">
                 <text class="bf-name">{{item.name}}</text>
                 <text class="bf-sub">ID {{item.publicId}} · 孩子：{{item.childrenText}}</text>
+                <text class="bf-trial">免费体验：测评 · 诊断会议 · 3 节课</text>
               </view>
-              <text class="bf-date">{{item.dateText}}</text>
+              <view class="bf-row-side">
+                <text class="bf-date">{{item.dateText}}</text>
+                <view class="bf-arrow"></view>
+              </view>
             </view>
           </view>
         </view>

@@ -47,6 +47,7 @@
         <!-- 还没定目标 -->
         <view wx:if="{{view === 'no_goal'}}" class="goal-card goal-state">
           <view class="goal-ring is-big"><view class="goal-ring-dot"></view></view>
+          <text wx:if="{{trialOffered}}" class="goal-trial-badge">已为你开通一次免费基础测评</text>
           <text class="goal-state-title">先定一个学习目标</text>
           <text class="goal-state-copy">围绕目标测一轮，找出卡在哪里；老师按目标导图给你定制课程，课会挂在每个卡点下面。</text>
           <view class="goal-primary" bindtap="openGoal" aria-role="button">去定目标</view>
@@ -54,12 +55,13 @@
         </view>
 
         <view wx:elif="{{view === 'start'}}" class="goal-card">
-          <text class="goal-card-title">{{goalChanged ? '目标改过了，按新目标测一轮' : '围绕你的目标，做一轮测评'}}</text>
+          <text wx:if="{{trialOffered}}" class="goal-trial-badge">免费基础测评 · 约 10～15 分钟</text>
+          <text class="goal-card-title">{{trialOffered ? '围绕你的目标，做一次基础测评' : (goalChanged ? '目标改过了，按新目标测一轮' : '围绕你的目标，做一轮测评')}}</text>
           <view class="goal-steps">
             <view wx:for="{{steps}}" wx:key="no" class="goal-step"><view class="goal-step-no">{{item.no}}</view><view class="goal-step-copy"><text class="goal-step-title">{{item.title}}</text><text class="goal-step-desc">{{item.desc}}</text></view></view>
           </view>
           <view class="goal-primary goal-primary-wide" bindtap="startDiagnosis" aria-role="button">开始测评</view>
-          <text class="goal-foot">不用一次做完，随时可以先停下，下次接着测。</text>
+          <text class="goal-foot">{{trialOffered ? '题不多，做完马上出结果；没测到的知识点会标出来。' : '不用一次做完，随时可以先停下，下次接着测。'}}</text>
         </view>
 
         <block wx:elif="{{view === 'testing'}}">

@@ -57,6 +57,11 @@ Page({
     if (getCurrentPages().length > 1) return wx.navigateBack({ delta: 1 })
     wx.switchTab({ url: '/pages/me/index' })
   },
+  // 点一个家庭：进免费体验（免费测评、报告与话术、诊断会议、免费课），2026-11-11
+  openFamily(event) {
+    const id = event.currentTarget.dataset.id
+    if (id) wx.navigateTo({ url: `/agent/family-trial/index?guardianPublicId=${id}` })
+  },
   handleInput(event) {
     this.setData({ publicId: String(event.detail.value || '').replace(/\D/g, ''), lookupError: '', candidate: null })
   },

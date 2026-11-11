@@ -13,64 +13,81 @@
 .bean-loader view{width:14px;height:14px;border-radius:50%}
 .bean-loader.is-small{height:28px;margin-bottom:6px}
 .bean-loader.is-small view{width:10px;height:10px}
-.goal-page{height:100vh}
+.goal-page{height:100vh;font-size:14px;line-height:1.5}
 .goal-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
-.goal-topbar-inner{box-sizing:content-box}
+.goal-topbar-inner{box-sizing:content-box;padding:0 18px 8px}
+.goal-topbar-title{font-size:18px;font-weight:700;line-height:1}
 .goal-scroll{height:100vh;box-sizing:border-box}
-.goal-shell{box-sizing:border-box;max-width:680px;margin:0 auto}
-.goal-card{margin-bottom:14px;border-radius:22px;box-shadow:0 3px 14px rgba(56,75,64,.025)}
-.goal-card-sub{margin-top:4px}
+.goal-shell{box-sizing:border-box;max-width:680px;margin:0 auto;padding:4px 16px calc(110px + env(safe-area-inset-bottom))}
+.goal-card{margin-bottom:14px;padding:18px;border-radius:22px;box-shadow:0 3px 14px rgba(56,75,64,.025)}
+.goal-card-title{font-size:16px;font-weight:700}
+.goal-card-sub{margin-top:4px;font-size:11px;line-height:1.6}
 .goal-sk-gap{margin-top:12px}
 .goal-sk-map{height:320px;border-radius:16px}
 .goal-sk-row{height:54px;margin-top:10px;border-radius:14px}
-.goal-sample-banner{margin-bottom:12px;border-radius:16px}
-.goal-sample-tag{border-radius:999px}
-.goal-sample-copy{min-width:0}
+.goal-sample-banner{margin-bottom:12px;padding:10px 14px;border-radius:16px}
+.goal-sample-tag{padding:1px 8px;border-radius:999px;font-size:11px;font-weight:650}
+.goal-sample-copy{min-width:0;font-size:12px}
+.goal-sample-action{font-size:12px;font-weight:650}
+.goal-goal-badge{font-size:12px;font-weight:650}
+.goal-history-link{font-size:12px}
 .goal-ring{width:16px;height:16px;box-sizing:border-box;border:2px solid #FD7C02;border-radius:50%}
 .goal-ring-dot{width:6px;height:6px;border-radius:50%}
 .goal-ring.is-big{width:46px;height:46px;margin-bottom:14px;border-width:4px}
 .goal-ring.is-big .goal-ring-dot{width:16px;height:16px}
-.goal-goal-text{margin-top:10px}
+.goal-goal-text{margin-top:10px;font-size:16px;font-weight:650;line-height:1.6}
 .goal-goal-tags{margin-top:12px}
-.goal-tag{border-radius:999px}
-.goal-tag-link{margin-left:auto}
-.goal-state-copy{margin-top:6px}
-.goal-primary{border-radius:999px}
+.goal-tag{padding:3px 10px;border-radius:999px;font-size:11px}
+.goal-tag-state{font-weight:600}
+.goal-tag-link{margin-left:auto;font-size:12px}
+.goal-state{padding:28px 22px 24px}
+.goal-state-title{font-size:16px;font-weight:700}
+.goal-state-copy{margin-top:6px;font-size:12px;line-height:1.75}
+.goal-primary{padding:10px 24px;border-radius:999px;font-size:14px;font-weight:650}
 .goal-state .goal-primary{margin-top:18px}
 .goal-primary-wide{margin-top:16px}
-.goal-ghost-btn{margin-top:12px;border-radius:999px}
-.goal-ghost-link{margin-top:12px}
-.goal-foot{margin-top:10px}
+.goal-ghost-btn{margin-top:12px;padding:10px 24px;border-radius:999px;font-size:14px;font-weight:650}
+.goal-ghost-link{margin-top:12px;font-size:12px}
+.goal-foot{margin-top:10px;font-size:11px}
 .goal-steps{margin-top:12px}
-.goal-step-no{width:24px;height:24px;border-radius:50%}
+.goal-step{padding:8px 0}
+.goal-step-no{width:24px;height:24px;border-radius:50%;font-size:12px;font-weight:700;line-height:24px}
 .goal-step-copy{min-width:0}
-.goal-step-desc{margin-top:2px}
+.goal-step-title{font-size:14px;font-weight:650}
+.goal-step-desc{margin-top:2px;font-size:12px}
 .goal-testing-copy{min-width:0}
 .goal-testing .goal-state-copy{margin-top:2px}
 .goal-beans{width:52px;margin-bottom:0}
 .goal-summary{margin-bottom:14px}
-.goal-summary-item{min-width:0;border-radius:18px;box-shadow:0 3px 14px rgba(56,75,64,.025)}
-.goal-summary-label{margin-top:4px}
-.goal-scope{margin:-4px 4px 14px}
-.goal-path-item{border-bottom:1px solid #F2F3F1}
+.goal-summary-item{min-width:0;padding:14px 12px 12px;border-radius:18px;box-shadow:0 3px 14px rgba(56,75,64,.025)}
+.goal-summary-num{font-size:24px;font-weight:750;line-height:1.2}
+.goal-summary-label{margin-top:4px;font-size:11px}
+.goal-scope{margin:-4px 4px 14px;font-size:12px;line-height:1.6}
+.goal-path-card{padding-bottom:10px}
+.goal-path-item{padding:12px 0;border-bottom:1px solid #F2F3F1}
 .goal-path-item:last-child{border-bottom:0}
-.goal-path-no{width:24px;height:24px;border-radius:50%}
-.goal-path-label{min-width:0}
-.goal-root-tag{border-radius:999px}
+.goal-path-no{width:24px;height:24px;border-radius:50%;font-size:12px;font-weight:700;line-height:24px}
+.goal-path-label{min-width:0;font-size:14px;font-weight:650}
+.goal-root-tag{padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:600}
+.goal-grade{font-size:11px}
 .goal-path-courses{margin:8px 0 0 34px}
-.goal-course{margin-top:6px;border-radius:14px}
+.goal-course{margin-top:6px;padding:10px 12px;border-radius:14px}
 .goal-course-icon{width:24px;height:24px;border-radius:7px}
 .goal-course-icon::after{left:9px;top:7px;border-left:8px solid #FFF;border-top:5px solid transparent;border-bottom:5px solid transparent}
-.goal-course-title{min-width:0}
-.goal-path-wait{margin:6px 0 0 34px}
+.goal-course-title{min-width:0;font-size:13px;font-weight:650}
+.goal-course-go{font-size:12px}
+.goal-path-wait{margin:6px 0 0 34px;font-size:11px}
+.goal-actions{padding:0 2px}
 .goal-sheet-mask{left:max(0px, 50% - var(--lg-col) / 2);right:max(0px, 50% - var(--lg-col) / 2);top:0;bottom:0;box-shadow:0 0 0 100vmax rgba(24,32,28,.32)}
-.goal-sheet{box-sizing:border-box;width:100%;max-width:680px;border-radius:24px 24px 0 0}
+.goal-sheet{box-sizing:border-box;width:100%;max-width:680px;padding:10px 20px calc(20px + env(safe-area-inset-bottom));border-radius:24px 24px 0 0}
 .goal-sheet-handle{width:36px;height:4px;margin:0 auto 14px;border-radius:2px}
 .goal-history-empty{margin:16px 0 8px}
 .goal-history-list{max-height:60vh;margin-top:8px}
-.goal-history-item{margin-top:8px;border-radius:14px}
+.goal-history-item{margin-top:8px;padding:12px 14px;border-radius:14px}
 .goal-history-main{min-width:0}
-.goal-history-meta{margin-top:2px}
+.goal-history-title{font-size:14px;font-weight:650}
+.goal-history-meta{margin-top:2px;font-size:11px}
 .goal-chevron{width:7px;height:7px;border-top:1.5px solid #B8C0BA;border-right:1.5px solid #B8C0BA}
 .goal-shell{max-width:1040px}
+.goal-trial-badge{margin-bottom:8px;padding:3px 10px;border-radius:599px;font-size:13px;font-weight:600}
 }

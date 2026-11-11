@@ -575,6 +575,14 @@ function requestAgentCourses(path, token, options = {}) {
         INVALID_PHONE: '请输入正确的 11 位手机号。',
         AGENT_ROLES_REQUIRED: '请至少选择一个身份。',
         AGENT_SERVICE_UNAVAILABLE: '代理服务暂时不可用，请稍后重试。',
+        // 代理带来的新家庭的免费体验（课程服务 lib/agent-trial，2026-11-11）
+        FAMILY_NOT_MINE: '这个家庭不是你绑定的。',
+        CHILD_NOT_IN_FAMILY: '这个孩子不在这个家庭里，请刷新后重试。',
+        TRIAL_TEST_USED: '这个家庭的免费测评已经开始测了，不能再换孩子。',
+        TRIAL_TEST_NOT_DONE: '孩子测完以后才有报告和话术。',
+        SCRIPT_UNAVAILABLE: '话术没有写好，请再点一次。',
+        MEETING_NOTE_REQUIRED: '请写一下方便的时间和想解决的问题。',
+        TRIAL_MEETING_USED: '这个家庭已经申请过免费诊断会议了。',
         CHOICES_INVALID: '答案没有对上题目，请刷新后再交一次。',
         HOMEWORK_UNAVAILABLE: '课后作业暂时无法读取，请稍后重试。',
         STUDENT_INVALID: '孩子信息不完整，请刷新后重试。',
@@ -1075,6 +1083,53 @@ async function bindAgentFamily(publicId) {
   return requestAgentCourses('/api/learn/agent-family', token, {
     method: 'POST', data: { operation: 'bind', publicId: String(publicId || '').trim() }, fallbackMessage: '绑定没有成功，请稍后重试。'
   })
+}
+
+/**
+ * 代理带来的新家庭的免费体验（2026-11-11，课程服务 /api/learn/agent-trial）：一个家庭一次免费基础测评、
+ * 测完的 PDF 报告和话术、免费诊断会议申请、免费 3 节课用量。只有绑定这个家庭的爱心妈妈 / 团长能用。
+ */
+async function loadAgentTrial(guardianPublicId) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-trial?guardianPublicId=${encodeURIComponent(String(guardianPublicId || ''))}`, token, {
+    fallbackMessage: '免费体验暂时无法读取，请稍后重试。'
+  })
+}
+
+async function openAgentTrialTest(guardianPublicId, studentProfileId) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/agent-trial', token, {
+    method: 'POST', data: { operation: 'open_test', guardianPublicId: String(guardianPublicId || ''), studentProfileId }, fallbackMessage: '没有开通成功，请稍后重试。'
+  })
+}
+
+async function requestAgentTrialMeeting(guardianPublicId, note) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/agent-trial', token, {
+    method: 'POST', data: { operation: 'request_meeting', guardianPublicId: String(guardianPublicId || ''), note: String(note || '').trim() }, fallbackMessage: '申请没有提交成功，请稍后重试。'
+  })
+}
+
+async function loadAgentTrialScript(guardianPublicId, regenerate = false) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/agent-trial', token, {
+    method: 'POST', timeout: 60000, data: { operation: 'script', guardianPublicId: String(guardianPublicId || ''), regenerate: regenerate === true }, fallbackMessage: '话术没有写好，请再点一次。'
+  })
+}
+
+/** 下载免费测评的 PDF 报告到本地临时文件，返回路径（用 wx.openDocument 打开、可转发）。 */
+async function downloadAgentTrialReport(guardianPublicId) {
+  const token = await getRuntimeToken()
+  return new Promise((resolve, reject) => wx.downloadFile({
+    url: `${coursePortalOrigin()}/api/learn/agent-trial/report?guardianPublicId=${encodeURIComponent(String(guardianPublicId || ''))}`,
+    header: { authorization: `Bearer ${token}` },
+    timeout: 120000,
+    success(response) {
+      if (response.statusCode === 200 && response.tempFilePath) return resolve(response.tempFilePath)
+      reject(new Error(response.statusCode === 409 ? '孩子测完以后才有报告。' : response.statusCode === 401 ? '请重新登录后再试。' : '报告暂时生成不了，请稍后重试。'))
+    },
+    fail() { reject(new Error('网络不太稳定，报告没有下载下来，请稍后重试。')) }
+  }))
 }
 
 /**
@@ -4616,6 +4671,11 @@ module.exports = {
   uploadFamilyWechatQr,
   lookupAgentFamily,
   bindAgentFamily,
+  loadAgentTrial,
+  openAgentTrialTest,
+  requestAgentTrialMeeting,
+  loadAgentTrialScript,
+  downloadAgentTrialReport,
   loadAgentApplication,
   submitAgentApplication,
   proposeLoveMom,

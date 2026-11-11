@@ -32,6 +32,7 @@ Page({
     loadError: '',
     goal: null,
     goalChanged: false,
+    trialOffered: false,
     diagnosis: null,
     nodes: [],
     summary: null,
@@ -100,9 +101,11 @@ Page({
   applyOverview(overview) {
     const goal = overview.goal || null
     const diagnosis = overview.diagnosis || null
-    const base = { access: 'ready', goal, goalChanged: Boolean(overview.goalChanged), diagnosis, loadError: '' }
+    // trialOffered：推广伙伴给这个孩子开了一次免费基础测评、还没开测（2026-11-11），下一次开始测评就是基础版
+    const trialOffered = Boolean(overview.trialOffered)
+    const base = { access: 'ready', goal, goalChanged: Boolean(overview.goalChanged), diagnosis, loadError: '', trialOffered }
     if (!goal) return this.setData({ ...base, view: 'no_goal', nodes: [] })
-    if (!diagnosis || overview.goalChanged || diagnosis.status === 'failed') return this.setData({ ...base, view: 'start', nodes: [] })
+    if (!diagnosis || overview.goalChanged || diagnosis.status === 'failed' || trialOffered) return this.setData({ ...base, view: 'start', nodes: [] })
     if (diagnosis.status === 'planning' || diagnosis.status === 'active')
       return this.setData({ ...base, view: 'testing', nodes: (diagnosis.map && diagnosis.map.nodes) || [], progress: progressView(diagnosis.map) })
     this.setData({

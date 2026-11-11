@@ -107,4 +107,7 @@ page { background: #FAFAFA; }
   .goal-shell { max-width: 1040px; }
 }
 
+.goal-state .goal-trial-badge { align-self: center; }
+.goal-trial-badge { display: inline-block; align-self: flex-start; margin-bottom: 14rpx; padding: 6rpx 18rpx; border-radius: 999rpx; background: rgba(253, 124, 2, .1); color: #D96A00; font-size: 22rpx; font-weight: 600; }
+
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

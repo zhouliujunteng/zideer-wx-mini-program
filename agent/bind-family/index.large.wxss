@@ -35,6 +35,9 @@
 .bf-row{gap:12px;padding:13px 0;border-bottom:1px solid #F0F3F0}
 .bf-row:last-child{border-bottom:0}
 .bf-date{font-size:13px}
+.bf-trial{font-size:13px}
+.bf-row-side{gap:7px}
+.bf-arrow{width:8px;height:8px;border-top:1px solid #B0B8B2;border-right:1px solid #B0B8B2}
 .bf-state{gap:13px;padding:14px}
 .bf-state-text{font-size:14px;line-height:1.5}
 .bf-sk-input{height:50px;margin-top:13px;border-radius:13px}

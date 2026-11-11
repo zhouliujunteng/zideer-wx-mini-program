@@ -1,0 +1,55 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.ft-page{height:100vh}
+.ft-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
+.ft-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
+.ft-topbar-inner{padding:0 19px 9px}
+.ft-back{width:32px;height:32px;border-radius:50%}
+.ft-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.ft-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.ft-scroll{height:100vh}
+.ft-shell{min-height:100%;padding:0 19px calc(28px + env(safe-area-inset-bottom))}
+.ft-section{margin-top:22px}
+.ft-heading{gap:7px;padding:0 2px;font-size:18px;font-weight:700;line-height:1.2}
+.ft-no{width:22px;height:22px;border-radius:50%;font-size:13px}
+.ft-card{margin-top:13px;padding:15px;border-radius:21px}
+.ft-shell > .ft-card:first-child{margin-top:12px}
+.ft-family{gap:4px}
+.ft-name{font-size:19px;font-weight:700}
+.ft-sub{font-size:13px;line-height:1.5}
+.ft-card-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.ft-tip{margin-top:6px;font-size:13px;line-height:1.65}
+.ft-status{gap:7px;font-size:16px;font-weight:600}
+.ft-dot{width:8px;height:8px;border-radius:50%}
+.ft-steps{gap:3px;margin-top:8px;padding:10px 12px;border-radius:13px;font-size:13px;line-height:1.6}
+.ft-chips{gap:9px;margin-top:13px}
+.ft-chip{padding:8px 15px;border:1px solid #E6EAE6;border-radius:599px;font-size:15px}
+.ft-chip.is-on{border-color:#FD7C02;font-weight:600}
+.ft-empty{margin-top:10px;font-size:13px;line-height:1.6}
+.ft-button{padding:0 18px;height:43px;border-radius:599px;font-size:15px;font-weight:600;line-height:43px}
+.ft-block{margin-top:14px;height:50px;line-height:50px;font-size:16px}
+.ft-link{margin-top:9px;font-size:14px}
+.ft-goal{margin-top:8px;font-size:14px;line-height:1.6}
+.ft-stats{gap:9px;margin-top:12px}
+.ft-stats > view{gap:2px;padding:10px 0;border-radius:13px}
+.ft-stat-num{font-size:24px;font-weight:700;line-height:1.2}
+.ft-stat-label{font-size:12px}
+.ft-gaps{gap:7px;margin-top:10px}
+.ft-gap{padding:3px 10px;border-radius:599px;font-size:13px}
+.ft-script{padding:13px;border-radius:13px;font-size:15px;line-height:1.75}
+.ft-actions{gap:9px;margin-top:12px}
+.ft-error{margin-top:8px;font-size:13px}
+.ft-textarea{width:100%;min-height:90px;margin-top:12px;padding:12px 14px;border-radius:13px;font-size:15px;line-height:1.6}
+.ft-state{gap:13px;padding:14px}
+.ft-state-text{font-size:14px;line-height:1.5}
+.ft-sk-block{height:72px;margin-top:13px;border-radius:13px}
+}

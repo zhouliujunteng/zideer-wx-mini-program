@@ -33,6 +33,10 @@ page { background: #FAFAFA; }
 .bf-row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; padding: 22rpx 0; border-bottom: 2rpx solid #F0F3F0; }
 .bf-row:last-child { border-bottom: 0; }
 .bf-date { flex: 0 0 auto; color: #9AA39C; font-size: 22rpx; }
+.bf-row:active { opacity: .7; }
+.bf-trial { color: #FD7C02; font-size: 22rpx; }
+.bf-row-side { display: flex; flex: 0 0 auto; align-items: center; gap: 12rpx; }
+.bf-arrow { width: 14rpx; height: 14rpx; border-top: 3rpx solid #B0B8B2; border-right: 3rpx solid #B0B8B2; transform: rotate(45deg); }
 .bf-state { display: flex; flex-direction: column; align-items: center; gap: 22rpx; padding: 24rpx; text-align: center; }
 .bf-state-text { color: #7E8A82; font-size: 24rpx; line-height: 1.5; }
 .bf-sk-input { height: 84rpx; margin-top: 22rpx; border-radius: 22rpx; }
