@@ -4,6 +4,8 @@ const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest } 
 const { normalizeQuestPath, questPathView, nodeTarget, nodePopover, findNode, questTransition } = require('../../utils/quest-path-view')
 // 上次看到的当前关（回到学习页时做过关动效用，多邻国式）
 const QUEST_CURRENT_KEY = 'zhilu_quest_current'
+// 吸顶横幅只要这几样，不把整串关卡塞进 data
+const partBanner = (part) => (part ? { id: part.id, phaseNumber: part.phaseNumber, partNumber: part.partNumber, title: part.title, tone: part.tone, stageId: part.stageId } : null)
 const { openLogin, openAccessStep, guardAccess } = require('../../utils/access-gate')
 const { openCustomerServiceChat, customerServiceErrorMessage } = require('../../utils/customer-service')
 const { attachUiAssets } = require('../../services/ui-assets')
@@ -73,6 +75,8 @@ Page({
     questFx: { doneId: '', unlockId: '' },
     chestReveal: null,
     questCurrentVisible: true,
+    // 吸顶横幅显示的部分（随滚动换成当前看到的那一部分，多邻国式）
+    activePart: null,
     customFilter: 'unlearned',
     customView: customCourseView([], 'unlearned'),
     focusCourseId: '',
@@ -99,6 +103,7 @@ Page({
     if (options.tab) getApp().globalData.learningTab = String(options.tab)
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const windowWidth = windowInfo.windowWidth || 375
+    this._windowWidth = windowWidth
     const menuButton = getMenuButtonRect(windowInfo)
     const statusBarHeight = windowInfo.statusBarHeight || 20
     const navigationBarHeight = menuButton.height + (menuButton.top - statusBarHeight) * 2
@@ -149,6 +154,7 @@ Page({
     // 滚动时收起关卡说明卡（多邻国一样，卡片不跟着滚走）
     if (this.data.questPopover && Math.abs(scrollTop - (this._popoverScrollTop || 0)) > 40) this.setData({ questPopover: null })
     if (!this.data.questPopover) this._popoverScrollTop = scrollTop
+    this.syncActivePart()
     const threshold = this.data.calendarPinThreshold
     if (!threshold) return
     const calendarPinned = scrollTop >= threshold
@@ -189,7 +195,9 @@ Page({
       try { previous = wx.getStorageSync(QUEST_CURRENT_KEY) || '' } catch (error) { previous = '' }
       const fx = questTransition(previous, quest)
       try { wx.setStorageSync(QUEST_CURRENT_KEY, quest.currentId || '') } catch (error) { /* 只影响动效 */ }
-      this.setData({ quest, questLoaded: true, questFailed: false, questPopover: null }, () => this.watchQuestCurrent())
+      const keep = this.data.activePart && quest.parts.find((part) => part.id === this.data.activePart.id)
+      const activePart = partBanner(keep || quest.parts.find((part) => part.id === quest.currentPartId) || quest.parts[0])
+      this.setData({ quest, questLoaded: true, questFailed: false, questPopover: null, activePart }, () => this.watchQuestCurrent())
       if (fx) this.playQuestTransition(fx)
     } catch (error) {
       if (version === this._questVersion && !this.data.questLoaded) this.setData({ questFailed: true })
@@ -215,6 +223,27 @@ Page({
       }, 650)
     })
     try { wx.vibrateShort({ type: 'light' }) } catch (error) { /* 没有震动也照常 */ }
+  },
+
+  // 滚动时把吸顶横幅换成横幅下面正在看的那一部分
+  syncActivePart() {
+    const quest = this.data.quest
+    if (!quest || !quest.parts.length || this._partQuery) return
+    this._partQuery = true
+    const line = this.data.contentTop + rpxToPx(150, this._windowWidth || 375)
+    wx.createSelectorQuery().selectAll('.quest-part').boundingClientRect((rects) => {
+      this._partQuery = false
+      if (!Array.isArray(rects) || !rects.length) return
+      let index = 0
+      rects.forEach((rect, i) => { if (rect.top <= line) index = i })
+      const part = this.data.quest && this.data.quest.parts[index]
+      if (part && (!this.data.activePart || this.data.activePart.id !== part.id)) this.setData({ activePart: partBanner(part) })
+    }).exec()
+  },
+
+  openPartGuide(event) {
+    const stageId = String(event.currentTarget.dataset.stageId || '')
+    if (stageId) wx.navigateTo({ url: `/learning/agent-course/index?stageId=${encodeURIComponent(stageId)}` })
   },
 
   // 当前关滚出屏幕时，右下角出现「回到当前关」

@@ -148,7 +148,8 @@ test('学习页「我的课程」switches to 我的定制课程 and between 未�
 
   const wxml = read('pages/learning/index.wxml')
   assert.doesNotMatch(wxml, /bindtap="switchMyCourseTab"/)
-  assert.match(wxml, /bindtap="switchCustomFilter"/)
+  // 2026-11-11 晚：学习页只留闯关路径（不再有搜索和课程卡片列表）
+  assert.doesNotMatch(wxml, /bindtap="switchCustomFilter"/)
 })
 
 test('课程库 page filters my courses by series', async () => {

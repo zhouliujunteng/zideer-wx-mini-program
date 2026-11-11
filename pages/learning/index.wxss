@@ -1149,10 +1149,55 @@ page {
 .chest-button:active { transform: translateY(6rpx); box-shadow: 0 2rpx 0 #C95F00; }
 .chest-secondary { margin-top: 28rpx; padding: 12rpx 24rpx; color: rgba(255, 255, 255, .78); font-size: 28rpx; font-weight: 700; }
 
+/* ---------- 学习页只留闯关路径（2026-11-11 晚，照多邻国：顶上一行状态栏 + 吸顶部分横幅 + 路径） ---------- */
+.page-scroll { padding-top: calc(var(--top) * 1px); background: #FAFAFA; }
+.page-scroll.has-banner { padding-top: calc(var(--top) * 1px + 164rpx); }
+.page-shell { background: none; }
+.learning-topbar, .learning-topbar.learning-topbar-hero { background: #FAFAFA; }
+.lp-stats { display: flex; align-items: center; gap: 14rpx; }
+.lp-stat { display: flex; height: 60rpx; min-width: 60rpx; align-items: center; justify-content: center; gap: 10rpx; padding: 0 16rpx; border: 3rpx solid #ECE9E4; border-radius: 999rpx; background: #FFFFFF; box-sizing: border-box; transition: transform 80ms ease-out; }
+.lp-stat:active { transform: scale(.94); }
+.lp-stat-card { width: 24rpx; height: 32rpx; border: 3rpx solid #FFFFFF; border-radius: 6rpx; background: linear-gradient(150deg, #7C9CFF, #FD7C02); box-shadow: 0 0 0 2rpx #E8E2F8; transform: rotate(-8deg); }
+.lp-stat-num { color: #FD7C02; font-size: 28rpx; font-weight: 900; }
+.lp-stat-num.is-zero { color: #A9A59E; }
+.lp-stat-book { position: relative; width: 30rpx; height: 32rpx; border-radius: 4rpx 8rpx 8rpx 4rpx; background: #3E8BF0; box-shadow: inset 6rpx 0 0 #2A6CC4; }
+.lp-stat-book::after { position: absolute; top: 8rpx; right: 6rpx; left: 11rpx; height: 4rpx; border-radius: 2rpx; background: rgba(255, 255, 255, .85); box-shadow: 0 8rpx 0 rgba(255, 255, 255, .85); content: ''; }
+.lp-stat-avatar { width: 40rpx; height: 40rpx; border-radius: 50%; }
+.lp-banner { position: fixed; right: 32rpx; left: 32rpx; z-index: 19; display: flex; height: 132rpx; align-items: stretch; overflow: hidden; border-radius: 28rpx; background: var(--tone); box-shadow: 0 8rpx 0 var(--tone-deep); transition: background-color .25s ease, box-shadow .25s ease; }
+.lp-banner-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; justify-content: center; padding: 0 30rpx; }
+.lp-banner-no { color: rgba(255, 255, 255, .78); font-size: 24rpx; font-weight: 800; }
+.lp-banner-title { margin-top: 6rpx; overflow: hidden; color: #FFFFFF; font-size: 34rpx; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.lp-banner-guide { display: flex; width: 116rpx; flex: 0 0 auto; align-items: center; justify-content: center; border-left: 3rpx solid rgba(0, 0, 0, .1); }
+.lp-banner-guide:active { background: rgba(0, 0, 0, .06); }
+.lp-guide-icon { position: relative; width: 40rpx; height: 46rpx; border-radius: 6rpx; background: #FFFFFF; }
+.lp-guide-icon::after { position: absolute; top: 12rpx; right: 9rpx; left: 9rpx; height: 4rpx; border-radius: 2rpx; background: var(--tone); box-shadow: 0 9rpx 0 var(--tone), 0 18rpx 0 var(--tone); content: ''; }
+.tone-orange { --tone: #FD7C02; --tone-soft: #FFF0E2; --tone-deep: #D96400; }
+.tone-blue { --tone: #3E8BF0; --tone-soft: #EAF3FF; --tone-deep: #2A6CC4; }
+.tone-violet { --tone: #8A63D9; --tone-soft: #F2ECFF; --tone-deep: #6C47B8; }
+.tone-teal { --tone: #23A391; --tone-soft: #E6F7F4; --tone-deep: #17806F; }
+.tone-rose { --tone: #E2577A; --tone-soft: #FDECF1; --tone-deep: #B83C5B; }
+.quest-goal-line { display: flex; align-items: center; gap: 12rpx; padding: 6rpx 4rpx 0; }
+.quest-goal-line .quest-goal-label { flex: 0 0 auto; padding: 4rpx 14rpx; border-radius: 999rpx; background: #FFF0E2; color: #E06A00; font-size: 22rpx; font-weight: 800; letter-spacing: 0; }
+.quest-goal-line .quest-goal-title { flex: 1; min-width: 0; margin: 0; overflow: hidden; color: #24332D; font-size: 26rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.quest-goal-line .quest-goal-progress { flex: 0 0 auto; margin: 0; color: #8A948D; font-size: 22rpx; }
+.quest-part { padding-bottom: 12rpx; }
+.quest-phase { display: flex; flex-direction: column; align-items: center; margin: 40rpx 0 8rpx; }
+.quest-phase-no { color: var(--tone); font-size: 24rpx; font-weight: 900; letter-spacing: 2rpx; }
+.quest-phase-title { margin-top: 6rpx; color: #24332D; font-size: 30rpx; font-weight: 800; text-align: center; }
+.quest-divider { display: flex; align-items: center; gap: 20rpx; margin: 36rpx 0 12rpx; }
+.quest-divider-line { flex: 1; height: 3rpx; background: #E6E3DE; }
+.quest-divider-text { max-width: 70%; overflow: hidden; color: #8A948D; font-size: 28rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.quest-track { padding: 40rpx 0 8rpx; }
+.quest-node-label, .quest-node-detail, .quest-lesson { display: none; }
+.quest-node-wrap { margin: 18rpx 0; }
+.quest-empty-action { display: inline-flex; margin-top: 24rpx; padding: 16rpx 36rpx; border-radius: 22rpx; background: #FD7C02; box-shadow: 0 6rpx 0 #D96400; color: #FFFFFF; font-size: 28rpx; font-weight: 800; }
+.quest-pop { top: 160rpx; }
+
 /* 2026-11-11 学习页去掉了左栏（日历、今日统计、学习任务）：大屏不再分两栏，闯关路径居中铺开 */
 @media (min-width:450px) {
 .learning-page .page-shell { display:block; }
 .learning-page .my-courses-section { max-width:720px; margin-left:auto; margin-right:auto; }
+.learning-page .quest, .learning-page .quest-sk, .learning-page .quest-empty { max-width:720px; margin-left:auto; margin-right:auto; }
 }
 
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

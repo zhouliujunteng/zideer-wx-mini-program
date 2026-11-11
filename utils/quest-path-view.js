@@ -61,19 +61,36 @@ function normalizeQuestPath(raw) {
 }
 
 /**
- * 页面模型：header（大目标与进度）+ sections（每段：横幅 + 一串节点）。
- * 节点 kind：step（三关之一）/ review（复习关）/ chest（宝箱）/ placeholder（还没有课的段）。
+ * 页面模型（2026-11-11 晚用户要求，照多邻国「阶段 → 部分 → 关卡」）：
+ *   阶段 = 课程服务给的一段（目标导图的大条件 / 系列）；部分 = 一节课；一个部分里是这节课的几关
+ *   （看课 1～3 段 → 宝箱 → 互动练习 → AI 老师验收，今天该复习时再加复习关），最多 7 个，不再把一段的几节课串成十几二十关。
+ *   阶段最后一个部分末尾放阶段宝箱。还没有课的阶段给一个「联系老师定制」的部分。
+ * 返回 { goal, progressText, percent, currentId, currentPartId, parts: [{ id, phaseNumber, partNumber, tone, phaseTitle,
+ *   phaseSubtitle, firstOfPhase, title, stageId, progress, nodes }] }。
+ * 节点 kind：step（一关）/ lesson-chest（这节课的宝箱）/ review（复习关）/ chest（阶段宝箱）/ placeholder。
  */
 function questPathView(path) {
   if (!path) return null
-  let position = 0
-  const nextOffset = () => ZIGZAG[(position++) % ZIGZAG.length]
-  const sections = path.stages.map((stage, stageIndex) => {
-    const nodes = []
-    if (stage.empty) {
-      nodes.push({ id: `${stage.id}-placeholder`, kind: 'placeholder', state: 'locked', offset: nextOffset(), label: '联系老师定制这一段', detail: '', icon: 'lock' })
+  const parts = []
+  let currentPartId = ''
+  path.stages.forEach((stage, stageIndex) => {
+    const tone = STAGE_TONES[stageIndex % STAGE_TONES.length]
+    const phase = { phaseNumber: stageIndex + 1, tone, phaseTitle: stage.title, phaseSubtitle: stage.subtitle }
+    const reviewDue = new Set(stage.review ? stage.review.stageIds : [])
+    const stageParts = []
+    if (stage.empty || !stage.lessons.length) {
+      stageParts.push({
+        id: `${stage.id}-empty`,
+        title: stage.title,
+        stageId: '',
+        progress: '',
+        nodes: [{ id: `${stage.id}-placeholder`, kind: 'placeholder', state: 'locked', offset: 0, label: '联系老师定制这一部分', detail: '', icon: 'lock' }]
+      })
     }
     stage.lessons.forEach((lesson) => {
+      let position = 0
+      const nextOffset = () => ZIGZAG[(position++) % ZIGZAG.length]
+      const nodes = []
       const total = lesson.steps.length
       const passed = lesson.steps.filter((step) => step.state === 'done').length
       const lastWatch = lesson.steps.reduce((last, step, index) => (step.key === 'watch' ? index : last), -1)
@@ -90,8 +107,6 @@ function questPathView(path) {
           offset: nextOffset(),
           label: step.label,
           detail: step.detail,
-          // 每节课的第一关上写课名
-          lessonTitle: stepIndex === 0 ? lesson.title : '',
           course: lesson.title,
           position: `第 ${stepIndex + 1} 关 / 共 ${total} 关`,
           // 当前关外圈的进度环：这节课过了几关（百分比）
@@ -100,39 +115,39 @@ function questPathView(path) {
         })
         if (stepIndex === lastWatch) nodes.push(lessonChestNode(lesson, nextOffset()))
       })
+      if (reviewDue.has(lesson.stageId)) {
+        nodes.push({ id: `${lesson.stageId}-review`, kind: 'review', state: 'open', icon: 'review', offset: nextOffset(), label: '复习关', detail: '这节课今天该复习了', stageId: lesson.stageId, course: lesson.title })
+      }
+      const partId = `part-${lesson.stageId}`
+      if (path.current && path.current.stageId === lesson.stageId) currentPartId = partId
+      stageParts.push({ id: partId, title: lesson.title, stageId: lesson.stageId, progress: `${passed}/${total}`, nodes, offsetNext: nextOffset })
     })
-    if (stage.review) {
-      nodes.push({ id: `${stage.id}-review`, kind: 'review', state: 'open', icon: 'review', offset: nextOffset(), label: '复习关', detail: `${stage.review.count} 节课该复习了`, stageId: stage.review.stageIds[0] })
-    }
-    if (stage.chest) {
-      nodes.push({
+    if (stage.chest && stageParts.length) {
+      const last = stageParts[stageParts.length - 1]
+      last.nodes.push({
         id: `${stage.id}-chest`,
         kind: 'chest',
         state: stage.chest.opened ? 'done' : 'locked',
         icon: stage.chest.opened ? 'chest-open' : 'chest',
-        offset: nextOffset(),
-        label: stage.chest.opened ? '宝箱已打开' : '阶段宝箱',
-        detail: stage.chest.opened ? '去成就卡看看' : `这一段过了 ${stage.chest.done}/${stage.chest.total} 节`
+        offset: last.offsetNext ? last.offsetNext() : 0,
+        label: stage.chest.opened ? '阶段宝箱已打开' : '阶段宝箱',
+        detail: stage.chest.opened ? '去成就卡看看' : `这一阶段过了 ${stage.chest.done}/${stage.chest.total} 节`
       })
     }
-    return {
-      id: stage.id,
-      number: stageIndex + 1,
-      tone: STAGE_TONES[stageIndex % STAGE_TONES.length],
-      title: stage.title,
-      subtitle: stage.subtitle,
-      empty: stage.empty,
-      progress: stage.chest ? `${stage.chest.done}/${stage.chest.total}` : '',
-      nodes
-    }
+    stageParts.forEach((part, index) => {
+      const { offsetNext: _offsetNext, ...rest } = part
+      parts.push({ ...rest, ...phase, partNumber: index + 1, firstOfPhase: index === 0 })
+    })
   })
+  const currentId = path.current ? stepId(path.current.stageId, path.current.step, path.current.part) : ''
   return {
     goal: path.goal,
     hasLessons: path.stats.lessons > 0,
     progressText: path.stats.lessons ? `已闯过 ${path.stats.done}/${path.stats.lessons} 节` : '',
     percent: path.stats.lessons ? Math.round((path.stats.done / path.stats.lessons) * 100) : 0,
-    currentId: path.current ? stepId(path.current.stageId, path.current.step, path.current.part) : '',
-    sections
+    currentId,
+    currentPartId: currentPartId || (parts[0] ? parts[0].id : ''),
+    parts
   }
 }
 
@@ -156,7 +171,7 @@ function lessonChestNode(lesson, offset) {
 /** 节点 id → 节点（点击、弹卡、动效都按 id 找）。 */
 function findNode(view, id) {
   if (!view || !id) return null
-  for (const section of view.sections) for (const node of section.nodes) if (node.id === id) return node
+  for (const part of view.parts) for (const node of part.nodes) if (node.id === id) return node
   return null
 }
 

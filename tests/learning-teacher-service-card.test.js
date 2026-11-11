@@ -54,15 +54,11 @@ test('the teacher card falls back to the service-contact page when there is no s
   assert.deepEqual(navigations, ['/account/service-contact/index'])
 })
 
-test('the teacher card sits under the 我的课程 heading and above the search box, renamed', () => {
+// 2026-11-11 晚：学习页只留闯关路径，联系老师收进顶栏的头像入口（还没有课时空状态里也有一个按钮）
+test('the teacher entry sits in the top stats row, renamed', () => {
   const learning = read('pages/learning/index.wxml')
-  const heading = learning.indexOf('<text class="tasks-title">我的课程</text>')
-  const card = learning.indexOf('class="enterprise-service-card"')
-  const search = learning.indexOf('class="course-search my-courses-search"')
-  assert.ok(heading > 0 && heading < card && card < search, 'card must be between the 我的课程 heading and the search box')
-  assert.match(learning, /class="enterprise-service-card"[^>]*bindtap="openEnterpriseService"/)
-  assert.match(learning, /<text class="enterprise-service-title">联系老师定制课程<\/text>/)
-  assert.match(learning, /<text class="enterprise-service-description">老师按你的学习情况定制课程<\/text>/)
+  assert.match(learning, /class="lp-stat" bindtap="openEnterpriseService" role="button" aria-label="联系老师定制课程"/)
+  assert.ok(learning.indexOf('openEnterpriseService') < learning.indexOf('<scroll-view'), 'entry must be in the top bar')
   assert.doesNotMatch(learning.replace(/<!--[\s\S]*?-->/g, ''), /企微服务/)
 })
 

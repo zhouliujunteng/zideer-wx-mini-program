@@ -187,9 +187,10 @@ test('我的课程 uses the same cards, link and search box as the home and libr
   const learning = read('pages/learning/index.wxml')
   // 封面角标（制作中进度）与系列名（定制系列，2026-10-06）只有「我的课程」有
   const shared = (c) => c !== 'more-course-tag' && c !== 'more-course-series'
-  assert.deepEqual(cardClasses(learning, 'group.courses').filter(shared), cardClasses(home, 'model.moreCourses').filter(shared))
-  assert.match(learning, /<view class="task-all-link" bindtap="openLibrary"[^>]*><text>课程库<\/text><view class="task-all-icon"/)
-  assert.match(learning, /class="course-search[ "][\s\S]*?class="course-search-icon"[\s\S]*?class="course-search-input"[^>]*placeholder="搜索课程"/)
+  // 2026-11-11 晚：学习页只留闯关路径，课程库收进顶栏的小入口，不再有课程卡片和搜索框
+  void cardClasses; void home; void shared
+  assert.match(learning, /class="lp-stat" bindtap="openLibrary" role="button" aria-label="课程库"/)
+  assert.doesNotMatch(learning, /course-search-input/)
   assert.match(read('learning/library/index.wxml'), /class="course-search"[\s\S]*?class="course-search-input"[^>]*placeholder="搜索课程"/)
   // 卡片、搜索框样式只在共用文件里定义，页面里不再各写一份
   for (const file of ['pages/home/index.wxss', 'pages/learning/index.wxss', 'learning/library/index.wxss']) {

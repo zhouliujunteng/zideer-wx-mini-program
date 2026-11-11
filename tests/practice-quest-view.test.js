@@ -78,11 +78,13 @@ test('the quest path zigzags nodes, marks the current step and routes taps', () 
       { id: '7-c2', kind: 'condition', title: '应用题', empty: true, lessons: [] }
     ]
   }))
-  const nodes = view.sections[0].nodes
+  const nodes = view.parts[0].nodes
   // 每节课看课之后有一个宝箱（看完就能开，不算一关）
   assert.deepEqual(nodes.map((n) => n.kind), ['step', 'lesson-chest', 'step', 'step', 'review', 'chest'])
   assert.deepEqual(nodes.map((n) => n.offset), [0, 90, 150, 90, 0, -90])
-  assert.equal(nodes[0].lessonTitle, '约分')
+  // 一节课 = 一个部分（多邻国式「第 N 阶段，第 M 部分」）
+  assert.deepEqual(view.parts.map((p) => [p.phaseNumber, p.partNumber, p.title]), [[1, 1, '约分'], [2, 1, '应用题']])
+  assert.equal(view.currentPartId, 'part-stage-a')
   assert.equal(view.currentId, 'stage-a-practice')
   assert.deepEqual(nodeTarget(nodes[1]), { chest: 'stage-a' })
   assert.equal(nodeTarget(nodes[2]).url, '/learning/practice/index?stageId=stage-a')
@@ -99,7 +101,7 @@ test('the quest path zigzags nodes, marks the current step and routes taps', () 
   assert.deepEqual(questTransition('stage-a-watch', view), { doneId: 'stage-a-watch', unlockId: 'stage-a-practice' })
   assert.equal(questTransition('stage-a-practice', view), null)
   assert.equal(questTransition('', view), null)
-  assert.equal(view.sections[1].nodes[0].kind, 'placeholder')
+  assert.equal(view.parts[1].nodes[0].kind, 'placeholder')
 })
 
 test('chapter steps of watching get their own nodes and open the course at their first unfinished page', () => {
@@ -114,7 +116,7 @@ test('chapter steps of watching get their own nodes and open the course at their
       { key: 'accept', state: 'locked', label: 'AI 老师验收', detail: '' }
     ] }] }]
   }))
-  const nodes = view.sections[0].nodes
+  const nodes = view.parts[0].nodes
   assert.deepEqual(nodes.map((n) => n.id), ['stage-a-watch-1', 'stage-a-watch-2', 'stage-a-watch-3', 'stage-a-chest', 'stage-a-practice', 'stage-a-accept'])
   assert.equal(nodes[3].state, 'locked', '没看完宝箱锁着')
   assert.equal(nodeTarget(nodes[3]).toast, '看完这节课，宝箱就能打开')

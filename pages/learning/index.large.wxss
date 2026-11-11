@@ -364,5 +364,41 @@ page{background:#FAFAFA}
 .chest-button{width:100%;max-width:336px;height:55px;margin-top:31px;border-radius:14px;background:#FD7C02;box-shadow:0 4px 0 #C95F00;font-size:19px;font-weight:800}
 .chest-button:active{transform:translateY(3px);box-shadow:0 1px 0 #C95F00}
 .chest-secondary{margin-top:16px;padding:7px 14px;font-size:16px;font-weight:700}
+.page-scroll{padding-top:calc(var(--top) * 1px);background:#FAFAFA}
+.page-scroll.has-banner{padding-top:calc(var(--top) * 1px + 98px)}
+.page-shell{background:none}
+.learning-topbar, .learning-topbar.learning-topbar-hero{background:#FAFAFA}
+.lp-stats{gap:8px}
+.lp-stat{height:36px;min-width:36px;gap:6px;padding:0 9px;border:1px solid #ECE9E4;border-radius:599px;background:#FFFFFF;box-sizing:border-box}
+.lp-stat:active{transform:scale(.94)}
+.lp-stat-card{width:14px;height:19px;border:1px solid #FFFFFF;border-radius:3px;background:linear-gradient(150deg, #7C9CFF, #FD7C02);box-shadow:0 0 0 1px #E8E2F8;transform:rotate(-8deg)}
+.lp-stat-num{font-size:16px;font-weight:900}
+.lp-stat-book{width:18px;height:19px;border-radius:2px 4px 4px 2px;background:#3E8BF0;box-shadow:inset 3px 0 0 #2A6CC4}
+.lp-stat-book::after{top:4px;right:3px;left:6px;height:2px;border-radius:1px;background:rgba(255, 255, 255, .85);box-shadow:0 4px 0 rgba(255, 255, 255, .85)}
+.lp-stat-avatar{width:24px;height:24px;border-radius:50%}
+.lp-banner{right:calc(max(0px, 50% - var(--lg-col) / 2) + 19px);left:calc(max(0px, 50% - var(--lg-col) / 2) + 19px);height:79px;border-radius:16px;background:var(--tone);box-shadow:0 4px 0 var(--tone-deep)}
+.lp-banner-copy{flex:1;min-width:0;flex-direction:column;padding:0 18px}
+.lp-banner-no{font-size:14px;font-weight:800}
+.lp-banner-title{margin-top:3px;font-size:20px;font-weight:900;text-overflow:ellipsis}
+.lp-banner-guide{width:69px;flex:0 0 auto;border-left:1px solid rgba(0, 0, 0, .1)}
+.lp-banner-guide:active{background:rgba(0, 0, 0, .06)}
+.lp-guide-icon{width:24px;height:27px;border-radius:3px;background:#FFFFFF}
+.lp-guide-icon::after{top:7px;right:5px;left:5px;height:2px;border-radius:1px;background:var(--tone);box-shadow:0 5px 0 var(--tone), 0 10px 0 var(--tone)}
+.quest-goal-line{gap:7px;padding:3px 2px 0}
+.quest-goal-line .quest-goal-label{flex:0 0 auto;padding:2px 8px;border-radius:599px;background:#FFF0E2;font-size:13px;font-weight:800;letter-spacing:0}
+.quest-goal-line .quest-goal-title{flex:1;min-width:0;margin:0;font-size:15px;font-weight:700;text-overflow:ellipsis}
+.quest-goal-line .quest-goal-progress{flex:0 0 auto;margin:0;font-size:13px}
+.quest-part{padding-bottom:7px}
+.quest-phase{flex-direction:column;margin:24px 0 4px}
+.quest-phase-no{font-size:14px;font-weight:900;letter-spacing:1px}
+.quest-phase-title{margin-top:3px;font-size:18px;font-weight:800;text-align:center}
+.quest-divider{gap:12px;margin:21px 0 7px}
+.quest-divider-line{flex:1;height:1px;background:#E6E3DE}
+.quest-divider-text{max-width:70%;font-size:16px;font-weight:700;text-overflow:ellipsis}
+.quest-track{padding:24px 0 4px}
+.quest-node-wrap{margin:10px 0}
+.quest-empty-action{margin-top:14px;padding:9px 21px;border-radius:13px;background:#FD7C02;box-shadow:0 3px 0 #D96400;font-size:16px;font-weight:800}
+.quest-pop{top:96px}
 .learning-page .my-courses-section{max-width:720px;margin-left:auto;margin-right:auto}
+.learning-page .quest, .learning-page .quest-sk, .learning-page .quest-empty{max-width:720px;margin-left:auto;margin-right:auto}
 }
