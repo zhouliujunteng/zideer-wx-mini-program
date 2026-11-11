@@ -1,6 +1,8 @@
 const { getLiveLearningModel, getLearningSkeletonModel } = require('../../services/live-tab-service')
 const { takeAgentCourseFocus } = require('../../utils/agent-course-focus')
 const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest } = require('../../services/identity')
+// 我的荣誉（2026-11-11 晚）：顶栏总数 + 新获得的庆祝弹层（本机记住看过哪些，utils/honors-view.js）
+const { normalizeHonors, honorKeys, freshHonors, markSeen, readSeen } = require('../../utils/honors-view')
 const { normalizeQuestPath, questPathView, nodeTarget, nodePopover, findNode, questTransition } = require('../../utils/quest-path-view')
 // 上次看到的当前关（回到学习页时做过关动效用，多邻国式）
 const QUEST_CURRENT_KEY = 'zhilu_quest_current'
@@ -95,6 +97,8 @@ Page({
     questCurrentVisible: true,
     // 吸顶横幅显示的部分（随滚动换成当前看到的那一部分，多邻国式）
     activePart: null,
+    honorCount: 0,
+    honorCele: null,
     paymentOpen: false,
     customFilter: 'unlearned',
     customView: customCourseView([], 'unlearned'),
@@ -208,8 +212,10 @@ Page({
     if (this.data.access !== 'ready' || !this.data.loaded) return
     const version = this._questVersion = (this._questVersion || 0) + 1
     try {
-      const path = normalizeQuestPath(await loadQuestPath())
+      const raw = await loadQuestPath()
+      const path = normalizeQuestPath(raw)
       if (version !== this._questVersion) return
+      this.applyHonors(raw && raw.honors)
       const quest = questPathView(path)
       let previous = ''
       try { previous = wx.getStorageSync(QUEST_CURRENT_KEY) || '' } catch (error) { previous = '' }
@@ -222,6 +228,41 @@ Page({
     } catch (error) {
       if (version === this._questVersion && !this.data.questLoaded) this.setData({ questFailed: true })
     }
+  },
+
+  // 荣誉随闯关路径一起回来：更新顶栏数字；有本机没看过的新荣誉就弹庆祝（开宝箱、抽卡时不打扰，下次再弹）
+  applyHonors(raw) {
+    const honors = normalizeHonors(raw)
+    if (!honors) return
+    const s = honors.summary
+    this._honors = honors
+    const patch = { honorCount: s.trophies + s.badges + s.medals }
+    const seen = readSeen()
+    // 本机第一次看到荣誉：以前拿的都算看过，不一次弹一堆
+    if (!seen) markSeen(honors)
+    const fresh = freshHonors(honors, seen)
+    if (fresh.length && !this.data.chestReveal && !this.data.openCard && !this.data.honorCele) {
+      const first = fresh[0]
+      patch.honorCele = { kind: first.kind, title: first.title, subtitle: first.subtitle, art: first.art, number: first.number || 0, more: fresh.length - 1 }
+      this._celeKeys = fresh.map((item) => item.key)
+      try { wx.vibrateShort({ type: 'heavy' }) } catch (error) { /* 没有震动也照常 */ }
+    }
+    this.setData(patch)
+  },
+
+  closeHonorCele() {
+    if (this._honors) markSeen(this._honors, this._celeKeys || honorKeys(this._honors))
+    this._celeKeys = null
+    this.setData({ honorCele: null })
+  },
+
+  openHonorsFromCele() {
+    this.closeHonorCele()
+    wx.navigateTo({ url: '/learning/honors/index' })
+  },
+
+  openHonors() {
+    wx.navigateTo({ url: '/learning/honors/index' })
   },
 
   retryQuest() {

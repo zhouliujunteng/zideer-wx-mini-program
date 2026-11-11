@@ -1,0 +1,137 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
+<!-- 我的荣誉（2026-11-11 晚）：总览 → 奖杯柜 → 阶段徽章 → 里程碑勋章；点任意一样弹出详情卡。 -->
+<view class="hn-page">
+  <view class="hn-ambient" aria-hidden="true"></view>
+  <view class="hn-topbar" style="padding-top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
+    <view class="hn-back" bindtap="handleBack" role="button" aria-label="返回上一页"><view class="hn-back-icon"></view></view>
+    <text class="hn-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">我的荣誉</text>
+  </view>
+
+  <scroll-view class="hn-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="hn-shell">
+      <!-- 骨架 -->
+      <block wx:if="{{!loaded && !loadFailed}}">
+        <view class="sk hn-sk-hero"></view>
+        <view class="sk sk-line sk-short hn-sk-title"></view>
+        <view class="hn-sk-row"><view wx:for="{{skeletonShelf}}" wx:key="*this" class="sk hn-sk-trophy"></view></view>
+        <view class="sk sk-line sk-short hn-sk-title"></view>
+        <view class="hn-sk-grid"><view wx:for="{{skeletonMedals}}" wx:key="*this" class="sk sk-round hn-sk-medal"></view></view>
+      </block>
+
+      <view wx:elif="{{!loaded}}" class="hn-error" role="alert">
+        <text class="hn-error-text">{{loadError}}</text>
+        <view class="hn-error-retry" bindtap="retry" role="button">重新读取</view>
+      </view>
+
+      <block wx:else>
+        <!-- 总览：深色殿堂卡 + 金杯 + 三项数字 -->
+        <view class="hn-hero">
+          <view class="hn-hero-rays" aria-hidden="true"></view>
+          <view class="hn-hero-glow" aria-hidden="true"></view>
+          <image class="hn-hero-cup" src="{{UA.src(ui, '/assets/honors/trophy-gold.svg')}}" mode="aspectFit"></image>
+          <view class="hn-hero-copy">
+            <text class="hn-hero-kicker">荣誉殿堂</text>
+            <view class="hn-hero-total"><text class="hn-hero-num">{{view.summary.total}}</text><text class="hn-hero-unit">项荣誉</text></view>
+            <text class="hn-hero-sub">{{view.summary.total ? '每一项都是自己闯出来的' : '闯过第一节课，就能赢得第一座奖杯'}}</text>
+          </view>
+          <view class="hn-stats">
+            <view class="hn-stat"><text class="hn-stat-num">{{view.summary.trophies}}</text><text class="hn-stat-label">奖杯<text wx:if="{{view.summary.gold}}" class="hn-stat-gold"> · 金杯 {{view.summary.gold}}</text></text></view>
+            <view class="hn-stat-line"></view>
+            <view class="hn-stat"><text class="hn-stat-num">{{view.summary.badges}}<text class="hn-stat-of">/{{view.summary.badgeTotal}}</text></text><text class="hn-stat-label">阶段徽章</text></view>
+            <view class="hn-stat-line"></view>
+            <view class="hn-stat"><text class="hn-stat-num">{{view.summary.medals}}<text class="hn-stat-of">/{{view.summary.medalTotal}}</text></text><text class="hn-stat-label">里程碑勋章</text></view>
+          </view>
+        </view>
+
+        <!-- 奖杯柜 -->
+        <view class="hn-section-head">
+          <text class="hn-section-title">奖杯柜</text>
+          <text class="hn-section-sub">一节课一座 · 练习一次全对、验收一次通过得金杯</text>
+        </view>
+        <view wx:if="{{view.hasTrophies}}" class="hn-cabinet">
+          <view wx:for="{{view.shelves}}" wx:for-item="shelf" wx:key="id" class="hn-shelf">
+            <view class="hn-shelf-items">
+              <view wx:for="{{shelf.items}}" wx:key="id" class="hn-trophy {{item.earned ? 'is-earned' : 'is-empty'}} tier-{{item.tier}}" data-id="{{item.id}}" bindtap="openHonor" role="button" aria-label="{{item.title}}，{{item.tierLabel}}">
+                <view wx:if="{{item.tier === 'gold'}}" class="hn-trophy-halo" aria-hidden="true"></view>
+                <image class="hn-trophy-art {{item.isNew ? 'is-new' : ''}}" src="{{UA.src(ui, item.art)}}" mode="aspectFit"></image>
+                <text wx:if="{{item.isNew}}" class="hn-new">新</text>
+              </view>
+            </view>
+            <view class="hn-plank" aria-hidden="true"></view>
+            <view class="hn-shelf-labels">
+              <view wx:for="{{shelf.items}}" wx:key="id" class="hn-trophy-label">
+                <text class="hn-trophy-title">{{item.title}}</text>
+                <text class="hn-tier tier-{{item.tier || 'none'}}">{{item.tierLabel}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="hn-empty">
+          <text class="hn-empty-text">奖杯柜还空着。闯过一节课的看课、互动练习、AI 老师验收，就能放上第一座。</text>
+          <view class="hn-empty-action" bindtap="openLearning" role="button">去闯关</view>
+        </view>
+
+        <!-- 阶段徽章 -->
+        <view class="hn-section-head">
+          <text class="hn-section-title">阶段徽章</text>
+          <text class="hn-section-sub">一个阶段的课全部闯过验收就点亮</text>
+        </view>
+        <view wx:if="{{view.badges.length}}" class="hn-badges">
+          <view wx:for="{{view.badges}}" wx:key="id" class="hn-badge {{item.earned ? 'is-earned' : 'is-locked'}}" data-id="{{item.id}}" bindtap="openHonor" role="button" aria-label="第 {{item.number}} 阶段 {{item.title}}">
+            <view class="hn-badge-art-wrap">
+              <image class="hn-badge-art {{item.isNew ? 'is-new' : ''}}" src="{{UA.src(ui, item.art)}}" mode="aspectFit"></image>
+              <text class="hn-badge-no">{{item.number}}</text>
+              <text wx:if="{{item.isNew}}" class="hn-new">新</text>
+            </view>
+            <text class="hn-item-title">{{item.title}}</text>
+            <view wx:if="{{!item.earned && item.progress}}" class="hn-bar"><view class="hn-bar-fill" style="width: {{item.percent}}%;"></view></view>
+            <text wx:if="{{!item.earned && item.progress}}" class="hn-item-progress">{{item.progress}}</text>
+          </view>
+        </view>
+        <view wx:else class="hn-empty"><text class="hn-empty-text">老师按你的目标排好阶段后，徽章会出现在这里。</text></view>
+
+        <!-- 里程碑勋章 -->
+        <view class="hn-section-head">
+          <text class="hn-section-title">里程碑勋章</text>
+          <text class="hn-section-sub">{{view.summary.medals}} / {{view.summary.medalTotal}} 枚</text>
+        </view>
+        <view wx:for="{{view.groups}}" wx:for-item="group" wx:key="key" class="hn-group">
+          <view class="hn-group-head"><view class="hn-group-dot group-{{group.key}}"></view><text class="hn-group-label">{{group.label}}</text></view>
+          <view class="hn-medals">
+            <view wx:for="{{group.medals}}" wx:key="id" class="hn-medal {{item.earned ? 'is-earned' : 'is-locked'}}" data-id="{{item.id}}" bindtap="openHonor" role="button" aria-label="{{item.title}}{{item.earned ? '，已获得' : ''}}">
+              <view class="hn-medal-art-wrap">
+                <image class="hn-medal-art {{item.isNew ? 'is-new' : ''}}" src="{{UA.src(ui, item.art)}}" mode="aspectFit"></image>
+                <text wx:if="{{item.isNew}}" class="hn-new">新</text>
+              </view>
+              <text class="hn-item-title">{{item.title}}</text>
+              <view wx:if="{{item.progress}}" class="hn-bar"><view class="hn-bar-fill" style="width: {{item.percent}}%;"></view></view>
+              <text wx:if="{{item.progress}}" class="hn-item-progress">{{item.progress}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="hn-foot">荣誉只能靠学习挣来，不能抽、不能买</view>
+      </block>
+    </view>
+  </scroll-view>
+</view>
+
+<!-- 详情卡：大图（拿到的背后有旋转光芒）+ 名称 + 怎么拿 / 何时拿到 / 进度 -->
+<view wx:if="{{detail}}" class="hn-sheet-mask" bindtap="closeHonor" catchtouchmove="noop">
+  <view class="hn-sheet" catchtap="noop">
+    <view class="hn-sheet-stage">
+      <view wx:if="{{detail.earned}}" class="hn-sheet-rays" aria-hidden="true"></view>
+      <image class="hn-sheet-art kind-{{detail.kind}} {{detail.earned ? '' : 'is-locked'}}" src="{{UA.src(ui, detail.art)}}" mode="aspectFit"></image>
+      <text wx:if="{{detail.kind === 'badge'}}" class="hn-sheet-no">{{detail.number}}</text>
+    </view>
+    <text class="hn-sheet-title">{{detail.title}}</text>
+    <text class="hn-sheet-pill {{detail.earned ? 'is-earned' : ''}} tier-{{detail.tier}}">{{detail.badge}}</text>
+    <text class="hn-sheet-note">{{detail.note}}</text>
+    <view wx:if="{{detail.progress}}" class="hn-sheet-progress">
+      <view class="hn-bar is-wide"><view class="hn-bar-fill" style="width: {{detail.percent}}%;"></view></view>
+      <text class="hn-sheet-progress-text">{{detail.progress}}</text>
+    </view>
+    <text wx:if="{{detail.date}}" class="hn-sheet-date">获得于 {{detail.date}}</text>
+    <view class="hn-sheet-button" bindtap="closeHonor" role="button">知道了</view>
+  </view>
+</view>
+<dev-reset-fab />

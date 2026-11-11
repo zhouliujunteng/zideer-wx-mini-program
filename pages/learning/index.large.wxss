@@ -366,6 +366,24 @@ page{background:#FAFAFA}
 .lp-stat-book{width:18px;height:19px;border-radius:2px 4px 4px 2px;background:#3E8BF0;box-shadow:inset 3px 0 0 #2A6CC4}
 .lp-stat-book::after{top:4px;right:3px;left:6px;height:2px;border-radius:1px;background:rgba(255, 255, 255, .85);box-shadow:0 4px 0 rgba(255, 255, 255, .85)}
 .lp-stat-avatar{width:24px;height:24px;border-radius:50%}
+.lp-stat-trophy{width:20px;height:25px}
+.honor-cele{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);flex-direction:column;padding:0 38px;background:rgba(20, 16, 36, .82);box-shadow:0 0 0 100vmax rgba(20, 16, 36, .82)}
+.honor-cele-stage{width:312px;height:276px}
+.honor-cele-rays{top:50%;left:50%;width:372px;height:372px;margin:-186px 0 0 -186px;border-radius:50%;background:radial-gradient(circle, rgba(255, 214, 110, .6) 0, rgba(255, 214, 110, 0) 60%), repeating-conic-gradient(from 0deg, rgba(255, 196, 70, .3) 0deg 10deg, rgba(255, 196, 70, 0) 10deg 24deg);-webkit-mask:radial-gradient(circle, #000 30%, transparent 70%);mask:radial-gradient(circle, #000 30%, transparent 70%)}
+.honor-cele-art{width:180px;height:222px}
+.honor-cele-art.kind-badge{height:198px}
+.honor-cele-no{top:99px;left:0;right:0;font-size:43px;font-weight:800;line-height:48px;text-align:center}
+.honor-cele-spark{width:10px;height:10px;border-radius:2px;background:#FFD45C;transform:rotate(45deg)}
+.honor-cele-spark.spark-0{top:36px;left:66px}
+.honor-cele-spark.spark-1{top:54px;right:54px;background:#FFFFFF}
+.honor-cele-spark.spark-2{bottom:54px;left:42px}
+.honor-cele-spark.spark-3{bottom:42px;right:66px;background:#FF9AB5}
+.honor-cele-spark.spark-4{top:120px;left:18px;background:#9FD8FF}
+.honor-cele-spark.spark-5{top:132px;right:18px}
+.honor-cele-kicker{margin-top:4px;font-size:16px;font-weight:700;letter-spacing:2px}
+.honor-cele-title{margin-top:6px;font-size:28px;font-weight:800;text-align:center}
+.honor-cele-more{margin-top:6px;font-size:15px}
+@keyframes honor-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .lp-banner{right:calc(max(0px, 50% - var(--lg-col) / 2) + 19px);left:calc(max(0px, 50% - var(--lg-col) / 2) + 19px);height:79px;border-radius:16px;background:var(--tone);box-shadow:0 4px 0 var(--tone-deep)}
 .lp-banner-copy{flex:1;min-width:0;flex-direction:column;padding:0 18px}
 .lp-banner-no{font-size:14px;font-weight:800}

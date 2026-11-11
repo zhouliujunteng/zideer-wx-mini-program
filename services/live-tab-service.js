@@ -279,7 +279,7 @@ const GUARDIAN_REPORT_ITEM = Object.freeze({ title: '学习报告', description:
 function withGuardianReportItem(groups) {
   return (groups || []).map((group, index) => index === 0 && !(group.items || []).some((item) => item.title === GUARDIAN_REPORT_ITEM.title)
     // 知识图谱是学生的（家长底栏原本也没有图谱）
-    ? { ...group, items: [{ ...GUARDIAN_REPORT_ITEM }].concat((group.items || []).filter((item) => item.title !== '知识图谱')) }
+    ? { ...group, items: [{ ...GUARDIAN_REPORT_ITEM }].concat((group.items || []).filter((item) => item.title !== '知识图谱' && item.title !== '我的荣誉')) }
     : group)
 }
 module.exports = { getLiveHomeModel, getLiveLearningModel, getLearningSkeletonModel, getLiveMeModel, getMyCourseLibrary, withGuardianQuickActions, withGuardianReportItem }

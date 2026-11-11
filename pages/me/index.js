@@ -243,7 +243,8 @@ Page({
       '帮助与反馈': '/account/help-center/index',
       '关于知鹿': '/account/about/index',
       // 知识图谱（2026-10-10 起不在底栏）：游客、没建档也能看示例图谱
-      '知识图谱': '/pages/knowledge-map/index'
+      '知识图谱': '/pages/knowledge-map/index',
+      '我的荣誉': '/learning/honors/index'
     }
     const key = Object.keys(routes).find((item) => name.includes(item))
     if (!key) return wx.showToast({ title: '该服务正在准备中', icon: 'none' })

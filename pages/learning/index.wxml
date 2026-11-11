@@ -11,6 +11,11 @@
           <view class="lp-stat-card" aria-hidden="true"></view>
           <text class="lp-stat-num {{cards.drawsAvailable ? '' : 'is-zero'}}">{{cardsLoaded && access === 'ready' ? cards.drawsAvailable : 0}}</text>
         </view>
+        <!-- 我的荣誉（2026-11-11 晚）：奖杯 + 徽章 + 勋章总数 -->
+        <view class="lp-stat" bindtap="openHonors" role="button" aria-label="我的荣誉，共 {{honorCount}} 项">
+          <image class="lp-stat-trophy" src="{{UA.src(ui, '/assets/honors/trophy-gold.svg')}}" mode="aspectFit"></image>
+          <text class="lp-stat-num {{honorCount ? '' : 'is-zero'}}">{{honorCount}}</text>
+        </view>
         <view class="lp-stat" bindtap="openLibrary" role="button" aria-label="课程库">
           <view class="lp-stat-book" aria-hidden="true"></view>
         </view>
@@ -139,6 +144,20 @@
     <view class="chest-button" bindtap="closeChestReveal" role="button">知道了</view>
   </block>
   <text wx:else class="chest-copy chest-opening">正在打开…</text>
+</view>
+<!-- 新获得荣誉的庆祝（本机还没看过的，最显眼的一样 + 还有几样） -->
+<view wx:if="{{honorCele}}" class="honor-cele" catchtouchmove="noop">
+  <view class="honor-cele-stage">
+    <view class="honor-cele-rays" aria-hidden="true"></view>
+    <view wx:for="{{[0, 1, 2, 3, 4, 5]}}" wx:key="*this" class="honor-cele-spark spark-{{item}}" aria-hidden="true"></view>
+    <image class="honor-cele-art kind-{{honorCele.kind}}" src="{{UA.src(ui, honorCele.art)}}" mode="aspectFit"></image>
+    <text wx:if="{{honorCele.kind === 'badge'}}" class="honor-cele-no">{{honorCele.number}}</text>
+  </view>
+  <text class="honor-cele-kicker">{{honorCele.subtitle}}</text>
+  <text class="honor-cele-title">{{honorCele.title}}</text>
+  <text wx:if="{{honorCele.more}}" class="honor-cele-more">还有 {{honorCele.more}} 项新荣誉</text>
+  <view class="chest-button" bindtap="openHonorsFromCele" role="button">去荣誉殿堂</view>
+  <view class="chest-secondary" bindtap="closeHonorCele" role="button">继续闯关</view>
 </view>
 <card-reveal wx:if="{{openCard}}" card="{{openCard}}" series="{{openSeries}}" mode="detail" origin="{{openOrigin}}" bind:close="handleRevealClose" bind:drawn="handleDrawn" bind:stale="loadCards" />
 <dev-reset-fab />

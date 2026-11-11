@@ -499,6 +499,8 @@ const meModel = {
       items: [
         // 2026-10-10 起底栏「图谱」换成「目标」，知识图谱挪到这里（家长没有，见 live-tab-service）
         { title: '知识图谱', description: '按知识点看掌握情况和前后置关系' },
+        // 2026-11-11 晚：闯关挣来的奖杯、阶段徽章、里程碑勋章（家长没有，见 live-tab-service）
+        { title: '我的荣誉', description: '闯关挣来的奖杯、徽章和勋章' },
         { title: '推广伙伴', tag: '邀请码', description: '分享工具与奖励记录' },
         { title: '身份与登录', description: '学生或家长身份、实名与手机号' },
         { title: '兑换码', description: '兑换课程积分、金币或体验权益' },

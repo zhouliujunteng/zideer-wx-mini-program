@@ -765,7 +765,20 @@ async function retryAgentCoursePractice(stageId) {
 async function loadQuestPath() {
   const token = await getRuntimeToken()
   const data = await requestAgentCourses('/api/learn/quest-path', token, { timeout: 20000, fallbackMessage: '学习路径暂时无法读取，请稍后重试。' })
-  return data && data.path
+  const path = data && data.path
+  // 荣誉（2026-11-11 晚）随路径一起回来；旧版课程服务没有
+  if (path && typeof path === 'object' && data.honors) path.honors = data.honors
+  return path
+}
+
+/**
+ * 我的荣誉（课程服务 /api/learn/honors，2026-11-11 晚）：{ summary, trophies, badges, medals }。
+ * 学习页的闯关路径回包里也带一份（loadQuestPath 返回的 path.honors），用来显示顶栏数字和「新获得」。
+ */
+async function loadHonors() {
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses('/api/learn/honors', token, { timeout: 20000, fallbackMessage: '荣誉暂时读不到，请稍后重试。' })
+  return data && data.honors
 }
 
 /**
@@ -4685,6 +4698,7 @@ module.exports = {
   uploadPrivateFile,
   loadCurrentMembership,
   createMembershipOrder,
+  loadHonors,
   resetPhoneSessionVerification,
   signInWithWechat,
   restoreAuthenticatedUser,

@@ -1160,6 +1160,30 @@ page {
 .lp-stat-book { position: relative; width: 30rpx; height: 32rpx; border-radius: 4rpx 8rpx 8rpx 4rpx; background: #3E8BF0; box-shadow: inset 6rpx 0 0 #2A6CC4; }
 .lp-stat-book::after { position: absolute; top: 8rpx; right: 6rpx; left: 11rpx; height: 4rpx; border-radius: 2rpx; background: rgba(255, 255, 255, .85); box-shadow: 0 8rpx 0 rgba(255, 255, 255, .85); content: ''; }
 .lp-stat-avatar { width: 40rpx; height: 40rpx; border-radius: 50%; }
+.lp-stat-trophy { width: 34rpx; height: 42rpx; }
+/* 新获得荣誉的庆祝弹层（2026-11-11 晚）：暗底 + 旋转光芒 + 荣誉图弹出；按钮沿用开宝箱的样式 */
+.honor-cele { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 64rpx; background: rgba(20, 16, 36, .82); animation: honor-fade .25s ease both; }
+.honor-cele-stage { position: relative; display: flex; align-items: center; justify-content: center; width: 520rpx; height: 460rpx; }
+.honor-cele-rays { position: absolute; top: 50%; left: 50%; width: 620rpx; height: 620rpx; margin: -310rpx 0 0 -310rpx; border-radius: 50%; background: radial-gradient(circle, rgba(255, 214, 110, .6) 0, rgba(255, 214, 110, 0) 60%), repeating-conic-gradient(from 0deg, rgba(255, 196, 70, .3) 0deg 10deg, rgba(255, 196, 70, 0) 10deg 24deg); -webkit-mask: radial-gradient(circle, #000 30%, transparent 70%); mask: radial-gradient(circle, #000 30%, transparent 70%); animation: honor-spin 12s linear infinite; }
+.honor-cele-art { position: relative; width: 300rpx; height: 370rpx; animation: honor-pop .7s cubic-bezier(.2, 1.6, .4, 1) .1s both; }
+.honor-cele-art.kind-badge { height: 330rpx; }
+.honor-cele-no { position: absolute; top: 165rpx; left: 0; right: 0; color: #2E2552; font-size: 72rpx; font-weight: 800; line-height: 80rpx; text-align: center; animation: honor-pop .7s cubic-bezier(.2, 1.6, .4, 1) .1s both; }
+.honor-cele-spark { position: absolute; width: 18rpx; height: 18rpx; border-radius: 4rpx; background: #FFD45C; transform: rotate(45deg); animation: honor-spark 1.6s ease-out .3s infinite; }
+.honor-cele-spark.spark-0 { top: 60rpx; left: 110rpx; }
+.honor-cele-spark.spark-1 { top: 90rpx; right: 90rpx; animation-delay: .6s; background: #FFFFFF; }
+.honor-cele-spark.spark-2 { bottom: 90rpx; left: 70rpx; animation-delay: .9s; }
+.honor-cele-spark.spark-3 { bottom: 70rpx; right: 110rpx; animation-delay: .4s; background: #FF9AB5; }
+.honor-cele-spark.spark-4 { top: 200rpx; left: 30rpx; animation-delay: 1.1s; background: #9FD8FF; }
+.honor-cele-spark.spark-5 { top: 220rpx; right: 30rpx; animation-delay: .2s; }
+.honor-cele-kicker { margin-top: 8rpx; color: #FFD98A; font-size: 28rpx; font-weight: 700; letter-spacing: 4rpx; animation: honor-up .4s ease .45s both; }
+.honor-cele-title { margin-top: 10rpx; color: #FFFFFF; font-size: 48rpx; font-weight: 800; text-align: center; animation: honor-up .4s ease .55s both; }
+.honor-cele-more { margin-top: 10rpx; color: rgba(255, 255, 255, .7); font-size: 26rpx; animation: honor-up .4s ease .6s both; }
+.honor-cele .chest-button { animation: honor-up .4s ease .7s both; }
+@keyframes honor-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes honor-spin { to { transform: rotate(360deg); } }
+@keyframes honor-pop { 0% { opacity: 0; transform: scale(.3) rotate(-12deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes honor-up { from { opacity: 0; transform: translateY(24rpx); } to { opacity: 1; transform: translateY(0); } }
+@keyframes honor-spark { 0% { opacity: 0; transform: rotate(45deg) scale(.3); } 30% { opacity: 1; transform: rotate(45deg) scale(1.2); } 100% { opacity: 0; transform: rotate(45deg) scale(.4); } }
 .lp-banner { position: fixed; right: 32rpx; left: 32rpx; z-index: 19; display: flex; height: 132rpx; align-items: stretch; overflow: hidden; border-radius: 28rpx; background: var(--tone); box-shadow: 0 8rpx 0 var(--tone-deep); transition: background-color .25s ease, box-shadow .25s ease; }
 .lp-banner-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; justify-content: center; padding: 0 30rpx; }
 .lp-banner-no { color: rgba(255, 255, 255, .78); font-size: 24rpx; font-weight: 800; }
