@@ -1,5 +1,6 @@
 // 学习页闯关路径（2026-11-11 用户规则，多邻国式）：课程服务 /api/learn/quest-path 给的路径 → 页面模型。
-// 一段 = 目标导图里的一个大条件（没有导图的按系列）；一节课 = 连续三关（看课 → 互动练习 → AI 老师验收）；
+// 一段 = 目标导图里的一个大条件（没有导图的按系列）；一节课 = 连续几关（看课按章节拆成 1～3 段 → 互动练习 → AI 老师验收），
+// 必须完成一关才解锁下一关；
 // 段末是复习关（今天该复习的课）和宝箱（这一段的课都过了验收就打开，去成就卡）。
 // 关卡在路径上左右摆动排开（ZIGZAG，单位 rpx，相对中线的偏移），当前关上面飘一个「开始」气泡。
 
@@ -8,12 +9,16 @@ const STEP_ICONS = { watch: 'play', practice: 'pencil', accept: 'mic' }
 const STEP_STATES = ['done', 'current', 'open', 'locked']
 const STAGE_TONES = ['orange', 'blue', 'violet', 'teal', 'rose']
 
+const stepId = (stageId, key, part) => `${stageId}-${key}${part ? `-${part}` : ''}`
 const text = (value) => String(value === undefined || value === null ? '' : value)
 
 function normalizeStep(step) {
   const key = ['watch', 'practice', 'accept'].includes(step && step.key) ? step.key : 'watch'
+  const part = Number(step && step.part)
   return {
     key,
+    part: Number.isInteger(part) && part > 0 ? part : 0,
+    sceneId: /^[A-Za-z0-9_-]{1,80}$/.test(text(step && step.sceneId)) ? text(step.sceneId) : '',
     state: STEP_STATES.includes(step && step.state) ? step.state : 'locked',
     label: text(step && step.label),
     detail: text(step && step.detail)
@@ -44,7 +49,9 @@ function normalizeQuestPath(raw) {
   return {
     goal: value.goal && value.goal.title ? { title: text(value.goal.title), subject: text(value.goal.subject) } : null,
     stages,
-    current: value.current && value.current.stageId ? { stageId: text(value.current.stageId), step: text(value.current.step) } : null,
+    current: value.current && value.current.stageId
+      ? { stageId: text(value.current.stageId), step: text(value.current.step), part: Number(value.current.part) || 0 }
+      : null,
     stats: { lessons: Number(value.stats && value.stats.lessons) || 0, done: Number(value.stats && value.stats.done) || 0 }
   }
 }
@@ -65,10 +72,12 @@ function questPathView(path) {
     stage.lessons.forEach((lesson) => {
       lesson.steps.forEach((step, stepIndex) => {
         nodes.push({
-          id: `${lesson.stageId}-${step.key}`,
+          id: stepId(lesson.stageId, step.key, step.part),
           kind: 'step',
           stageId: lesson.stageId,
           step: step.key,
+          part: step.part,
+          sceneId: step.sceneId,
           state: step.state,
           icon: step.state === 'locked' ? 'lock' : step.state === 'done' ? 'check' : STEP_ICONS[step.key],
           offset: nextOffset(),
@@ -110,7 +119,7 @@ function questPathView(path) {
     hasLessons: path.stats.lessons > 0,
     progressText: path.stats.lessons ? `已闯过 ${path.stats.done}/${path.stats.lessons} 节` : '',
     percent: path.stats.lessons ? Math.round((path.stats.done / path.stats.lessons) * 100) : 0,
-    currentId: path.current ? `${path.current.stageId}-${path.current.step}` : '',
+    currentId: path.current ? stepId(path.current.stageId, path.current.step, path.current.part) : '',
     sections
   }
 }
@@ -124,10 +133,12 @@ function nodeTarget(node) {
   if (node.kind === 'review') return { url: `/learning/review/index?stageId=${stage}` }
   if (node.state === 'locked') {
     if (node.lockedBy) return { toast: `先学完「${node.lockedBy.title}」` }
-    return { toast: node.step === 'practice' ? '先把这节课看完' : node.step === 'accept' ? '先通关互动练习' : '这一关还没开放' }
+    return { toast: node.step === 'practice' ? '先把这节课看完' : node.step === 'accept' ? '先通关互动练习' : node.step === 'watch' && node.part > 1 ? '先学完上一段' : '这一关还没开放' }
   }
   if (node.step === 'practice') return { url: `/learning/practice/index?stageId=${stage}` }
   if (node.step === 'accept') return { url: `/learning/agent-acceptance/index?stageId=${stage}` }
+  // 看课的章节小关：直接从这一段第一页没学完的开始学；没有页信息时进课程页
+  if (node.sceneId) return { url: `/learning/course/index?agentCourseId=${stage}&sceneId=${encodeURIComponent(node.sceneId)}` }
   return { url: `/learning/agent-course/index?stageId=${stage}` }
 }
 

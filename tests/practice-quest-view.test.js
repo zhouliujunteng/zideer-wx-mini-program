@@ -90,6 +90,25 @@ test('the quest path zigzags nodes, marks the current step and routes taps', () 
   assert.equal(view.sections[1].nodes[0].kind, 'placeholder')
 })
 
+test('chapter steps of watching get their own nodes and open the course at their first unfinished page', () => {
+  const view = questPathView(normalizeQuestPath({
+    current: { stageId: 'stage-a', step: 'watch', part: 2 },
+    stats: { lessons: 1, done: 0 },
+    stages: [{ id: 's:f', kind: 'series', title: '分数', lessons: [{ stageId: 'stage-a', title: '约分', steps: [
+      { key: 'watch', part: 1, sceneId: 's1', state: 'done', label: '看课 1', detail: '第 1–2 页 · 讲解' },
+      { key: 'watch', part: 2, sceneId: 'scene-4', state: 'current', label: '看课 2', detail: '第 3–4 页 · 互动' },
+      { key: 'watch', part: 3, sceneId: 's5', state: 'locked', label: '看课 3', detail: '' },
+      { key: 'practice', state: 'locked', label: '互动练习', detail: '' },
+      { key: 'accept', state: 'locked', label: 'AI 老师验收', detail: '' }
+    ] }] }]
+  }))
+  const nodes = view.sections[0].nodes
+  assert.deepEqual(nodes.map((n) => n.id), ['stage-a-watch-1', 'stage-a-watch-2', 'stage-a-watch-3', 'stage-a-practice', 'stage-a-accept'])
+  assert.equal(view.currentId, 'stage-a-watch-2')
+  assert.equal(nodeTarget(nodes[1]).url, '/learning/course/index?agentCourseId=stage-a&sceneId=scene-4')
+  assert.equal(nodeTarget(nodes[2]).toast, '先学完上一段')
+})
+
 test('the practice page is registered and its wxml has no inline rpx', () => {
   const app = JSON.parse(fs.readFileSync(path.join(__dirname, '../app.json'), 'utf8'))
   assert.ok(JSON.stringify(app).includes('"practice/index"'))
