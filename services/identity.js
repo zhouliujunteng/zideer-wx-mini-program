@@ -766,12 +766,16 @@ async function loadQuestPath() {
   return data && data.path
 }
 
-/** 打开闯关路径上一节课的宝箱（课程服务 /api/learn/quest-chest）：{ draws, alreadyOpened, bonusDraws }。 */
+/**
+ * 打开闯关路径上一节课的宝箱（课程服务 /api/learn/quest-chest）。
+ * 带 coinReward: true 表示这一版认得金币奖励（2026-11-11）：
+ * { kind: 'draws' | 'coins', draws, coins, alreadyOpened, bonusDraws, coinsToday, coinCap }。
+ */
 async function openQuestChest(stageId) {
   assertStageId(stageId)
   const token = await getRuntimeToken()
   return requestAgentCourses('/api/learn/quest-chest', token, {
-    method: 'POST', data: { stageId }, timeout: 20000, fallbackMessage: '宝箱暂时打不开，请稍后再试。'
+    method: 'POST', data: { stageId, coinReward: true }, timeout: 20000, fallbackMessage: '宝箱暂时打不开，请稍后再试。'
   })
 }
 

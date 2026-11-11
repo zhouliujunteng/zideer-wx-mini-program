@@ -1,7 +1,7 @@
 // 学习页闯关路径（2026-11-11 用户规则，多邻国式）：课程服务 /api/learn/quest-path 给的路径 → 页面模型。
 // 一段 = 目标导图里的一个大条件（没有导图的按系列）；一节课 = 连续几关（看课按章节拆成 1～3 段 → 互动练习 → AI 老师验收），
 // 必须完成一关才解锁下一关；
-// 每节课看课和互动练习之间有一个宝箱（看完这节课就能开，送成就卡抽卡次数，不算一关、不挡后面）；
+// 每节课看课和互动练习之间有一个宝箱（看完这节课就能开，开出成就卡抽卡次数或金币，每天宝箱金币最多 200，不算一关、不挡后面）；
 // 每部分（一节课）末尾一个奖杯；阶段末尾是阶段徽章（这一阶段的课都过了验收就点亮，去成就卡）。
 // 点关卡先弹出说明卡（多邻国式），再点「开始」才进去；动效设计见 docs/闯关学习动效设计记录.md。
 // 关卡在路径上左右摆动排开（ZIGZAG，单位 rpx，相对中线的偏移），当前关上面飘一个「开始」气泡。
@@ -242,7 +242,7 @@ function nodePopover(node) {
   if (node.kind === 'chest') return node.state === 'done' ? { ...base, action: '去成就卡' } : { ...base, note: '这一阶段的课都过了验收，徽章就点亮了' }
   if (node.kind === 'trophy') return node.state === 'done' ? { ...base, note: '这节课每一关都过了' } : { ...base, note: '这节课每一关都过了，奖杯就点亮' }
   if (node.kind === 'lesson-chest') {
-    if (node.state === 'open') return { ...base, title: '宝箱', detail: '打开送 1 次成就卡抽卡机会', action: '打开宝箱' }
+    if (node.state === 'open') return { ...base, title: '宝箱', detail: '打开能得成就卡抽卡机会或金币', action: '打开宝箱' }
     if (node.state === 'done') return { ...base, note: '这个宝箱已经开过了' }
     return { ...base, note: '看完这节课，宝箱就能打开' }
   }

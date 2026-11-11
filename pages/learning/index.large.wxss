@@ -342,6 +342,8 @@ page{background:#FAFAFA}
 .chest-reward{top:24px;left:50%;width:120px;margin-left:-60px;flex-direction:column}
 @keyframes chest-reward{0%{opacity:0;transform:translateY(90px) scale(.3)}100%{opacity:1;transform:translateY(0) scale(1)}}
 .chest-reward-card{width:67px;height:88px;border:3px solid #FFFFFF;border-radius:10px;background:linear-gradient(150deg, #7C9CFF, #FD7C02);box-shadow:0 6px 14px rgba(0, 0, 0, .3);transform:rotate(-8deg)}
+.chest-reward-coin{width:79px;height:79px;border:3px solid #FFF3C4;border-radius:50%;background:radial-gradient(circle at 35% 30%, #FFE9A3, #FFC53D 55%, #E89A0C);box-shadow:0 6px 14px rgba(0, 0, 0, .3), inset 0 -5px 0 rgba(176, 106, 0, .35)}
+.chest-reward-coin-face{width:42px;height:42px;border:3px solid rgba(176, 106, 0, .45);border-radius:50%}
 .chest-reward-count{margin-top:7px;font-size:33px;font-weight:900;text-shadow:0 2px 0 rgba(0, 0, 0, .25)}
 .chest-title{margin-top:7px;font-size:26px;font-weight:900}
 .chest-copy{margin-top:7px;font-size:16px;text-align:center;line-height:1.5}

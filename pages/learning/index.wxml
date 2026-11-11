@@ -114,11 +114,19 @@
       <view class="chest-body"><view class="chest-lock"></view></view>
     </view>
     <view wx:if="{{chestReveal.phase === 'open'}}" class="chest-reward">
-      <view class="chest-reward-card"></view>
-      <text class="chest-reward-count">+{{chestReveal.draws}}</text>
+      <view wx:if="{{chestReveal.kind === 'coins'}}" class="chest-reward-coin"><view class="chest-reward-coin-face"></view></view>
+      <view wx:else class="chest-reward-card"></view>
+      <text class="chest-reward-count">+{{chestReveal.kind === 'coins' ? chestReveal.coins : chestReveal.draws}}</text>
     </view>
   </view>
-  <block wx:if="{{chestReveal.phase === 'open'}}">
+  <block wx:if="{{chestReveal.phase === 'open' && chestReveal.kind === 'coins'}}">
+    <text class="chest-title">打开宝箱！</text>
+    <text class="chest-copy">送你 {{chestReveal.coins}} 金币</text>
+    <view class="chest-wallet"><text>今天宝箱金币</text><text class="chest-wallet-num is-final">{{chestReveal.coinsToday}}</text><text>/ {{chestReveal.coinCap}}</text></view>
+    <view class="chest-button" bindtap="closeChestReveal" role="button">继续闯关</view>
+    <view class="chest-secondary" bindtap="openCoinsFromChest" role="button">看我的金币</view>
+  </block>
+  <block wx:elif="{{chestReveal.phase === 'open'}}">
     <text class="chest-title">打开宝箱！</text>
     <text class="chest-copy">送你 {{chestReveal.draws}} 次成就卡抽卡机会</text>
     <view class="chest-wallet"><text>现在可以抽</text><view class="chest-wallet-roll"><text class="chest-wallet-num {{chestReveal.bonusShown === chestReveal.bonusDraws ? 'is-final' : ''}}">{{chestReveal.bonusShown}}</text></view><text>次</text></view>

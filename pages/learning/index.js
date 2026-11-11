@@ -4,6 +4,22 @@ const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest } 
 const { normalizeQuestPath, questPathView, nodeTarget, nodePopover, findNode, questTransition } = require('../../utils/quest-path-view')
 // 上次看到的当前关（回到学习页时做过关动效用，多邻国式）
 const QUEST_CURRENT_KEY = 'zhilu_quest_current'
+// 宝箱回包 → 弹层数据。开出金币（kind coins）显示金币和今天宝箱金币进度（每天最多 coinCap）；开出抽卡次数照旧。
+function chestRevealOf(result) {
+  const value = result || {}
+  const coins = Math.max(0, Number(value.coins) || 0)
+  const kind = value.kind === 'coins' && coins > 0 ? 'coins' : 'draws'
+  const draws = kind === 'draws' ? Math.max(1, Number(value.draws) || 1) : 0
+  const bonusDraws = Math.max(0, Number(value.bonusDraws) || 0)
+  const coinCap = Math.max(1, Number(value.coinCap) || 200)
+  return {
+    phase: 'open', kind, draws, coins,
+    coinsToday: Math.min(coinCap, Math.max(0, Number(value.coinsToday) || 0)), coinCap,
+    bonusDraws,
+    bonusShown: kind === 'draws' && !value.alreadyOpened ? Math.max(0, bonusDraws - draws) : bonusDraws,
+    error: ''
+  }
+}
 // 吸顶横幅只要这几样，不把整串关卡塞进 data
 const partBanner = (part) => (part ? { id: part.id, phaseNumber: part.phaseNumber, partNumber: part.partNumber, title: part.title, tone: part.tone, stageId: part.stageId } : null)
 const { openLogin, openAccessStep, guardAccess } = require('../../utils/access-gate')
@@ -303,24 +319,25 @@ Page({
   async openLessonChest(stageId) {
     if (this._chestBusy) return
     this._chestBusy = true
-    this.setData({ chestReveal: { phase: 'shake', draws: 0, bonusDraws: 0, bonusShown: 0, error: '' } })
+    this.setData({ chestReveal: { phase: 'shake', kind: 'draws', draws: 0, coins: 0, coinsToday: 0, coinCap: 200, bonusDraws: 0, bonusShown: 0, error: '' } })
     const started = Date.now()
     try {
       const result = await openQuestChest(stageId)
       // 抖动至少播 1.1 秒，接口再快也让箱子先晃完
       await new Promise((resolve) => setTimeout(resolve, Math.max(0, 1100 - (Date.now() - started))))
-      const bonusDraws = Number(result && result.bonusDraws) || 0
-      const draws = Number(result && result.draws) || 1
+      const reveal = chestRevealOf(result)
       try { wx.vibrateShort({ type: 'heavy' }) } catch (error) { /* 没有震动也照常 */ }
-      this.setData({ chestReveal: { phase: 'open', draws, bonusDraws, bonusShown: Math.max(0, bonusDraws - draws), error: '' } })
-      // 剩余次数从开箱前滚到开箱后
-      this._chestCountTimer = setTimeout(() => {
-        if (this.data.chestReveal) this.setData({ 'chestReveal.bonusShown': bonusDraws })
-      }, 900)
+      this.setData({ chestReveal: reveal })
+      // 抽卡次数从开箱前滚到开箱后（开出金币时次数不变，不用滚）
+      if (reveal.kind === 'draws') {
+        this._chestCountTimer = setTimeout(() => {
+          if (this.data.chestReveal) this.setData({ 'chestReveal.bonusShown': reveal.bonusDraws })
+        }, 900)
+      }
       this.loadQuest()
       this.loadCards()
     } catch (error) {
-      this.setData({ chestReveal: { phase: 'error', draws: 0, bonusDraws: 0, bonusShown: 0, error: error.message || '宝箱暂时打不开，请稍后再试。' } })
+      this.setData({ chestReveal: { phase: 'error', kind: 'draws', draws: 0, coins: 0, coinsToday: 0, coinCap: 200, bonusDraws: 0, bonusShown: 0, error: error.message || '宝箱暂时打不开，请稍后再试。' } })
     } finally {
       this._chestBusy = false
     }
@@ -335,6 +352,11 @@ Page({
   openCardsFromChest() {
     this.closeChestReveal()
     this.openAllCards()
+  },
+
+  openCoinsFromChest() {
+    this.closeChestReveal()
+    wx.navigateTo({ url: '/growth/coins/index' })
   },
 
   // 成就卡：只给已建档的学生读（游客、没建档的显示提示卡）。第一次读到前画骨架，之后静默刷新保留旧数据。
