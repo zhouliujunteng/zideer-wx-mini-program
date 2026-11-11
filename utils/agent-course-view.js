@@ -183,7 +183,7 @@ function agentCourseCard(course, index = 0) {
 function agentCourseCardSubtitle(course, acceptance, learnState) {
   if (course.isGenerating) return course.total ? `已做好 ${course.done} / ${course.total} 页` : '正在准备课程页面'
   if (!course.canLearn) return '没有制作成功，点开查看'
-  if (course.lock) return `先学完「${course.lock.previousTitle}」`
+  if (course.lock) return `先闯过「${course.lock.previousTitle}」`
   if (acceptance.card) return acceptance.card
   if (learnState === 'completed') return '已学完'
   if (learnState === 'in_progress') return `已学 ${course.learning.completed} / ${course.learning.total} 页`
@@ -253,7 +253,7 @@ function agentCourseDetail(course, learning = null) {
     learnAction: course.lock ? '去学上一节' : learnable ? (learning.finished ? '再次学习' : learning.completed ? '继续学习' : '开始学习') : '学习课程',
     // 锁着时详情页最上面的一张提示卡：先学完哪一节、进了复述验收才解锁
     lock: course.lock
-      ? { title: '学完上一节后解锁', text: `系列课要按顺序学：先学完「${course.lock.previousTitle}」并进入复述验收，这一节才能开始。`, previousStageId: course.lock.previousStageId }
+      ? { title: '闯过上一节后解锁', text: `闯关要一关一关过：先把「${course.lock.previousTitle}」的看课、互动练习、AI 老师验收都过了，这一节才能开始。`, previousStageId: course.lock.previousStageId }
       : null,
     review: agentCourseReview(course, learning),
     pages: agentCoursePageRows(course, learning),

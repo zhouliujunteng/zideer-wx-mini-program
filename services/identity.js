@@ -463,7 +463,7 @@ const COURSE_ENTRY_ERRORS = {
   MEMBERSHIP_REQUIRED: '当前账号暂无会员课程学习权限。',
   COURSE_ACCESS_DENIED: '当前学习账号暂不可访问这门课程。',
   // 系列课按顺序学（2026-10-15）：课程服务 lib/course/agent-course-order.ts
-  COURSE_LOCKED: '系列课要按顺序学：先学完上一节并进入复述验收，这一节才会解锁。',
+  COURSE_LOCKED: '闯关要一关一关过：上一节的看课、互动练习和验收都过了，这一节才会解锁。',
   TRY_LATER: '操作过于频繁，请稍后重试。'
 }
 
@@ -514,7 +514,7 @@ function requestAgentCourses(path, token, options = {}) {
         COURSE_NOT_FINISHED: '这门课还没学完，学完全部内容后再来验收。',
         // 测试快捷方式「标记学完，去验收」（课程服务核对「重置测试账号」开启码）
         DEV_RESET_FORBIDDEN: '开启码已失效，请到「我的 → 兑换码」重新输入。',
-        COURSE_LOCKED: '系列课要按顺序学：先学完上一节并进入复述验收。',
+        COURSE_LOCKED: '闯关要一关一关过：先把上一节的三关都过了。',
         DEV_RESET_UNAVAILABLE: '暂时核对不了开启码，请稍后重试。',
         NOTHING_TO_LEARN: '这门课没有需要学的讲解页，不能验收。',
         ACCEPTANCE_NOT_STARTED: '验收已结束，请重新开始验收。',

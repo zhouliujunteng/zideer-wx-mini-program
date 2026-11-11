@@ -197,7 +197,8 @@ function practiceCard(practice, error = false) {
   if (!practice) return null
   const homework = practice.kind === 'homework'
   const count = practice.questionCount
-  const base = { available: true, action: 'open', homework, cleared: homework || practice.status === 'done' || practice.status === 'failed' }
+  // 必须完成一关才解锁下一关（2026-11-11）：做完（通关 / 交了卷）才算过，出题失败要重新出题做完
+  const base = { available: true, action: 'open', homework, cleared: practice.status === 'done' }
   switch (practice.status) {
     case 'preparing':
       return { ...base, icon: 'waiting', title: '正在出题', text: '按这节课的知识点出几道小题，稍等一会儿就好', cta: '' }
@@ -211,7 +212,7 @@ function practiceCard(practice, error = false) {
         cta: '去闯关'
       }
     case 'failed':
-      return { ...base, icon: 'waiting', title: '这次没出好题', text: '点进去重新出题；也可以直接去验收', cta: '重新出题' }
+      return { ...base, icon: 'waiting', title: '这次没出好题', text: '点进去重新出一次题，做完就能去验收', cta: '重新出题' }
     case 'done':
       if (homework) return { ...base, icon: 'passed', title: '课后作业已完成', text: '点开看每道题的解析', cta: '看解析' }
       return { ...base, icon: 'passed', title: '互动练习已通关', text: `一次答对 ${practice.correctCount === null ? count : practice.correctCount}/${count} 道`, cta: '回顾' }

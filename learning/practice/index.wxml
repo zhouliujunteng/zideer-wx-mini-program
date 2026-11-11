@@ -45,9 +45,8 @@
     <view wx:elif="{{practice.status === 'failed'}}" class="state-panel">
       <view class="state-panel__mark">!</view>
       <text class="state-panel__title">这次没出好题</text>
-      <text class="state-panel__copy">可以再出一次；也可以直接去找老师验收。</text>
+      <text class="state-panel__copy">再出一次题，做完这一关就能去找老师验收。</text>
       <view class="pr-button is-primary" bindtap="retryGenerate" role="button">重新出题</view>
-      <view class="pr-button" bindtap="openAcceptance" role="button">去验收</view>
     </view>
 
     <view wx:elif="{{practice.status === 'done'}}" class="pr-clear">

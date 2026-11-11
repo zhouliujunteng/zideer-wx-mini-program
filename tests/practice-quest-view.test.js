@@ -49,6 +49,8 @@ test('feedback, clear summary and the course-detail card follow the practice sta
   assert.equal(clearSummary(done).comment, '一次就对了 2 道，错的也都改对了。')
   assert.equal(practiceCard(PRACTICE).cta, '去闯关')
   assert.equal(practiceCard(done).cleared, true)
+  assert.equal(practiceCard(normalizePractice({ ...PRACTICE, status: 'failed' })).cleared, false, '出题失败不算过关，要重新出题做完')
+  assert.equal(practiceCard(normalizePractice({ kind: 'homework', status: 'ready', questionCount: 3 })).cleared, false, '以前的课后作业也要交了卷才算过')
   const review = { available: true, status: 'not_started', title: '开始复述验收' }
   assert.equal(gateReview(review, practiceCard(PRACTICE)).available, false, '练习没通关，验收锁住')
   assert.equal(gateReview(review, practiceCard(done)), review)
