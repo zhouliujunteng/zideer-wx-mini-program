@@ -215,6 +215,7 @@ function honorsView(honors, seen) {
     },
     shelves,
     hasTrophies: trophies.length > 0,
+    hasBadges: badges.length > 0,
     badges,
     groups
   }

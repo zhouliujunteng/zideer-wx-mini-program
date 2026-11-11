@@ -27,7 +27,7 @@ page { background: #F7F4EF; }
 
 /* 总览：深色殿堂卡 */
 .hn-hero { position: relative; overflow: hidden; padding: 40rpx 36rpx 32rpx; border-radius: 40rpx; background: linear-gradient(145deg, #2E2552 0%, #3F2F7A 55%, #5A3E8E 100%); box-shadow: 0 24rpx 48rpx rgba(63, 47, 122, .28); color: #FFFFFF; }
-.hn-hero-rays { position: absolute; top: -260rpx; left: -200rpx; width: 640rpx; height: 640rpx; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255, 214, 120, .16) 0deg 8deg, rgba(255, 214, 120, 0) 8deg 22deg); animation: hn-spin 40s linear infinite; }
+.hn-hero-rays { position: absolute; top: -260rpx; left: -200rpx; width: 640rpx; height: 640rpx; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255, 214, 120, .09) 0deg 7deg, rgba(255, 214, 120, 0) 7deg 22deg); animation: hn-spin 40s linear infinite; }
 .hn-hero-glow { position: absolute; top: -40rpx; left: 10rpx; width: 300rpx; height: 300rpx; border-radius: 50%; background: radial-gradient(circle, rgba(255, 210, 110, .55), rgba(255, 210, 110, 0) 70%); }
 .hn-hero-cup { position: absolute; top: 26rpx; left: 28rpx; width: 196rpx; height: 242rpx; animation: hn-float 4s ease-in-out infinite; }
 .hn-hero-copy { position: relative; display: flex; flex-direction: column; min-height: 210rpx; margin-left: 236rpx; }

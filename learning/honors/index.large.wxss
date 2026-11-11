@@ -28,7 +28,7 @@ page{background:#F7F4EF}
 .hn-error-text{text-align:center}
 .hn-error-retry{padding:9px 28px;border-radius:599px;background:#FD7C02;font-weight:700}
 .hn-hero{padding:24px 21px 19px;border-radius:24px;background:linear-gradient(145deg, #2E2552 0%, #3F2F7A 55%, #5A3E8E 100%);box-shadow:0 14px 28px rgba(63, 47, 122, .28)}
-.hn-hero-rays{top:-156px;left:-120px;width:384px;height:384px;border-radius:50%;background:repeating-conic-gradient(from 0deg, rgba(255, 214, 120, .16) 0deg 8deg, rgba(255, 214, 120, 0) 8deg 22deg)}
+.hn-hero-rays{top:-156px;left:-120px;width:384px;height:384px;border-radius:50%;background:repeating-conic-gradient(from 0deg, rgba(255, 214, 120, .09) 0deg 7deg, rgba(255, 214, 120, 0) 7deg 22deg)}
 .hn-hero-glow{top:-24px;left:6px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle, rgba(255, 210, 110, .55), rgba(255, 210, 110, 0) 70%)}
 .hn-hero-cup{top:15px;left:16px;width:117px;height:145px}
 .hn-hero-copy{min-height:126px;margin-left:141px}

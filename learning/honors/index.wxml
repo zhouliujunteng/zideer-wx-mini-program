@@ -76,7 +76,7 @@
           <text class="hn-section-title">阶段徽章</text>
           <text class="hn-section-sub">一个阶段的课全部闯过验收就点亮</text>
         </view>
-        <view wx:if="{{view.badges.length}}" class="hn-badges">
+        <view wx:if="{{view.hasBadges}}" class="hn-badges">
           <view wx:for="{{view.badges}}" wx:key="id" class="hn-badge {{item.earned ? 'is-earned' : 'is-locked'}}" data-id="{{item.id}}" bindtap="openHonor" role="button" aria-label="第 {{item.number}} 阶段 {{item.title}}">
             <view class="hn-badge-art-wrap">
               <image class="hn-badge-art {{item.isNew ? 'is-new' : ''}}" src="{{UA.src(ui, item.art)}}" mode="aspectFit"></image>
