@@ -204,7 +204,8 @@ Page({
     if (!course || !course.canLearn || !row) return
     if (course.lock) return this.openPrevious()
     if (!row.openable) {
-      if (row.status === 'failed') wx.showToast({ title: '这一页没有做好，先学其他页', icon: 'none' })
+      if (row.segmentLocked) wx.showToast({ title: '闯关不能跳：先学完前面这一段', icon: 'none' })
+      else if (row.status === 'failed') wx.showToast({ title: '这一页没有做好，先学其他页', icon: 'none' })
       return
     }
     wx.navigateTo({ url: `/learning/course/index?agentCourseId=${encodeURIComponent(course.stageId)}&sceneId=${encodeURIComponent(row.sceneId)}` })

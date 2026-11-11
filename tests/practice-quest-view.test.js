@@ -117,3 +117,12 @@ test('the practice page is registered and its wxml has no inline rpx', () => {
     for (const style of wxml.match(/style="[^"]*"/g) || []) assert.ok(!/rpx/.test(style), `${file}: ${style}`)
   }
 })
+
+test('course detail only opens the pages of the current chapter step', () => {
+  const { normalizeAgentLearning } = require('../utils/agent-course-view')
+  const scenes = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'].map((sceneId, i) => ({ sceneId, state: i < 2 ? 'completed' : 'not_started', counts: true }))
+  const learning = normalizeAgentLearning({ total: 6, completed: 2, allRecorded: false, scenes })
+  assert.deepEqual(Object.keys(learning.beyond), ['a5', 'a6'], '第 2 段（第 3–4 页）在学，第 3 段锁着')
+  const finished = normalizeAgentLearning({ total: 6, completed: 6, allRecorded: true, scenes })
+  assert.deepEqual(finished.beyond, {})
+})

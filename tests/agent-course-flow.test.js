@@ -334,8 +334,8 @@ test('course detail shows the cover landscape, like the 我的课程 card', () =
 })
 
 test('learning progress never shows 100% before the course counts as learned', () => {
-  assert.deepEqual(normalizeAgentLearning({ completed: 3, total: 3, allRecorded: false }), { completed: 3, total: 3, finished: false, percent: 99, scenes: {} })
-  assert.deepEqual(normalizeAgentLearning({ completed: 0, total: 4, allRecorded: false }), { completed: 0, total: 4, finished: false, percent: 0, scenes: {} })
+  assert.deepEqual(normalizeAgentLearning({ completed: 3, total: 3, allRecorded: false }), { completed: 3, total: 3, finished: false, percent: 99, scenes: {}, beyond: {} })
+  assert.deepEqual(normalizeAgentLearning({ completed: 0, total: 4, allRecorded: false }), { completed: 0, total: 4, finished: false, percent: 0, scenes: {}, beyond: {} })
   assert.equal(normalizeAgentLearning({ completed: 1, total: 0 }), null)
   assert.equal(normalizeAgentLearning(null), null)
   const notStarted = agentCourseDetail(normalizeAgentCourse(rawCourse({ status: 'completed', canLearn: true })), normalizeAgentLearning({ completed: 0, total: 3, allRecorded: false }))
@@ -482,8 +482,9 @@ test('课程内容 marks each page learned or not, and a tap starts the course a
   page.onLoad({ stageId: STAGE })
   await page.onShow()
   const rows = page.data.detail.pages
-  assert.deepEqual(rows.map((row) => row.stateLabel), ['已学完', '未学', '没有做好', '学习中'])
-  assert.deepEqual(rows.map((row) => row.openable), [true, true, false, true])
+  // 闯关不能跳（2026-11-11）：第 1 段（第 1、2 页）没学完，后面那段的「练一练」待解锁
+  assert.deepEqual(rows.map((row) => row.stateLabel), ['已学完', '未学', '没有做好', '待解锁'])
+  assert.deepEqual(rows.map((row) => row.openable), [true, true, false, false])
 
   page.openPage({ currentTarget: { dataset: { order: 2 } } })
   assert.deepEqual(navigations, [`/learning/course/index?agentCourseId=${STAGE}&sceneId=scene_a2`])

@@ -216,10 +216,36 @@ function normalizeAgentLearning(raw) {
   const done = Math.min(completed, total)
   const finished = raw.allRecorded === true
   const scenes = {}
+  const ordered = []
   for (const item of Array.isArray(raw.scenes) ? raw.scenes : []) {
-    if (item && typeof item.sceneId === 'string' && SCENE_ID.test(item.sceneId) && LEARN_STATE_LABELS[item.state]) scenes[item.sceneId] = item.state
+    if (item && typeof item.sceneId === 'string' && SCENE_ID.test(item.sceneId) && LEARN_STATE_LABELS[item.state]) {
+      scenes[item.sceneId] = item.state
+      ordered.push({ sceneId: item.sceneId, done: item.state === 'completed' || item.counts === false })
+    }
   }
-  return { completed: done, total, finished, percent: finished ? 100 : Math.min(99, Math.round(done / total * 100)), scenes }
+  return {
+    completed: done, total, finished, percent: finished ? 100 : Math.min(99, Math.round(done / total * 100)), scenes,
+    beyond: finished ? {} : beyondCurrentPart(ordered)
+  }
+}
+
+// 闯关学习（2026-11-11 用户规则：看课按章节拆的小关不能跳）：与课程服务 lib/course/quest-path.ts chapterParts 同一规则——
+// 1～2 页一段、3～5 页两段、再多三段；第一段没学完的之后的页都还锁着（课堂里也翻不过去）。改规则两边一起改。
+function chapterParts(list) {
+  const n = list.length
+  const count = n <= 2 ? 1 : n <= 5 ? 2 : 3
+  const parts = []
+  for (let i = 0; i < count; i++) parts.push(list.slice(Math.round(i * n / count), Math.round((i + 1) * n / count)))
+  return parts.filter((part) => part.length)
+}
+
+function beyondCurrentPart(ordered) {
+  const parts = chapterParts(ordered)
+  const open = parts.findIndex((part) => !part.every((item) => item.done))
+  const beyond = {}
+  if (open < 0) return beyond
+  parts.slice(open + 1).forEach((part) => part.forEach((item) => { beyond[item.sceneId] = true }))
+  return beyond
 }
 
 /**
@@ -270,12 +296,14 @@ function agentCourseDetail(course, learning = null) {
  */
 function agentCoursePageRows(course, learning = null) {
   const rows = course.pages.map((page) => {
-    const openable = Boolean(course.canLearn && !course.lock && page.status === 'done' && page.sceneId)
+    // 后面几段的页：这一段学完才开（闯关不能跳）
+    const segmentLocked = Boolean(learning && learning.beyond && page.sceneId && learning.beyond[page.sceneId])
+    const openable = Boolean(course.canLearn && !course.lock && !segmentLocked && page.status === 'done' && page.sceneId)
     const learnState = openable && learning ? (learning.scenes && learning.scenes[page.sceneId]) || 'not_started' : ''
     const stateLabel = learnState
       ? LEARN_STATE_LABELS[learnState]
-      : !course.canLearn ? page.statusLabel : page.status === 'done' ? '' : '没有做好'
-    return { ...page, openable, learnState, stateLabel, isNext: false }
+      : segmentLocked ? '待解锁' : !course.canLearn ? page.statusLabel : page.status === 'done' ? '' : '没有做好'
+    return { ...page, openable, segmentLocked, learnState, stateLabel, isNext: false }
   })
   // 接下来该学的那一页（第一页还没学完的）在列表里点亮，和底部「继续学习」对得上
   const next = rows.find((row) => row.learnState === 'in_progress') || rows.find((row) => row.learnState === 'not_started')
