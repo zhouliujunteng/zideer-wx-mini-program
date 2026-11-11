@@ -482,9 +482,9 @@ test('课程内容 marks each page learned or not, and a tap starts the course a
   page.onLoad({ stageId: STAGE })
   await page.onShow()
   const rows = page.data.detail.pages
-  // 闯关不能跳（2026-11-11）：第 1 段（第 1、2 页）没学完，后面那段的「练一练」待解锁
-  assert.deepEqual(rows.map((row) => row.stateLabel), ['已学完', '未学', '没有做好', '待解锁'])
-  assert.deepEqual(rows.map((row) => row.openable), [true, true, false, false])
+  // 一节课整节一关（2026-11-11 晚用户规则）：课里的页不按段锁
+  assert.deepEqual(rows.map((row) => row.stateLabel), ['已学完', '未学', '没有做好', '学习中'])
+  assert.deepEqual(rows.map((row) => row.openable), [true, true, false, true])
 
   page.openPage({ currentTarget: { dataset: { order: 2 } } })
   assert.deepEqual(navigations, [`/learning/course/index?agentCourseId=${STAGE}&sceneId=scene_a2`])
