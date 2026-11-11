@@ -258,7 +258,7 @@ function onboardingPart(steps) {
     mascot: null,
     phaseNumber: 0,
     phaseNo: '入门',
-    banner: '入门 · 准备开始',
+    banner: '入门关卡',
     tone: 'orange',
     phaseTitle: '准备开始',
     phaseSubtitle: '',
@@ -322,7 +322,8 @@ function nodePopover(node) {
   }
   if (node.kind === 'review') return { ...base, action: '开始复习' }
   if (node.kind === 'onboard') return onboardPopover(node, base)
-  if (node.state === 'locked' && node.paywall) return { ...base, title: node.course || base.title, position: '', detail: '', note: PAYWALL_NOTE, action: '', paywall: true }
+  // 付费锁：支付开关开着时页面再补上「开通会员」按钮（按钮在时不显示 note，所以说明放 detail）
+  if (node.state === 'locked' && node.paywall) return { ...base, title: '开通会员后解锁', position: '', detail: '免费体验开放前 3 节课', note: PAYWALL_NOTE, action: '', paywall: true }
   if (node.state === 'locked') {
     const target = nodeTarget(node)
     return { ...base, note: target && target.toast ? target.toast : '这一关还没开放' }

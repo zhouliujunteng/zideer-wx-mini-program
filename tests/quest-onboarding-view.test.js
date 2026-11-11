@@ -15,7 +15,7 @@ const ONBOARDING = [
 test('入门三关画成路径最上面的「准备开始」部分，当前关在第三关', () => {
   const view = questPathView(normalizeQuestPath({ onboarding: ONBOARDING, stages: [], current: { stageId: 'onboarding', step: 'meeting' }, stats: { lessons: 0, done: 0 } }))
   assert.equal(view.parts[0].id, 'part-onboarding')
-  assert.equal(view.parts[0].banner, '入门 · 准备开始')
+  assert.equal(view.parts[0].banner, '入门关卡')
   assert.deepEqual(view.parts[0].nodes.map((node) => node.step), ['goal', 'preference', 'meeting'])
   assert.equal(view.currentId, 'onboarding-meeting')
   assert.equal(view.currentPartId, 'part-onboarding')
