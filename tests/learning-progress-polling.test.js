@@ -10,7 +10,7 @@ function setup(load) {
   const timers = new Map()
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../pages/learning/index.js'), 'utf8'), {
     Page: value => { definition = value },
-    require: (name) => name.endsWith('/utils/my-course-groups') ? require('../utils/my-course-groups') : ({ getLiveLearningModel: load, getLearningModel: () => ({ calendarTitle: '今天', studyTasks: [] }), takeAgentCourseFocus: () => '', hasSession: () => true }),
+    require: (name) => name.endsWith('payment-switch') ? { attachPaymentSwitch() {}, openPaymentPage() {} } : name.endsWith('/utils/my-course-groups') ? require('../utils/my-course-groups') : ({ getLiveLearningModel: load, getLearningModel: () => ({ calendarTitle: '今天', studyTasks: [] }), takeAgentCourseFocus: () => '', hasSession: () => true }),
     getApp: () => ({}), wx: { showToast() {}, stopPullDownRefresh() {} },
     setTimeout: fn => { timers.set(++serial, fn); return serial }, clearTimeout: id => timers.delete(id),
   })

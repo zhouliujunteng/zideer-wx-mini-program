@@ -104,7 +104,7 @@ function setupLearningPage(storage = fakeStorage()) {
   let serial = 0
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../pages/learning/index.js'), 'utf8'), {
     Page: (value) => { definition = value },
-    require: (name) => (name.endsWith('agent-course-focus')
+    require: (name) => (name.endsWith('payment-switch') ? { attachPaymentSwitch() {}, openPaymentPage() {} } : name.endsWith('agent-course-focus')
       ? loadFocusUtil(storage)
       : name.endsWith('/utils/my-course-groups')
         ? require('../utils/my-course-groups')
@@ -165,6 +165,7 @@ function setupProgressPage(replies, learning = { value: null }) {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../learning/agent-course/index.js'), 'utf8'), {
     Page: (value) => { definition = value },
     require: (name) => {
+      if (name.endsWith('payment-switch')) return { attachPaymentSwitch() {}, openPaymentPage() {} }
       if (name.endsWith('agent-course-view')) return require('../utils/agent-course-view')
       if (name.endsWith('practice-view')) return require('../utils/practice-view')
       if (name.endsWith('utils/screen')) return require('../utils/screen')

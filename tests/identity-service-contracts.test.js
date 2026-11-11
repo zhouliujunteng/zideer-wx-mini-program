@@ -409,7 +409,7 @@ test('course entry carries a single-use ticket, fails loudly without one, and ac
     global.courseHandoffFails = false
   }
   for (const [reply, message] of [
-    [{ statusCode: 403, data: { code: 'MEMBERSHIP_REQUIRED' } }, /暂无会员课程学习权限/],
+    [{ statusCode: 403, data: { code: 'MEMBERSHIP_REQUIRED' } }, /要开通会员才能学/],
     [{ statusCode: 403, data: { code: 'COURSE_ACCESS_DENIED' } }, /暂不可访问这门课程/],
     [{ statusCode: 200, data: { ticket: 'short' } }, /课程入口暂时不可用/]
   ]) {

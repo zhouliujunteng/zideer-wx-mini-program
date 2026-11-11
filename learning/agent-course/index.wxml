@@ -95,7 +95,7 @@
         <view class="course-detail-main">
         <!-- 系列课按顺序学（2026-10-15 用户规则）：上一节还没学完进复述验收，这一节锁着，点一下去学上一节 -->
         <view wx:if="{{detail.lock}}" class="course-review-section">
-          <view class="course-review-card is-available" bindtap="openPrevious" role="button" aria-label="{{detail.lock.title}}，去学上一节">
+          <view class="course-review-card is-available" bindtap="openPrevious" role="button" aria-label="{{detail.lock.title}}，{{detail.lock.paywall ? '开通会员' : '去学上一节'}}">
             <view class="course-review-tile">
               <view class="review-glyph review-glyph--lock"><view class="review-glyph__shackle"></view><view class="review-glyph__body"></view></view>
             </view>
@@ -103,7 +103,7 @@
               <text class="course-review-title">{{detail.lock.title}}</text>
               <text class="course-review-text">{{detail.lock.text}}</text>
             </view>
-            <view class="course-review-cta is-primary">去学</view>
+            <view wx:if="{{!detail.lock.paywall || paymentOpen}}" class="course-review-cta is-primary">{{detail.lock.paywall ? '开通' : '去学'}}</view>
           </view>
         </view>
 

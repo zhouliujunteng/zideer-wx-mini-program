@@ -6,7 +6,8 @@ const {
   toggleDirection,
   deadlineText,
   goalPreviewLines,
-  deadlineRange
+  deadlineRange,
+  goalSpecificity
 } = require('../../utils/learning-goal')
 
 // 学习宇宙 › 我的学习目标（2026-10-07 用户需求）：目标方向 + 具体目标 + 希望完成时间，学生自己填。
@@ -33,6 +34,8 @@ Page({
     deadlineStart: '',
     deadlineEnd: '',
     preview: [],
+    // 「把目标写具体」三条引导（2026-11-11 闯关第一关）
+    specific: goalSpecificity('', ''),
     dirty: false,
     saving: false,
     saveError: '',
@@ -105,6 +108,7 @@ Page({
       goalLength: Array.from(current.goal).length,
       deadlineLeft: deadlineText(current.deadline, this._today),
       preview: goalPreviewLines(this._catalog, current, this._today),
+      specific: goalSpecificity(current.goal, current.deadline),
       dirty: saved.direction !== current.direction || saved.goal.trim() !== current.goal.trim() || saved.deadline !== current.deadline
     })
   },
@@ -136,6 +140,19 @@ Page({
 
   async save() {
     if (this.data.saving || !this.data.dirty) return
+    // 目标写得太笼统：先问一句要不要再写具体（只提示一次，选「就这样保存」照常保存）
+    const specific = goalSpecificity(this.data.goal, this.data.deadline)
+    if (specific.vague && this._vagueAsked !== this.data.goal) {
+      this._vagueAsked = this.data.goal
+      wx.showModal({
+        title: '目标再写具体一点？',
+        content: `${specific.tip}。写具体了，老师才知道先帮你补哪里。`,
+        confirmText: '再改改',
+        cancelText: '就这样存',
+        success: (result) => { if (result && result.cancel) this.save() }
+      })
+      return
+    }
     if (this.data.deadline && this.data.deadline < this._today) {
       this.setData({ saveError: '完成时间已经过了，换一个今天或以后的日期，或者清除它。' })
       return

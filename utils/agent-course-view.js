@@ -62,7 +62,13 @@ function normalizeSeries(raw) {
 }
 
 // 系列课按顺序学（2026-10-15 用户规则）：系列里上一节还没学完进复述验收，这一节锁着，课程服务带上要先学的那一节。
+// 免费体验家庭第 4 节起（2026-11-11）：lock.paywall，开会员才解锁（previous 可能为空）。
 function normalizeLock(raw) {
+  if (raw && raw.locked === true && raw.paywall === true) {
+    const previous = raw.previous && isAgentCourseId(raw.previous.stageId) ? raw.previous : null
+    const title = previous && typeof previous.title === 'string' ? previous.title.trim().slice(0, 80) : ''
+    return { paywall: true, previousStageId: previous ? previous.stageId : '', previousTitle: title || '上一节' }
+  }
   if (!raw || raw.locked !== true || !raw.previous || !isAgentCourseId(raw.previous.stageId)) return null
   const title = typeof raw.previous.title === 'string' ? raw.previous.title.trim().slice(0, 80) : ''
   return { previousStageId: raw.previous.stageId, previousTitle: title || '上一节' }
@@ -170,7 +176,7 @@ function agentCourseCard(course, index = 0) {
     locked: Boolean(course.lock),
     // 制作中的进度压在封面右上角，和首页非会员课程的「会员」角标同一个样式。
     // 学完后有练习题没做，角标提醒「作业待完成」（课后作业，2026-10-13）。
-    tag: course.isGenerating ? `制作中 ${course.percent}%` : course.status === 'failed' ? '制作失败' : course.lock ? '待解锁' : course.homework && course.homework.status === 'ready' ? '作业待完成' : '',
+    tag: course.isGenerating ? `制作中 ${course.percent}%` : course.status === 'failed' ? '制作失败' : course.lock ? (course.lock.paywall ? '会员解锁' : '待解锁') : course.homework && course.homework.status === 'ready' ? '作业待完成' : '',
     stateLabel: course.statusLabel,
     progress: course.isGenerating ? course.percent : course.canLearn ? 100 : 0,
     progressText: course.isGenerating ? `${course.percent}%` : course.canLearn ? '待学习' : '未完成',
@@ -183,6 +189,7 @@ function agentCourseCard(course, index = 0) {
 function agentCourseCardSubtitle(course, acceptance, learnState) {
   if (course.isGenerating) return course.total ? `已做好 ${course.done} / ${course.total} 页` : '正在准备课程页面'
   if (!course.canLearn) return '没有制作成功，点开查看'
+  if (course.lock && course.lock.paywall) return '免费体验开放前 3 节，开通会员后解锁'
   if (course.lock) return `先闯过「${course.lock.previousTitle}」`
   if (acceptance.card) return acceptance.card
   if (learnState === 'completed') return '已学完'
@@ -251,15 +258,17 @@ function agentCourseDetail(course, learning = null) {
       course.createdAt && Number.isFinite(created.getTime()) ? `${created.getMonth() + 1}月${created.getDate()}日制作` : (course.series ? '' : '对话里安排的课程')
     ].filter(Boolean).join(' · '),
     // 学生看到「已完成」容易当成「学完了」：制作状态写「已做好」，学习状态写「已学完」。
-    statusPill: course.lock ? '待解锁' : learnable
+    statusPill: course.lock ? (course.lock.paywall ? '会员解锁' : '待解锁') : learnable
       ? (learning.finished ? '已学完' : learning.completed ? '学习进行中' : '尚未开始')
       : course.canLearn ? (course.status === 'partial' ? '部分做好' : '已做好') : course.statusLabel,
     statusTone: course.lock ? 'warm' : course.isGenerating || learnable ? 'blue' : course.status === 'failed' ? 'red' : 'green',
     progressRow,
     // 底部按钮（设计稿：开始学习 / 继续学习 / 再次学习）；没读到学习进度时写「学习课程」。
-    learnAction: course.lock ? '去学上一节' : learnable ? (learning.finished ? '再次学习' : learning.completed ? '继续学习' : '开始学习') : '学习课程',
+    learnAction: course.lock ? (course.lock.paywall ? '会员解锁' : '去学上一节') : learnable ? (learning.finished ? '再次学习' : learning.completed ? '继续学习' : '开始学习') : '学习课程',
     // 锁着时详情页最上面的一张提示卡：先学完哪一节、进了复述验收才解锁
-    lock: course.lock
+    lock: course.lock && course.lock.paywall
+      ? { paywall: true, title: '开通会员后解锁', text: '免费体验开放这个系列的前 3 节课，后面的课开通会员后就能学。', previousStageId: '' }
+      : course.lock
       ? { title: '闯过上一节后解锁', text: `闯关要一关一关过：先把「${course.lock.previousTitle}」的看课、互动练习、AI 老师验收都过了，这一节才能开始。`, previousStageId: course.lock.previousStageId }
       : null,
     review: agentCourseReview(course, learning),

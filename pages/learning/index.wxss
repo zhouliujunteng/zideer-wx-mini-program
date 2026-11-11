@@ -1184,6 +1184,8 @@ page {
 .quest-divider { display: flex; align-items: center; gap: 20rpx; margin: 36rpx 0 12rpx; }
 .quest-divider-line { flex: 1; height: 3rpx; background: #E6E3DE; }
 .quest-divider-text { max-width: 70%; overflow: hidden; color: #8A948D; font-size: 28rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+/* 免费体验第 4 节起：开会员才解锁（2026-11-11） */
+.quest-divider-tag { flex: none; margin-left: 12rpx; padding: 4rpx 14rpx; border-radius: 999rpx; background: #FFF1E2; color: #FD7C02; font-size: 22rpx; font-weight: 700; }
 .quest-track { padding: 40rpx 0 8rpx; }
 .quest-node-label, .quest-node-detail, .quest-lesson { display: none; }
 .quest-node-wrap { margin: 18rpx 0; }

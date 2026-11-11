@@ -69,6 +69,7 @@ function setupPage({ code = '123456AS', finish = async () => ({}) } = {}) {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../learning/agent-course/index.js'), 'utf8'), {
     Page: (value) => { definition = value },
     require: (name) => {
+      if (name.endsWith('payment-switch')) return { attachPaymentSwitch() {}, openPaymentPage() {} }
       if (name.endsWith('agent-course-view')) return require('../utils/agent-course-view')
       if (name.endsWith('practice-view')) return require('../utils/practice-view')
       if (name.endsWith('utils/screen')) return require('../utils/screen')

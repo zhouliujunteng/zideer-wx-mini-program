@@ -29,6 +29,7 @@ function setup(contactResult, { session = true } = {}) {
       if (name.endsWith('/utils/screen')) return require('../utils/screen')
       if (name.endsWith('/utils/my-course-groups')) return require('../utils/my-course-groups')
       if (name.endsWith('/services/achievement-cards')) return { loadAchievementCards: async () => ({ series: [] }), stripCards: () => [] }
+      if (name.endsWith('/payment-switch')) return { attachPaymentSwitch() {}, openPaymentPage() {} }
       throw Error(`Unexpected import ${name}`)
     }
   })

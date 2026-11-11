@@ -120,8 +120,41 @@ function deadlineRange(today, maxDays) {
   return { start: today, end: addDays(today, maxDays) }
 }
 
+/**
+ * 「把目标写具体」引导（2026-11-11 用户规则：闯关第一关设置目标，要引导学生写具体再设置）。
+ * 按三件事逐条打勾：哪一科 / 哪块内容、想达到什么程度、什么时候（选了完成时间也算）。
+ * 只是提示，不拦保存；保存时少于两条会先问一句「再写具体一点？」。
+ */
+const SPECIFIC_CHECKS = [
+  { id: 'what', label: '哪一科、哪块内容', hint: '比如「数学的函数」「英语阅读」' },
+  { id: 'level', label: '想达到什么程度', hint: '比如「考到 90 分」「这类题不再错」' },
+  { id: 'when', label: '什么时候完成', hint: '比如「期末前」，或在下面选完成时间' }
+]
+const WHAT_RE = /语文|数学|英语|物理|化学|生物|历史|地理|政治|道法|道德|科学|奥数|函数|方程|几何|计算|应用题|分数|小数|阅读|作文|写作|古诗|文言|单词|语法|听力|口语|实验|电路|力学|知识点|单元|章节|错题|题型/
+const LEVEL_RE = /\d|[一二三四五六七八九十百]+\s*分|及格|优秀|满分|名次|前\s*[一二三四五六七八九十]+\s*名|全对|不再错|不丢分|不扣分|正确率|会做|能做|做对|背会|背熟|掌握|弄懂|讲清楚|提高|提升/
+const WHEN_RE = /期末|期中|月考|中考|高考|小升初|开学|寒假|暑假|学期|月底|年底|周|星期|天内|个月|\d+\s*月|\d+\s*号|之前|以前|前完成/
+
+function goalSpecificity(goal, deadline) {
+  const text = String(goal || '').trim()
+  const ok = {
+    what: WHAT_RE.test(text),
+    level: LEVEL_RE.test(text),
+    when: !!deadline || WHEN_RE.test(text)
+  }
+  const checks = SPECIFIC_CHECKS.map((item) => ({ ...item, ok: !!text && ok[item.id] }))
+  const passed = checks.filter((item) => item.ok).length
+  return {
+    checks,
+    passed,
+    // 写了但只占不到两条，或太短（「学好数学」）
+    vague: !!text && (passed < 2 || Array.from(text).length < 8),
+    tip: !text ? '照下面三条写，老师更好帮你规划' : passed === 3 ? '写得很具体，老师能照这个帮你规划' : `还差：${checks.filter((item) => !item.ok).map((item) => item.label).join('、')}`
+  }
+}
+
 module.exports = {
   FALLBACK_GOAL_CATALOG,
+  goalSpecificity,
   beijingToday,
   normalizeGoalView,
   decorateDirections,

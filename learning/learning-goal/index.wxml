@@ -36,6 +36,15 @@
           <view class="pref-group-head">
             <text class="pref-group-title">具体目标</text>
           </view>
+          <!-- 把目标写具体（2026-11-11）：三条随输入打勾 -->
+          <view class="goal-guide">
+            <text class="goal-guide-tip {{specific.passed === 3 ? 'is-good' : ''}}">{{specific.tip}}</text>
+            <view wx:for="{{specific.checks}}" wx:key="id" class="goal-guide-row {{item.ok ? 'is-ok' : ''}}">
+              <view class="goal-guide-dot" aria-hidden="true"></view>
+              <text class="goal-guide-label">{{item.label}}</text>
+              <text class="goal-guide-hint">{{item.hint}}</text>
+            </view>
+          </view>
           <textarea class="pref-note" placeholder="{{goalPlaceholder}}" placeholder-class="pref-note-placeholder" maxlength="{{goalLimit}}" value="{{goal}}" bindinput="handleGoalInput" disabled="{{saving}}" auto-height="{{false}}" cursor-spacing="96" adjust-position="{{true}}" aria-label="具体目标" />
           <view class="pref-note-count"><text>{{goalLength}} / {{goalLimit}}</text></view>
         </view>

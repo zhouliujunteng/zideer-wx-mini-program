@@ -21,7 +21,9 @@ function chestRevealOf(result) {
   }
 }
 // 吸顶横幅只要这几样，不把整串关卡塞进 data
-const partBanner = (part) => (part ? { id: part.id, phaseNumber: part.phaseNumber, partNumber: part.partNumber, title: part.title, tone: part.tone, stageId: part.stageId } : null)
+const partBanner = (part) => (part ? { id: part.id, phaseNumber: part.phaseNumber, partNumber: part.partNumber, banner: part.banner || `第 ${part.phaseNumber} 阶段，第 ${part.partNumber} 部分`, title: part.title, tone: part.tone, stageId: part.stageId } : null)
+// 免费体验只开放前 3 节（2026-11-11）：后面的课锁着，说明卡在支付开关开着时给「开通会员」
+const { openPaymentPage, attachPaymentSwitch } = require('../../services/payment-switch')
 const { openLogin, openAccessStep, guardAccess } = require('../../utils/access-gate')
 const { openCustomerServiceChat, customerServiceErrorMessage } = require('../../utils/customer-service')
 const { attachUiAssets } = require('../../services/ui-assets')
@@ -93,6 +95,7 @@ Page({
     questCurrentVisible: true,
     // 吸顶横幅显示的部分（随滚动换成当前看到的那一部分，多邻国式）
     activePart: null,
+    paymentOpen: false,
     customFilter: 'unlearned',
     customView: customCourseView([], 'unlearned'),
     focusCourseId: '',
@@ -194,6 +197,7 @@ Page({
     // 上次显示的是去登录 / 去完善的提示：这次可能刚登录或刚建完档，回到骨架重新读，不先把提示当旧数据留着
     if (this.data.loaded && this.data.access !== 'ready') this.setData({ loaded: false, loadFailed: false })
     this.loadEnterpriseContacts()
+    attachPaymentSwitch(this)
     await this.refreshLearning()
     if (!this.data.openCard) this.loadCards()
     this.loadQuest()
@@ -286,8 +290,9 @@ Page({
       this.setData({ questPopover: null })
       return
     }
-    const popover = nodePopover(findNode(this.data.quest, id))
+    let popover = nodePopover(findNode(this.data.quest, id))
     if (!popover) return
+    if (popover.paywall && this.data.paymentOpen) popover = { ...popover, action: '开通会员' }
     try { wx.vibrateShort({ type: 'light' }) } catch (error) { /* 没有震动也照常 */ }
     this.setData({ questPopover: popover })
   },
@@ -304,6 +309,10 @@ Page({
     const target = nodeTarget(node)
     this.setData({ questPopover: null })
     if (!target) return
+    if (target.paywall && popover.action) {
+      openPaymentPage('/commerce/membership/index', 'membership')
+      return
+    }
     if (target.toast) {
       wx.showToast({ title: target.toast, icon: 'none' })
       return

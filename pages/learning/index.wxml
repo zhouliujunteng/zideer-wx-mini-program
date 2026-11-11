@@ -25,7 +25,7 @@
   <!-- 吸顶横幅：当前看到的部分（多邻国的单元横幅）；右边按钮打开这节课的课程页 -->
   <view wx:if="{{access === 'ready' && questLoaded && activePart}}" class="lp-banner tone-{{activePart.tone}}" style="top: {{contentTop}}px;">
     <view class="lp-banner-copy">
-      <text class="lp-banner-no">第 {{activePart.phaseNumber}} 阶段，第 {{activePart.partNumber}} 部分</text>
+      <text class="lp-banner-no">{{activePart.banner}}</text>
       <text class="lp-banner-title">{{activePart.title}}</text>
     </view>
     <view wx:if="{{activePart.stageId}}" class="lp-banner-guide" data-stage-id="{{activePart.stageId}}" bindtap="openPartGuide" role="button" aria-label="这节课的课程页"><view class="lp-guide-icon" aria-hidden="true"></view></view>
@@ -56,8 +56,8 @@
       </view>
       <view wx:for="{{quest.parts}}" wx:for-item="part" wx:key="id" id="{{part.id}}" class="quest-part tone-{{part.tone}}" data-index="{{index}}">
         <!-- 阶段开头：大分隔；同一阶段里换部分：带课名的细分隔（多邻国两个单元之间那条线） -->
-        <view wx:if="{{part.firstOfPhase}}" class="quest-phase"><text class="quest-phase-no">第 {{part.phaseNumber}} 阶段</text><text class="quest-phase-title">{{part.phaseTitle}}</text></view>
-        <view wx:if="{{index > 0}}" class="quest-divider"><view class="quest-divider-line"></view><text class="quest-divider-text">{{part.title}}</text><view class="quest-divider-line"></view></view>
+        <view wx:if="{{part.firstOfPhase}}" class="quest-phase"><text class="quest-phase-no">{{part.phaseNo}}</text><text class="quest-phase-title">{{part.phaseTitle}}</text></view>
+        <view wx:if="{{index > 0}}" class="quest-divider"><view class="quest-divider-line"></view><text class="quest-divider-text">{{part.title}}</text><text wx:if="{{part.tag}}" class="quest-divider-tag">{{part.tag}}</text><view class="quest-divider-line"></view></view>
         <view class="quest-track">
           <!-- 路径旁的小鹿（多邻国部分中间的角色）：三颗星 = 看完 / 练习通关 / 验收通过；还没开始的课暗着 -->
           <view wx:if="{{part.mascot}}" class="quest-mascot side-{{part.mascot.side}} {{part.mascot.dim ? 'is-dim' : ''}}" aria-hidden="true">

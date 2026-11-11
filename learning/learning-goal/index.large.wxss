@@ -41,5 +41,12 @@
 .pref-save::after{border:none}
 .goal-date{margin-top:14px;min-height:46px;box-sizing:border-box;border-radius:14px}
 .goal-date-value{min-width:0}
+.goal-guide{margin-top:12px;border-radius:14px}
+.goal-guide-tip{margin-bottom:8px}
+.goal-guide-row{min-height:26px}
+.goal-guide-dot{width:16px;height:16px;border:1.5px solid #E2C9AE;border-radius:50%;box-sizing:border-box}
+.goal-guide-row.is-ok .goal-guide-dot{border-color:#FD7C02}
+.goal-guide-row.is-ok .goal-guide-dot::after{top:2px;left:4.5px;width:3.5px;height:6.5px;border-right:1.5px solid #FFFFFF;border-bottom:1.5px solid #FFFFFF}
+.goal-guide-hint{min-width:0}
 .goal-date-chevron{width:7px;height:7px;border-top:1.5px solid #AFB8B1;border-right:1.5px solid #AFB8B1}
 }

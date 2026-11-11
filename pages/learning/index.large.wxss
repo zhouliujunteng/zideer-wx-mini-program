@@ -385,6 +385,7 @@ page{background:#FAFAFA}
 .quest-divider{gap:12px;margin:21px 0 7px}
 .quest-divider-line{flex:1;height:1px;background:#E6E3DE}
 .quest-divider-text{max-width:70%;font-size:16px;font-weight:700;text-overflow:ellipsis}
+.quest-divider-tag{flex:none;margin-left:7px;padding:2px 8px;border-radius:599px;background:#FFF1E2;font-size:13px;font-weight:700}
 .quest-track{padding:24px 0 4px}
 .quest-node-wrap{margin:10px 0}
 .quest-empty-action{margin-top:14px;padding:9px 21px;border-radius:13px;background:#FD7C02;box-shadow:0 3px 0 #D96400;font-size:16px;font-weight:800}

@@ -22,11 +22,16 @@ const GLYPHS = {
   chestOpen: '/assets/quest/chest-open.svg',
   chestLocked: '/assets/quest/chest-locked.svg',
   badge: '/assets/quest/badge.svg',
+  goal: '/assets/quest/flag.svg',
+  preference: '/assets/quest/heart.svg',
+  meeting: '/assets/quest/calendar.svg',
   badgeLocked: '/assets/quest/badge-locked.svg'
 }
 const STEP_STATES = ['done', 'current', 'open', 'locked']
 const STAGE_TONES = ['orange', 'blue', 'violet', 'teal', 'rose']
 const CHEST_STATES = ['locked', 'ready', 'opened']
+const ONBOARDING_KEYS = ['goal', 'preference', 'meeting']
+const ONBOARDING_LABELS = { goal: '设置学习目标', preference: '设置学习偏好', meeting: '预约老师诊断会议' }
 
 const stepId = (stageId, key, part) => `${stageId}-${key}${part ? `-${part}` : ''}`
 const text = (value) => String(value === undefined || value === null ? '' : value)
@@ -44,6 +49,21 @@ function normalizeStep(step) {
   }
 }
 
+// 入门三关（2026-11-11 用户规则）：设置学习目标 → 设置学习偏好 → 预约老师诊断会议（代理约好才开放，点了进诊断会议）。
+function normalizeOnboarding(list) {
+  if (!Array.isArray(list)) return null
+  const steps = list
+    .filter((step) => step && ONBOARDING_KEYS.includes(step.key))
+    .map((step) => ({
+      key: step.key,
+      state: STEP_STATES.includes(step.state) ? step.state : 'locked',
+      label: text(step.label) || ONBOARDING_LABELS[step.key],
+      detail: text(step.detail),
+      inviteToken: /^[A-Za-z0-9._~-]{1,200}$/.test(text(step.inviteToken)) ? text(step.inviteToken) : ''
+    }))
+  return steps.length ? steps : null
+}
+
 function normalizeQuestPath(raw) {
   const value = raw && typeof raw === 'object' ? raw : {}
   const stages = (Array.isArray(value.stages) ? value.stages : []).map((stage) => ({
@@ -56,6 +76,8 @@ function normalizeQuestPath(raw) {
       stageId: text(lesson && lesson.stageId),
       title: text(lesson && lesson.title) || '定制课程',
       locked: !!(lesson && lesson.locked),
+      // 免费体验家庭第 4 节起：开会员才打开
+      paywall: !!(lesson && lesson.paywall),
       lockedBy: lesson && lesson.lockedBy ? { stageId: text(lesson.lockedBy.stageId), title: text(lesson.lockedBy.title) } : null,
       done: !!(lesson && lesson.done),
       chest: { state: CHEST_STATES.includes(lesson && lesson.chest && lesson.chest.state) ? lesson.chest.state : 'locked' },
@@ -68,6 +90,7 @@ function normalizeQuestPath(raw) {
   }))
   return {
     goal: value.goal && value.goal.title ? { title: text(value.goal.title), subject: text(value.goal.subject) } : null,
+    onboarding: normalizeOnboarding(value.onboarding),
     stages,
     current: value.current && value.current.stageId
       ? { stageId: text(value.current.stageId), step: text(value.current.step), part: Number(value.current.part) || 0 }
@@ -93,9 +116,14 @@ function questPathView(path) {
   const parts = []
   let currentPartId = ''
   let partIndex = 0
+  if (path.onboarding) {
+    parts.push(onboardingPart(path.onboarding))
+    partIndex++
+    if (path.current && path.current.stageId === 'onboarding') currentPartId = parts[0].id
+  }
   path.stages.forEach((stage, stageIndex) => {
     const tone = STAGE_TONES[stageIndex % STAGE_TONES.length]
-    const phase = { phaseNumber: stageIndex + 1, tone, phaseTitle: stage.title, phaseSubtitle: stage.subtitle }
+    const phase = { phaseNumber: stageIndex + 1, phaseNo: `第 ${stageIndex + 1} 阶段`, tone, phaseTitle: stage.title, phaseSubtitle: stage.subtitle }
     const reviewDue = new Set(stage.review ? stage.review.stageIds : [])
     const stageParts = []
     if (stage.empty || !stage.lessons.length) {
@@ -136,7 +164,8 @@ function questPathView(path) {
           // 当前关外圈的进度环：这节课过了几关（百分比）
           ring: total ? Math.round((passed / total) * 100) : 0,
           segs: Math.max(total, 1),
-          lockedBy: lesson.lockedBy
+          lockedBy: lesson.lockedBy,
+          paywall: lesson.paywall && step.state === 'locked'
         })
         if (stepIndex === lastWatch) nodes.push(lessonChestNode(lesson, nextOffset()))
       })
@@ -160,7 +189,7 @@ function questPathView(path) {
       })
       const partId = `part-${lesson.stageId}`
       if (path.current && path.current.stageId === lesson.stageId) currentPartId = partId
-      stageParts.push({ id: partId, title: lesson.title, stageId: lesson.stageId, progress: `${passed}/${total}`, nodes, offsetNext: nextOffset, mascot: lessonMascot(lesson, sign) })
+      stageParts.push({ id: partId, title: lesson.title, tag: lesson.paywall ? '开会员解锁' : '', stageId: lesson.stageId, progress: `${passed}/${total}`, nodes, offsetNext: nextOffset, mascot: lessonMascot(lesson, sign) })
     })
     if (stage.chest && stageParts.length) {
       const last = stageParts[stageParts.length - 1]
@@ -178,18 +207,63 @@ function questPathView(path) {
     }
     stageParts.forEach((part, index) => {
       const { offsetNext: _offsetNext, ...rest } = part
-      parts.push({ ...rest, ...phase, partNumber: index + 1, firstOfPhase: index === 0 })
+      parts.push({ ...rest, ...phase, partNumber: index + 1, banner: `${phase.phaseNo}，第 ${index + 1} 部分`, firstOfPhase: index === 0 })
     })
   })
   const currentId = path.current ? stepId(path.current.stageId, path.current.step, path.current.part) : ''
   return {
     goal: path.goal,
     hasLessons: path.stats.lessons > 0,
+    paywalled: path.stages.some((stage) => stage.lessons.some((lesson) => lesson.paywall)),
     progressText: path.stats.lessons ? `已闯过 ${path.stats.done}/${path.stats.lessons} 节` : '',
     percent: path.stats.lessons ? Math.round((path.stats.done / path.stats.lessons) * 100) : 0,
     currentId,
     currentPartId: currentPartId || (parts[0] ? parts[0].id : ''),
     parts
+  }
+}
+
+/**
+ * 入门三关画成路径最上面的一个部分（「开始之前」）：设置学习目标 → 设置学习偏好 → 预约老师诊断会议。
+ * 节点 kind 'onboard'，step 是入门关的 key；第三关开放时带 inviteToken（进诊断会议）。
+ */
+function onboardingPart(steps) {
+  let position = 0
+  const nodes = steps.map((step, index) => ({
+    id: stepId('onboarding', step.key),
+    kind: 'onboard',
+    stageId: '',
+    step: step.key,
+    part: 0,
+    state: step.state,
+    icon: step.state === 'locked' ? 'lock' : step.state === 'done' ? 'check' : step.key,
+    glyph: step.state === 'locked' ? GLYPHS.lock : GLYPHS[step.key],
+    offset: ZIGZAG[(position++) % ZIGZAG.length],
+    label: step.label,
+    detail: step.detail,
+    course: '',
+    position: `入门第 ${index + 1} 关 / 共 ${steps.length} 关`,
+    ring: Math.round((steps.filter((item) => item.state === 'done').length / steps.length) * 100),
+    segs: steps.length,
+    inviteToken: step.inviteToken,
+    lockedBy: null
+  }))
+  const passed = steps.filter((step) => step.state === 'done').length
+  return {
+    id: 'part-onboarding',
+    title: '准备开始',
+    stageId: '',
+    progress: `${passed}/${steps.length}`,
+    nodes,
+    mascot: null,
+    phaseNumber: 0,
+    phaseNo: '入门',
+    banner: '入门 · 准备开始',
+    tone: 'orange',
+    phaseTitle: '准备开始',
+    phaseSubtitle: '',
+    partNumber: 1,
+    firstOfPhase: true
   }
 }
 
@@ -247,11 +321,26 @@ function nodePopover(node) {
     return { ...base, note: '看完这节课，宝箱就能打开' }
   }
   if (node.kind === 'review') return { ...base, action: '开始复习' }
+  if (node.kind === 'onboard') return onboardPopover(node, base)
+  if (node.state === 'locked' && node.paywall) return { ...base, title: node.course || base.title, position: '', detail: '', note: PAYWALL_NOTE, action: '', paywall: true }
   if (node.state === 'locked') {
     const target = nodeTarget(node)
     return { ...base, note: target && target.toast ? target.toast : '这一关还没开放' }
   }
   return { ...base, action: node.state === 'done' ? (node.step === 'watch' ? '再看一遍' : '再看看') : '开始' }
+}
+
+const PAYWALL_NOTE = '免费体验开放前 3 节课，开通会员后解锁后面的课'
+
+function onboardPopover(node, base) {
+  if (node.step === 'meeting') {
+    if (node.state === 'done') return { ...base, note: '诊断会议已经开过了，课程在下面' }
+    if (node.state === 'locked') return { ...base, note: node.detail || '等推广老师帮你约好诊断会议', detail: '' }
+    return { ...base, action: '进入诊断会议' }
+  }
+  if (node.state === 'locked') return { ...base, note: '先完成上一关', detail: '' }
+  if (node.state === 'done') return { ...base, action: node.step === 'goal' ? '修改目标' : '修改偏好' }
+  return { ...base, action: '去设置' }
 }
 
 /**
@@ -272,11 +361,19 @@ function nodeTarget(node) {
   if (node.kind === 'chest') return node.state === 'done' ? { url: '/learning/achievement-cards/index' } : { toast: '这一阶段的课都过了验收，徽章就点亮了' }
   if (node.kind === 'trophy') return { toast: node.state === 'done' ? '这节课每一关都过了' : '这节课每一关都过了，奖杯就点亮' }
   if (node.kind === 'review') return { url: `/learning/review/index?stageId=${stage}` }
+  if (node.kind === 'onboard') {
+    if (node.state === 'locked') return { toast: node.step === 'meeting' ? (node.detail || '等推广老师帮你约好诊断会议') : '先完成上一关' }
+    if (node.step === 'goal') return { url: '/learning/learning-goal/index?from=quest' }
+    if (node.step === 'preference') return { url: '/learning/learning-preference/index' }
+    if (node.state === 'done') return { toast: '诊断会议已经开过了' }
+    return node.inviteToken ? { url: `/learning/agent-invite/index?token=${encodeURIComponent(node.inviteToken)}` } : { toast: '诊断会议邀请暂时没读到，请稍后再试' }
+  }
   if (node.kind === 'lesson-chest') {
     if (node.state === 'open') return { chest: node.stageId }
     return { toast: node.state === 'done' ? '这个宝箱已经开过了' : '看完这节课，宝箱就能打开' }
   }
   if (node.state === 'locked') {
+    if (node.paywall) return { toast: PAYWALL_NOTE, paywall: true }
     if (node.lockedBy) return { toast: `先学完「${node.lockedBy.title}」` }
     return { toast: node.step === 'practice' ? '先把这节课看完' : node.step === 'accept' ? '先通关互动练习' : node.step === 'watch' && node.part > 1 ? '先学完上一段' : '这一关还没开放' }
   }

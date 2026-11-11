@@ -3,6 +3,7 @@ const { normalizePractice, practiceCard, gateReview } = require('../../utils/pra
 const { readDevResetCode, onDevResetChange } = require('../../utils/dev-reset')
 const { isAgentCourseId, agentCourseDetail, normalizeAgentLearning } = require('../../utils/agent-course-view')
 const { rpxToPx } = require('../../utils/screen')
+const { openPaymentPage, attachPaymentSwitch } = require('../../services/payment-switch')
 
 // 课程详情：「我的课程」点进来的二级页（设计稿 ui-ref M37 package-learning/pages/learning/generation）。
 // 做好的课在这里学习（开始 / 继续 / 再次学习，按学习进度）或「去验收」，还在制作的课显示实时进度。
@@ -15,6 +16,8 @@ const NOT_FOUND_RETRIES = 20
 Page({
   data: {
     loading: true,
+    // 免费体验第 4 节起要开会员（2026-11-11）：支付开关开着才给「开通」
+    paymentOpen: false,
     course: null,
     detail: null,
     coverUrl: '',
@@ -47,6 +50,7 @@ Page({
   },
 
   onShow() {
+    attachPaymentSwitch(this)
     this._visible = true
     this.refreshTestFinish()
     // 封面可能是上次进来之后才生成好的：每次回到页面最多再取一次。
@@ -215,6 +219,11 @@ Page({
   openPrevious() {
     const lock = this.data.course && this.data.course.lock
     if (!lock) return
+    if (lock.paywall) {
+      if (this.data.paymentOpen) openPaymentPage('/commerce/membership/index', 'membership')
+      else wx.showToast({ title: '免费体验开放前 3 节课，后面的课开通会员后解锁', icon: 'none', duration: 3000 })
+      return
+    }
     wx.redirectTo({ url: `/learning/agent-course/index?stageId=${encodeURIComponent(lock.previousStageId)}` })
   },
 

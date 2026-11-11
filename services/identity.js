@@ -460,7 +460,8 @@ async function issueLearningEntry(courseInstanceId, targetScene, acceptanceId) {
 // 不打开不带凭证的课程地址——那样只会看到「请从小程序进入课程」。
 const COURSE_ENTRY_ERRORS = {
   LOGIN_REQUIRED: '登录已过期，请重新登录后进入课程。',
-  MEMBERSHIP_REQUIRED: '当前账号暂无会员课程学习权限。',
+  // 免费体验只开放前 3 节，后面的课开会员解锁（2026-11-11）；会员课程库也报这个码
+  MEMBERSHIP_REQUIRED: '这节课要开通会员才能学：免费体验开放前 3 节课。',
   COURSE_ACCESS_DENIED: '当前学习账号暂不可访问这门课程。',
   // 系列课按顺序学（2026-10-15）：课程服务 lib/course/agent-course-order.ts
   COURSE_LOCKED: '闯关要一关一关过：上一节的看课、互动练习和验收都过了，这一节才会解锁。',
@@ -515,6 +516,7 @@ function requestAgentCourses(path, token, options = {}) {
         // 测试快捷方式「标记学完，去验收」（课程服务核对「重置测试账号」开启码）
         DEV_RESET_FORBIDDEN: '开启码已失效，请到「我的 → 兑换码」重新输入。',
         COURSE_LOCKED: '闯关要一关一关过：先把上一节的三关都过了。',
+        MEMBERSHIP_REQUIRED: '这节课要开通会员才能学：免费体验开放前 3 节课。',
         DEV_RESET_UNAVAILABLE: '暂时核对不了开启码，请稍后重试。',
         NOTHING_TO_LEARN: '这门课没有需要学的讲解页，不能验收。',
         ACCEPTANCE_NOT_STARTED: '验收已结束，请重新开始验收。',

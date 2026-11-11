@@ -7,6 +7,16 @@
 .goal-date-value { flex: 1; min-width: 0; color: #AAB2AC; font-size: 13px; }
 .goal-date.is-set .goal-date-value { color: #34423A; font-weight: 650; }
 .goal-date-left { flex: none; color: #FD7C02; font-size: 12px; font-weight: 600; }
+.goal-guide { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #FFF7EE; }
+.goal-guide-tip { display: block; margin-bottom: 8px; color: #B45A00; font-size: 13px; font-weight: 650; }
+.goal-guide-tip.is-good { color: #2E8B57; }
+.goal-guide-row { display: flex; align-items: center; gap: 8px; min-height: 26px; }
+.goal-guide-dot { position: relative; flex: none; width: 16px; height: 16px; border: 1.5px solid #E2C9AE; border-radius: 50%; box-sizing: border-box; background: #FFFFFF; }
+.goal-guide-row.is-ok .goal-guide-dot { border-color: #FD7C02; background: #FD7C02; }
+.goal-guide-row.is-ok .goal-guide-dot::after { position: absolute; top: 2px; left: 4.5px; width: 3.5px; height: 6.5px; border-right: 1.5px solid #FFFFFF; border-bottom: 1.5px solid #FFFFFF; transform: rotate(45deg); content: ''; }
+.goal-guide-label { flex: none; color: #34423A; font-size: 13px; font-weight: 600; }
+.goal-guide-row.is-ok .goal-guide-label { color: #8A948D; text-decoration: line-through; }
+.goal-guide-hint { flex: 1; min-width: 0; overflow: hidden; color: #A3ABA5; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .goal-date-chevron { flex: none; width: 7px; height: 7px; border-top: 1.5px solid #AFB8B1; border-right: 1.5px solid #AFB8B1; transform: rotate(45deg); }
 
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */
