@@ -1192,18 +1192,33 @@ async function loadAgentTrialScript(guardianPublicId, regenerate = false) {
 }
 
 /** 下载免费测评的 PDF 报告到本地临时文件，返回路径（用 wx.openDocument 打开、可转发）。 */
+// course.zideer.cn 只在 request 合法域名里、不在 downloadFile 里（wx.downloadFile 直接失败）：
+// 同老师端家长报告，用 request 取二进制再写进本地文件。
 async function downloadAgentTrialReport(guardianPublicId) {
   const token = await getRuntimeToken()
-  return new Promise((resolve, reject) => wx.downloadFile({
+  const publicId = String(guardianPublicId || '').replace(/[^0-9A-Za-z]/g, '')
+  const filePath = `${wx.env.USER_DATA_PATH}/agent-trial-report-${publicId || 'family'}.pdf`
+  const data = await new Promise((resolve, reject) => wx.request({
     url: `${coursePortalOrigin()}/api/learn/agent-trial/report?guardianPublicId=${encodeURIComponent(String(guardianPublicId || ''))}`,
-    header: { authorization: `Bearer ${token}` },
+    method: 'GET',
     timeout: 120000,
+    responseType: 'arraybuffer',
+    header: { authorization: `Bearer ${token}` },
     success(response) {
-      if (response.statusCode === 200 && response.tempFilePath) return resolve(response.tempFilePath)
-      reject(new Error(response.statusCode === 409 ? '孩子测完以后才有报告。' : response.statusCode === 401 ? '请重新登录后再试。' : '报告暂时生成不了，请稍后重试。'))
+      if (getStoredToken() !== token) return reject(new Error('登录账号已变化，请重新打开页面。'))
+      if (response.statusCode === 200 && response.data && response.data.byteLength > 64) return resolve(response.data)
+      const messages = { 401: '请重新登录后再试。', 403: '你还没有绑定家庭的代理身份。', 404: '这个家庭不在你名下。', 409: '孩子测完以后才有报告。' }
+      reject(new Error(messages[response.statusCode] || '报告暂时生成不了，请稍后重试。'))
     },
-    fail() { reject(new Error('网络不太稳定，报告没有下载下来，请稍后重试。')) }
+    fail(error) { reject(courseConnectionError(error)) }
   }))
+  await new Promise((resolve, reject) => wx.getFileSystemManager().writeFile({
+    filePath,
+    data,
+    success: resolve,
+    fail: () => reject(new Error('报告没有保存到手机，请检查存储空间后重试。'))
+  }))
+  return filePath
 }
 
 /**
@@ -4684,6 +4699,7 @@ module.exports = {
   answerAgentCoursePractice,
   retryAgentCoursePractice,
   loadQuestPath,
+  loadHonors,
   openQuestChest,
   getStoredToken,
   hasSession,
@@ -4699,7 +4715,6 @@ module.exports = {
   uploadPrivateFile,
   loadCurrentMembership,
   createMembershipOrder,
-  loadHonors,
   resetPhoneSessionVerification,
   signInWithWechat,
   restoreAuthenticatedUser,
