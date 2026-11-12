@@ -147,8 +147,10 @@ test('guardian page is registered, guest-browsable, and listed for guardians und
   const { withGuardianReportItem } = loadLiveTabHelpers()
   const groups = withGuardianReportItem([{ title: '知鹿服务', items: [{ title: '推广伙伴' }] }])
   const titles = (list) => JSON.stringify(list[0].items.map((item) => item.title))
-  assert.equal(titles(groups), '["学习报告","推广伙伴"]')
-  assert.equal(titles(withGuardianReportItem(groups)), '["学习报告","推广伙伴"]')
+  assert.equal(titles(groups), '["学习报告","我的微信二维码","推广伙伴"]')
+  assert.equal(titles(withGuardianReportItem(groups)), '["学习报告","我的微信二维码","推广伙伴"]')
+  // 付款前上传的微信二维码（2026-11-12）：家长在「我的」里也能进去重新上传
+  assert.match(read('pages/me/index.js'), /'微信二维码': '\/account\/wechat-qr\/index'/)
 })
 
 function loadLiveTabHelpers() {

@@ -11,7 +11,7 @@
   <scroll-view class="qr-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
     <view class="qr-shell">
       <view class="qr-card qr-intro">
-        <text class="qr-intro-title">{{fromMembership ? '开通会员前，请先上传你的微信二维码' : '上传你的微信加好友二维码'}}</text>
+        <text class="qr-intro-title">{{fromMembership ? '开通会员前，请先上传你的微信二维码' : uploaded ? '你的微信二维码，换了微信可以重新上传' : '上传你的微信加好友二维码'}}</text>
         <text class="qr-intro-copy">开通会员后，知鹿客服和为孩子服务的导师妈妈会通过它加你微信。打开微信「我 › 头像旁的二维码」截图上传即可，二维码只给客服和你的导师妈妈看。</text>
       </view>
 

@@ -275,11 +275,13 @@ async function getLiveMeModel() {
 
 // 家长的「知鹿服务」第一项加「学习报告」（2026-10-07 用户规则）：老师给孩子出的学习成长报告在这里同步看到。
 const GUARDIAN_REPORT_ITEM = Object.freeze({ title: '学习报告', description: '老师给孩子出的学习成长报告' })
+// 付款前上传的微信二维码（2026-11-12 用户要求）：以前只有会员中心付款前没传时才弹窗进去，传过就再也改不了。
+const GUARDIAN_QR_ITEM = Object.freeze({ title: '我的微信二维码', description: '客服和导师妈妈用它加你微信，可以重新上传' })
 
 function withGuardianReportItem(groups) {
   return (groups || []).map((group, index) => index === 0 && !(group.items || []).some((item) => item.title === GUARDIAN_REPORT_ITEM.title)
     // 知识图谱是学生的（家长底栏原本也没有图谱）
-    ? { ...group, items: [{ ...GUARDIAN_REPORT_ITEM }].concat((group.items || []).filter((item) => item.title !== '知识图谱' && item.title !== '我的荣誉')) }
+    ? { ...group, items: [{ ...GUARDIAN_REPORT_ITEM }, { ...GUARDIAN_QR_ITEM }].concat((group.items || []).filter((item) => item.title !== '知识图谱' && item.title !== '我的荣誉')) }
     : group)
 }
 module.exports = { getLiveHomeModel, getLiveLearningModel, getLearningSkeletonModel, getLiveMeModel, getMyCourseLibrary, withGuardianQuickActions, withGuardianReportItem }
