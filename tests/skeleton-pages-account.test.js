@@ -175,9 +175,12 @@ function profilePage(loadCurrentUser, saves = []) {
     '/mock-service': require('../services/mock-service'),
     '/identity': {
       loadCurrentUser, saveCurrentLearningProfile: async (form) => { saves.push(form); return { profile: {} } },
-      isAuthenticationRequired: () => false, loadCurrentReferrer: async () => null, bindCurrentPromotionCode: async () => ({})
+      isAuthenticationRequired: () => false, loadCurrentReferrer: async () => null, bindCurrentPromotionCode: async () => ({}),
+      // 联系与收货（2026-11-12）：这两个用例只看资料本身，二维码与收货地址照常读到
+      loadFamilyWechatQr: async () => ({ uploaded: false }), loadShippingAddress: async () => null, saveShippingAddress: async () => null
     },
     '/ui-assets': { attachUiAssets() {} },
+    '/permission-guide': { isPrivacyError: () => false },
     '/referral-context': { clearPendingReferral() {} }
   })
 }

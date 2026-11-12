@@ -240,7 +240,6 @@ Page({
       '学习档案': '/pages/profile-setup/index?edit=1', '兑换码': '/pages/redemption/index', '测评中心': '/assessment/center/index', '学生看板': '/account/guardian-dashboard/index',
       '推广伙伴': '/agent/promotion/index',
       '学习报告': '/account/parent-reports/index',
-      '微信二维码': '/account/wechat-qr/index',
       '帮助与反馈': '/account/help-center/index',
       '关于知鹿': '/account/about/index',
       // 知识图谱（2026-10-10 起不在底栏）：游客、没建档也能看示例图谱

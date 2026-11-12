@@ -12,7 +12,7 @@
     <view class="qr-shell">
       <view class="qr-card qr-intro">
         <text class="qr-intro-title">{{fromMembership ? '开通会员前，请先上传你的微信二维码' : uploaded ? '你的微信二维码，换了微信可以重新上传' : '上传你的微信加好友二维码'}}</text>
-        <text class="qr-intro-copy">开通会员后，知鹿客服和为孩子服务的导师妈妈会通过它加你微信。打开微信「我 › 头像旁的二维码」截图上传即可，二维码只给客服和你的导师妈妈看。</text>
+        <text class="qr-intro-copy">开通会员后，知鹿客服和为孩子服务的导师妈妈会通过它加你微信。二维码只给客服和你的导师妈妈看。不知道在哪找，看下面的步骤。</text>
       </view>
 
       <view wx:if="{{loadFailed}}" class="qr-card qr-state">
@@ -31,6 +31,40 @@
         <view wx:else class="qr-placeholder" bindtap="choose" aria-role="button"><view class="qr-plus"></view><text>还没有上传</text></view>
         <text wx:if="{{uploaded && uploadedText}}" class="qr-state-text">{{uploadedText}} 上传</text>
         <view class="qr-button {{uploading ? 'is-disabled' : ''}}" bindtap="choose" aria-role="button">{{uploading ? '上传中…' : uploaded ? '重新上传' : '上传二维码'}}</view>
+      </view>
+
+      <!-- 上传教程（2026-11-12 用户要求）：四步找到「我的二维码」并保存，示意图用 view 画（不放图片素材） -->
+      <view class="qr-card qr-guide">
+        <text class="qr-guide-title">怎么找到你的微信二维码</text>
+        <view class="qr-step">
+          <view class="qr-step-head"><text class="qr-step-no">1</text><text class="qr-step-text">打开微信，点底部右下角的「我」</text></view>
+          <view class="qr-mock qr-mock-tabs" aria-hidden="true">
+            <view class="qr-mock-tab"><view class="qr-mock-dot"></view><text>微信</text></view>
+            <view class="qr-mock-tab"><view class="qr-mock-dot"></view><text>通讯录</text></view>
+            <view class="qr-mock-tab"><view class="qr-mock-dot"></view><text>发现</text></view>
+            <view class="qr-mock-tab is-on"><view class="qr-mock-dot"></view><text>我</text></view>
+          </view>
+        </view>
+        <view class="qr-step">
+          <view class="qr-step-head"><text class="qr-step-no">2</text><text class="qr-step-text">点头像右边、微信号旁的小二维码图标</text></view>
+          <view class="qr-mock qr-mock-profile" aria-hidden="true">
+            <view class="qr-mock-avatar"></view>
+            <view class="qr-mock-name"><view class="qr-mock-bar is-wide"></view><view class="qr-mock-bar"></view></view>
+            <view class="qr-mock-qricon is-on"><view></view><view></view><view></view><view></view></view>
+            <text class="qr-mock-arrow">›</text>
+          </view>
+        </view>
+        <view class="qr-step">
+          <view class="qr-step-head"><text class="qr-step-no">3</text><text class="qr-step-text">在「我的二维码」页点右上角「···」，选「保存图片」</text></view>
+          <view class="qr-mock qr-mock-card" aria-hidden="true">
+            <view class="qr-mock-card-top"><text class="qr-mock-card-title">我的二维码</text><text class="qr-mock-more is-on">···</text></view>
+            <view class="qr-mock-sheet"><text class="qr-mock-sheet-item">换个样式</text><text class="qr-mock-sheet-item is-on">保存图片</text><text class="qr-mock-sheet-item">扫描二维码</text></view>
+          </view>
+        </view>
+        <view class="qr-step">
+          <view class="qr-step-head"><text class="qr-step-no">4</text><text class="qr-step-text">回到这里点「{{uploaded ? '重新上传' : '上传二维码'}}」，从相册选刚保存的那张</text></view>
+        </view>
+        <view class="qr-guide-warn"><text class="qr-guide-warn-mark">!</text><text>要传「加好友」的二维码。不要传收款码、群二维码，客服扫了加不上你。</text></view>
       </view>
     </view>
   </scroll-view>

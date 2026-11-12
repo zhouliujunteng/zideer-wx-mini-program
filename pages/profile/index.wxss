@@ -121,4 +121,10 @@ page { background: #FAFAFA; }
 .profile-load-failed { display: flex; align-items: center; justify-content: space-between; padding: 28rpx 32rpx; color: #7E8A82; font-size: 25rpx; }
 .profile-load-retry { color: #FD7C02; font-weight: 600; }
 
+/* 联系与收货（2026-11-12） */
+.profile-group-title { display: block; margin: 40rpx 12rpx 16rpx; color: #7E8A82; font-size: 23rpx; font-weight: 600; line-height: 1.3; }
+.profile-row.is-address { min-height: 132rpx; padding-top: 22rpx; padding-bottom: 22rpx; }
+.profile-address { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; max-width: 420rpx; }
+.profile-address-contact { color: #3B4941; font-size: 25rpx; line-height: 1.35; }
+.profile-address-line { max-width: 420rpx; margin-top: 6rpx; overflow: hidden; color: #7E8A82; font-size: 22rpx; line-height: 1.45; text-align: right; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

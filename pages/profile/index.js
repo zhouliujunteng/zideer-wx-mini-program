@@ -1,7 +1,9 @@
 const { getProfileModel } = require('../../services/mock-service')
 const {
-  loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired
+  loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired,
+  loadFamilyWechatQr, loadShippingAddress, saveShippingAddress
 } = require('../../services/identity')
+const { isPrivacyError } = require('../../utils/permission-guide')
 const { attachUiAssets } = require('../../services/ui-assets')
 
 const STORAGE_KEY = 'zhilu-mock-profile-setup'
@@ -39,12 +41,32 @@ function blankProfileModel() {
   return model
 }
 
+
+// 「联系与收货」一栏（2026-11-12 用户要求）：微信加好友二维码 + 微信收货地址。手机号中间四位遮住，地址拼成一行。
+function maskPhone(value) {
+  const digits = String(value || '').replace(/[^0-9]/g, '')
+  return digits.length >= 11 ? `${digits.slice(0, 3)}****${digits.slice(-4)}` : String(value || '')
+}
+function addressView(address) {
+  if (!address) return null
+  return {
+    contact: `${address.userName} ${maskPhone(address.telNumber)}`,
+    line: [address.province, address.city === address.province ? '' : address.city, address.county, address.street, address.detail].filter(Boolean).join('')
+  }
+}
+
 Page({
   data: {
     model: {},
     // 资料第一次读到前姓名、各行取值、头像显示骨架；之后回到页面保留旧资料，后台静默刷新
     profileLoaded: false,
     profileFailed: false,
+    // 联系与收货：第一次读到前画骨架；读失败只在这一栏提示重试，不影响资料本身
+    contactLoaded: false,
+    contactFailed: false,
+    qrUploaded: false,
+    address: null,
+    savingAddress: false,
     // 推荐人：进页面后单独拉，读失败只降级显示，不影响资料本身（我的邀请码在推广伙伴 › 我的邀请码）
     statusBarHeight: 20,
     navigationBarHeight: 44,
@@ -105,7 +127,47 @@ Page({
   async onShow() {
     // 已读到过资料就保留在屏上静默刷新；头像只以后端为准，本地只保留尚未保存的新头像预览
     if (!this.data.model || !this.data.model.rows) this.setData({ model: blankProfileModel() })
+    this.loadContact()
     await this.loadBackendProfile()
+  },
+
+  async loadContact() {
+    try {
+      const [qr, address] = await Promise.all([loadFamilyWechatQr(), loadShippingAddress()])
+      this.setData({ contactLoaded: true, contactFailed: false, qrUploaded: qr.uploaded === true, address: addressView(address) })
+    } catch (error) {
+      if (!this.data.contactLoaded) this.setData({ contactFailed: true })
+    }
+  },
+  retryLoadContact() {
+    this.setData({ contactFailed: false })
+    return this.loadContact()
+  },
+  openWechatQr() { wx.navigateTo({ url: '/account/wechat-qr/index' }) },
+  // 调微信自带的收货地址（wx.chooseAddress，app.json 已声明 requiredPrivateInfos），选好就存，不经下面的「保存」按钮
+  chooseShippingAddress() {
+    if (this.data.savingAddress || !this.data.contactLoaded) return
+    wx.chooseAddress({
+      success: async (picked) => {
+        this.setData({ savingAddress: true })
+        try {
+          const address = await saveShippingAddress(picked)
+          this.setData({ address: addressView(address) })
+          wx.showToast({ title: '收货地址已保存', icon: 'success' })
+        } catch (error) {
+          wx.showToast({ title: error.message || '收货地址没有保存成功，请稍后重试。', icon: 'none', duration: 2600 })
+        } finally {
+          this.setData({ savingAddress: false })
+        }
+      },
+      fail: (error) => {
+        if (/cancel/i.test(String(error && error.errMsg || ''))) return
+        wx.showToast({
+          title: isPrivacyError(error) ? '需要先同意隐私保护指引才能使用收货地址' : '暂时打不开微信收货地址，请稍后重试',
+          icon: 'none', duration: 2600
+        })
+      }
+    })
   },
 
   async loadBackendProfile() {

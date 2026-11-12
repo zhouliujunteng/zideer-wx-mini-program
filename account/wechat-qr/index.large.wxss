@@ -11,13 +11,13 @@
 .sk-card + .sk-card{margin-top:12px}
 .qr-page{height:100vh}
 .qr-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
-.qr-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
-.qr-topbar-inner{padding:0 19px 9px}
+.qr-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));box-sizing:border-box}
+.qr-topbar-inner{box-sizing:content-box;padding:0 19px 9px}
 .qr-back{width:32px;height:32px;border-radius:50%}
 .qr-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
 .qr-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
-.qr-scroll{height:100vh}
-.qr-shell{min-height:100%;padding:0 19px calc(28px + env(safe-area-inset-bottom))}
+.qr-scroll{height:100vh;box-sizing:border-box}
+.qr-shell{min-height:100%;padding:0 19px calc(28px + env(safe-area-inset-bottom));box-sizing:border-box}
 .qr-card{margin-top:13px;padding:16px;border-radius:21px}
 .qr-shell > .qr-card:first-child{margin-top:12px}
 .qr-intro-title{font-size:18px;font-weight:700;line-height:1.4}
@@ -26,10 +26,37 @@
 .qr-state-text{font-size:13px;line-height:1.5}
 .qr-preview{width:252px;height:252px;border-radius:14px}
 .qr-preview-image{width:100%;height:100%}
-.qr-placeholder{width:252px;height:252px;gap:9px;border:1px dashed #D3D9D4;border-radius:14px;font-size:14px}
+.qr-placeholder{width:252px;height:252px;gap:9px;box-sizing:border-box;border:1px dashed #D3D9D4;border-radius:14px;font-size:14px}
 .qr-plus{width:33px;height:33px}
 .qr-plus::before, .qr-plus::after{top:50%;left:50%;width:33px;height:3px;border-radius:2px}
 .qr-button{min-width:192px;padding:0 24px;height:50px;border-radius:599px;font-size:16px;font-weight:600;line-height:50px}
 .qr-sk-image{width:252px;height:252px;border-radius:14px}
 .qr-sk-button{width:192px;height:50px;border-radius:599px}
+.qr-guide-title{font-size:16px;font-weight:700;line-height:1.4}
+.qr-step{margin-top:15px}
+.qr-step-head{gap:8px}
+.qr-step-no{width:24px;height:24px;border-radius:50%;font-size:13px;font-weight:700;line-height:24px}
+.qr-step-text{min-width:0;font-size:15px;line-height:24px}
+.qr-mock{margin:9px 0 0 32px;border:1px solid #EEF0ED;border-radius:12px;box-sizing:border-box}
+.qr-mock-tabs{padding:9px 4px 7px}
+.qr-mock-tab{gap:3px;font-size:11px}
+.qr-mock-dot{width:20px;height:20px;border-radius:6px}
+.qr-mock-tab.is-on .qr-mock-dot{box-shadow:0 0 0 3px rgba(253, 124, 2, .18)}
+.qr-mock-profile{gap:10px;padding:13px 13px}
+.qr-mock-avatar{width:43px;height:43px;border-radius:9px}
+.qr-mock-name{gap:7px}
+.qr-mock-bar{width:84px;height:8px;border-radius:4px}
+.qr-mock-bar.is-wide{width:120px;height:10px}
+.qr-mock-qricon{grid-template-columns:1fr 1fr;gap:2px;width:20px;height:20px;padding:2px;border-radius:4px;box-shadow:0 0 0 3px rgba(253, 124, 2, .18)}
+.qr-mock-qricon view{border:1px solid #FD7C02;border-radius:1px}
+.qr-mock-arrow{font-size:18px;line-height:1}
+.qr-mock-card{padding:10px 13px 12px}
+.qr-mock-card-title{font-size:13px;font-weight:600}
+.qr-mock-more{padding:0 6px;border-radius:6px;font-size:15px;font-weight:700;line-height:21px;letter-spacing:1px}
+.qr-mock-sheet{margin-top:9px;border-radius:8px}
+.qr-mock-sheet-item{padding:8px 0;border-bottom:0.5px solid #F0F2EF;font-size:13px}
+.qr-mock-sheet-item:last-child{border-bottom:0}
+.qr-mock-sheet-item.is-on{font-weight:600}
+.qr-guide-warn{gap:7px;margin-top:16px;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.55}
+.qr-guide-warn-mark{width:19px;height:19px;margin-top:1px;border-radius:50%;font-size:12px;font-weight:700;line-height:19px}
 }

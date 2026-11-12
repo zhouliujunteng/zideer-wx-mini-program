@@ -83,6 +83,33 @@
       </view>
 
       <view class="profile-note"><view class="profile-note-dot"></view><text>{{model.footerNote}}</text></view>
+
+      <!-- 联系与收货（2026-11-12）：微信二维码给客服和导师妈妈加好友；收货地址直接调用微信的，选好即保存 -->
+      <text class="profile-group-title">联系与收货</text>
+      <view class="profile-card">
+        <view class="profile-row" bindtap="openWechatQr" aria-role="button" aria-label="微信二维码">
+          <text class="profile-row-label">微信二维码</text>
+          <view class="profile-row-value-wrap">
+            <view wx:if="{{!contactLoaded && !contactFailed}}" class="sk sk-line profile-value-sk"></view>
+            <text wx:elif="{{contactLoaded}}" class="profile-row-value {{qrUploaded ? '' : 'is-empty'}}">{{qrUploaded ? '已上传' : '未上传'}}</text>
+            <view class="profile-chevron" aria-hidden="true"></view>
+          </view>
+        </view>
+        <view class="profile-row is-last {{address ? 'is-address' : ''}}" bindtap="chooseShippingAddress" aria-role="button" aria-label="收货地址">
+          <text class="profile-row-label">收货地址</text>
+          <view class="profile-row-value-wrap">
+            <view wx:if="{{!contactLoaded && !contactFailed}}" class="sk sk-line profile-value-sk"></view>
+            <view wx:elif="{{savingAddress}}" class="profile-row-value">保存中…</view>
+            <view wx:elif="{{address}}" class="profile-address">
+              <text class="profile-address-contact">{{address.contact}}</text>
+              <text class="profile-address-line">{{address.line}}</text>
+            </view>
+            <text wx:elif="{{contactLoaded}}" class="profile-row-value is-empty">从微信选择</text>
+            <view class="profile-chevron" aria-hidden="true"></view>
+          </view>
+        </view>
+        <view wx:if="{{contactFailed}}" class="profile-load-failed" bindtap="retryLoadContact" aria-role="button"><text>暂时读不到</text><text class="profile-load-retry">重新加载</text></view>
+      </view>
     </view>
   </scroll-view>
   <view class="profile-actionbar">

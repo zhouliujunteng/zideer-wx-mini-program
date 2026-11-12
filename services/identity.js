@@ -641,7 +641,10 @@ function requestAgentCourses(path, token, options = {}) {
         CHOICE_INVALID: '请先选一个答案。',
         QUESTION_UNAVAILABLE: '这道题暂时读不到，请刷新后重试。',
         KNOWLEDGE_UNAVAILABLE: '知识图谱暂时读不到，请稍后重试。',
-        GOAL_DIAGNOSIS_UNAVAILABLE: '测评暂时无法打开，请稍后重试。'
+        GOAL_DIAGNOSIS_UNAVAILABLE: '测评暂时无法打开，请稍后重试。',
+        // 个人收货地址（课程服务 lib/shipping-address）
+        ADDRESS_INCOMPLETE: '收货地址不完整，请在微信里补全收件人、电话和详细地址后再选。',
+        PHONE_INVALID: '收货地址里的手机号不对，请在微信里改一下再选。'
       }
       const code = response.data && response.data.code
       const error = new Error(messages[code] || options.fallbackMessage || '课程进度暂时无法读取，请稍后重试。')
@@ -1098,6 +1101,21 @@ async function loadAgentIdentity() {
  * 家长微信加好友二维码（2026-11-11 用户规则，课程服务 /api/learn/family-wechat-qr）：开会员付款前必须上传，
  * 客服和接单的导师妈妈用它加家长微信。一个账号一张，重新上传覆盖。
  */
+// 个人收货地址（2026-11-12 用户要求）：「个人信息」里调 wx.chooseAddress 选微信收货地址，存课程服务（一人一条）。
+async function loadShippingAddress() {
+  const token = await getRuntimeToken()
+  const result = await requestAgentCourses('/api/learn/shipping-address', token, { fallbackMessage: '收货地址暂时读不到，请稍后重试。' })
+  return result && result.address || null
+}
+
+async function saveShippingAddress(address) {
+  const token = await getRuntimeToken()
+  const result = await requestAgentCourses('/api/learn/shipping-address', token, {
+    method: 'POST', data: { address }, fallbackMessage: '收货地址没有保存成功，请稍后重试。'
+  })
+  return result && result.address || null
+}
+
 async function loadFamilyWechatQr() {
   const token = await getRuntimeToken()
   const result = await requestAgentCourses('/api/learn/family-wechat-qr', token, { fallbackMessage: '微信二维码状态暂时读不到，请稍后重试。' })
@@ -4762,6 +4780,8 @@ module.exports = {
   loadAgentIdentity,
   loadAgentFamilies,
   loadFamilyWechatQr,
+  loadShippingAddress,
+  saveShippingAddress,
   downloadFamilyWechatQr,
   uploadFamilyWechatQr,
   lookupAgentFamily,

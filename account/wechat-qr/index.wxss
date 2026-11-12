@@ -31,6 +31,37 @@ page { background: #FAFAFA; }
 .qr-sk-image { width: 420rpx; height: 420rpx; border-radius: 24rpx; }
 .qr-sk-button { width: 320rpx; height: 84rpx; border-radius: 999rpx; }
 
+/* 上传教程（2026-11-12）：步骤号 + 一句话 + 用 view 画的微信界面示意，高亮处用主题橙 */
+.qr-guide-title { display: block; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.4; }
+.qr-step { margin-top: 26rpx; }
+.qr-step-head { display: flex; align-items: flex-start; gap: 14rpx; }
+.qr-step-no { flex: 0 0 auto; width: 40rpx; height: 40rpx; border-radius: 50%; background: #FD7C02; color: #fff; font-size: 22rpx; font-weight: 700; line-height: 40rpx; text-align: center; }
+.qr-step-text { flex: 1; min-width: 0; color: #3B4941; font-size: 25rpx; line-height: 40rpx; }
+.qr-mock { margin: 16rpx 0 0 54rpx; border: 2rpx solid #EEF0ED; border-radius: 20rpx; background: #F7F8F7; box-sizing: border-box; }
+.qr-mock .is-on { color: #FD7C02; }
+.qr-mock-tabs { display: flex; justify-content: space-around; padding: 16rpx 8rpx 12rpx; }
+.qr-mock-tab { display: flex; flex-direction: column; align-items: center; gap: 6rpx; color: #9AA39C; font-size: 19rpx; }
+.qr-mock-dot { width: 34rpx; height: 34rpx; border-radius: 10rpx; background: #DDE2DE; }
+.qr-mock-tab.is-on .qr-mock-dot { background: #FD7C02; box-shadow: 0 0 0 6rpx rgba(253, 124, 2, .18); }
+.qr-mock-profile { display: flex; align-items: center; gap: 18rpx; padding: 22rpx 22rpx; }
+.qr-mock-avatar { flex: 0 0 auto; width: 72rpx; height: 72rpx; border-radius: 16rpx; background: #DDE2DE; }
+.qr-mock-name { display: flex; flex: 1; flex-direction: column; gap: 12rpx; }
+.qr-mock-bar { width: 140rpx; height: 14rpx; border-radius: 8rpx; background: #E3E7E4; }
+.qr-mock-bar.is-wide { width: 200rpx; height: 18rpx; background: #D3D9D4; }
+.qr-mock-qricon { display: grid; grid-template-columns: 1fr 1fr; gap: 4rpx; width: 34rpx; height: 34rpx; padding: 4rpx; border-radius: 8rpx; box-shadow: 0 0 0 6rpx rgba(253, 124, 2, .18); }
+.qr-mock-qricon view { border: 3rpx solid #FD7C02; border-radius: 3rpx; }
+.qr-mock-arrow { color: #B8C0B9; font-size: 30rpx; line-height: 1; }
+.qr-mock-card { padding: 18rpx 22rpx 20rpx; }
+.qr-mock-card-top { display: flex; align-items: center; justify-content: space-between; }
+.qr-mock-card-title { color: #3B4941; font-size: 22rpx; font-weight: 600; }
+.qr-mock-more { padding: 0 10rpx; border-radius: 10rpx; background: rgba(253, 124, 2, .14); font-size: 26rpx; font-weight: 700; line-height: 36rpx; letter-spacing: 2rpx; }
+.qr-mock-sheet { display: flex; flex-direction: column; margin-top: 16rpx; border-radius: 14rpx; background: #fff; overflow: hidden; }
+.qr-mock-sheet-item { padding: 14rpx 0; border-bottom: 1rpx solid #F0F2EF; color: #7E8A82; font-size: 22rpx; text-align: center; }
+.qr-mock-sheet-item:last-child { border-bottom: 0; }
+.qr-mock-sheet-item.is-on { background: rgba(253, 124, 2, .08); font-weight: 600; }
+.qr-guide-warn { display: flex; align-items: flex-start; gap: 12rpx; margin-top: 28rpx; padding: 18rpx 20rpx; border-radius: 18rpx; background: rgba(253, 124, 2, .08); color: #8A5A2B; font-size: 23rpx; line-height: 1.55; }
+.qr-guide-warn-mark { flex: 0 0 auto; width: 32rpx; height: 32rpx; margin-top: 3rpx; border-radius: 50%; background: #FD7C02; color: #fff; font-size: 21rpx; font-weight: 700; line-height: 32rpx; text-align: center; }
+
 @media (min-width: 450px) {
   page { --lg-col: 760px; }
 }
