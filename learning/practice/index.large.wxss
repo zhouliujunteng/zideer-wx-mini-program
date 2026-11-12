@@ -81,6 +81,7 @@
 .pr-mark-cross::after{transform:rotate(-45deg)}
 .pr-feedback-title{font-size:21px;font-weight:800}
 .pr-feedback-answer{margin-top:10px;font-size:16px;font-weight:700;line-height:1.5}
+.pr-feedback-why{margin-top:10px;font-size:16px;font-weight:700;line-height:1.5}
 .pr-feedback-text{margin-top:6px;font-size:15px;line-height:1.6}
 .pr-feedback-hint{margin-top:6px;font-size:14px}
 .pr-continue{height:57px;margin-top:16px;border-radius:15px;font-size:19px;font-weight:800;line-height:57px}

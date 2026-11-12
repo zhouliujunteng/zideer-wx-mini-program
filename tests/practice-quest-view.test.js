@@ -45,6 +45,12 @@ test('practice screens build the response each question type expects', () => {
 test('feedback, clear summary and the course-detail card follow the practice state', () => {
   assert.equal(feedbackOf({ correct: true, practice: { progress: { streak: 3 } } }).title, '太棒了！连对 3 道')
   assert.deepEqual(feedbackOf({ correct: false, answer: 'A. 甲', explanation: '因为' }).retryHint, '这道题会放到后面再考你一次')
+  // 错项针对性反馈（2026-11-12）：第一次答错只说错在哪、给提示，不给答案；再错才给答案
+  const held = feedbackOf({ correct: false, held: true, answer: '', explanation: '', feedback: '只除了分子', hint: '分母也要变' })
+  assert.deepEqual([held.title, held.answer, held.why, held.hint], ['不对哦，再想想', '', '只除了分子', '分母也要变'])
+  const shown = feedbackOf({ correct: false, held: false, answer: 'A. 甲', explanation: '因为', feedback: '只除了分子', hint: '分母也要变' })
+  assert.deepEqual([shown.answer, shown.why, shown.hint], ['A. 甲', '只除了分子', ''])
+  assert.equal(feedbackOf({ correct: true, feedback: 'x', hint: 'y' }).why, '')
   const done = normalizePractice({ ...PRACTICE, status: 'done', correctCount: 2, review: [{ answer: '甲', explanation: '', firstTry: true }] })
   assert.equal(clearSummary(done).comment, '一次就对了 2 道，错的也都改对了。')
   assert.equal(practiceCard(PRACTICE).cta, '去闯关')

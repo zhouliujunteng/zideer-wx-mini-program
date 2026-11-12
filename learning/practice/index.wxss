@@ -83,6 +83,7 @@ page { background: #FFFFFF; }
 .pr-feedback.is-right .pr-feedback-title { color: #E06A00; }
 .pr-feedback.is-wrong .pr-feedback-title { color: #C94F3F; }
 .pr-feedback-answer { display: block; margin-top: 18rpx; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.5; word-break: break-all; }
+.pr-feedback-why { display: block; margin-top: 18rpx; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.5; }
 .pr-feedback-text { display: block; margin-top: 10rpx; color: #4A5650; font-size: 26rpx; line-height: 1.6; }
 .pr-feedback-hint { display: block; margin-top: 10rpx; color: #C94F3F; font-size: 24rpx; }
 .pr-continue { height: 96rpx; margin-top: 28rpx; border-radius: 26rpx; color: #FFFFFF; font-size: 32rpx; font-weight: 800; line-height: 96rpx; text-align: center; }

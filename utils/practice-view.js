@@ -152,15 +152,22 @@ function tapMatch(answer, side, index) {
 }
 
 /** 答完一道之后的反馈条。 */
+/**
+ * 答题结果 → 底部反馈条。第一次答错（held）不给答案：只说错在哪（why）、给个提示（hint），题目放到后面再做；
+ * 再答错才给答案和解析（2026-11-12 错项针对性反馈，网页端 lib/portal/practice-view.ts 同一套）。
+ */
 function feedbackOf(result) {
   if (!result) return null
   const streak = result.practice && result.practice.progress ? result.practice.progress.streak : 0
+  const held = !result.correct && result.held === true
   return {
     correct: !!result.correct,
-    title: result.correct ? (streak >= 3 ? `太棒了！连对 ${streak} 道` : '答对了！') : '再想想',
+    title: result.correct ? (streak >= 3 ? `太棒了！连对 ${streak} 道` : '答对了！') : held ? '不对哦，再想想' : '再想想',
     answer: result.correct ? '' : String(result.answer || ''),
     explanation: String(result.explanation || ''),
-    retryHint: result.correct ? '' : '这道题会放到后面再考你一次'
+    why: result.correct ? '' : String(result.feedback || ''),
+    hint: held ? String(result.hint || '') : '',
+    retryHint: result.correct ? '' : held ? '这道题放到后面，等会儿再做一次' : '这道题会放到后面再考你一次'
   }
 }
 

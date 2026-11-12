@@ -122,6 +122,8 @@
       <view class="pr-feedback-mark" aria-hidden="true"><view class="{{feedback.correct ? 'pr-mark-check' : 'pr-mark-cross'}}"></view></view>
       <text class="pr-feedback-title">{{feedback.title}}</text>
     </view>
+    <text wx:if="{{feedback.why}}" class="pr-feedback-why">{{feedback.why}}</text>
+    <text wx:if="{{feedback.hint}}" class="pr-feedback-text">提示：{{feedback.hint}}</text>
     <text wx:if="{{feedback.answer}}" class="pr-feedback-answer">正确答案：{{feedback.answer}}</text>
     <text wx:if="{{feedback.explanation}}" class="pr-feedback-text">{{feedback.explanation}}</text>
     <text wx:if="{{feedback.retryHint}}" class="pr-feedback-hint">{{feedback.retryHint}}</text>

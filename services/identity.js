@@ -735,7 +735,7 @@ async function retryAgentCourseHomework(stageId) {
 /**
  * 互动练习（闯关学习第二关，课程服务 lib/course/homework/practice.ts，2026-11-11）：
  * 返回 { practice: { kind, status: locked / preparing / ready / failed / done, questions, progress, review } }。
- * 一屏一道：answerAgentCoursePractice 答当前这道，返回 { correct, answer, explanation, practice }。
+ * 一屏一道：answerAgentCoursePractice 答当前这道，返回 { correct, answer, explanation, feedback, hint, held, practice }。
  */
 async function loadAgentCoursePractice(stageId) {
   assertStageId(stageId)
@@ -749,7 +749,8 @@ async function answerAgentCoursePractice(stageId, index, response) {
   assertStageId(stageId)
   const token = await getRuntimeToken()
   return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/homework?practice=1`, token, {
-    method: 'POST', data: { action: 'answer', index: Number(index), response }, timeout: 20000, fallbackMessage: '没有提交上去，请再点一次。'
+    // coach：第一次答错先不给答案，只给错在哪和提示（2026-11-12 错项针对性反馈）
+    method: 'POST', data: { action: 'answer', index: Number(index), response, coach: true }, timeout: 20000, fallbackMessage: '没有提交上去，请再点一次。'
   })
 }
 
