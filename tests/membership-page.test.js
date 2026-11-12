@@ -48,6 +48,29 @@ test('WeChat success alone remains pending and can be resumed after restarting',
   assert.equal(resumed.page.data.confirming, true)
   assert.equal(resumed.timers.size, 1)
 })
+// 2026-11-12：等待记录带开始付款的时间，超过 10 分钟或旧版只记了订单号，都不再锁着页面
+test('a waiting record from the old version or older than ten minutes no longer locks the page', async () => {
+  for (const value of ['21', `21@${Date.now() - 11 * 60 * 1000}`]) {
+    const storage = new Map([['library_membership_confirming_order', value]])
+    const { page } = setup({}, storage)
+    await page.refresh()
+    assert.equal(page.data.confirming, false, value)
+    assert.notEqual(page.data.primaryLabel, '正在确认支付结果')
+    assert.equal(storage.has('library_membership_confirming_order'), false)
+  }
+  const storage = new Map([['library_membership_confirming_order', `21@${Date.now() - 60 * 1000}`]])
+  const { page } = setup({}, storage)
+  await page.refresh()
+  assert.equal(page.data.confirming, true)
+})
+test('a virtual payment that fails before paying clears the waiting record and shows the reason', async () => {
+  const failure = Object.assign(new Error('付款没有完成（微信返回 -15001），可以再试一次或用链接付款。'), { code: 'XPAY_FAILED', paymentNotStarted: true })
+  const { page, storage } = setup({ payWechatOrder: async () => { throw failure } })
+  await page.purchase()
+  assert.equal(page.data.confirming, false)
+  assert.equal(storage.size, 0)
+  assert.match(page.data.notice, /-15001/)
+})
 test('cancellation leaves retry available and never opens membership', async () => {
   const { page, storage } = setup({ payWechatOrder: async () => { throw { errMsg: 'requestPayment:fail cancel' } } })
   await page.purchase()
@@ -244,7 +267,7 @@ test('a member sees only higher tiers, upgrades at full price, and the benefits 
   assert.equal(JSON.stringify(paid), JSON.stringify(['22']))
   assert.equal(page.data.confirming, true)
   assert.equal(page.data.primaryLabel, '正在确认支付结果')
-  assert.equal(storage.get('library_membership_confirming_order'), '22')
+  assert.match(storage.get('library_membership_confirming_order'), /^22@\d+$/)
   // 回调确认后：当前等级是黄金会员，没有更高的可选，权益区回到「我的会员权益」
   current = upgraded
   await page.refresh()

@@ -15,7 +15,7 @@ function load({ platform = 'android', plan, planError, statuses = ['paid'], virt
       calls.virtual.push(options)
       if (virtual === 'ok') options.success({})
       else if (virtual === 'cancel') options.fail({ errCode: -2, errMsg: 'requestVirtualPayment:fail cancel' })
-      else options.fail({ errCode: 1, errMsg: 'requestVirtualPayment:fail' })
+      else options.fail({ errCode: -15001, errMsg: 'requestVirtualPayment:fail' })
     }
   }
   let statusIndex = 0
@@ -112,4 +112,16 @@ test('already paid orders are not charged again', async () => {
   const { service, calls } = load({ plan: { method: 'paid' } })
   assert.equal(await service.payOrder(order, 'membership'), 'paid')
   assert.equal(calls.virtual.length + calls.merchant + calls.opened.length, 0)
+})
+
+// 2026-11-12：iOS 实测没弹出付款框就失败，页面一直停在「正在确认支付结果」
+test('a virtual payment that fails without paying is reported as not started, with the WeChat error code', async () => {
+  const { service, calls } = load({ platform: 'ios', plan: { method: 'xpay', payment }, virtual: 'fail', statuses: ['pending'] })
+  await assert.rejects(service.payOrder(order, 'membership'), (error) =>
+    error.code === 'XPAY_FAILED' && error.paymentNotStarted === true && /-15001/.test(error.message))
+  assert.equal(calls.requests.filter((r) => r.url === '/api/learn/mini-pay?orderId=88').length, 1)
+})
+test('a failed callback whose order turns out paid still counts as paid', async () => {
+  const { service } = load({ plan: { method: 'xpay', payment }, virtual: 'fail', statuses: ['paid'] })
+  assert.equal(await service.payOrder(order, 'membership'), 'xpay')
 })

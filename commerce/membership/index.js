@@ -5,6 +5,7 @@ const { checkPaymentPage, showPaymentClosed, isPaymentDisabled, leavePaymentPage
 // 付款方式（2026-11-11）：安卓虚拟支付、iOS 按后台开关、另有「用链接付款」（services/mini-pay.js）
 const { payOrder, payByLink } = require('../../services/mini-pay')
 const WAITING_KEY = 'library_membership_confirming_order'
+const WAITING_TTL = 10 * 60 * 1000
 const labels = { active: '会员已开通', inactive: '尚未开通', expired: '会员已到期', pending: '订单待支付', refunded: '退款处理中或已退款', closed: '订单已关闭' }
 
 // Visual layout follows the designer's E02 page; tiers, prices and actions come only from the server result.
@@ -105,8 +106,11 @@ Page({
     const order = membership.order
     // 付款后等回调确认：记下的订单还在待支付就继续确认；已经不在待支付（开通了或关闭了）就清掉记录。
     const pending = pendingOrderOf(membership)
-    const waiting = String(wx.getStorageSync(WAITING_KEY) || '')
-    const confirming = !!(pending && waiting && String(pending.orderId) === waiting)
+    // 记的是「订单号@开始付款的时间」：超过 10 分钟还没确认就不再锁着页面（2026-11-12：iOS 虚拟支付没弹出就失败时，
+    // 旧版不清这条记录，页面一直停在「正在确认支付结果」）。旧版只记订单号、没有时间，按过期处理。
+    const [waiting, startedAt] = String(wx.getStorageSync(WAITING_KEY) || '').split('@')
+    const fresh = Number(startedAt) > 0 && Date.now() - Number(startedAt) < WAITING_TTL
+    const confirming = !!(pending && waiting && fresh && String(pending.orderId) === waiting)
     if (waiting && !confirming) wx.removeStorageSync(WAITING_KEY)
     const member = membershipView(membership)
     this.setData({ membership, member, loaded: true, confirming: !!confirming, statusLabel: confirming ? '正在确认支付结果' : labels[membership.status],
@@ -208,7 +212,7 @@ Page({
       }
       // 小程序里付（虚拟支付 / 商户号支付，services/mini-pay.js）；课程服务让走链接付款时同上。
       // Persist before opening WeChat so an interrupted app queries the same order first.
-      const via = await payOrder(order, 'membership', { onStart: () => wx.setStorageSync(WAITING_KEY, String(order.orderId)) })
+      const via = await payOrder(order, 'membership', { onStart: () => wx.setStorageSync(WAITING_KEY, `${order.orderId}@${Date.now()}`) })
       if (via === 'web') webPay = true
     } catch (error) {
       // 停留在页面时后台关了支付开关：下单或发起支付被拒，弹提示后离开

@@ -75,7 +75,10 @@ function requestVirtualPayment(payment) {
           reject({ errMsg: 'requestVirtualPayment:fail cancel', errCode: -2 })
           return
         }
-        reject(Object.assign(new Error('付款没有完成，可以再试一次或用链接付款。'), { detail: error }))
+        // 没弹出付款框就失败（2026-11-12 iOS 实测）：把微信给的错误码带给用户，方便对照微信文档查原因
+        const code = error && (error.errCode !== undefined ? error.errCode : '')
+        const text = code !== '' ? `付款没有完成（微信返回 ${code}），可以再试一次或用链接付款。` : '付款没有完成，可以再试一次或用链接付款。'
+        reject(Object.assign(new Error(text), { code: 'XPAY_FAILED', xpayErrCode: code, detail: error }))
       }
     })
   })
@@ -116,7 +119,17 @@ async function payOrder(order, kind, { onStart } = {}) {
   }
   if (typeof onStart === 'function') onStart()
   if (plan.method === 'xpay') {
-    await requestVirtualPayment(plan.payment)
+    try {
+      await requestVirtualPayment(plan.payment)
+    } catch (error) {
+      if (error && error.code === 'XPAY_FAILED') {
+        // 微信明确说付款失败：再问一次课程服务（极少数情况下钱已扣、回调先到）；没付就当没开始付款，
+        // 页面据此清掉「等待确认」，不会一直停在「正在确认支付结果」（2026-11-12 修复）。
+        if (await confirmPaid(order.orderId, 1)) return 'xpay'
+        error.paymentNotStarted = true
+      }
+      throw error
+    }
     await confirmPaid(order.orderId)
     return 'xpay'
   }
