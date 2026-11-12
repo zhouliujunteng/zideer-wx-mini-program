@@ -33,6 +33,7 @@ function loadPage(file, modules, options = {}) {
       if (name.endsWith('/utils/referral-context')) return { clearPendingReferral() {} }
       if (name.endsWith('/payment-switch') && !key) return paymentSwitchStub({ navigateTo() {}, redirectTo() {} })
       if (name.endsWith('/web-pay') && !key) return webPayStub({ navigateTo() {}, redirectTo() {} })
+      if (name.endsWith('/mini-pay') && !key) return { payOrder: async () => 'merchant', payByLink: async () => {}, platform: () => 'ios' }
       if (!key) throw new Error(`Unexpected import ${name}`)
       return modules[key]
     }

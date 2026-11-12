@@ -5,6 +5,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const paymentSwitchStub = require('./helpers/payment-switch-stub')
 const webPayStub = require('./helpers/web-pay-stub')
+const miniPayStub = require('./helpers/mini-pay-stub')
 const tiers = [{ productVersionId: '50', name: '基础会员', amount: '49.90', creditAmount: '400' }, { productVersionId: '51', name: '黄金会员', amount: '99.00', creditAmount: '1000' }]
 const gold = tiers[1]
 const pending = { status: 'pending', eligible: false, tiers, tier: gold, order: { orderId: '21', amount: '99.00', description: '黄金会员', canPay: true, productVersionId: '51' } }
@@ -24,6 +25,7 @@ function setup(overrides = {}, storage = new Map()) {
       if (name.endsWith('/membership-view')) return require('../services/membership-view')
       if (name.endsWith('/payment-switch')) return paymentSwitch
       if (name.endsWith('/web-pay')) return webPay
+      if (name.endsWith('/mini-pay')) return miniPayStub(() => api, webPay)
       return api
     },
     setTimeout(fn) { timers.set(++id, fn); return id }, clearTimeout(key) { timers.delete(key) },

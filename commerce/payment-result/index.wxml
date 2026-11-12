@@ -66,5 +66,6 @@
     </block>
     <button wx:else class="result-button is-primary" bindtap="goHome">返回首页</button>
   </view>
+  <text wx:if="{{order && view.kind === 'pending' && paymentOpen}}" class="link-pay" bindtap="payWithLink" aria-role="button">用链接付款</text>
 </view>
 <dev-reset-fab />

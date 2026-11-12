@@ -1,8 +1,9 @@
-const { loadCurrentMembership, createMembershipOrder, payWechatOrder, isWechatPaymentCancelled, loadMeDashboard, loadFamilyWechatQr } = require('../../services/identity')
+const { loadCurrentMembership, createMembershipOrder, isWechatPaymentCancelled, loadMeDashboard, loadFamilyWechatQr } = require('../../services/identity')
 const { membershipView, benefitCards, dateText, creditsText, priceText } = require('../../services/membership-view')
 const { attachUiAssets } = require('../../services/ui-assets')
 const { checkPaymentPage, showPaymentClosed, isPaymentDisabled, leavePaymentPage, openPaymentPage } = require('../../services/payment-switch')
-const { shouldPayOnWeb, openWebPay } = require('../../services/web-pay')
+// 付款方式（2026-11-11）：安卓虚拟支付、iOS 按后台开关、另有「用链接付款」（services/mini-pay.js）
+const { payOrder, payByLink } = require('../../services/mini-pay')
 const WAITING_KEY = 'library_membership_confirming_order'
 const labels = { active: '会员已开通', inactive: '尚未开通', expired: '会员已到期', pending: '订单待支付', refunded: '退款处理中或已退款', closed: '订单已关闭' }
 
@@ -177,7 +178,9 @@ Page({
     })
     return false
   },
-  async purchase() {
+  // 「用链接付款」：同样先建订单，再打开付款链接等待页（任何手机都能用）
+  purchaseByLink() { return this.purchase({ viaLink: true }) },
+  async purchase({ viaLink = false } = {}) {
     if (this._paying || this.data.confirming || this.data.loading || this.data.error || !this.data.membership || !this.data.selectedTierId) return
     if (this._checkingQr) return
     this._checkingQr = true
@@ -197,15 +200,16 @@ Page({
       this.applyMembership(membership)
       order = pendingOrderOf(membership)
       if (!order || order.canPay !== true || String(order.productVersionId) !== selectedTierId) throw new Error('当前订单不能继续付款，请重新查询会员状态。')
-      // 安卓：到手机浏览器里付款（services/web-pay.js），等待页负责确认结果；回到本页时 onShow 重新读取会员状态。
-      if (shouldPayOnWeb()) {
+      // 链接付款：等待页负责确认结果；回到本页时 onShow 重新读取会员状态。
+      if (viaLink) {
         webPay = true
-        openWebPay(order.orderId, 'membership')
+        await payByLink(order.orderId, 'membership')
         return
       }
+      // 小程序里付（虚拟支付 / 商户号支付，services/mini-pay.js）；课程服务让走链接付款时同上。
       // Persist before opening WeChat so an interrupted app queries the same order first.
-      wx.setStorageSync(WAITING_KEY, String(order.orderId))
-      await payWechatOrder(order)
+      const via = await payOrder(order, 'membership', { onStart: () => wx.setStorageSync(WAITING_KEY, String(order.orderId)) })
+      if (via === 'web') webPay = true
     } catch (error) {
       // 停留在页面时后台关了支付开关：下单或发起支付被拒，弹提示后离开
       paymentDisabled = isPaymentDisabled(error)

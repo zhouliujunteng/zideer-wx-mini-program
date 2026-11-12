@@ -8,6 +8,7 @@ const vm = require('node:vm')
 const { groupOrdersByMonth, orderDetailView, orderTabsFor } = require('../commerce/order-view')
 const paymentSwitchStub = require('./helpers/payment-switch-stub')
 const webPayStub = require('./helpers/web-pay-stub')
+const miniPayStub = require('./helpers/mini-pay-stub')
 
 const read = (file) => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')
 
@@ -87,6 +88,7 @@ test('continuing payment from order detail goes home once paid', async () => {
       }
       if (name.endsWith('/payment-switch')) return paymentSwitchStub(wx)
       if (name.endsWith('/web-pay')) return webPayStub(wx)
+      if (name.endsWith('/mini-pay')) return miniPayStub(() => ({ payWechatOrder: async () => ({}) }), webPayStub(wx))
       throw new Error(`Unexpected import ${name}`)
     }
   })
@@ -117,6 +119,7 @@ test('Android: continuing payment from order detail opens web payment', async ()
       if (name.endsWith('/payment-done')) return { goHomeAfterCreditPayment() {} }
       if (name.endsWith('/payment-switch')) return paymentSwitchStub(wx)
       if (name.endsWith('/web-pay')) return webPayStub(wx, { android: true })
+      if (name.endsWith('/mini-pay')) return miniPayStub(() => ({ payWechatOrder: async () => { paid += 1 } }), webPayStub(wx, { android: true }))
       throw new Error(`Unexpected import ${name}`)
     }
   })

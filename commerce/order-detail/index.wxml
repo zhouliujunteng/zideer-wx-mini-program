@@ -85,6 +85,7 @@
 
   <view wx:if="{{loaded && view.action && paymentOpen}}" class="detail-bar">
     <button class="detail-button" loading="{{paying}}" disabled="{{paying}}" bindtap="handleAction">{{paying ? '正在发起支付' : view.action.label}}</button>
+    <text wx:if="{{view.action.id === 'pay'}}" class="link-pay" bindtap="payWithLink" aria-role="button">用链接付款</text>
   </view>
 </view>
 <dev-reset-fab />

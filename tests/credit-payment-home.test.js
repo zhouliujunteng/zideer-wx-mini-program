@@ -7,6 +7,7 @@ const path = require('node:path')
 const vm = require('node:vm')
 const paymentSwitchStub = require('./helpers/payment-switch-stub')
 const webPayStub = require('./helpers/web-pay-stub')
+const miniPayStub = require('./helpers/mini-pay-stub')
 
 const read = (file) => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')
 
@@ -38,6 +39,7 @@ function loadPage(file, identity, { android = false } = {}) {
       }
       if (name.endsWith('/payment-switch')) return paymentSwitchStub(wx)
       if (name.endsWith('/web-pay')) return webPayStub(wx, { android })
+      if (name.endsWith('/mini-pay')) return miniPayStub(() => identity, webPayStub(wx, { android }))
       throw new Error(`Unexpected import ${name}`)
     }
   }
