@@ -172,7 +172,8 @@
   },
   "resizable": true,
   "usingComponents": {
-    "dev-reset-fab": "/components/dev-reset-fab/index"
+    "dev-reset-fab": "/components/dev-reset-fab/index",
+    "mentor-contact-popup": "/components/mentor-contact-popup/index"
   },
   "tabBar": {
     "custom": true,

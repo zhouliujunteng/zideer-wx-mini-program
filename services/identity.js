@@ -1139,6 +1139,32 @@ async function downloadFamilyWechatQr() {
   return filePath
 }
 
+// 「加导师妈妈微信」弹窗（2026-11-12 用户规则，规则在课程服务 guardianMentorContact）：只有下单付款的家长、导师接了单、
+// 导师传了二维码、还没记「已加微信」时 show 为 true。
+async function loadMentorContact() {
+  const token = await getRuntimeToken()
+  const result = await requestAgentCourses('/api/learn/mentor-contact', token, { fallbackMessage: '导师妈妈的微信暂时读不到。' })
+  return result && result.show === true ? { show: true, orderId: String(result.orderId || ''), mentorName: String(result.mentorName || '导师妈妈') } : { show: false }
+}
+
+// 导师妈妈的二维码存成本地文件给 <image> 显示（课程服务只回 JPEG 字节）；按订单分文件名，换了导师不串图
+async function downloadMentorContactQr(orderId) {
+  const token = await getRuntimeToken()
+  const filePath = `${wx.env.USER_DATA_PATH}/mentor-contact-${String(orderId || '').replace(/[^0-9]/g, '') || 'qr'}.jpg`
+  const bytes = await new Promise((resolve, reject) => wx.request({
+    url: `${coursePortalOrigin()}/api/learn/mentor-contact?image=1`, method: 'GET', timeout: 20000,
+    header: { authorization: `Bearer ${token}` }, responseType: 'arraybuffer',
+    success(response) {
+      if (getStoredToken() !== token) return reject(new Error('登录账号已变化。'))
+      if (response.statusCode === 200 && response.data && response.data.byteLength) return resolve(response.data)
+      reject(new Error('导师妈妈的二维码暂时读不到。'))
+    },
+    fail(error) { reject(courseConnectionError(error)) }
+  }))
+  wx.getFileSystemManager().writeFileSync(filePath, bytes)
+  return filePath
+}
+
 async function uploadFamilyWechatQr(filePath) {
   const file = await readLocalFile(filePath).catch(() => null)
   const bytes = file && file.data
@@ -4781,6 +4807,8 @@ module.exports = {
   loadAgentFamilies,
   loadFamilyWechatQr,
   loadShippingAddress,
+  loadMentorContact,
+  downloadMentorContactQr,
   saveShippingAddress,
   downloadFamilyWechatQr,
   uploadFamilyWechatQr,

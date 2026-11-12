@@ -1,0 +1,14 @@
+<!-- 加导师妈妈微信：长按二维码识别加好友（image 的 show-menu-by-longpress），点图看大图也能长按识别 -->
+<view wx:if="{{visible}}" class="mc-layer" catchtap="close" catchtouchmove="stopTap">
+  <view class="mc-card" catchtap="stopTap">
+    <view class="mc-close" bindtap="close" aria-role="button" aria-label="关闭"></view>
+    <text class="mc-kicker">会员专属服务</text>
+    <text class="mc-title">加上你的导师妈妈</text>
+    <text class="mc-copy">{{mentorName}}会陪你一起照看孩子的学习：定课程、盯进度、答疑。长按下面的二维码，加她微信。</text>
+    <view class="mc-qr" bindtap="preview" aria-role="button" aria-label="查看大图">
+      <image class="mc-qr-image" src="{{qrPath}}" mode="aspectFit" show-menu-by-longpress></image>
+    </view>
+    <text class="mc-hint">长按二维码 › 识别 › 添加到通讯录</text>
+    <view class="mc-later" bindtap="close" aria-role="button">稍后再加</view>
+  </view>
+</view>

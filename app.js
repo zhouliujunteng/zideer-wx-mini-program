@@ -20,6 +20,8 @@ App({
     // 服务号菜单「已定课程」：小程序已在后台时也带着 tab=custom 回到学习页（tab 页 onLoad 不会再跑）
     if (options && options.path === 'pages/learning/index' && options.query && options.query.tab) this.globalData.learningTab = String(options.query.tab)
     this.linkServiceAccount()
+    // 「加导师妈妈微信」弹窗（2026-11-12）：每次进入小程序检查一次，由第一个出现的 tab 页上的 mentor-contact-popup 处理
+    this.globalData.mentorContactPending = true
   },
 
   // 服务号菜单「学习报告」靠「小程序账号 ↔ 微信 UnionID」认人：登录状态下每天登记一次（课程服务 /api/learn/mp-link），失败静默。
@@ -53,6 +55,7 @@ App({
     navigation: null,
     currentStudentId: 1,
     // 学习页要打开的「我的课程」栏（服务号菜单「已定课程」= custom），学习页用一次就清掉
-    learningTab: ''
+    learningTab: '',
+    mentorContactPending: false
   }
 })

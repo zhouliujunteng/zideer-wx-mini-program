@@ -1,0 +1,17 @@
+/* 加导师妈妈微信弹窗（2026-11-12）：白色大圆角卡片，主题橙点缀，同「我的微信二维码」页一系 */
+.mc-layer { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 900; display: flex; align-items: center; justify-content: center; padding: 0 56rpx; box-sizing: border-box; background: rgba(20, 28, 24, .48); }
+.mc-card { position: relative; width: 100%; max-width: 620rpx; padding: 48rpx 40rpx 28rpx; box-sizing: border-box; border-radius: 40rpx; background: #fff; text-align: center; box-shadow: 0 24rpx 60rpx rgba(20, 28, 24, .18); }
+.mc-close { position: absolute; top: 24rpx; right: 24rpx; width: 52rpx; height: 52rpx; border-radius: 50%; }
+.mc-close::before, .mc-close::after { position: absolute; top: 50%; left: 50%; width: 26rpx; height: 3rpx; border-radius: 3rpx; background: #9AA39C; content: ''; transform: translate(-50%, -50%) rotate(45deg); }
+.mc-close::after { transform: translate(-50%, -50%) rotate(-45deg); }
+.mc-close:active { background: #F0F2EF; }
+.mc-kicker { display: inline-block; padding: 6rpx 18rpx; border-radius: 999rpx; background: rgba(253, 124, 2, .12); color: #FD7C02; font-size: 21rpx; font-weight: 600; line-height: 1.4; }
+.mc-title { display: block; margin-top: 18rpx; color: #24332D; font-size: 36rpx; font-weight: 700; line-height: 1.35; }
+.mc-copy { display: block; margin-top: 14rpx; color: #7E8A82; font-size: 25rpx; line-height: 1.6; }
+.mc-qr { width: 400rpx; height: 400rpx; margin: 30rpx auto 0; padding: 16rpx; box-sizing: border-box; border: 2rpx solid #EEF0ED; border-radius: 28rpx; background: #fff; }
+.mc-qr-image { width: 100%; height: 100%; }
+.mc-hint { display: block; margin-top: 18rpx; color: #FD7C02; font-size: 23rpx; font-weight: 600; line-height: 1.5; }
+.mc-later { margin-top: 20rpx; padding: 18rpx 0; color: #9AA39C; font-size: 25rpx; line-height: 1.4; }
+.mc-later:active { opacity: .6; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -161,3 +161,4 @@
 </view>
 <card-reveal wx:if="{{openCard}}" card="{{openCard}}" series="{{openSeries}}" mode="detail" origin="{{openOrigin}}" bind:close="handleRevealClose" bind:drawn="handleDrawn" bind:stale="loadCards" />
 <dev-reset-fab />
+<mentor-contact-popup />

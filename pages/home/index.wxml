@@ -61,3 +61,4 @@
 <!-- 首次进首页：「设为星标 / 添加到桌面」引导，可选不再提醒 -->
 <favorite-guide />
 <dev-reset-fab />
+<mentor-contact-popup />
