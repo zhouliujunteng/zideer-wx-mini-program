@@ -46,6 +46,11 @@ Page({
 
   onShow() { return this.loadVerification() },
 
+  onUnload() {
+    this._left = true
+    if (this._leaveTimer) clearTimeout(this._leaveTimer)
+  },
+
   async loadVerification() {
     const requestId = this._requestId = (this._requestId || 0) + 1
     this.setData({ verificationFailed: false })
@@ -88,7 +93,10 @@ Page({
       await bindCurrentGuardianToStudent(this.data.code)
       wx.showToast({ title: '学生绑定成功', icon: 'success' })
       if (this.data.provider) this.setData({ 'provider.used': this.data.provider.used + 1 })
-      setTimeout(() => wx.navigateBack(), 700)
+      this._leaveTimer = setTimeout(() => {
+        this._leaveTimer = null
+        if (!this._left) wx.navigateBack()
+      }, 700)
     } catch (error) {
       // 认证在别处失效（过期、被撤销）：切回实名认证提示
       if (error && error.status === 'guardian_verification_required') this.setData({ gate: gateCopy.not_started, provider: null })

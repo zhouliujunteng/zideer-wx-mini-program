@@ -98,14 +98,19 @@ Page({
 
   onUnload() {
     this._hidden = true
+    this._left = true
     this.stopPolling()
+    if (this._leaveTimer) clearTimeout(this._leaveTimer)
   },
 
   useTool(tool) {
     const page = TOOL_PAGES[tool]
     if (!page) {
       wx.showToast({ title: '这个工具即将上线', icon: 'none' })
-      setTimeout(() => this.handleBack(), 800)
+      this._leaveTimer = setTimeout(() => {
+        this._leaveTimer = null
+        if (!this._left) this.handleBack()
+      }, 800)
       return
     }
     const inputValues = {}
