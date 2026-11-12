@@ -403,7 +403,7 @@ async function membershipRequest(create = false, productVersionId = '') {
   } catch (error) {
     if (isAuthenticationRequired(error)) throw error
     const messages = { MEMBERSHIP_PROFILE_REQUIRED: '请先完成手机号登录和学习档案。', MEMBERSHIP_ORDER_CHANGED: '会员订单已变化，请重新查询。',
-      MEMBERSHIP_ALREADY_ACTIVE: '你已是会员，无需再次开通，可购买积分包补充积分。', MEMBERSHIP_TIER_UNAVAILABLE: '该会员等级已下架或价格已更新，请刷新后重新选择。',
+      MEMBERSHIP_ALREADY_ACTIVE: '你已是会员，这次没有再次开通。积分用完可以再买一次会员。', MEMBERSHIP_TIER_UNAVAILABLE: '该会员等级已下架或价格已更新，请刷新后重新选择。',
       MEMBERSHIP_TIER_NOT_HIGHER: '只能升级到比当前更高的会员等级，请刷新后重新选择。',
       MEMBERSHIP_INVITE_REQUIRED: '开通会员需要先填写邀请码。',
       // 支付开关关着（管理端「活动开关 → 会员与积分包支付」），后端拒绝下单
@@ -1025,7 +1025,9 @@ async function loadFamilyWechatQr() {
 // 本人上传过的二维码存成本地文件给 <image> 预览（课程服务只回 JPEG 字节）
 async function downloadFamilyWechatQr() {
   const token = await getRuntimeToken()
-  const filePath = `${wx.env.USER_DATA_PATH}/family-wechat-qr.jpg`
+  // 固定文件名再在地址后加 ?t= 会让 <image> 把本地路径当成网络地址，预览打不开。
+  // 每次写成新文件，避免同一路径被图片组件缓存成上一张二维码。
+  const filePath = `${wx.env.USER_DATA_PATH}/family-wechat-qr-${Date.now()}.jpg`
   const bytes = await new Promise((resolve, reject) => wx.request({
     url: `${coursePortalOrigin()}/api/learn/family-wechat-qr?image=1`, method: 'GET', timeout: 20000,
     header: { authorization: `Bearer ${token}` }, responseType: 'arraybuffer',
@@ -4253,7 +4255,7 @@ async function createSecureCreditOrder(productVersionId, beneficiaryStudentId, i
     }
     // 后端：没有推荐人归因不能下单（「该学生尚未建立有效推广归因」）
     if (/推广归因/.test(String(error && error.message || ''))) {
-      const wrapped = new Error('请先填写邀请码（有推荐人）后再购买积分包。')
+      const wrapped = new Error('请先绑定推荐关系后再购买。')
       wrapped.code = 'CREDIT_INVITE_REQUIRED'
       throw wrapped
     }

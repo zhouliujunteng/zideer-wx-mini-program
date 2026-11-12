@@ -42,7 +42,7 @@ Page({
       this.setData({ loaded: true, loadFailed: false, uploaded: state.uploaded, uploadedText: dateText(state.uploadedAt) })
       if (state.uploaded && !this.data.previewSrc) {
         const previewSrc = await downloadFamilyWechatQr().catch(() => '')
-        if (previewSrc) this.setData({ previewSrc: `${previewSrc}?t=${Date.now()}` })
+        if (previewSrc) this.setData({ previewSrc })
       }
     } catch (error) {
       if (this.data.loaded) return wx.showToast({ title: error.message || '二维码状态读取失败', icon: 'none' })
@@ -50,7 +50,15 @@ Page({
     }
   },
   retry() { this.setData({ loadFailed: false }); this.load() },
+  onUnload() {
+    this._left = true
+    if (this._returnTimer) clearTimeout(this._returnTimer)
+  },
   handleBack() {
+    if (this._returnTimer) {
+      clearTimeout(this._returnTimer)
+      this._returnTimer = null
+    }
     if (getCurrentPages().length > 1) return wx.navigateBack({ delta: 1 })
     wx.switchTab({ url: '/pages/me/index' })
   },
@@ -70,7 +78,12 @@ Page({
       const state = await uploadFamilyWechatQr(filePath)
       this.setData({ uploaded: true, uploadedText: dateText(state.uploadedAt), previewSrc: filePath })
       wx.showToast({ title: '已上传', icon: 'success' })
-      if (this.data.fromMembership) setTimeout(() => this.handleBack(), 800)
+      if (this.data.fromMembership) {
+        this._returnTimer = setTimeout(() => {
+          this._returnTimer = null
+          if (!this._left) this.handleBack()
+        }, 800)
+      }
     } catch (error) {
       wx.showToast({ title: error.message || '上传没有成功，请稍后重试。', icon: 'none', duration: 2600 })
     } finally {

@@ -239,7 +239,6 @@ Page({
   handleBenefitTap(event) {
     const action = event.currentTarget.dataset.action
     if (action === 'openLibrary') return this.openLibrary()
-    if (action === 'openProducts') return this.openProducts()
   },
   openLibrary() { wx.navigateTo({ url: '/learning/library/index' }) },
   openOrders() { wx.navigateTo({ url: '/commerce/orders/index' }) },
