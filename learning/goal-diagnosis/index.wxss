@@ -121,4 +121,87 @@
 
 .gm-card-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--tone-dot); }
 
+/* ---------- 2026-11-13：照学习页闯关的样子（小鹿带路、厚卡片、按得下去的按钮） ---------- */
+/* 小鹿 + 气泡 */
+.gm-guide { display: flex; align-items: flex-end; gap: 6px; margin: 2px 2px 14px; }
+.gm-guide.is-result { margin-bottom: 12px; }
+.gm-deer { flex: none; width: 72px; height: 81px; transform-origin: 50% 100%; animation: gm-deer-idle 3.2s ease-in-out infinite; }
+.gm-deer.is-walking { width: 64px; height: 72px; margin-bottom: 6px; animation: gm-deer-walk .9s ease-in-out infinite; }
+.gm-bubble { position: relative; flex: 1; min-width: 0; margin-bottom: 18px; padding: 12px 14px; border: 2px solid #ECE9E4; border-radius: 18px; background: #FFF; color: #24332D; font-size: 14px; font-weight: 700; line-height: 1.55; animation: gm-pop .36s cubic-bezier(.2, 1.5, .4, 1) both; }
+.gm-bubble::before { position: absolute; bottom: 14px; left: -8px; width: 12px; height: 12px; box-sizing: border-box; border-bottom: 2px solid #ECE9E4; border-left: 2px solid #ECE9E4; background: #FFF; transform: rotate(45deg); content: ''; }
+
+/* 开始前：三站小路 */
+.gm-trail { position: relative; padding: 4px 0 2px; }
+.gm-stop { position: relative; display: flex; align-items: center; gap: 14px; padding: 10px 0; animation: gm-rise .4s ease both; }
+.gm-stop.stop-2 { margin-left: 34px; animation-delay: .08s; }
+.gm-stop.stop-3 { animation-delay: .16s; }
+.gm-stop + .gm-stop::before { position: absolute; top: -12px; left: 27px; height: 24px; border-left: 4px dotted #E6E1DA; content: ''; }
+.gm-stop.stop-2::before { left: 10px; transform: rotate(38deg); }
+.gm-stop.stop-3::before { left: 44px; transform: rotate(-38deg); }
+.gm-stop-node { display: flex; flex: none; width: 58px; height: 52px; align-items: center; justify-content: center; border-radius: 50%; background: var(--node); box-shadow: 0 6px 0 var(--node-deep); color: #FFF; font-size: 22px; font-weight: 900; }
+.gm-stop-node.tone-orange { --node: #FD7C02; --node-deep: #D96400; }
+.gm-stop-node.tone-blue { --node: #3FA9F5; --node-deep: #2488D0; }
+.gm-stop-node.tone-green { --node: #58B56E; --node-deep: #3F9455; }
+.gm-stop-copy { flex: 1; min-width: 0; padding: 10px 14px; border: 2px solid #ECE9E4; border-radius: 16px; background: #FFF; }
+.gm-quest .gm-step-title { font-size: 15px; font-weight: 800; }
+.gm-quest .gm-intro-foot { margin-top: 14px; padding: 10px 14px; border-top: none; border-radius: 14px; background: #FFF6EC; color: #B95500; font-size: 12px; line-height: 1.6; }
+
+/* 进度：一个条件一段，探明一段点亮一段 */
+.gm-progress { display: block; margin: 0 2px 14px; }
+.gm-progress-dots { display: flex; gap: 6px; }
+.gm-progress-dot { position: relative; flex: 1; width: auto; min-width: 0; height: 14px; border-radius: 999px; background: var(--tone-dot); transition: background-color .4s ease; }
+.gm-progress-dot.tone-pending, .gm-progress-dot.tone-untested { background: #ECE9E4; }
+.gm-progress-dot.tone-testing { animation: gm-pulse 1.4s ease-in-out infinite; }
+.gm-progress-shine { position: absolute; top: 3px; right: 8px; left: 8px; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, .45); }
+.gm-progress-dot.tone-pending .gm-progress-shine, .gm-progress-dot.tone-untested .gm-progress-shine { display: none; }
+.gm-progress-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.gm-progress-text { font-weight: 600; }
+.gm-cheer { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; padding: 9px 14px; border-radius: 14px; background: #EEF6F0; color: #2F5E3F; font-size: 13px; font-weight: 800; animation: gm-pop .4s cubic-bezier(.2, 1.6, .4, 1) both; }
+.gm-cheer-star { width: 14px; height: 14px; background: #4F9A68; clip-path: polygon(50% 0, 62% 36%, 100% 38%, 70% 60%, 80% 100%, 50% 76%, 20% 100%, 30% 60%, 0 38%, 38% 36%); }
+
+/* 题目卡：换题滑进来；往前挖的提示晃一下 */
+.gm-question { border: 2px solid #ECE9E4; box-shadow: 0 5px 0 #ECE9E4; }
+.gm-in-a { animation: gm-slide-a .32s cubic-bezier(.2, .9, .3, 1) both; }
+.gm-in-b { animation: gm-slide-b .32s cubic-bezier(.2, .9, .3, 1) both; }
+.gm-dig { border: 2px solid #FFD9B0; font-weight: 700; animation: gm-wiggle .6s ease both; }
+.gm-prompt { font-size: 17px; font-weight: 650; }
+
+/* 选项：厚卡片，按得下去 */
+.gm-option { align-items: center; margin-top: 12px; padding: 14px; border: 2px solid #ECE9E4; border-bottom-width: 5px; border-radius: 18px; background: #FFF; transition: transform 80ms ease-out, border-color 120ms ease, background-color 120ms ease; }
+.gm-option:active { opacity: 1; transform: translateY(2px); }
+.gm-option.is-selected { border-color: #FD7C02; background: #FFF6EE; animation: gm-pick .22s cubic-bezier(.2, 1.6, .4, 1); }
+.gm-option-letter { width: 28px; height: 28px; box-sizing: border-box; border: 2px solid #ECE9E4; border-radius: 9px; background: #FFF; color: #8A948D; font-weight: 800; line-height: 24px; }
+.gm-option.is-selected .gm-option-letter { border-color: #FD7C02; }
+.gm-option-label { font-weight: 600; }
+.gm-pause { margin-top: 10px; font-weight: 600; }
+
+/* 底部按钮：有厚度，按下去会陷 */
+.gm-footer .pref-save { border-radius: 18px; box-shadow: 0 5px 0 #D96400; font-size: 16px; font-weight: 800; letter-spacing: 1px; transition: transform 80ms ease-out, box-shadow 80ms ease-out; }
+.gm-footer .pref-save:active { opacity: 1; transform: translateY(3px); box-shadow: 0 2px 0 #D96400; }
+.gm-footer .pref-save[disabled] { background: #ECE9E4; box-shadow: 0 5px 0 #DDD9D2; color: #B1B8B3; opacity: 1; }
+.gm-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+.gm-dont-know { border: 2px solid #ECE9E4; border-radius: 18px; box-shadow: 0 5px 0 #ECE9E4; font-weight: 800; line-height: 44px; transition: transform 80ms ease-out, box-shadow 80ms ease-out; }
+.gm-dont-know:active { transform: translateY(3px); box-shadow: 0 2px 0 #ECE9E4; }
+.gm-again { color: #FD7C02; }
+
+/* 结果：三块数字依次弹出来 */
+.gm-summary-item { border: 2px solid var(--tone-line); box-shadow: 0 5px 0 var(--tone-line); background: var(--tone-bg); animation: gm-pop .42s cubic-bezier(.2, 1.5, .4, 1) both; }
+.gm-summary-item:nth-child(2) { animation-delay: .1s; }
+.gm-summary-item:nth-child(3) { animation-delay: .2s; }
+.gm-summary-num { font-size: 28px; font-weight: 900; }
+.gm-summary-label { color: var(--tone-ink); font-weight: 600; }
+
+@keyframes gm-deer-idle { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-3deg) translateY(-2px); } }
+@keyframes gm-deer-walk { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(4deg); } }
+@keyframes gm-pop { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: scale(1); } }
+@keyframes gm-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes gm-slide-a { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes gm-slide-b { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes gm-pick { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
+@keyframes gm-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-1.5deg); } 60% { transform: rotate(1.5deg); } }
+@keyframes gm-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+@media (prefers-reduced-motion: reduce) {
+  .gm-deer, .gm-bubble, .gm-stop, .gm-in-a, .gm-in-b, .gm-dig, .gm-option.is-selected, .gm-summary-item, .gm-cheer, .gm-progress-dot.tone-testing { animation: none; }
+}
+
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

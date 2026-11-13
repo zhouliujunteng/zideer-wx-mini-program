@@ -104,4 +104,36 @@
 .gm-path-step-label{min-width:0}
 .gm-list-foot{margin-top:8px;border-top:1px solid #F0F1EF}
 .gm-card-dot{width:6px;height:6px;border-radius:50%}
+.gm-guide{margin:2px 2px 14px}
+.gm-guide.is-result{margin-bottom:12px}
+.gm-deer{width:72px;height:81px}
+.gm-deer.is-walking{width:64px;height:72px;margin-bottom:6px}
+.gm-bubble{min-width:0;margin-bottom:18px;border:2px solid #ECE9E4;border-radius:18px}
+.gm-bubble::before{bottom:14px;left:-8px;width:12px;height:12px;box-sizing:border-box;border-bottom:2px solid #ECE9E4;border-left:2px solid #ECE9E4}
+.gm-stop.stop-2{margin-left:34px}
+.gm-stop + .gm-stop::before{top:-12px;left:27px;height:24px;border-left:4px dotted #E6E1DA}
+.gm-stop.stop-2::before{left:10px}
+.gm-stop.stop-3::before{left:44px}
+.gm-stop-node{width:58px;height:52px;border-radius:50%;box-shadow:0 6px 0 var(--node-deep)}
+.gm-stop-copy{min-width:0;border:2px solid #ECE9E4;border-radius:16px}
+.gm-quest .gm-intro-foot{margin-top:14px;border-top:none;border-radius:14px}
+.gm-progress{margin:0 2px 14px}
+.gm-progress-dot{width:auto;min-width:0;height:14px;border-radius:999px}
+.gm-progress-shine{top:3px;right:8px;left:8px;height:4px;border-radius:999px}
+.gm-progress-row{margin-top:8px}
+.gm-cheer{margin-top:10px;border-radius:14px}
+.gm-cheer-star{width:14px;height:14px}
+.gm-question{border:2px solid #ECE9E4;box-shadow:0 5px 0 #ECE9E4}
+.gm-dig{border:2px solid #FFD9B0}
+.gm-option{margin-top:12px;border:2px solid #ECE9E4;border-bottom-width:5px;border-radius:18px}
+.gm-option.is-selected{border-color:#FD7C02}
+.gm-option-letter{width:28px;height:28px;box-sizing:border-box;border:2px solid #ECE9E4;border-radius:9px}
+.gm-option.is-selected .gm-option-letter{border-color:#FD7C02}
+.gm-pause{margin-top:10px}
+.gm-footer .pref-save{border-radius:18px;box-shadow:0 5px 0 #D96400}
+.gm-footer .pref-save:active{box-shadow:0 2px 0 #D96400}
+.gm-footer .pref-save[disabled]{box-shadow:0 5px 0 #DDD9D2}
+.gm-dont-know{border:2px solid #ECE9E4;border-radius:18px;box-shadow:0 5px 0 #ECE9E4}
+.gm-dont-know:active{box-shadow:0 2px 0 #ECE9E4}
+.gm-summary-item{border:2px solid var(--tone-line);box-shadow:0 5px 0 var(--tone-line)}
 }

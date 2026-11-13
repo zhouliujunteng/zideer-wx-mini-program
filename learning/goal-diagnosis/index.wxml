@@ -1,6 +1,8 @@
 <wxs module="QF" src="../../utils/question-figure.wxs" />
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <!-- 按目标测评 + 目标导图（2026-10-10）：围绕学习目标出题，错了就沿知识图谱往前挖；导图：目标 → 大条件 → 知识点 → 前置知识点。
-     学生看不到题量。老师从学生详情进来（teacher）只读看导图。 -->
+     学生看不到题量。老师从学生详情进来（teacher）只读看导图。
+     2026-11-13：入门三关的第二关，界面照学习页闯关的样子（小鹿带路、条件一段段点亮、厚卡片选项）。小鹿图不写 mode：宽高按原图比例定死。 -->
 
 
 <view class="pref-page">
@@ -63,14 +65,26 @@
           </block>
         </view>
 
-        <view wx:elif="{{view === 'intro'}}" class="pref-card gm-intro">
-          <text class="gm-intro-title">{{goalChanged ? '目标改过了，按新目标测一轮' : '围绕你的目标，做一轮测评'}}</text>
-          <view class="gm-steps">
-            <view class="gm-step"><view class="gm-step-no">1</view><view class="gm-step-copy"><text class="gm-step-title">拆解目标</text><text class="gm-step-desc">看看实现这个目标，要具备哪几个条件</text></view></view>
-            <view class="gm-step"><view class="gm-step-no">2</view><view class="gm-step-copy"><text class="gm-step-title">边做边找卡点</text><text class="gm-step-desc">做错或不会的题，会往前检查它需要的基础</text></view></view>
-            <view class="gm-step"><view class="gm-step-no">3</view><view class="gm-step-copy"><text class="gm-step-title">生成目标导图</text><text class="gm-step-desc">哪些已经会了、卡在哪里、先补什么，一张图看清</text></view></view>
+        <view wx:elif="{{view === 'intro'}}" class="gm-quest">
+          <view class="gm-guide">
+            <image class="gm-deer" src="{{UA.src(ui, '/assets/quest/deer.svg')}}"></image>
+            <view class="gm-bubble"><text>{{goalChanged ? '目标改过啦，按新目标再探一次路！' : '我陪你把目标拆开，找找卡在哪里！'}}</text></view>
           </view>
-          <text class="gm-intro-foot">不用一次做完，随时可以先停下，下次接着测。</text>
+          <view class="gm-trail">
+            <view class="gm-stop stop-1">
+              <view class="gm-stop-node tone-orange"><text>1</text></view>
+              <view class="gm-stop-copy"><text class="gm-step-title">拆解目标</text><text class="gm-step-desc">看看实现这个目标，要具备哪几个条件</text></view>
+            </view>
+            <view class="gm-stop stop-2">
+              <view class="gm-stop-node tone-blue"><text>2</text></view>
+              <view class="gm-stop-copy"><text class="gm-step-title">边做边找卡点</text><text class="gm-step-desc">做错或不会的题，会往前检查它需要的基础</text></view>
+            </view>
+            <view class="gm-stop stop-3">
+              <view class="gm-stop-node tone-green"><text>3</text></view>
+              <view class="gm-stop-copy"><text class="gm-step-title">点亮目标导图</text><text class="gm-step-desc">哪些已经会了、卡在哪里、先补什么，一张图看清</text></view>
+            </view>
+          </view>
+          <text class="gm-intro-foot">不会的题直接点「不会」就好，不扣分。随时可以先停下，下次接着测。</text>
         </view>
 
         <view wx:elif="{{view === 'subject'}}" class="pref-card">
@@ -81,6 +95,7 @@
         </view>
 
         <view wx:elif="{{view === 'planning'}}" class="pref-card gm-planning">
+          <image class="gm-deer is-walking" src="{{UA.src(ui, '/assets/quest/deer.svg')}}"></image>
           <view class="bean-loader" aria-hidden="true"><view></view><view></view><view></view></view>
           <text class="gm-state-title">正在拆解你的目标</text>
           <text class="gm-state-copy">在知识图谱里找实现这个目标需要的条件，马上开始。</text>
@@ -95,15 +110,18 @@
 
         <block wx:elif="{{view === 'question' || view === 'preparing'}}">
           <view class="gm-progress">
-            <view class="gm-progress-dots">
-              <view wx:for="{{progress.dots}}" wx:key="id" class="gm-progress-dot tone-{{item.tone}}"></view>
+            <view class="gm-progress-dots" aria-hidden="true">
+              <view wx:for="{{progress.dots}}" wx:key="id" class="gm-progress-dot tone-{{item.tone}}"><view class="gm-progress-shine"></view></view>
             </view>
-            <text class="gm-progress-text">已探明 {{progress.settled}} / {{progress.total}} 个条件</text>
-            <text class="gm-progress-link" bindtap="toggleMapWhileTesting" aria-role="button">{{showMapWhileTesting ? '收起导图' : '看导图'}}</text>
+            <view class="gm-progress-row">
+              <text class="gm-progress-text">已探明 {{progress.settled}} / {{progress.total}} 个条件</text>
+              <text class="gm-progress-link" bindtap="toggleMapWhileTesting" aria-role="button">{{showMapWhileTesting ? '收起导图' : '看导图'}}</text>
+            </view>
+            <view wx:if="{{cheer}}" class="gm-cheer" role="status"><view class="gm-cheer-star" aria-hidden="true"></view><text>{{cheer}}</text></view>
           </view>
           <goal-map wx:if="{{showMapWhileTesting && diagnosis.map}}" nodes="{{diagnosis.map.nodes}}" height="{{360}}" />
 
-          <view wx:if="{{view === 'question'}}" class="pref-card gm-question">
+          <view wx:if="{{view === 'question'}}" class="pref-card gm-question gm-in-{{questionAnim}}">
             <view class="gm-path">
               <block wx:for="{{question.path}}" wx:key="index">
                 <text class="gm-path-item {{index === question.path.length - 1 ? 'is-last' : ''}}">{{item}}</text>
@@ -145,6 +163,10 @@
         </block>
 
         <block wx:elif="{{view === 'result'}}">
+          <view wx:if="{{!teacher}}" class="gm-guide is-result">
+            <image class="gm-deer" src="{{UA.src(ui, '/assets/quest/deer.svg')}}"></image>
+            <view class="gm-bubble"><text>{{resultCheer}}</text></view>
+          </view>
           <view class="gm-summary">
             <view class="gm-summary-item tone-mastered"><text class="gm-summary-num">{{summary.mastered}}</text><text class="gm-summary-label">已掌握的知识点</text></view>
             <view class="gm-summary-item tone-gap"><text class="gm-summary-num">{{summary.gaps}}</text><text class="gm-summary-label">卡点</text></view>
@@ -192,7 +214,7 @@
   <!-- 底部按钮 -->
   <view wx:if="{{!teacher && (view === 'intro' || view === 'subject' || view === 'question' || (view === 'result' && diagnosis))}}" class="pref-footer gm-footer">
     <block wx:if="{{view === 'intro'}}">
-      <button class="pref-save" bindtap="handleStart" loading="{{busy}}" disabled="{{busy}}">{{busy ? '正在准备' : '开始测评'}}</button>
+      <button class="pref-save" bindtap="handleStart" loading="{{busy}}" disabled="{{busy}}">{{busy ? '正在准备' : '出发，开始测评'}}</button>
     </block>
     <block wx:elif="{{view === 'subject'}}">
       <button class="pref-save" bindtap="confirmSubject" loading="{{busy}}" disabled="{{busy || !pickedSubject}}">开始测评</button>
@@ -207,7 +229,10 @@
       <button class="pref-save" bindtap="resumeTest" loading="{{busy}}" disabled="{{busy}}">继续测评</button>
     </block>
     <block wx:else>
-      <button class="gm-secondary" bindtap="handleRestart" disabled="{{busy}}">重新测一次</button>
+      <view class="gm-answer-row">
+        <button class="gm-dont-know gm-again" bindtap="handleRestart" disabled="{{busy}}">重新测</button>
+        <button class="pref-save gm-confirm" bindtap="backToQuest">回去接着闯关</button>
+      </view>
     </block>
   </view>
 

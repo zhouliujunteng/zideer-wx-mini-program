@@ -39,4 +39,5 @@
 .pref-save-error{margin-bottom:10px;border-radius:14px}
 .pref-save{width:100%;max-width:644px;min-height:48px;margin:0 auto;border-radius:999px}
 .pref-save::after{border:none}
+.pref-skip{margin-top:10px}
 }

@@ -1,4 +1,4 @@
-const { loadLearningGoal, saveLearningGoal, createLearningGoal } = require('../../services/identity')
+const { loadLearningGoal, saveLearningGoal, createLearningGoal, loadLearningPreference } = require('../../services/identity')
 const { getNavigationMetrics } = require('../../utils/navigation')
 const {
   normalizeGoalView,
@@ -13,6 +13,9 @@ const {
 // 学习宇宙 › 我的学习目标（2026-10-07 用户需求）：目标方向 + 具体目标 + 希望完成时间，学生自己填。
 // 诊断会议的 AI 老师定制课程前和学习偏好一起先看，每一页课生成时也会带上（课程服务 lib/course/learning-goal.ts）。
 // 第一次读到之前只画骨架；目标是学生自己编辑的，读不到也不挡着：用内置方向照样能填，顶部提示可重新读取。
+
+const PREFERENCE_FIRST_URL = '/learning/learning-preference/index?next=diagnosis'
+const PREFERENCE_ASKED_KEY = 'zhilu_preference_asked'
 
 const SKELETON_CARDS = [[104, 116, 92], [240], [180]]
 
@@ -194,9 +197,9 @@ Page({
         content: '学习页已经换成这个目标的闯关路径。现在围绕它测一轮？做错的地方会往前找原因，老师开诊断会议时会参考。',
         confirmText: '开始测评',
         cancelText: '去学习页',
-        success: (result) => {
-          if (result && result.confirm) wx.redirectTo({ url: '/learning/goal-diagnosis/index?autostart=1' })
-          else wx.switchTab({ url: '/pages/learning/index' })
+        success: async (result) => {
+          if (!(result && result.confirm)) return wx.switchTab({ url: '/pages/learning/index' })
+          wx.redirectTo({ url: (await this.preferenceMissing()) ? PREFERENCE_FIRST_URL : '/learning/goal-diagnosis/index?autostart=1' })
         }
       })
     } catch (error) {
@@ -206,7 +209,33 @@ Page({
     }
   },
 
-  offerGoalDiagnosis() {
+  // 学习偏好不再是闯关里的一关（2026-11-13）：所有目标通用、设一次就行。从没设过的，设好目标后顺手引导去设一次；
+  // 本机只引导一次（跳过了就不再拦），读不到按设过算，不挡着去测评。
+  async preferenceMissing() {
+    try {
+      if (wx.getStorageSync(PREFERENCE_ASKED_KEY)) return false
+      const view = await loadLearningPreference()
+      if (view && view.status === 'set') return false
+      wx.setStorageSync(PREFERENCE_ASKED_KEY, 1)
+      return true
+    } catch (error) {
+      return false
+    }
+  },
+
+  async offerGoalDiagnosis() {
+    if (await this.preferenceMissing()) {
+      return wx.showModal({
+        title: '目标已保存',
+        content: '下一步围绕这个目标测一轮。开始前先告诉老师你喜欢怎么学？学习偏好所有目标通用，只用设这一次。',
+        confirmText: '去设置',
+        cancelText: '直接测评',
+        success: (result) => {
+          if (result && result.confirm) wx.navigateTo({ url: PREFERENCE_FIRST_URL })
+          else if (result && result.cancel) wx.navigateTo({ url: '/learning/goal-diagnosis/index?autostart=1' })
+        }
+      })
+    }
     wx.showModal({
       title: '目标已保存',
       content: '现在围绕这个目标测一轮？做错的地方会往前找原因，最后生成一张目标导图。随时可以先停下。',

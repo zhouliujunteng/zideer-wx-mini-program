@@ -165,6 +165,15 @@
       <view class="goal-sheet-plus" aria-hidden="true"></view>
       <text class="goal-sheet-add-text">{{goalTracks.canAdd ? goalTracks.addLabel : '最多 8 个学习目标'}}</text>
     </view>
+    <!-- 学习偏好（2026-11-13）：不再是每个目标的一关，所有目标通用、设一次就行，入口单独放在这里 -->
+    <view class="goal-sheet-pref" bindtap="openLearningPreference" role="button" aria-label="我的学习偏好，所有目标通用">
+      <image class="goal-sheet-pref-icon" src="{{UA.src(ui, '/assets/quest/heart.svg')}}" mode="aspectFit"></image>
+      <view class="goal-sheet-text">
+        <text class="goal-sheet-pref-name">我的学习偏好</text>
+        <text class="goal-sheet-meta">所有目标通用，设一次就行，随时能改</text>
+      </view>
+      <view class="goal-sheet-pref-arrow" aria-hidden="true"></view>
+    </view>
   </view>
 </view>
 <!-- 新获得荣誉的庆祝（本机还没看过的，最显眼的一样 + 还有几样） -->

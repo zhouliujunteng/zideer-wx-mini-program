@@ -13,7 +13,7 @@
     <view class="pref-shell">
       <view class="pref-heading">
         <text class="pref-title">告诉老师你喜欢怎么学</text>
-        <text class="pref-subtitle">老师给你定制课程前，会先看你的学习宇宙和这里的学习偏好。随时可以回来修改。</text>
+        <text class="pref-subtitle">老师给你定制课程前，会先看你的学习宇宙和这里的学习偏好。所有学习目标通用，设一次就行，随时可以回来修改。</text>
       </view>
 
       <block wx:if="{{state === 'ready'}}">
@@ -66,7 +66,8 @@
 
   <view wx:if="{{state === 'ready'}}" class="pref-footer">
     <view wx:if="{{saveError}}" class="pref-save-error" role="alert">{{saveError}}</view>
-    <button class="pref-save" bindtap="save" loading="{{saving}}" disabled="{{saving || !dirty}}">{{saving ? '正在保存' : dirty ? '保存学习偏好' : hasSaved ? '已保存' : '选好后保存'}}</button>
+    <button class="pref-save" bindtap="save" loading="{{saving}}" disabled="{{saving || !dirty}}">{{saving ? '正在保存' : dirty ? (nextDiagnosis ? '保存，去围绕目标测评' : '保存学习偏好') : hasSaved ? '已保存' : '选好后保存'}}</button>
+    <view wx:if="{{nextDiagnosis}}" class="pref-skip" bindtap="skipToDiagnosis" aria-role="button">先不设，直接去测评</view>
   </view>
 </view>
 <dev-reset-fab />

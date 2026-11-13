@@ -24,14 +24,15 @@ const GLYPHS = {
   badge: '/assets/quest/badge.svg',
   goal: '/assets/quest/flag.svg',
   preference: '/assets/quest/heart.svg',
+  diagnosis: '/assets/quest/search.svg',
   meeting: '/assets/quest/calendar.svg',
   badgeLocked: '/assets/quest/badge-locked.svg'
 }
 const STEP_STATES = ['done', 'current', 'open', 'locked']
 const STAGE_TONES = ['orange', 'blue', 'violet', 'teal', 'rose']
 const CHEST_STATES = ['locked', 'ready', 'opened']
-const ONBOARDING_KEYS = ['goal', 'preference', 'meeting']
-const ONBOARDING_LABELS = { goal: '设置学习目标', preference: '设置学习偏好', meeting: '预约老师诊断会议' }
+const ONBOARDING_KEYS = ['goal', 'preference', 'diagnosis', 'meeting']
+const ONBOARDING_LABELS = { goal: '设置学习目标', preference: '设置学习偏好', diagnosis: '围绕目标测评', meeting: '预约老师诊断会议' }
 
 const stepId = (stageId, key, part) => `${stageId}-${key}${part ? `-${part}` : ''}`
 const text = (value) => String(value === undefined || value === null ? '' : value)
@@ -49,7 +50,8 @@ function normalizeStep(step) {
   }
 }
 
-// 入门三关（2026-11-11 用户规则）：设置学习目标 → 设置学习偏好 → 预约老师诊断会议。
+// 入门三关（2026-11-13 用户规则）：设置学习目标 → 围绕目标测评（按目标测评）→ 预约老师诊断会议。
+// 学习偏好不再是一关（所有目标通用、设一次就行，入口在学习页目标面板）；旧版课程服务还会回 preference 那一关，照样认。
 // 2026-11-13 起前两关做完第三关就开放：还没约好时 book（点了联系老师预约），约好后带 inviteToken（点了进诊断会议）。
 function normalizeOnboarding(list) {
   if (!Array.isArray(list)) return null
@@ -259,7 +261,7 @@ function questPathView(path) {
 }
 
 /**
- * 入门三关画成路径最上面的一个部分（「开始之前」）：设置学习目标 → 设置学习偏好 → 预约老师诊断会议。
+ * 入门三关画成路径最上面的一个部分（「开始之前」）：设置学习目标 → 围绕目标测评 → 预约老师诊断会议。
  * 节点 kind 'onboard'，step 是入门关的 key；第三关开放时带 inviteToken（进诊断会议）。
  */
 function onboardingPart(steps) {
@@ -377,6 +379,7 @@ function onboardPopover(node, base) {
     return { ...base, action: '进入诊断会议' }
   }
   if (node.state === 'locked') return { ...base, note: '先完成上一关', detail: '' }
+  if (node.step === 'diagnosis') return { ...base, action: node.state === 'done' ? '看目标导图' : /接着/.test(node.detail) ? '接着测' : '开始测评' }
   if (node.state === 'done') return { ...base, action: node.step === 'goal' ? '修改目标' : '修改偏好' }
   return { ...base, action: '去设置' }
 }
@@ -403,6 +406,8 @@ function nodeTarget(node) {
     if (node.state === 'locked') return { toast: node.step === 'meeting' ? (node.detail || '等推广老师帮你约好诊断会议') : '先完成上一关' }
     if (node.step === 'goal') return { url: '/learning/learning-goal/index?from=quest' }
     if (node.step === 'preference') return { url: '/learning/learning-preference/index' }
+    // 围绕目标测评：没测过的进去直接开始（目标页刚保存完也是这样进），测过的看导图
+    if (node.step === 'diagnosis') return { url: `/learning/goal-diagnosis/index${node.state === 'done' ? '' : '?autostart=1'}` }
     if (node.state === 'done') return { toast: '诊断会议已经开过了' }
     if (node.inviteToken) return { url: `/learning/agent-invite/index?token=${encodeURIComponent(node.inviteToken)}` }
     // 还没约好：联系老师预约（企业微信客服，与原来顶栏的「联系老师」同一个入口）

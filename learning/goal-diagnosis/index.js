@@ -1,12 +1,16 @@
 const { loadGoalDiagnosis, goalDiagnosis, loadTeacherGoalDiagnosis } = require('../../services/identity')
 const { getNavigationMetrics } = require('../../utils/navigation')
 const { progressView, summaryView, stateText } = require('../../utils/goal-map')
+const { attachUiAssets } = require('../../services/ui-assets')
 
 // 按目标测评 + 目标导图（2026-10-10 用户规则）。
 // 学生先定学习目标 → 课程服务把目标拆成几个大条件、落到真实知识点 → 边测边往下挖：做错或点「不会」就是卡点，
 // 沿知识图谱把它的前置知识点拉进来接着测，直到挖到根上。学生看不到题量，只看到导图一点点长出来；
 // 一轮最多 30 道（课程服务定），随时能「先到这里」，下次接着测。
 // 老师从学生详情进来带 studentProfileId：只读看导图，不出题。
+//
+// 2026-11-13 起它是每个学习目标入门三关的第二关（设目标 → 围绕目标测评 → 预约诊断会议），界面照学习页闯关的样子做：
+// 小鹿带路、条件一段段点亮、选项是按得下去的厚卡片；不告诉学生对错（这是摸底，不是练习），只在往前挖和探明条件时说一句。
 //
 // 页面状态 view：loading（骨架）/ failed（第一次读取失败）/ no_goal / intro（开始前）/ subject（选学科）/
 // planning（拆目标中）/ question（答题）/ preparing（下一题准备中）/ result（导图 + 结论）/ plan_failed
@@ -38,6 +42,11 @@ Page({
     selected: '',
     submitting: false,
     progress: { total: 0, settled: 0, dots: [] },
+    // 换一道题就换一次入场动效（a / b 两个同样的动画名轮着用，动画才会重播）
+    questionAnim: 'a',
+    // 刚探明了一个条件：进度条上方冒一句鼓励，几秒后收起
+    cheer: '',
+    resultCheer: '',
     digHint: '',
     summary: null,
     showMapWhileTesting: false,
@@ -46,6 +55,7 @@ Page({
 
   onLoad(options = {}) {
     this.setData(getNavigationMetrics())
+    attachUiAssets(this)
     this._teacherStudent = options.studentProfileId ? String(options.studentProfileId) : ''
     this._autostart = options.autostart === '1'
     // 从「目标」tab 的历史目标点进来：直接看那一次
@@ -70,6 +80,7 @@ Page({
 
   onUnload() {
     this.stopPoll()
+    if (this._cheerTimer) clearTimeout(this._cheerTimer)
   },
 
   onResize() {
@@ -148,12 +159,16 @@ Page({
       this.stopPoll()
       const question = diagnosis.question
       const deeper = previous && question.depth > (previous.depth || 0)
+      const progress = progressView(diagnosis.map)
+      // 同一轮里探明的条件变多了：冒一句鼓励（刚进页面、接着测时不冒）
+      if (previous && previous.token !== question.token && progress.settled > this.data.progress.settled) this.showCheer(progress)
       return this.setData({
         view: 'question',
         question,
+        questionAnim: previous && previous.token === question.token ? this.data.questionAnim : this.data.questionAnim === 'a' ? 'b' : 'a',
         figureDimensions: {},
         selected: '',
-        progress: progressView(diagnosis.map),
+        progress,
         digHint: deeper ? '这里有点卡，我们往前找找原因' : question.depth > 0 ? '正在往前检查基础' : ''
       })
     }
@@ -165,13 +180,35 @@ Page({
     this.showResult(diagnosis)
   },
 
+  showCheer(progress) {
+    const left = progress.total - progress.settled
+    this.setData({ cheer: left > 0 ? `又探明 1 个条件，还剩 ${left} 个` : '所有条件都探明了' })
+    if (this._cheerTimer) clearTimeout(this._cheerTimer)
+    this._cheerTimer = setTimeout(() => {
+      this._cheerTimer = null
+      this.setData({ cheer: '' })
+    }, 2600)
+  },
+
   showResult(diagnosis) {
+    const summary = summaryView(diagnosis)
+    const roots = (summary && summary.roots && summary.roots.length) || 0
+    // 小鹿在结果页说的一句：按结论说，不夸大
+    const resultCheer = diagnosis.status === 'paused'
+      ? '先歇一会儿，下次从这里接着探。'
+      : roots
+        ? `挖到 ${roots} 个根源卡点，从这里补起最省力。`
+        : summary && summary.gaps
+          ? '卡点都标出来了，照着顺序补就行。'
+          : '这一轮没发现卡点，底子很稳！'
     this.setData({
       view: 'result',
       diagnosis,
       stateText: stateText(diagnosis),
       question: null,
-      summary: summaryView(diagnosis),
+      cheer: '',
+      resultCheer,
+      summary,
       showMapWhileTesting: false
     })
   },
@@ -344,6 +381,11 @@ Page({
     if (this.data.teacher) return wx.navigateTo({ url: `/teacher/course-acceptance/index?stageId=${encodeURIComponent(stageId)}` })
     if (state !== 'ready') return
     wx.navigateTo({ url: `/learning/agent-course/index?stageId=${encodeURIComponent(stageId)}` })
+  },
+
+  // 测完回学习页接着闯关（下一关：预约老师诊断会议）
+  backToQuest() {
+    wx.switchTab({ url: '/pages/learning/index' })
   },
 
   handleBack() {

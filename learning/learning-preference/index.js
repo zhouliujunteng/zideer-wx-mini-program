@@ -35,11 +35,13 @@ Page({
     saving: false,
     saveError: '',
     // 读到的是已经保存过的内容：没改动时按钮显示「已保存」
-    hasSaved: false
+    hasSaved: false,
+    // 刚设好学习目标、还从没设过偏好时从目标页带过来（next=diagnosis）：保存后接着去围绕目标测评
+    nextDiagnosis: false
   },
 
-  onLoad() {
-    this.setData(getNavigationMetrics())
+  onLoad(options) {
+    this.setData({ ...getNavigationMetrics(), nextDiagnosis: !!(options && options.next === 'diagnosis') })
     this.load()
   },
 
@@ -128,12 +130,17 @@ Page({
       const view = normalizePreferenceView(await saveLearningPreference({ choices: this._choices, note: this.data.note }))
       this.applySaved(view)
       this.setData({ readFailed: false, readError: '' })
+      if (this.data.nextDiagnosis) return this.skipToDiagnosis()
       wx.showToast({ title: '已保存', icon: 'success' })
     } catch (error) {
       this.setData({ saveError: (error && error.message) || '学习偏好没有保存成功，请稍后重试。' })
     } finally {
       this.setData({ saving: false })
     }
+  },
+
+  skipToDiagnosis() {
+    wx.redirectTo({ url: '/learning/goal-diagnosis/index?autostart=1' })
   },
 
   handleBack() {

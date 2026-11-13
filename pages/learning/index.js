@@ -315,6 +315,12 @@ Page({
     wx.navigateTo({ url: '/learning/learning-goal/index?mode=new' })
   },
 
+  // 学习偏好：所有目标通用的单独入口（目标面板最下面）
+  openLearningPreference() {
+    this.setData({ goalSheet: false })
+    wx.navigateTo({ url: '/learning/learning-preference/index' })
+  },
+
   retryQuest() {
     this.setData({ questFailed: false })
     return this.loadQuest()

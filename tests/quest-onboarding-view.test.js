@@ -8,7 +8,7 @@ const { goalSpecificity } = require('../utils/learning-goal')
 
 const ONBOARDING = [
   { key: 'goal', state: 'done', label: '设置学习目标', detail: '期末数学 90 分' },
-  { key: 'preference', state: 'done', label: '设置学习偏好', detail: '已设置' },
+  { key: 'diagnosis', state: 'done', label: '围绕目标测评', detail: '目标导图已生成' },
   { key: 'meeting', state: 'current', label: '进入诊断会议', detail: '11-12 19:00 · 王老师', inviteToken: 'abc_123' }
 ]
 
@@ -16,7 +16,7 @@ test('入门三关画成路径最上面的「准备开始」部分，当前关�
   const view = questPathView(normalizeQuestPath({ onboarding: ONBOARDING, stages: [], current: { stageId: 'onboarding', step: 'meeting' }, stats: { lessons: 0, done: 0 } }))
   assert.equal(view.parts[0].id, 'part-onboarding')
   assert.equal(view.parts[0].banner, '入门关卡')
-  assert.deepEqual(view.parts[0].nodes.map((node) => node.step), ['goal', 'preference', 'meeting'])
+  assert.deepEqual(view.parts[0].nodes.map((node) => node.step), ['goal', 'diagnosis', 'meeting'])
   assert.equal(view.currentId, 'onboarding-meeting')
   assert.equal(view.currentPartId, 'part-onboarding')
   const meeting = findNode(view, 'onboarding-meeting')
@@ -25,6 +25,28 @@ test('入门三关画成路径最上面的「准备开始」部分，当前关�
   assert.equal(nodeTarget(meeting).url, '/learning/agent-invite/index?token=abc_123')
   assert.equal(nodeTarget(findNode(view, 'onboarding-goal')).url, '/learning/learning-goal/index?from=quest')
   assert.equal(nodePopover(findNode(view, 'onboarding-goal')).action, '修改目标')
+  // 第二关（2026-11-13）：围绕目标测评，测过的看导图
+  const done = findNode(view, 'onboarding-diagnosis')
+  assert.equal(done.glyph, '/assets/quest/search.svg')
+  assert.equal(nodePopover(done).action, '看目标导图')
+  assert.equal(nodeTarget(done).url, '/learning/goal-diagnosis/index')
+})
+
+test('第二关是围绕目标测评：没测过的进去直接开始，测到一半的接着测；旧版课程服务回的学习偏好关照样认', () => {
+  const path = (second) => questPathView(normalizeQuestPath({ onboarding: [ONBOARDING[0], second, { key: 'meeting', state: 'locked', label: '预约老师诊断会议' }], stages: [], current: { stageId: 'onboarding', step: second.key } }))
+  const fresh = findNode(path({ key: 'diagnosis', state: 'current', label: '围绕目标测评', detail: '把目标拆成几个条件，找出卡在哪里' }), 'onboarding-diagnosis')
+  assert.equal(nodeTarget(fresh).url, '/learning/goal-diagnosis/index?autostart=1')
+  assert.equal(nodePopover(fresh).action, '开始测评')
+  const half = findNode(path({ key: 'diagnosis', state: 'current', label: '围绕目标测评', detail: '测到一半，接着测' }), 'onboarding-diagnosis')
+  assert.equal(nodePopover(half).action, '接着测')
+  const locked = findNode(path({ key: 'diagnosis', state: 'locked', label: '围绕目标测评' }), 'onboarding-diagnosis')
+  assert.equal(nodeTarget(locked).toast, '先完成上一关')
+  const legacy = findNode(path({ key: 'preference', state: 'current', label: '设置学习偏好' }), 'onboarding-preference')
+  assert.equal(nodeTarget(legacy).url, '/learning/learning-preference/index')
+  // 认识新关卡的小程序取路径时带 onboarding=2；学习偏好的入口放在学习页目标面板
+  const read = (file) => require('node:fs').readFileSync(require.resolve(file), 'utf8')
+  assert.match(read('../services/identity.js'), /\/api\/learn\/quest-path\?onboarding=2/)
+  assert.match(read('../pages/learning/index.wxml'), /bindtap="openLearningPreference"/)
 })
 
 test('第三关锁着：没有按钮、提示等推广老师约好；没有入门关时照旧', () => {
@@ -105,7 +127,7 @@ test('goal tracks: each goal gets its own flag colour, the current one is marked
 test('the third onboarding step books a teacher until the meeting is arranged', () => {
   const steps = (meeting) => ({ onboarding: [
     { key: 'goal', state: 'done', label: '设置学习目标' },
-    { key: 'preference', state: 'done', label: '设置学习偏好' },
+    { key: 'diagnosis', state: 'done', label: '围绕目标测评' },
     meeting
   ], stages: [], current: { stageId: 'onboarding', step: 'meeting' } })
   const booking = questPathView(normalizeQuestPath(steps({ key: 'meeting', state: 'open', label: '预约老师诊断会议', detail: '联系老师约个时间', book: true })))
