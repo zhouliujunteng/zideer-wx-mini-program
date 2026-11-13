@@ -7,6 +7,10 @@
   <view class="learning-topbar">
     <view class="learning-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
       <view class="lp-stats">
+        <!-- 学习目标（2026-11-13 用户要求，照多邻国左上角的课程旗）：一个目标一条闯关路径，点开切换或新增目标 -->
+        <view wx:if="{{goalTracks && access === 'ready'}}" class="lp-stat lp-goal tone-{{goalTracks.tone}} {{goalSheet ? 'is-open' : ''}}" catchtap="toggleGoalSheet" role="button" aria-label="学习目标：{{goalTracks.active ? goalTracks.active.title : '还没有定'}}，点开切换或新增">
+          <view class="lp-goal-flag" aria-hidden="true"></view>
+        </view>
         <view class="lp-stat" bindtap="openAllCards" role="button" aria-label="成就卡，可以抽 {{cards.drawsAvailable || 0}} 次">
           <view class="lp-stat-card" aria-hidden="true"></view>
           <text class="lp-stat-num {{cards.drawsAvailable ? '' : 'is-zero'}}">{{cardsLoaded && access === 'ready' ? cards.drawsAvailable : 0}}</text>
@@ -144,6 +148,26 @@
     <view class="chest-button" bindtap="closeChestReveal" role="button">知道了</view>
   </block>
   <text wx:else class="chest-copy chest-opening">正在打开…</text>
+</view>
+<!-- 学习目标下拉面板（多邻国切换课程）：点目标切过去，最下面新增目标 -->
+<view wx:if="{{goalSheet && goalTracks}}" class="goal-sheet-mask" style="top: {{contentTop}}px;" bindtap="closeGoalSheet" catchtouchmove="noop">
+  <view class="goal-sheet" catchtap="noop">
+    <text class="goal-sheet-title">我的学习目标</text>
+    <text class="goal-sheet-copy">每个目标有自己的一条闯关路径，切过去接着学。</text>
+    <view wx:for="{{goalTracks.items}}" wx:key="trackId" class="goal-sheet-row tone-{{item.tone}} {{item.active ? 'is-active' : ''}}" data-id="{{item.trackId}}" bindtap="pickGoal" role="button" aria-label="{{item.title}}，{{item.meta}}{{item.active ? '，正在学' : ''}}">
+      <view class="lp-goal-flag" aria-hidden="true"></view>
+      <view class="goal-sheet-text">
+        <text class="goal-sheet-name">{{item.title}}</text>
+        <text class="goal-sheet-meta">{{item.active ? '正在学 · ' : ''}}{{item.meta}}</text>
+      </view>
+      <view wx:if="{{goalSwitching === item.trackId}}" class="goal-sheet-spin" aria-hidden="true"></view>
+      <view wx:elif="{{item.active}}" class="goal-sheet-check" aria-hidden="true"></view>
+    </view>
+    <view class="goal-sheet-add {{goalTracks.canAdd ? '' : 'is-full'}}" bindtap="addGoal" role="button" aria-label="{{goalTracks.addLabel}}">
+      <view class="goal-sheet-plus" aria-hidden="true"></view>
+      <text class="goal-sheet-add-text">{{goalTracks.canAdd ? goalTracks.addLabel : '最多 8 个学习目标'}}</text>
+    </view>
+  </view>
 </view>
 <!-- 新获得荣誉的庆祝（本机还没看过的，最显眼的一样 + 还有几样） -->
 <view wx:if="{{honorCele}}" class="honor-cele" catchtouchmove="noop">

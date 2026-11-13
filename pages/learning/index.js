@@ -1,9 +1,9 @@
 const { getLiveLearningModel, getLearningSkeletonModel } = require('../../services/live-tab-service')
 const { takeAgentCourseFocus } = require('../../utils/agent-course-focus')
-const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest } = require('../../services/identity')
+const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest, switchLearningGoal } = require('../../services/identity')
 // 我的荣誉（2026-11-11 晚）：顶栏总数 + 新获得的庆祝弹层（本机记住看过哪些，utils/honors-view.js）
 const { normalizeHonors, honorKeys, freshHonors, markSeen, readSeen } = require('../../utils/honors-view')
-const { normalizeQuestPath, questPathView, nodeTarget, nodePopover, findNode, questTransition } = require('../../utils/quest-path-view')
+const { normalizeQuestPath, questPathView, nodeTarget, nodePopover, findNode, questTransition, goalTracksView } = require('../../utils/quest-path-view')
 // 上次看到的当前关（回到学习页时做过关动效用，多邻国式）
 const QUEST_CURRENT_KEY = 'zhilu_quest_current'
 // 宝箱回包 → 弹层数据。开出金币（kind coins）显示金币和今天宝箱金币进度（每天最多 coinCap）；开出抽卡次数照旧。
@@ -92,6 +92,10 @@ Page({
     questFailed: false,
     // 点关卡弹出的说明卡、过关动效（刚过的关 / 新解锁的关）、开宝箱浮层、当前关滚出屏幕时的「回到当前关」
     questPopover: null,
+    // 学习目标（2026-11-13）：左上角入口与下拉面板；null = 旧版课程服务，不显示入口
+    goalTracks: null,
+    goalSheet: false,
+    goalSwitching: 0,
     questFx: { doneId: '', unlockId: '' },
     chestReveal: null,
     questCurrentVisible: true,
@@ -217,13 +221,20 @@ Page({
       if (version !== this._questVersion) return
       this.applyHonors(raw && raw.honors)
       const quest = questPathView(path)
+      // 每个目标各记各的「上次当前关」：切换目标不播过关动效
+      const currentKey = path.trackId ? `${QUEST_CURRENT_KEY}_${path.trackId}` : QUEST_CURRENT_KEY
+      const switched = this._questTrackId !== undefined && this._questTrackId !== path.trackId
+      this._questTrackId = path.trackId
       let previous = ''
-      try { previous = wx.getStorageSync(QUEST_CURRENT_KEY) || '' } catch (error) { previous = '' }
-      const fx = questTransition(previous, quest)
-      try { wx.setStorageSync(QUEST_CURRENT_KEY, quest.currentId || '') } catch (error) { /* 只影响动效 */ }
-      const keep = this.data.activePart && quest.parts.find((part) => part.id === this.data.activePart.id)
+      try { previous = wx.getStorageSync(currentKey) || '' } catch (error) { previous = '' }
+      const fx = switched ? null : questTransition(previous, quest)
+      try { wx.setStorageSync(currentKey, quest.currentId || '') } catch (error) { /* 只影响动效 */ }
+      const keep = !switched && this.data.activePart && quest.parts.find((part) => part.id === this.data.activePart.id)
       const activePart = partBanner(keep || quest.parts.find((part) => part.id === quest.currentPartId) || quest.parts[0])
-      this.setData({ quest, questLoaded: true, questFailed: false, questPopover: null, activePart }, () => this.watchQuestCurrent())
+      this.setData({ quest, questLoaded: true, questFailed: false, questPopover: null, activePart, goalTracks: goalTracksView(path.tracks) }, () => {
+        this.watchQuestCurrent()
+        if (switched) this.jumpToQuestCurrent()
+      })
       if (fx) this.playQuestTransition(fx)
     } catch (error) {
       if (version === this._questVersion && !this.data.questLoaded) this.setData({ questFailed: true })
@@ -263,6 +274,45 @@ Page({
 
   openHonors() {
     wx.navigateTo({ url: '/learning/honors/index' })
+  },
+
+  // 学习目标下拉面板（2026-11-13，照多邻国切换课程）
+  toggleGoalSheet() {
+    if (!this.data.goalTracks) return
+    this.setData({ goalSheet: !this.data.goalSheet, questPopover: null })
+  },
+
+  closeGoalSheet() {
+    if (this.data.goalSwitching) return
+    this.setData({ goalSheet: false })
+  },
+
+  async pickGoal(event) {
+    const trackId = Number(event.currentTarget.dataset.id) || 0
+    const tracks = this.data.goalTracks
+    if (!trackId || !tracks || this.data.goalSwitching) return
+    if (tracks.active && tracks.active.trackId === trackId) return this.setData({ goalSheet: false })
+    this.setData({ goalSwitching: trackId })
+    try {
+      await switchLearningGoal(trackId)
+      // 换成另一条路径：先画骨架，不把上一个目标的路径当成这个目标的显示
+      this.setData({ goalSheet: false, goalSwitching: 0, questLoaded: false, questFailed: false, activePart: null })
+      await this.loadQuest()
+    } catch (error) {
+      this.setData({ goalSwitching: 0 })
+      wx.showToast({ title: (error && error.message) || '没有切换成功，请稍后重试。', icon: 'none' })
+    }
+  },
+
+  addGoal() {
+    const tracks = this.data.goalTracks
+    if (!tracks) return
+    if (!tracks.canAdd) {
+      wx.showToast({ title: '最多 8 个学习目标，先把已有的目标学完吧。', icon: 'none' })
+      return
+    }
+    this.setData({ goalSheet: false })
+    wx.navigateTo({ url: '/learning/learning-goal/index?mode=new' })
   },
 
   retryQuest() {

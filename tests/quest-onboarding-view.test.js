@@ -77,3 +77,26 @@ test('目标写具体：三条打勾，太笼统的标 vague', () => {
   assert.equal(goalSpecificity('英语阅读正确率到八成', '2026-12-30').checks.find((item) => item.id === 'when').ok, true)
   assert.equal(goalSpecificity('', '').vague, false)
 })
+
+// 一个学生好几个学习目标（2026-11-13）：学习页左上角的目标入口与下拉面板
+test('goal tracks: each goal gets its own flag colour, the current one is marked, at most 8', () => {
+  const { goalTracksView } = require('../utils/quest-path-view')
+  const path = normalizeQuestPath({
+    trackId: 5,
+    tracks: [
+      { trackId: 3, title: '期末数学 90 分', active: false, lessons: 4 },
+      { trackId: 5, title: '英语完形填空不丢分', active: true, lessons: 0 },
+      { trackId: 0, title: '坏数据' }
+    ]
+  })
+  const view = goalTracksView(path.tracks)
+  assert.deepEqual(view.items.map((item) => [item.trackId, item.tone, item.meta]), [[3, 'orange', '4 节定制课'], [5, 'blue', '还没有定制课程']])
+  assert.equal(view.active.trackId, 5)
+  assert.equal(view.tone, 'blue')
+  assert.equal(view.canAdd, true)
+  const full = goalTracksView(Array.from({ length: 8 }, (_, i) => ({ trackId: i + 1, title: `目标${i}`, active: i === 0, lessons: 0 })))
+  assert.equal(full.canAdd, false)
+  // 旧版课程服务没有目标列表：不显示入口
+  assert.equal(goalTracksView(normalizeQuestPath({}).tracks), null)
+  assert.equal(goalTracksView([]).addLabel, '定一个学习目标')
+})

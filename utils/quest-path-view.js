@@ -95,7 +95,40 @@ function normalizeQuestPath(raw) {
     current: value.current && value.current.stageId
       ? { stageId: text(value.current.stageId), step: text(value.current.step), part: Number(value.current.part) || 0 }
       : null,
-    stats: { lessons: Number(value.stats && value.stats.lessons) || 0, done: Number(value.stats && value.stats.done) || 0 }
+    stats: { lessons: Number(value.stats && value.stats.lessons) || 0, done: Number(value.stats && value.stats.done) || 0 },
+    // 一个学生好几个学习目标（课程服务 2026-11-13）：学习页左上角切换。旧版课程服务没有这一项（null，不显示入口）
+    trackId: Number(value.trackId) || 0,
+    tracks: Array.isArray(value.tracks)
+      ? value.tracks
+          .map((item) => ({ trackId: Number(item && item.trackId) || 0, title: text(item && item.title) || '学习目标', active: !!(item && item.active), lessons: Number(item && item.lessons) || 0 }))
+          .filter((item) => item.trackId)
+      : null
+  }
+}
+
+/** 最多几个学习目标（与课程服务 MAX_LEARNING_GOALS 一致）。 */
+const MAX_GOAL_TRACKS = 8
+
+/**
+ * 左上角目标入口和目标列表（照多邻国切换课程的下拉面板）：每个目标一种颜色的小旗，当前在学的打勾。
+ * tracks 为 null（旧版课程服务）时返回 null，页面不显示入口。
+ */
+function goalTracksView(tracks) {
+  if (!Array.isArray(tracks)) return null
+  const items = tracks.map((item, index) => ({
+    trackId: item.trackId,
+    title: item.title,
+    active: item.active,
+    tone: STAGE_TONES[index % STAGE_TONES.length],
+    meta: item.lessons ? `${item.lessons} 节定制课` : '还没有定制课程'
+  }))
+  const active = items.find((item) => item.active) || null
+  return {
+    items,
+    active,
+    tone: active ? active.tone : 'orange',
+    canAdd: items.length < MAX_GOAL_TRACKS,
+    addLabel: items.length ? '新增学习目标' : '定一个学习目标'
   }
 }
 
@@ -385,4 +418,4 @@ function nodeTarget(node) {
   return { url: `/learning/agent-course/index?stageId=${stage}` }
 }
 
-module.exports = { normalizeQuestPath, questPathView, nodeTarget, nodePopover, findNode, questTransition }
+module.exports = { normalizeQuestPath, questPathView, nodeTarget, nodePopover, findNode, questTransition, goalTracksView, MAX_GOAL_TRACKS }

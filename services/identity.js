@@ -634,6 +634,9 @@ function requestAgentCourses(path, token, options = {}) {
         PASSWORD_WHITESPACE: '密码里不能有空格。',
         REQUEST_KEY_INVALID: '请重新打开本页后再试。',
         CHILD_SERVICE_UNAVAILABLE: '孩子账号服务暂时不可用，请稍后重试。',
+        // 一个学生好几个学习目标（课程服务 2026-11-13）
+        GOAL_LIMIT: '最多定 8 个学习目标，先把已有的目标学完吧。',
+        GOAL_NOT_FOUND: '没有找到这个目标，请刷新后重试。',
         // 按目标测评（课程服务 lib/goal-diagnosis）
         GOAL_REQUIRED: '先定一个学习目标，再围绕它测评。',
         SUBJECT_REQUIRED: '这个目标是哪一门学科的？选一门再开始。',
@@ -1363,6 +1366,29 @@ async function saveLearningGoal({ direction, goal, deadline } = {}) {
     method: 'POST',
     data: { direction: String(direction || ''), goal: String(goal || ''), deadline: String(deadline || '') },
     fallbackMessage: '学习目标没有保存成功，请稍后重试。'
+  })
+}
+
+/**
+ * 新增一个学习目标并切到它（课程服务 2026-11-13：一个学生可以有好几个目标，每个目标一条闯关路径）。
+ * 回包同 loadLearningGoal（当前目标 + goals 目标列表）。
+ */
+async function createLearningGoal({ direction, goal, deadline } = {}) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/learning-goal', token, {
+    method: 'POST',
+    data: { operation: 'create', direction: String(direction || ''), goal: String(goal || ''), deadline: String(deadline || '') },
+    fallbackMessage: '新目标没有建成功，请稍后重试。'
+  })
+}
+
+/** 切到自己的另一个学习目标（学习页左上角）。 */
+async function switchLearningGoal(trackId) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/learning-goal', token, {
+    method: 'POST',
+    data: { operation: 'switch', trackId: Number(trackId) || 0 },
+    fallbackMessage: '没有切换成功，请稍后重试。'
   })
 }
 
@@ -4832,6 +4858,8 @@ module.exports = {
   createWebChild,
   setWebChildPassword,
   saveLearningGoal,
+  createLearningGoal,
+  switchLearningGoal,
   loadTeacherLearningPreference,
   loadCreditProducts,
   loadCreditProduct,

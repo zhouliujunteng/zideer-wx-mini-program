@@ -5,19 +5,20 @@
   <view class="pref-topbar">
     <view class="pref-topbar-inner" style="padding-top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
       <view class="pref-back" bindtap="handleBack" aria-role="button" aria-label="返回上一页"><view class="pref-back-icon"></view></view>
-      <text class="pref-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学习目标</text>
+      <text class="pref-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">{{creating ? '新增学习目标' : '学习目标'}}</text>
     </view>
   </view>
 
   <scroll-view class="pref-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
     <view class="pref-shell">
       <view class="pref-heading">
-        <text class="pref-title">定一个学习目标</text>
-        <text class="pref-subtitle">老师给你定制课程前，会先看你的学习目标和学习偏好。目标越具体，课程越对路。</text>
+        <text class="pref-title">{{creating ? '再定一个学习目标' : '定一个学习目标'}}</text>
+        <text wx:if="{{creating}}" class="pref-subtitle">新目标有自己的一条闯关路径：设好目标和偏好，约老师开诊断会议，就会有这个目标的系列课。之前的目标在学习页左上角随时能切回去。</text>
+        <text wx:else class="pref-subtitle">老师给你定制课程前，会先看你的学习目标和学习偏好。目标越具体，课程越对路。</text>
       </view>
 
       <block wx:if="{{state === 'ready'}}">
-        <view wx:if="{{readFailed}}" class="pref-read-notice" role="alert">
+        <view wx:if="{{readFailed && !creating}}" class="pref-read-notice" role="alert">
           <text class="pref-read-notice-copy">之前定的目标暂时没读到，可以先写好再保存，保存后以这次为准。</text>
           <view class="pref-read-retry" bindtap="retryRead" aria-role="button" aria-label="重新读取">重新读取</view>
         </view>
@@ -88,7 +89,7 @@
 
   <view wx:if="{{state === 'ready'}}" class="pref-footer">
     <view wx:if="{{saveError}}" class="pref-save-error" role="alert">{{saveError}}</view>
-    <button class="pref-save" bindtap="save" loading="{{saving}}" disabled="{{saving || !dirty}}">{{saving ? '正在保存' : dirty ? '保存学习目标' : hasSaved ? '已保存' : '写好后保存'}}</button>
+    <button class="pref-save" bindtap="save" loading="{{saving}}" disabled="{{saving || !dirty}}">{{creating ? (saving ? '正在建' : '建好这个目标') : saving ? '正在保存' : dirty ? '保存学习目标' : hasSaved ? '已保存' : '写好后保存'}}</button>
   </view>
 </view>
 <dev-reset-fab />
