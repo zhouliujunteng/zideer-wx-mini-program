@@ -49,7 +49,8 @@ function normalizeStep(step) {
   }
 }
 
-// 入门三关（2026-11-11 用户规则）：设置学习目标 → 设置学习偏好 → 预约老师诊断会议（代理约好才开放，点了进诊断会议）。
+// 入门三关（2026-11-11 用户规则）：设置学习目标 → 设置学习偏好 → 预约老师诊断会议。
+// 2026-11-13 起前两关做完第三关就开放：还没约好时 book（点了联系老师预约），约好后带 inviteToken（点了进诊断会议）。
 function normalizeOnboarding(list) {
   if (!Array.isArray(list)) return null
   const steps = list
@@ -59,7 +60,8 @@ function normalizeOnboarding(list) {
       state: STEP_STATES.includes(step.state) ? step.state : 'locked',
       label: text(step.label) || ONBOARDING_LABELS[step.key],
       detail: text(step.detail),
-      inviteToken: /^[A-Za-z0-9._~-]{1,200}$/.test(text(step.inviteToken)) ? text(step.inviteToken) : ''
+      inviteToken: /^[A-Za-z0-9._~-]{1,200}$/.test(text(step.inviteToken)) ? text(step.inviteToken) : '',
+      book: !!step.book
     }))
   return steps.length ? steps : null
 }
@@ -279,6 +281,7 @@ function onboardingPart(steps) {
     ring: Math.round((steps.filter((item) => item.state === 'done').length / steps.length) * 100),
     segs: steps.length,
     inviteToken: step.inviteToken,
+    book: !!step.book,
     lockedBy: null
   }))
   const passed = steps.filter((step) => step.state === 'done').length
@@ -370,6 +373,7 @@ function onboardPopover(node, base) {
   if (node.step === 'meeting') {
     if (node.state === 'done') return { ...base, note: '诊断会议已经开过了，课程在下面' }
     if (node.state === 'locked') return { ...base, note: node.detail || '等推广老师帮你约好诊断会议', detail: '' }
+    if (!node.inviteToken && node.book) return { ...base, action: '联系老师预约' }
     return { ...base, action: '进入诊断会议' }
   }
   if (node.state === 'locked') return { ...base, note: '先完成上一关', detail: '' }
@@ -387,7 +391,7 @@ function questTransition(previousId, view) {
   return { doneId: previous && previous.state === 'done' ? previousId : '', unlockId: view.currentId }
 }
 
-/** 点了一个节点该去哪：{ url } / { toast } / { chest: stageId }（打开这节课的宝箱）。 */
+/** 点了一个节点该去哪：{ url } / { toast } / { chest: stageId }（打开这节课的宝箱）/ { contact: true }（联系老师预约诊断会议）。 */
 function nodeTarget(node) {
   if (!node) return null
   const stage = encodeURIComponent(node.stageId || '')
@@ -400,7 +404,9 @@ function nodeTarget(node) {
     if (node.step === 'goal') return { url: '/learning/learning-goal/index?from=quest' }
     if (node.step === 'preference') return { url: '/learning/learning-preference/index' }
     if (node.state === 'done') return { toast: '诊断会议已经开过了' }
-    return node.inviteToken ? { url: `/learning/agent-invite/index?token=${encodeURIComponent(node.inviteToken)}` } : { toast: '诊断会议邀请暂时没读到，请稍后再试' }
+    if (node.inviteToken) return { url: `/learning/agent-invite/index?token=${encodeURIComponent(node.inviteToken)}` }
+    // 还没约好：联系老师预约（企业微信客服，与原来顶栏的「联系老师」同一个入口）
+    return node.book ? { contact: true } : { toast: '诊断会议邀请暂时没读到，请稍后再试' }
   }
   if (node.kind === 'lesson-chest') {
     if (node.state === 'open') return { chest: node.stageId }

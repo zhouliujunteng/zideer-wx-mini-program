@@ -412,6 +412,10 @@ Page({
       this.openLessonChest(target.chest)
       return
     }
+    if (target.contact) {
+      this.openEnterpriseService()
+      return
+    }
     wx.navigateTo({ url: target.url })
   },
 

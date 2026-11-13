@@ -100,3 +100,21 @@ test('goal tracks: each goal gets its own flag colour, the current one is marked
   assert.equal(goalTracksView(normalizeQuestPath({}).tracks), null)
   assert.equal(goalTracksView([]).addLabel, '定一个学习目标')
 })
+
+// 前两关做完，第三关就是预约老师（2026-11-13）：没约好时点了联系老师，约好后进诊断会议
+test('the third onboarding step books a teacher until the meeting is arranged', () => {
+  const steps = (meeting) => ({ onboarding: [
+    { key: 'goal', state: 'done', label: '设置学习目标' },
+    { key: 'preference', state: 'done', label: '设置学习偏好' },
+    meeting
+  ], stages: [], current: { stageId: 'onboarding', step: 'meeting' } })
+  const booking = questPathView(normalizeQuestPath(steps({ key: 'meeting', state: 'open', label: '预约老师诊断会议', detail: '联系老师约个时间', book: true })))
+  const node = findNode(booking, booking.currentId)
+  assert.equal(node.step, 'meeting')
+  assert.deepEqual(nodeTarget(node), { contact: true })
+  assert.equal(nodePopover(node).action, '联系老师预约')
+  const booked = questPathView(normalizeQuestPath(steps({ key: 'meeting', state: 'open', label: '进入诊断会议', inviteToken: 'tok' })))
+  const room = findNode(booked, booked.currentId)
+  assert.deepEqual(nodeTarget(room), { url: '/learning/agent-invite/index?token=tok' })
+  assert.equal(nodePopover(room).action, '进入诊断会议')
+})

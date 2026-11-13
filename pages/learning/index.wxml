@@ -1,5 +1,6 @@
 <wxs module="UA" src="../../utils/ui-asset.wxs" />
-<!-- 学习页（2026-11-11 晚用户要求，照多邻国）：顶上一行状态栏（成就卡、课程库、联系老师；连续学习在右上角火苗），
+<!-- 学习页（2026-11-11 晚用户要求，照多邻国）：顶上一行状态栏（学习目标、成就卡、荣誉、课程库；连续学习在右上角火苗；
+     「联系老师」2026-11-13 起不单独放，预约老师就是每个目标入门第三关），
      下面一条吸顶的「第 N 阶段，第 M 部分」横幅（随滚动换成当前看到的部分），其余全是闯关路径。
      原来的头图、成就卡横条、我的课程标题、联系老师卡片、搜索框都收进了顶栏的小入口。
      路径：一节课 = 一个部分（最多 7 关），模型 utils/quest-path-view.js，动效见 docs/闯关学习动效设计记录.md。 -->
@@ -22,9 +23,6 @@
         </view>
         <view class="lp-stat" bindtap="openLibrary" role="button" aria-label="课程库">
           <view class="lp-stat-book" aria-hidden="true"></view>
-        </view>
-        <view class="lp-stat" bindtap="openEnterpriseService" role="button" aria-label="联系老师定制课程">
-          <image class="lp-stat-avatar" src="{{UA.src(ui, '/assets/me/service-advisor.png')}}" mode="aspectFill"></image>
         </view>
       </view>
     </view>
