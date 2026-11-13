@@ -6,7 +6,6 @@ const fs = require('node:fs')
 const path = require('node:path')
 const vm = require('node:vm')
 const paymentSwitchStub = require('./helpers/payment-switch-stub')
-const webPayStub = require('./helpers/web-pay-stub')
 const miniPayStub = require('./helpers/mini-pay-stub')
 
 const read = (file) => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')
@@ -38,8 +37,7 @@ function loadPage(file, identity, { android = false } = {}) {
         return module.exports
       }
       if (name.endsWith('/payment-switch')) return paymentSwitchStub(wx)
-      if (name.endsWith('/web-pay')) return webPayStub(wx, { android })
-      if (name.endsWith('/mini-pay')) return miniPayStub(() => identity, webPayStub(wx, { android }))
+      if (name.endsWith('/mini-pay')) return miniPayStub(() => identity)
       throw new Error(`Unexpected import ${name}`)
     }
   }
@@ -79,19 +77,6 @@ test('order status page: continuing payment goes home; closed orders cannot be p
   done.page.onLoad({ orderId: '31' })
   await done.page.loadPage()
   assert.equal(done.page.data.view.kind, 'paid')
-})
-
-test('Android: continuing a pending order from the status page opens web payment', async () => {
-  let paid = 0
-  const { page, calls } = loadPage('commerce/payment-result/index.js', {
-    loadOrderDetail: async () => ({ id: 31, status: '待支付', statusLabel: '待支付', order_no: 'CL31', amount: 1, amountDisplay: '1', title: '积分包' }),
-    payWechatOrder: async () => { paid += 1 }, isWechatPaymentCancelled: () => false
-  }, { android: true })
-  page.onLoad({ orderId: '31' })
-  await page.loadPage()
-  await page.continuePayment()
-  assert.equal(paid, 0)
-  assert.deepEqual(calls.navigateTo, ['/commerce/web-pay/index?orderId=31&kind=credit'])
 })
 
 test('order status page follows the commerce page style instead of the old placeholder', () => {
@@ -139,4 +124,9 @@ test('me page sizes wallet numbers from the measured card width', () => {
   assert.ok(sizes[0] > 0 && sizes[0] < 18, JSON.stringify(sizes))
   assert.equal(sizes[1], 0)
   assert.match(read('pages/me/index.wxml'), /class="wallet-value" style="\{\{walletValueSizes\[index\]/)
+})
+
+test('2026-11-13: the status page has no link payment any more', () => {
+  assert.doesNotMatch(read('commerce/payment-result/index.wxml'), /用链接付款|payWithLink/)
+  assert.doesNotMatch(read('commerce/payment-result/index.js'), /payByLink|payWithLink/)
 })

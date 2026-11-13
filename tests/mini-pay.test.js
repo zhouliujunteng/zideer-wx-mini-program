@@ -35,7 +35,6 @@ function load({ platform = 'android', plan, planError, statuses = ['paid'], virt
     module, wx, setTimeout: (fn) => fn(),
     require(name) {
       if (name.endsWith('/identity')) return identity
-      if (name.endsWith('/web-pay')) return { openWebPay: (orderId, kind) => { calls.opened.push({ orderId: String(orderId), kind }) } }
       if (name.endsWith('/payment-switch')) return {
         async assertPaymentOpen() { if (!paymentOpen) throw Object.assign(new Error('closed'), { code: 'PAYMENT_DISABLED', paymentNotStarted: true }) }
       }
@@ -75,19 +74,21 @@ test('devtools and desktop skip the course service and use merchant pay', async 
   assert.equal(calls.logins, 0)
 })
 
-test('link plan opens the web payment page', async () => {
+test('2026-11-13: no link payment in the mini program — an old course service answering link pays by merchant', async () => {
   const { service, calls } = load({ plan: { method: 'link' } })
-  assert.equal(await service.payOrder(order, 'membership'), 'web')
-  assert.deepEqual(calls.opened, [{ orderId: '88', kind: 'membership' }])
+  assert.equal(await service.payOrder(order, 'membership'), 'merchant')
+  assert.equal(calls.merchant, 1)
+  assert.equal(service.payByLink, undefined)
+  assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '../services/mini-pay.js'), 'utf8'), /require\('\.\/web-pay'\)|用链接付款/)
 })
 
-test('course service unreachable: android goes to the link, ios keeps merchant pay', async () => {
+test('course service unreachable: both platforms fall back to merchant pay', async () => {
   const down = new Error('network')
-  const android = load({ planError: down })
-  assert.equal(await android.service.payOrder(order, 'membership'), 'web')
-  const ios = load({ platform: 'ios', planError: down })
-  assert.equal(await ios.service.payOrder(order, 'membership'), 'merchant')
-  assert.equal(ios.calls.merchant, 1)
+  for (const platform of ['android', 'ios']) {
+    const { service, calls } = load({ platform, planError: down })
+    assert.equal(await service.payOrder(order, 'membership'), 'merchant')
+    assert.equal(calls.merchant, 1)
+  }
 })
 
 test('definite refusals are shown, not bypassed', async () => {
@@ -105,7 +106,6 @@ test('payment switch closed stops before anything', async () => {
   const { service, calls } = load({ plan: { method: 'xpay', payment }, paymentOpen: false })
   await assert.rejects(service.payOrder(order, 'membership'), (error) => error.code === 'PAYMENT_DISABLED')
   assert.equal(calls.requests.length, 0)
-  await assert.rejects(service.payByLink('88', 'membership'), (error) => error.code === 'PAYMENT_DISABLED')
 })
 
 test('already paid orders are not charged again', async () => {

@@ -2,8 +2,8 @@ const { loadOrderDetail, isWechatPaymentCancelled } = require('../../services/id
 const { openPaymentPage, showPaymentClosed, isPaymentDisabled, attachPaymentSwitch } = require('../../services/payment-switch')
 const { rpxToPx } = require('../../utils/screen')
 const { goHomeAfterCreditPayment } = require('../payment-done')
-// 付款方式（2026-11-11）：安卓虚拟支付、iOS 按后台开关、另有「用链接付款」（services/mini-pay.js）
-const { payOrder, payByLink } = require('../../services/mini-pay')
+// 付款方式（2026-11-13）：默认虚拟支付、iOS 可在后台改商户号（services/mini-pay.js）；小程序里不放链接付款（改在服务号菜单）
+const { payOrder } = require('../../services/mini-pay')
 
 // 订单状态：积分包取消支付（或支付结果没确认）时从确认订单页转到这里，可继续支付；付款成功直接回首页。
 // 没有订单号的旧链接读不到订单，按「待支付」显示但不给继续支付。
@@ -46,29 +46,18 @@ Page({
       if (!this.data.loaded) this.setData({ failed: true })
     }
   },
-  // 「用链接付款」：任何手机都能用，打开付款链接等待页
-  async payWithLink() {
-    const order = this.data.order
-    if (this.data.paying || !order || order.status !== '待支付') return
-    try {
-      await payByLink(order.id, 'credit')
-    } catch (error) {
-      if (isPaymentDisabled(error)) showPaymentClosed('credits')
-      else wx.showToast({ title: error.message || '暂时无法打开付款链接', icon: 'none' })
-    }
-  },
   async continuePayment() {
     const order = this.data.order
     if (this.data.paying || !order || order.status !== '待支付') return
 
     this.setData({ paying: true })
     try {
-      const via = await payOrder({
+      await payOrder({
         orderId: order.id,
         amount: order.amount,
         description: order.title || '知鹿学习课程积分'
       }, 'credit')
-      if (via !== 'web') goHomeAfterCreditPayment()
+      goHomeAfterCreditPayment()
     } catch (error) {
       if (isPaymentDisabled(error)) {
         showPaymentClosed('credits')

@@ -4,8 +4,8 @@ const { attachUiAssets } = require('../../services/ui-assets')
 const { rpxToPx } = require('../../utils/screen')
 const { orderDetailView } = require('../order-view')
 const { goHomeAfterCreditPayment } = require('../payment-done')
-// 付款方式（2026-11-11）：安卓虚拟支付、iOS 按后台开关、另有「用链接付款」（services/mini-pay.js）
-const { payOrder, payByLink } = require('../../services/mini-pay')
+// 付款方式（2026-11-13）：默认虚拟支付、iOS 可在后台改商户号（services/mini-pay.js）；小程序里不放链接付款（改在服务号菜单）
+const { payOrder } = require('../../services/mini-pay')
 
 // 订单详情：设计仓库没有这一页，按课程积分页（M34）与积分包、确认订单那一系重做——
 // 顶部概览（订单名、金额大字、状态标签、右侧积分星 / 会员皇冠插画）、小节标题 + 白色大圆角行卡片。
@@ -53,24 +53,13 @@ Page({
     if (action.id === 'membership') return openPaymentPage('/commerce/membership/index', 'membership')
     if (action.id === 'pay') return this.continuePayment()
   },
-  // 「用链接付款」：任何手机都能用，打开付款链接等待页
-  async payWithLink() {
-    const order = this.data.order
-    if (this.data.paying || !order || order.status !== '待支付') return
-    try {
-      await payByLink(order.id, 'credit')
-    } catch (error) {
-      if (isPaymentDisabled(error)) showPaymentClosed('credits')
-      else wx.showToast({ title: error.message || '暂时无法打开付款链接', icon: 'none' })
-    }
-  },
   async continuePayment() {
     const order = this.data.order
     if (this.data.paying || !order || order.status !== '待支付') return
     this.setData({ paying: true })
     try {
-      const via = await payOrder({ orderId: order.id, amount: order.amount, description: order.title || '知鹿学习课程积分' }, 'credit')
-      if (via !== 'web') goHomeAfterCreditPayment()
+      await payOrder({ orderId: order.id, amount: order.amount, description: order.title || '知鹿学习课程积分' }, 'credit')
+      goHomeAfterCreditPayment()
     } catch (error) {
       // 支付开关关着：待支付订单也不能继续付款
       if (isPaymentDisabled(error)) showPaymentClosed('credits')

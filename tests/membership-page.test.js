@@ -4,7 +4,6 @@ const vm = require('node:vm')
 const fs = require('node:fs')
 const path = require('node:path')
 const paymentSwitchStub = require('./helpers/payment-switch-stub')
-const webPayStub = require('./helpers/web-pay-stub')
 const miniPayStub = require('./helpers/mini-pay-stub')
 const tiers = [{ productVersionId: '50', name: '基础会员', amount: '49.90', creditAmount: '400' }, { productVersionId: '51', name: '黄金会员', amount: '99.00', creditAmount: '1000' }]
 const gold = tiers[1]
@@ -18,14 +17,12 @@ function setup(overrides = {}, storage = new Map()) {
   const api = { loadFamilyWechatQr: async () => ({ uploaded: true, uploadedAt: '2026-11-11T02:00:00Z' }), loadCurrentMembership: async () => pending, createMembershipOrder: async () => pending,
     payWechatOrder: async () => {}, isWechatPaymentCancelled: e => /cancel/.test(e.errMsg || ''), ...overrides }
   const paymentSwitch = paymentSwitchStub({ navigateTo: o => navigations.push(o.url) }, { enabled: overrides.paymentEnabled !== false })
-  const webPay = webPayStub({ navigateTo: o => navigations.push(o.url) }, { android: overrides.android === true })
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../commerce/membership/index.js'), 'utf8'), {
     Page(p) { definition = p },
     require(name) {
       if (name.endsWith('/membership-view')) return require('../services/membership-view')
       if (name.endsWith('/payment-switch')) return paymentSwitch
-      if (name.endsWith('/web-pay')) return webPay
-      if (name.endsWith('/mini-pay')) return miniPayStub(() => api, webPay)
+      if (name.endsWith('/mini-pay')) return miniPayStub(() => api)
       return api
     },
     setTimeout(fn) { timers.set(++id, fn); return id }, clearTimeout(key) { timers.delete(key) },
@@ -34,7 +31,7 @@ function setup(overrides = {}, storage = new Map()) {
   })
   const page = { ...definition, _visible: true, data: { ...definition.data, loading: false, membership: pending, selectedTierId: '51' },
     setData(patch) { Object.assign(this.data, patch) } }
-  return { page, timers, storage, navigations, paymentSwitch, webPay }
+  return { page, timers, storage, navigations, paymentSwitch }
 }
 // 页面先核支付开关再读会员状态：等开关核对这一拍过去，读取才真正发出
 const flush = () => new Promise(resolve => setImmediate(resolve))
@@ -328,18 +325,9 @@ test('a backend payment refusal while on the page shows the notice instead of a 
   assert.deepEqual(paymentSwitch.closed, ['membership'])
 })
 
-test('Android opens the web payment page instead of paying inside the mini program', async () => {
-  const paid = []
-  const { page, storage, navigations, webPay, timers } = setup({ android: true, payWechatOrder: async (order) => { paid.push(order.orderId) } })
-  await page.purchase()
-  assert.deepEqual(paid, [])
-  assert.deepEqual(webPay.opened, [{ orderId: '21', kind: 'membership', redirect: false }])
-  assert.deepEqual(navigations, ['/commerce/web-pay/index?orderId=21&kind=membership'])
-  // 等待页负责确认结果：会员中心不进入「正在确认」、不轮询
-  assert.equal(storage.has('library_membership_confirming_order'), false)
-  assert.notEqual(page.data.confirming, true)
-  assert.equal(timers.size, 0)
-  assert.equal(page.data.paying, false)
+test('2026-11-13: the membership center has no link payment any more', () => {
+  assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '../commerce/membership/index.wxml'), 'utf8'), /用链接付款|purchaseByLink/)
+  assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '../commerce/membership/index.js'), 'utf8'), /payByLink|viaLink/)
 })
 
 test('2026-11-10: a child covered by a parent membership is shown as a family member', () => {

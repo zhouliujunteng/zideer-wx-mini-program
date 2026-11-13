@@ -6,7 +6,6 @@ const fs = require('node:fs')
 const path = require('node:path')
 const vm = require('node:vm')
 const paymentSwitchStub = require('./helpers/payment-switch-stub')
-const webPayStub = require('./helpers/web-pay-stub')
 
 const read = (file) => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')
 
@@ -32,8 +31,7 @@ function loadPage(file, modules, options = {}) {
       if (name.endsWith('/ui-assets') && !key) return { attachUiAssets() {} }
       if (name.endsWith('/utils/referral-context')) return { clearPendingReferral() {} }
       if (name.endsWith('/payment-switch') && !key) return paymentSwitchStub({ navigateTo() {}, redirectTo() {} })
-      if (name.endsWith('/web-pay') && !key) return webPayStub({ navigateTo() {}, redirectTo() {} })
-      if (name.endsWith('/mini-pay') && !key) return { payOrder: async () => 'merchant', payByLink: async () => {}, platform: () => 'ios' }
+      if (name.endsWith('/mini-pay') && !key) return { payOrder: async () => 'merchant', platform: () => 'ios' }
       if (!key) throw new Error(`Unexpected import ${name}`)
       return modules[key]
     }

@@ -40,5 +40,4 @@
 .result-sk-subtitle{width:276px;margin-top:10px}
 .result-sk-value{width:108px}
 .result-sk-button{height:52px;border-radius:599px}
-.link-pay{padding:10px 0 0;font-size:13px}
 }

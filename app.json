@@ -89,8 +89,7 @@
         "payment-result/index",
         "orders/index",
         "order-detail/index",
-        "entitlements/index",
-        "web-pay/index"
+        "entitlements/index"
       ]
     },
     {

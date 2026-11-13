@@ -53,5 +53,4 @@ page { background: #FAFAFA; }
 .result-sk-value { width: 180rpx; }
 .result-sk-button { flex: 1; height: 88rpx; border-radius: 999rpx; }
 
-.link-pay { display: block; padding: 18rpx 0 0; color: #9d8b74; font-size: 23rpx; text-align: center; text-decoration: underline; }
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

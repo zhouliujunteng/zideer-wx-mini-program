@@ -7,7 +7,6 @@ const path = require('node:path')
 const vm = require('node:vm')
 const { groupOrdersByMonth, orderDetailView, orderTabsFor } = require('../commerce/order-view')
 const paymentSwitchStub = require('./helpers/payment-switch-stub')
-const webPayStub = require('./helpers/web-pay-stub')
 const miniPayStub = require('./helpers/mini-pay-stub')
 
 const read = (file) => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')
@@ -87,8 +86,7 @@ test('continuing payment from order detail goes home once paid', async () => {
         return module.exports
       }
       if (name.endsWith('/payment-switch')) return paymentSwitchStub(wx)
-      if (name.endsWith('/web-pay')) return webPayStub(wx)
-      if (name.endsWith('/mini-pay')) return miniPayStub(() => ({ payWechatOrder: async () => ({}) }), webPayStub(wx))
+      if (name.endsWith('/mini-pay')) return miniPayStub(() => ({ payWechatOrder: async () => ({}) }))
       throw new Error(`Unexpected import ${name}`)
     }
   })
@@ -98,38 +96,6 @@ test('continuing payment from order detail goes home once paid', async () => {
   assert.equal(page.data.view.action.id, 'pay')
   await page.handleAction()
   assert.deepEqual(switched, ['/pages/home/index'])
-})
-
-test('Android: continuing payment from order detail opens web payment', async () => {
-  let definition
-  let paid = 0
-  const opened = []
-  const wx = {
-    showToast() {}, switchTab() {}, navigateTo(options) { opened.push(options.url) },
-    getWindowInfo: () => ({ windowWidth: 375, statusBarHeight: 44 }),
-    getMenuButtonBoundingClientRect: () => ({ top: 50, height: 32 })
-  }
-  vm.runInNewContext(read('commerce/order-detail/index.js'), {
-    Page(page) { definition = page }, wx, getCurrentPages: () => [],
-    require(name) {
-      if (name.endsWith('/identity')) return { loadOrderDetail: async () => credit({ status: '待支付', statusLabel: '待支付' }), payWechatOrder: async () => { paid += 1 }, isWechatPaymentCancelled: () => false }
-      if (name.endsWith('/ui-assets')) return { attachUiAssets() {} }
-      if (name.endsWith('/utils/screen')) return require('../utils/screen')
-      if (name.endsWith('/order-view')) return require('../commerce/order-view')
-      if (name.endsWith('/payment-done')) return { goHomeAfterCreditPayment() {} }
-      if (name.endsWith('/payment-switch')) return paymentSwitchStub(wx)
-      if (name.endsWith('/web-pay')) return webPayStub(wx, { android: true })
-      if (name.endsWith('/mini-pay')) return miniPayStub(() => ({ payWechatOrder: async () => { paid += 1 } }), webPayStub(wx, { android: true }))
-      throw new Error(`Unexpected import ${name}`)
-    }
-  })
-  const page = { ...definition, data: JSON.parse(JSON.stringify(definition.data)), setData(patch) { Object.assign(this.data, patch) } }
-  page.onLoad({ orderId: '1' })
-  await page.loadPage()
-  await page.handleAction()
-  assert.equal(paid, 0)
-  assert.equal(opened.length, 1)
-  assert.match(opened[0], /^\/commerce\/web-pay\/index\?orderId=[1-9][0-9]*&kind=credit$/)
 })
 
 test('order pages use the designer page shells instead of the old placeholder styles', () => {
@@ -143,4 +109,9 @@ test('order pages use the designer page shells instead of the old placeholder st
   const orders = read('commerce/orders/index.wxss')
   assert.match(orders, /\.orders-tabs \{[^}]*background: #EEF1EF/)
   assert.match(orders, /\.orders-module \{[^}]*border-radius: 40rpx/)
+})
+
+test('2026-11-13: order detail has no link payment any more', () => {
+  assert.doesNotMatch(read('commerce/order-detail/index.wxml'), /用链接付款|payWithLink/)
+  assert.doesNotMatch(read('commerce/order-detail/index.js'), /payByLink|payWithLink/)
 })

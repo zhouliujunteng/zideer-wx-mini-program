@@ -75,8 +75,6 @@ page { background: #FAFAFA; }
 .primary-button[disabled], .primary-button.is-disabled { background: #e6ddcd; box-shadow: none; color: #7d7060; }
 .primary-button[disabled]::after, .primary-button.is-disabled::after { content: none; }
 .agreement-row { display: flex; align-items: center; justify-content: center; min-height: 64rpx; margin-top: 6rpx; color: #9d8b74; font-size: 21rpx; line-height: 1.3; }
-.link-pay-row { display: flex; justify-content: center; margin-top: 4rpx; }
-.link-pay { padding: 10rpx 24rpx; color: #9d8b74; font-size: 23rpx; text-decoration: underline; }
 .agreement-checkbox { display: flex; align-items: center; justify-content: center; width: 28rpx; height: 28rpx; margin-right: 10rpx; box-sizing: border-box; border: 2rpx solid #c9bba5; border-radius: 7rpx; color: #fff; font-size: 19rpx; line-height: 22rpx; }
 .agreement-checkbox-checked { border-color: #e0a64a; background: #e0a64a; }
 .agreement-link { padding: 12rpx 0; color: #80572f; }

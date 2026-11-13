@@ -100,9 +100,6 @@
             <text class="agreement-copy" bindtap="toggleAgreement">点击付款即表示已阅读</text>
             <text class="agreement-link" bindtap="openAgreement">《会员服务说明》</text>
           </view>
-          <view wx:if="{{primaryAction === 'purchase'}}" class="link-pay-row">
-            <text class="link-pay" bindtap="purchaseByLink" aria-role="button">用链接付款</text>
-          </view>
         </view>
       </block>
 

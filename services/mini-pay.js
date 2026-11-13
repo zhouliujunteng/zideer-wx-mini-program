@@ -1,12 +1,11 @@
-// 小程序付款方式（2026-11-11 用户规则：微信要求虚拟商品走虚拟支付）。
-//   安卓   → 微信虚拟支付（wx.requestVirtualPayment）；课程服务没配好虚拟支付时退回链接付款。
-//   iOS    → 管理端「活动开关 → 小程序付款方式」选：虚拟支付 / 商户号支付（wx.requestPayment，Zion 自带支付），默认商户号。
-//   其他（开发者工具、电脑版微信）→ 商户号支付。
-//   付款处另有「用链接付款」（services/web-pay.js，zideer.cn/pay），任何手机都能用。
+// 小程序付款方式（2026-11-11 用户规则：微信要求虚拟商品走虚拟支付；11-13 改：默认都走虚拟支付，小程序里不放链接付款）。
+//   安卓   → 微信虚拟支付（wx.requestVirtualPayment）；课程服务没配好虚拟支付时退回商户号支付。
+//   iOS    → 管理端「活动开关 → 小程序付款方式」选：虚拟支付 / 商户号支付（wx.requestPayment，Zion 自带支付），默认虚拟支付。
+//   其他（开发者工具、电脑版微信）→ 商户号支付（虚拟支付在这些环境调不起）。
+//   网页付款改放在服务号菜单「我的服务 → 网页付款」（课程服务 lib/web-pay/menu-pay.ts），小程序里不提。
 // 选哪种由课程服务 /api/learn/mini-pay 现判（lib/mini-pay/service.ts），每次付款前都问一次，后台一改立即生效。
 // 虚拟支付到账靠微信发货推送 → 课程服务 → Zion「网页付款记账」登记发货；付完这里再问几次，顺带让课程服务查单补登记。
 const { requestCourseApi, payWechatOrder } = require('./identity')
-const { openWebPay } = require('./web-pay')
 const { assertPaymentOpen } = require('./payment-switch')
 
 const PATH = '/api/learn/mini-pay'
@@ -60,7 +59,7 @@ async function planPayment(orderId, plat) {
 function requestVirtualPayment(payment) {
   return new Promise((resolve, reject) => {
     if (typeof wx.requestVirtualPayment !== 'function') {
-      reject(Object.assign(new Error('当前微信版本不支持这种付款方式，请升级微信或用链接付款。'), { paymentNotStarted: true }))
+      reject(Object.assign(new Error('当前微信版本不支持这种付款方式，请升级微信后再试。'), { paymentNotStarted: true }))
       return
     }
     wx.requestVirtualPayment({
@@ -77,7 +76,7 @@ function requestVirtualPayment(payment) {
         }
         // 没弹出付款框就失败（2026-11-12 iOS 实测）：把微信给的错误码带给用户，方便对照微信文档查原因
         const code = error && (error.errCode !== undefined ? error.errCode : '')
-        const text = code !== '' ? `付款没有完成（微信返回 ${code}），可以再试一次或用链接付款。` : '付款没有完成，可以再试一次或用链接付款。'
+        const text = code !== '' ? `付款没有完成（微信返回 ${code}），可以再试一次。` : '付款没有完成，可以再试一次。'
         reject(Object.assign(new Error(text), { code: 'XPAY_FAILED', xpayErrCode: code, detail: error }))
       }
     })
@@ -98,9 +97,9 @@ async function confirmPaid(orderId, tries = 4) {
   return false
 }
 
-// 付一笔待支付订单。order: { orderId, amount, description }；kind: membership | credit（链接付款付完回哪）。
+// 付一笔待支付订单。order: { orderId, amount, description }；kind: membership | credit。
 // onStart：真正调起微信付款前调用（会员中心借它记下「等待确认」的订单）。
-// 返回 'merchant' | 'xpay'（在小程序里付完）、'web'（打开了链接付款等待页）、'paid'（这单之前已付过）。
+// 返回 'merchant' | 'xpay'（在小程序里付完）、'paid'（这单之前已付过）。
 async function payOrder(order, kind, { onStart } = {}) {
   await assertPaymentOpen()
   const plat = platform()
@@ -109,14 +108,10 @@ async function payOrder(order, kind, { onStart } = {}) {
     plan = plat === 'other' ? { method: 'merchant' } : await planPayment(order.orderId, plat)
   } catch (error) {
     if (DEFINITE.indexOf(error.code) >= 0) throw error
-    // 课程服务不通：iOS 照旧商户号支付（与上线前一样）；安卓去链接付款
-    plan = { method: plat === 'ios' ? 'merchant' : 'link' }
+    // 课程服务不通：退回商户号支付（虚拟支付要课程服务签名）
+    plan = { method: 'merchant' }
   }
   if (plan.method === 'paid') return 'paid'
-  if (plan.method === 'link') {
-    openWebPay(order.orderId, kind)
-    return 'web'
-  }
   if (typeof onStart === 'function') onStart()
   if (plan.method === 'xpay') {
     try {
@@ -133,14 +128,9 @@ async function payOrder(order, kind, { onStart } = {}) {
     await confirmPaid(order.orderId)
     return 'xpay'
   }
+  // 商户号支付；旧版课程服务回的 link（链接付款）也按商户号付，小程序里不再打开链接付款
   await payWechatOrder(order)
   return 'merchant'
 }
 
-// 「用链接付款」：任何平台都能用，打开付款链接等待页（services/web-pay.js）。
-async function payByLink(orderId, kind, options) {
-  await assertPaymentOpen()
-  return openWebPay(orderId, kind, options)
-}
-
-module.exports = { payOrder, payByLink, platform }
+module.exports = { payOrder, platform }
