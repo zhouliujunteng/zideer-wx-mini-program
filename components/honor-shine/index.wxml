@@ -2,5 +2,8 @@
 <view class="hs" bindtouchstart="onTouchStart" catchtouchmove="onTouchMove" bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd">
   <!-- 画布画出第一帧之前、或画布用不了时，先用图顶着 -->
   <image wx:if="{{!painted}}" class="hs-image" src="{{src}}" mode="aspectFit"></image>
-  <canvas wx:if="{{src}}" type="2d" id="hs-canvas" class="hs-canvas {{painted ? 'is-on' : ''}}" disable-scroll="{{true}}"></canvas>
+  <view class="hs-shadow {{painted ? 'is-on' : ''}}" aria-hidden="true"></view>
+  <!-- 先试三维（WebGL：有厚度、真透视、光照在浮雕上）；不支持就退回二维画布 -->
+  <canvas wx:if="{{src && mode === 'webgl'}}" type="webgl" id="hs-gl" class="hs-canvas {{painted ? 'is-on' : ''}}" disable-scroll="{{true}}"></canvas>
+  <canvas wx:elif="{{src}}" type="2d" id="hs-canvas" class="hs-canvas {{painted ? 'is-on' : ''}}" disable-scroll="{{true}}"></canvas>
 </view>
