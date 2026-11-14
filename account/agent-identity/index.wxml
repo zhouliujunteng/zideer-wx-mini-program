@@ -66,7 +66,7 @@
         <view class="ai-heading">我的团 · {{team.count}} 位爱心妈妈</view>
         <view class="ai-card">
           <view wx:if="{{!team.members.length}}" class="ai-state">
-            <text class="ai-state-text">团里还没有爱心妈妈，由知鹿后台为你绑定。</text>
+            <text class="ai-state-text">团里还没有爱心妈妈。点上面的「邀请成为爱心妈妈」替她提交申请，审核通过后自动进团。</text>
           </view>
           <view wx:for="{{team.members}}" wx:key="publicId" class="ai-row" bindtap="copyId" data-id="{{item.publicId}}" aria-role="button" aria-label="复制 {{item.name}} 的 ID">
             <text class="ai-member-name">{{item.name}}</text>

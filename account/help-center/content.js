@@ -231,7 +231,7 @@ const FAQS = [
     id: 'credits-get', category: 'wallet', title: '课程积分怎么获得？',
     keywords: ['获得积分', '买积分', '充值'],
     answer: [
-      '开通会员会赠送积分，积分不够时可以购买积分包（会员享会员价）；参与运营活动、使用兑换码也能获得。'
+      '开通会员会赠送积分，积分不够时可以再买一次会员；参与运营活动、使用兑换码也能获得。'
     ],
     answerPaymentClosed: [
       '目前可以通过参与运营活动、使用兑换码获得课程积分。'
@@ -312,18 +312,18 @@ const FAQS = [
 
   // 邀请与推广
   {
-    id: 'invite', category: 'partner', title: '怎么邀请好友？', guide: 'invite',
-    keywords: ['邀请', '邀请码', '小程序码', '分享', '推荐人', '小程序链接'],
+    id: 'invite', category: 'partner', title: '代理怎么绑定家庭？', guide: 'invite',
+    keywords: ['绑定家庭', '代理', '爱心妈妈', '团长', '用户 ID', '邀请'],
     answer: [
-      '「我的 → 推广伙伴」→「我的邀请码」：可以复制邀请码、保存小程序码，或点「去复制链接」，在「小程序链接」页右上角「···」→「复制链接」发出去。',
-      '好友注册时会自动记下邀请关系，绑定后不能更改，也不能填写自己的邀请码。'
+      '爱心妈妈、爱心妈妈团团长在「我的 → 推广伙伴 → 绑定家庭」输入家长的用户 ID，查到后点「确认绑定」。家长的用户 ID 在家长自己「我的」页头像旁边，可以点复制。',
+      '只能绑定家长身份的账号；一个家庭只能被一位代理绑定、先绑先得，绑定后不能自己修改。不能绑定自己家。'
     ]
   },
   {
     id: 'partner-apply', category: 'partner', title: '怎么成为推广伙伴？奖励怎么提现？',
     keywords: ['推广伙伴', '提现', '结算', '佣金', '奖励'],
     answer: [
-      '在「推广伙伴 → 结算中心」点申请：先做基础核验（姓名、身份证号），再提交申请，后台 1～2 个工作日审核。',
+      '在「我的 → 推广伙伴 → 代理身份」点「去申请」：先做基础核验（姓名、身份证号），再勾选要申请的身份提交，后台 1～2 个工作日审核。',
       '开通后奖励可以整笔提现；没开通的，也可以把奖励整笔兑换成课程积分。奖励有 7 天锁定期，过了锁定期才能提现。'
     ]
   },
@@ -333,16 +333,8 @@ const FAQS = [
     id: 'membership', category: 'payment', title: '怎么开通会员？', guide: 'membership', payment: true,
     keywords: ['会员', '开通会员', '会员中心', '升级会员'],
     answer: [
-      '「我的」页头像下方的会员卡 →「会员中心」，选好等级后付款开通。开通前要先填写邀请人的邀请码，填写后不能更改。',
-      '会员永久有效；开通后可以按原价升级到更高等级，并获赠该等级的积分，但不能降级。'
-    ]
-  },
-  {
-    id: 'android-pay', category: 'payment', title: '安卓手机怎么付款？', payment: true,
-    keywords: ['安卓', '付款', '支付', '服务号', '订单创建成功通知', '付款链接'],
-    answer: [
-      '安卓手机选好会员等级或积分包后，会进入付款等待页，并收到「知鹿学习」服务号发来的「订单创建成功通知」。',
-      '回到微信，打开这条通知进入付款网页，核对商品和金额后点「微信支付」。付好回到小程序，付款结果会自动更新。'
+      '「我的」页头像下方的会员卡 →「会员中心」，核对价格后付款开通。',
+      '会员永久有效；可以重复购买，每次都赠送积分。家长开通后，绑定的孩子都算会员，积分全家共用。'
     ]
   },
   {
@@ -356,15 +348,8 @@ const FAQS = [
     id: 'refund', category: 'payment', title: '可以退款吗？', payment: true,
     keywords: ['退款', '退钱', '取消会员'],
     answer: [
-      '会员、积分包等付费项目，自支付成功之日起 7 日内可以联系客服申请退款；超过 7 日不支持退款。',
+      '会员自支付成功之日起 7 日内可以联系客服申请退款；超过 7 日不支持退款。',
       '会员退款会取消对应的会员等级，并扣回该笔赠送积分里还没用的部分。'
-    ]
-  },
-  {
-    id: 'credit-pack', category: 'payment', title: '积分包在哪买？', payment: true,
-    keywords: ['积分包', '买积分', '充值积分'],
-    answer: [
-      '「会员中心」→「积分包」→ 选择积分包付款。会员购买享会员价。'
     ]
   },
 
@@ -842,53 +827,50 @@ const GUIDES = [
     ]
   },
   {
-    id: 'invite', title: '邀请好友', tone: 'pink',
-    summary: '复制带邀请码的小程序链接、保存小程序码发给好友，好友注册后记为你邀请。',
-    keywords: ['邀请', '邀请码', '分享', '小程序链接'],
+    id: 'invite', title: '代理绑定家庭', tone: 'pink',
+    summary: '爱心妈妈、团长输入家长的用户 ID，把这个家庭绑定到自己名下。',
+    keywords: ['绑定家庭', '代理', '爱心妈妈', '团长', '用户 ID'],
     action: { label: '去「我的」页', tab: '/pages/me/index' },
     steps: [
       {
-        title: '在「我的」点「推广伙伴」',
+        title: '请家长在「我的」页复制自己的用户 ID',
+        hint: '家长要先登录并选好家长身份，ID 在头像旁边，点一下就能复制。',
+        figure: { screen: '我的', tab: 'me', blocks: [{ type: 'profile' }, { type: 'code', label: '用户 ID', value: '102938', button: '复制', hot: 'button' }] }
+      },
+      {
+        title: '代理在「我的」点「推广伙伴」',
         figure: { screen: '我的', tab: 'me', blocks: [meServices('推广伙伴')] }
       },
       {
-        title: '点「我的邀请码」',
+        title: '点「绑定家庭」',
         figure: {
           screen: '推广伙伴', back: true,
           blocks: [
             { type: 'card', title: '可用奖励', text: '锁定期 7 天', tone: 'orange' },
-            { type: 'chips', items: [{ label: '结算中心' }, { label: '我的推广' }, { label: '我的邀请码', hot: true }] }
+            { type: 'chips', items: [{ label: '结算中心' }, { label: '绑定家庭', hot: true }, { label: '代理身份' }] }
           ]
         }
       },
       {
-        title: '复制邀请码，或点「去复制链接」',
-        hint: '也可以点开小程序码放大保存，发给好友或朋友圈。',
+        title: '输入家长的用户 ID，查询后点「确认绑定」',
+        hint: '核对名字和孩子没错再确认；绑定后点这个家庭，可以给孩子开通免费体验。',
         figure: {
-          screen: '我的邀请码', back: true,
+          screen: '绑定家庭', back: true,
           blocks: [
-            { type: 'code', label: '我的邀请码', value: 'XK3V9Q', button: '复制' },
-            { type: 'card', title: '小程序链接', text: '好友点蓝色链接直接打开知鹿学习', button: '去复制链接', hot: 'button' }
+            { type: 'code', label: '家长的用户 ID', value: '102938', button: '查询' },
+            { type: 'button', label: '确认绑定', hot: true }
           ]
-        }
-      },
-      {
-        title: '在「小程序链接」页点右上角「···」→「复制链接」',
-        hint: '一定要在这一页复制，别的页面复制的链接不带你的邀请码。',
-        figure: {
-          screen: '小程序链接', back: true, capsuleHot: true,
-          blocks: [{ type: 'card', title: '用蓝色链接邀请好友', text: '#小程序://知鹿学习/…' }, { type: 'lines', count: 2 }]
         }
       }
     ],
     tips: [
-      '好友注册后就记下邀请关系，绑定后不能更改。',
-      '不能填写自己的邀请码。'
+      '只能绑定家长身份的账号：对方是学生身份时，请家长先在「身份与登录」改成家长。',
+      '一个家庭只能被一位代理绑定，绑定后不能自己修改；不能绑定自己家。'
     ]
   },
   {
     id: 'membership', title: '开通会员', tone: 'orange', payment: true,
-    summary: '在会员中心选等级付款开通，会员永久有效，可以往更高等级升级。',
+    summary: '在会员中心付款开通，会员永久有效；家长开通后，绑定的孩子都算会员。',
     keywords: ['会员', '开通会员', '付款'],
     action: { label: '去「我的」页', tab: '/pages/me/index' },
     steps: [
@@ -897,24 +879,23 @@ const GUIDES = [
         figure: { screen: '我的', tab: 'me', blocks: [{ type: 'profile' }, { type: 'card', title: '知鹿用户', text: '解锁更多专属学习权益', tone: 'dark', hot: 'card' }] }
       },
       {
-        title: '选会员等级',
-        hint: '各等级的价格、赠送积分和权益以会员中心为准；开通后只能往更高等级升级。',
+        title: '核对会员价格和赠送积分',
+        hint: '价格、赠送积分和权益以会员中心为准；可以重复购买，每次都赠送积分。',
         figure: {
-          screen: '会员中心', back: true, caption: '等级与价格以会员中心为准',
+          screen: '会员中心', back: true, caption: '价格以会员中心为准',
           blocks: [
-            { type: 'chips', items: [{ label: '等级一', active: true }, { label: '等级二', hot: true }] },
+            { type: 'chips', items: [{ label: '会员', active: true, hot: true }] },
             { type: 'lines', count: 2 }
           ]
         }
       },
       {
-        title: '先填写邀请人的邀请码，再付款',
-        hint: '邀请码填写后不能更改；安卓手机会收到服务号「订单创建成功通知」，打开通知完成付款。',
+        title: '点开通并付款',
+        hint: '第一次付款前会请你上传自己的微信二维码，方便老师联系你。',
         figure: {
           screen: '会员中心', back: true,
           blocks: [
-            { type: 'note', text: '开通会员需要先填写邀请人的邀请码，填写后不可更改。' },
-            { type: 'button', label: '填写邀请码后开通', hot: true },
+            { type: 'button', label: '立即开通', hot: true },
             { type: 'note', text: '点击付款即表示已阅读《会员服务说明》' }
           ]
         }

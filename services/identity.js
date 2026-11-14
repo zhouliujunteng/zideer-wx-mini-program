@@ -563,7 +563,7 @@ function requestAgentCourses(path, token, options = {}) {
         // 代理绑定家庭、身份申请（课程服务 lib/agent-roles，2026-11-10）
         INVALID_PUBLIC_ID: '请输入正确的用户 ID（「我的」页头像下方的数字）。',
         USER_NOT_FOUND: '没有找到这个用户，请核对用户 ID。',
-        NOT_GUARDIAN: '请输入家长的用户 ID：这个账号是学生账号。',
+        NOT_GUARDIAN: '这个账号不是家长身份。请家长先在「我的 → 身份与登录」把账号身份改成家长，再来绑定。',
         OWN_FAMILY: '不能绑定自己家。',
         FAMILY_ALREADY_BOUND: '这个家庭已经被别的代理绑定了。',
         FAMILY_ALREADY_MINE: '这个家庭你已经绑定过了。',

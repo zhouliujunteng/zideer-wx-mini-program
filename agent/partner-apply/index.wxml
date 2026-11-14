@@ -137,7 +137,7 @@
             </view>
             <block wx:if="{{step === 2}}">
               <text wx:if="{{heldRoleText}}" class="apply-card-copy">已开通：{{heldRoleText}}</text>
-              <view class="apply-field-label apply-role-label">申请身份（可多选{{promoterActive ? '' : '，不选则只开通提现账户'}}）</view>
+              <view class="apply-field-label apply-role-label">申请身份（可多选{{mustPickRole ? '，至少选一个' : '，不选则只开通提现账户'}}）</view>
               <view class="apply-roles">
                 <view wx:for="{{roleOptions}}" wx:key="key" class="apply-role {{item.picked ? 'is-picked' : ''}}" bindtap="toggleRole" data-key="{{item.key}}" role="checkbox" aria-checked="{{item.picked}}">
                   <view class="apply-role-head">

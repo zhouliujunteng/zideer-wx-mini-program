@@ -108,7 +108,7 @@ Page({
     if (rolePending) state = 'role-pending'
     else if (zionState === 'active') state = roleOptions.length ? 'form' : 'active'
     const step = view.currentStep(data)
-    extra = { ...extra, roleOptions, heldRoleText: (roles.roles || []).map((item) => item.label).join('、'), rolePending, roleRejectNotice, pickedCount: picked.size, promoterActive: zionState === 'active' }
+    extra = { ...extra, roleOptions, heldRoleText: (roles.roles || []).map((item) => item.label).join('、'), rolePending, roleRejectNotice, pickedCount: picked.size, promoterActive: zionState === 'active', mustPickRole: zionState === 'active' || !(roles.roles || []).length }
     this.setData({
       ...extra,
       loadState: 'ready',
@@ -122,8 +122,9 @@ Page({
   },
 
   updateSubmitState() {
-    // 已是推广伙伴的必须勾至少一个身份；还没开通的可以只申请推广伙伴（提现账户）
-    const rolesOk = this.data.promoterActive ? this.data.pickedCount > 0 : true
+    // 已是推广伙伴、或一个代理身份都没有的，必须勾至少一个身份（2026-11-14：不勾也能提交时，有人以为申请了爱心妈妈、其实只交了提现账户申请）；
+    // 已有代理身份、还没开通推广伙伴的（比如团长代申请进来的）可以只申请提现账户
+    const rolesOk = this.data.mustPickRole && this.data.roleOptions.length ? this.data.pickedCount > 0 : true
     const canSubmit = this.data.step === 2 && !this.data.submitting && rolesOk && view.PHONE_PATTERN.test(view.normalizePhone(this.data.phone))
     if (canSubmit !== this.data.canSubmit) this.setData({ canSubmit })
   },
