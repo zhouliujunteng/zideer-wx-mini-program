@@ -87,12 +87,17 @@
           <view class="ft-heading"><text class="ft-no">2</text>免费诊断会议</view>
           <view class="ft-card">
             <block wx:if="{{view.meeting.status === 'none'}}">
-              <text class="ft-tip">老师和孩子一起把卡点确认一遍，定一个分步补的方案。写上方便的时间和想解决的问题，平台会安排老师。</text>
+              <text class="ft-tip">老师和孩子一起把卡点确认一遍，定一个分步补的方案。选好给哪个孩子约，写上方便的时间和想解决的问题，提交后服务老师会接单。</text>
+              <view wx:if="{{!view.children.length}}" class="ft-empty">这个家庭还没有绑定孩子。请家长先在小程序绑定孩子，或给孩子创建网页端账号，再来申请。</view>
+              <view wx:else class="ft-chips">
+                <view wx:for="{{view.children}}" wx:key="studentProfileId" class="ft-chip {{meetingChild === item.studentProfileId ? 'is-on' : ''}}" bindtap="pickMeetingChild" data-id="{{item.studentProfileId}}" aria-role="radio" aria-checked="{{meetingChild === item.studentProfileId}}">{{item.label}}</view>
+              </view>
               <textarea class="ft-textarea" maxlength="300" value="{{meetingNote}}" placeholder="例如：周六上午方便，想解决分数计算老出错" placeholder-class="ft-placeholder" bindinput="handleMeetingInput" disabled="{{meetingSubmitting}}" auto-height />
-              <view class="ft-button ft-block {{meetingSubmitting ? 'is-disabled' : ''}}" bindtap="handleMeeting" aria-role="button">{{meetingSubmitting ? '提交中…' : '申请免费诊断会议'}}</view>
+              <view class="ft-button ft-block {{meetingSubmitting || !view.children.length ? 'is-disabled' : ''}}" bindtap="handleMeeting" aria-role="button">{{meetingSubmitting ? '提交中…' : '申请免费诊断会议'}}</view>
             </block>
             <block wx:else>
               <view class="ft-status"><text class="ft-dot {{view.meeting.status === 'arranged' ? 'is-done' : 'is-wait'}}"></text>{{view.meetingText}}</view>
+              <text wx:if="{{view.meetingChildText}}" class="ft-tip">孩子：{{view.meetingChildText}}</text>
               <text class="ft-tip">申请时写的：{{view.meeting.note}}</text>
               <text wx:if="{{view.meeting.adminNote}}" class="ft-tip">平台说明：{{view.meeting.adminNote}}</text>
             </block>

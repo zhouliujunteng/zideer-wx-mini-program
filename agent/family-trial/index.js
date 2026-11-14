@@ -46,6 +46,7 @@ function viewOf(result) {
     result: test.result,
     script: result.script ? result.script.text : '',
     meeting: result.meeting || { status: 'none' },
+    meetingChildText: ((result.meeting || {}).children || []).map(childLabel).join('、'),
     meetingText: meetingText(result.meeting || {}),
     lessons: result.lessons || { used: 0, limit: 3 }
   }
@@ -65,6 +66,8 @@ Page({
     scriptLoading: false,
     scriptError: '',
     reportLoading: false,
+    // 给哪个孩子约诊断会议：老师接单后加到自己学生里的就是这个孩子
+    meetingChild: 0,
     meetingNote: '',
     meetingSubmitting: false
   },
@@ -83,7 +86,11 @@ Page({
     const pickedChild = this.data.pickedChild && view.children.some((c) => c.studentProfileId === this.data.pickedChild)
       ? this.data.pickedChild
       : current || (view.children.length === 1 ? view.children[0].studentProfileId : 0)
-    this.setData({ loaded: true, loadFailed: false, view, pickedChild })
+    // 约会议的孩子：选过的保留；没选过默认做免费测评的那个孩子，只有一个孩子就是他
+    const meetingChild = this.data.meetingChild && view.children.some((c) => c.studentProfileId === this.data.meetingChild)
+      ? this.data.meetingChild
+      : current || (view.children.length === 1 ? view.children[0].studentProfileId : 0)
+    this.setData({ loaded: true, loadFailed: false, view, pickedChild, meetingChild })
   },
   async load() {
     try {
@@ -154,16 +161,23 @@ Page({
     const text = this.data.view && this.data.view.script
     if (text) wx.setClipboardData({ data: text })
   },
+  pickMeetingChild(event) {
+    if (!this.data.meetingSubmitting) this.setData({ meetingChild: Number(event.currentTarget.dataset.id) || 0 })
+  },
   handleMeetingInput(event) {
     this.setData({ meetingNote: String(event.detail.value || '') })
   },
   async handleMeeting() {
     const note = this.data.meetingNote.trim()
     if (this.data.meetingSubmitting) return
+    const view = this.data.view
+    if (!view || !view.children.length) return wx.showToast({ title: '请家长先绑定孩子，再申请诊断会议', icon: 'none' })
+    const child = view.children.find((c) => c.studentProfileId === this.data.meetingChild)
+    if (!child) return wx.showToast({ title: '请先选给哪个孩子约', icon: 'none' })
     if (!note) return wx.showToast({ title: '请写一下方便的时间和想解决的问题', icon: 'none' })
     this.setData({ meetingSubmitting: true })
     try {
-      this.apply(await requestAgentTrialMeeting(this.guardianPublicId, note))
+      this.apply(await requestAgentTrialMeeting(this.guardianPublicId, note, child.studentProfileId))
       this.setData({ meetingNote: '' })
       wx.showToast({ title: '已提交申请', icon: 'success' })
     } catch (error) {

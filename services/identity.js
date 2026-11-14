@@ -1275,10 +1275,11 @@ async function openAgentTrialTest(guardianPublicId, studentProfileId) {
   })
 }
 
-async function requestAgentTrialMeeting(guardianPublicId, note) {
+// studentProfileId：给哪个孩子约（2026-11-13）。老师接单后绑到自己名下的就是这个孩子。
+async function requestAgentTrialMeeting(guardianPublicId, note, studentProfileId) {
   const token = await getRuntimeToken()
   return requestAgentCourses('/api/learn/agent-trial', token, {
-    method: 'POST', data: { operation: 'request_meeting', guardianPublicId: String(guardianPublicId || ''), note: String(note || '').trim() }, fallbackMessage: '申请没有提交成功，请稍后重试。'
+    method: 'POST', data: { operation: 'request_meeting', guardianPublicId: String(guardianPublicId || ''), note: String(note || '').trim(), studentProfileId: Number(studentProfileId) || undefined }, fallbackMessage: '申请没有提交成功，请稍后重试。'
   })
 }
 

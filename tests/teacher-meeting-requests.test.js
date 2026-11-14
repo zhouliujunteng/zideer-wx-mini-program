@@ -140,3 +140,69 @@ test('代理「免费体验」页写出是哪位老师接了单', () => {
   assert.match(source, /已接单，会联系你约具体时间/)
   assert.match(source, /已通知服务老师，等老师接单/)
 })
+
+// 代理申请时选中孩子（2026-11-13 用户规则）：老师接单后绑到自己名下的就是这个孩子。
+function loadFamilyTrial(service) {
+  let definition
+  const calls = { toasts: [] }
+  vm.runInNewContext(read('agent/family-trial/index.js'), {
+    Page(config) { definition = config },
+    getCurrentPages: () => [{}, {}],
+    console,
+    wx: {
+      getWindowInfo: () => ({ windowWidth: 390, statusBarHeight: 44 }),
+      getMenuButtonBoundingClientRect: () => ({ top: 48, height: 32 }),
+      showToast: (options) => calls.toasts.push(options.title)
+    },
+    require(name) {
+      if (name.endsWith('/identity')) return service
+      if (name.endsWith('/grade-name')) return require('../utils/grade-name')
+      if (name.endsWith('/screen')) return require('../utils/screen')
+      if (name.endsWith('/ui-assets')) return { attachUiAssets: () => Promise.resolve({}) }
+      throw new Error(`Unexpected import ${name}`)
+    }
+  })
+  const page = { ...definition, data: JSON.parse(JSON.stringify(definition.data)), setData(patch) { Object.assign(this.data, patch) } }
+  page.onLoad({ guardianPublicId: '100010' })
+  return { page, calls }
+}
+const family = (extra = {}) => ({
+  family: { publicId: '100010', name: '张家长' },
+  children: [{ studentProfileId: 601, name: '张一', grade: 5 }, { studentProfileId: 602, name: '张二', grade: 3 }],
+  test: { state: 'none', child: null }, meeting: { status: 'none' }, lessons: { used: 0, limit: 3 }, ...extra
+})
+
+test('申请诊断会议要先选孩子，提交时带上这个孩子；默认是做免费测评的那个孩子', async () => {
+  const sent = []
+  const { page, calls } = loadFamilyTrial({
+    loadAgentTrial: async () => family(),
+    requestAgentTrialMeeting: async (...args) => {
+      sent.push(args)
+      return family({ meeting: { status: 'requested', note: args[1], children: [{ studentProfileId: 602, name: '张二', grade: 3 }], teacherName: '' } })
+    }
+  })
+  await page.load()
+  assert.equal(page.data.meetingChild, 0)
+  page.handleMeetingInput({ detail: { value: '周六上午，分数计算' } })
+  await page.handleMeeting()
+  assert.deepEqual(calls.toasts, ['请先选给哪个孩子约'])
+  assert.equal(sent.length, 0)
+  page.pickMeetingChild({ currentTarget: { dataset: { id: 602 } } })
+  await page.handleMeeting()
+  assert.deepEqual(sent, [['100010', '周六上午，分数计算', 602]])
+  assert.equal(page.data.view.meetingChildText, '张二 · 小学三年级')
+  assert.equal(page.data.view.meetingText, '已申请，已通知服务老师，等老师接单')
+
+  const withTest = loadFamilyTrial({ loadAgentTrial: async () => family({ test: { state: 'waiting', child: { studentProfileId: 601, name: '张一' } } }) })
+  await withTest.page.load()
+  assert.equal(withTest.page.data.meetingChild, 601)
+
+  const noChild = loadFamilyTrial({ loadAgentTrial: async () => family({ children: [] }), requestAgentTrialMeeting: async () => { throw new Error('should not be called') } })
+  await noChild.page.load()
+  noChild.page.handleMeetingInput({ detail: { value: '周六' } })
+  await noChild.page.handleMeeting()
+  assert.match(noChild.calls.toasts[0], /先绑定孩子/)
+
+  assert.match(read('agent/family-trial/index.wxml'), /bindtap="pickMeetingChild"/)
+  assert.match(read('services/identity.js'), /operation: 'request_meeting'[^\n]*studentProfileId: Number\(studentProfileId\) \|\| undefined/)
+})

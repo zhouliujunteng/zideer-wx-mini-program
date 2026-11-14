@@ -10,7 +10,7 @@
 
   <view class="mr-hero" style="padding-top: {{statusBarHeight + navigationBarHeight}}px;">
     <text class="mr-hero-title">待接单的诊断会议</text>
-    <text class="mr-hero-copy">代理替家庭申请的免费诊断会议。一条申请只能一位老师接，接单后孩子会加到你的学生里。</text>
+    <text class="mr-hero-copy">代理替孩子申请的免费诊断会议。一条申请只能一位老师接，接单后这个孩子会加到你的学生里。</text>
   </view>
 
   <view class="mr-panel">
