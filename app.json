@@ -57,7 +57,8 @@
         "assessment-report/index",
         "study-plan/index",
         "study-reminder/index",
-        "parent-report/index"
+        "parent-report/index",
+        "meeting-requests/index"
       ]
     },
     {

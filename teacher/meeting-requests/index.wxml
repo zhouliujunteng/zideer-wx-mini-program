@@ -1,0 +1,65 @@
+<!-- 待接单的诊断会议：与老师工作台同一套样式。蓝色渐变头部写说明，#FAFAFA 面板里先列待接单的申请，再列我接了的。 -->
+<view class="mr-root">
+  <view class="mr-ambient" aria-hidden="true"></view>
+  <view class="mr-topbar">
+    <view class="mr-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="mr-back" bindtap="goBack" aria-label="返回上一页" aria-role="button"><view class="mr-back-icon"></view></view>
+      <text class="mr-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">诊断会议接单</text>
+    </view>
+  </view>
+
+  <view class="mr-hero" style="padding-top: {{statusBarHeight + navigationBarHeight}}px;">
+    <text class="mr-hero-title">待接单的诊断会议</text>
+    <text class="mr-hero-copy">代理替家庭申请的免费诊断会议。一条申请只能一位老师接，接单后孩子会加到你的学生里。</text>
+  </view>
+
+  <view class="mr-panel">
+    <view wx:if="{{failed && !loaded}}" class="card empty-card">
+      <text class="empty-title">暂时读不到</text>
+      <text class="empty-copy">{{error}}</text>
+      <view class="empty-retry" bindtap="loadPage" aria-role="button">重新加载</view>
+    </view>
+    <scroll-view wx:else class="mr-list" scroll-y show-scrollbar="false" enhanced="{{true}}" refresher-enabled="{{true}}" refresher-default-style="black" refresher-background="#FAFAFA" refresher-triggered="{{refreshing}}" bindrefresherrefresh="handleRefresh">
+      <view class="mr-list-inner">
+        <view class="section-heading"><text>待接单</text><text wx:if="{{loaded}}" class="section-caption">{{open.length ? open.length + ' 条' : ''}}</text></view>
+        <block wx:if="{{!loaded}}">
+          <view wx:for="{{[1, 2]}}" wx:key="*this" class="card request-card">
+            <view class="sk sk-line sk-short"></view>
+            <view class="sk sk-line sk-mid request-sk"></view>
+            <view class="sk sk-line request-sk"></view>
+          </view>
+        </block>
+        <view wx:elif="{{!open.length}}" class="card empty-card">
+          <text class="empty-title">现在没有待接单的申请</text>
+          <text class="empty-copy">有新的申请时，服务号会通知你。</text>
+        </view>
+        <block wx:else>
+          <view wx:for="{{open}}" wx:key="guardianPublicId" class="card request-card">
+            <view class="request-head">
+              <text class="request-name">{{item.guardianName}} 家</text>
+              <text class="request-time">{{item.waitText}}</text>
+            </view>
+            <text class="request-meta">孩子：{{item.childrenText}}</text>
+            <text wx:if="{{item.agentText}}" class="request-meta">{{item.agentText}}</text>
+            <view class="request-note"><text class="request-note-label">方便的时间、想解决的问题</text><text class="request-note-text" user-select>{{item.note}}</text></view>
+            <view class="request-action {{claiming || !item.hasChild ? 'is-disabled' : ''}}" data-id="{{item.guardianPublicId}}" bindtap="handleClaim" aria-role="button">{{claiming === item.guardianPublicId ? '接单中…' : item.hasChild ? '接单' : '家长还没绑定孩子'}}</view>
+          </view>
+        </block>
+
+        <block wx:if="{{loaded && mine.length}}">
+          <view class="section-heading mine-heading"><text>我接的</text><text class="section-caption">{{mine.length}} 条</text></view>
+          <view wx:for="{{mine}}" wx:key="guardianPublicId" class="card request-card" data-id="{{item.guardianPublicId}}" bindtap="openStudent" aria-role="button" aria-label="{{item.guardianName}} 家，{{item.stateText}}">
+            <view class="request-head">
+              <text class="request-name">{{item.guardianName}} 家</text>
+              <text class="request-badge {{item.state === 'arranged' ? 'is-done' : ''}}">{{item.stateText}}</text>
+            </view>
+            <text class="request-meta">孩子：{{item.childrenText}}</text>
+            <view class="request-note"><text class="request-note-label">方便的时间、想解决的问题</text><text class="request-note-text" user-select>{{item.note}}</text></view>
+            <text wx:if="{{item.state === 'claimed'}}" class="request-next">点这里进学生详情，预约诊断会议</text>
+          </view>
+        </block>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+<dev-reset-fab />

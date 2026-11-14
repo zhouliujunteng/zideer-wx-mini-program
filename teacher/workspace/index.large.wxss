@@ -39,6 +39,10 @@ page{height:100%}
 .student-date{flex:none;margin-left:9px;font-size:12px}
 .student-arrow{width:8px;height:8px;margin:0 3px 0 10px;flex:0 0 8px;border-top:1px solid #B3BBB5;border-right:1px solid #B3BBB5}
 .section-note{margin-top:4px;font-size:12px;line-height:1.6}
+.meeting-entry{flex:0 0 auto;margin:0 16px 12px;padding:13px 15px}
+.meeting-entry-copy{min-width:0;flex:1}
+.meeting-entry-title{font-size:16px;font-weight:600;line-height:1.35}
+.meeting-entry-meta{margin-top:3px;font-size:12px;line-height:1.4}
 .ws-tabs{flex:0 0 auto;gap:8px;padding:0 19px 12px}
 .ws-tab{height:36px;padding:0 15px;border-radius:599px;font-size:13px;font-weight:600}
 .ws-tab-count{min-width:19px;height:19px;margin-left:6px;padding:0 4px;border-radius:599px;font-size:11px;line-height:19px}

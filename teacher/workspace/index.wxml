@@ -33,6 +33,15 @@
         </view>
         <view class="heading-action" bindtap="openAddStudent" aria-role="button">+ 添加学生</view>
       </view>
+      <!-- 诊断会议接单（2026-11-13）：代理申请的免费诊断会议，老师自己接单；有待接单的显示条数 -->
+      <view class="card meeting-entry" bindtap="openMeetingRequests" aria-role="button" aria-label="诊断会议接单">
+        <view class="meeting-entry-copy">
+          <text class="meeting-entry-title">诊断会议接单</text>
+          <text class="meeting-entry-meta">{{meetingOpenCount ? '有 ' + meetingOpenCount + ' 个家庭在等老师接单' : meetingTodoCount ? '你接的 ' + meetingTodoCount + ' 个家庭还没约会议' : '代理申请的免费诊断会议，在这里接单'}}</text>
+        </view>
+        <text wx:if="{{meetingOpenCount}}" class="ws-tab-count">{{meetingOpenCount}}</text>
+        <view class="student-arrow" aria-hidden="true"></view>
+      </view>
       <!-- 分类（2026-10-09）：「没完成任务」= 前几天老师排的学习任务没学完的学生，点进去生成催学的话 -->
       <view class="ws-tabs" role="tablist">
         <view class="ws-tab {{tab === 'all' ? 'is-active' : ''}}" data-tab="all" bindtap="switchTab" aria-role="tab">全部</view>

@@ -24,6 +24,13 @@ const MEETING_TEXT = {
   closed: '平台已关闭这次申请'
 }
 
+// 已申请：还没有老师接单时等老师接单；有老师接了写出是哪位老师（2026-11-13 诊断会议派单）。
+function meetingText(meeting) {
+  if (meeting.status === 'requested') return meeting.teacherName ? `${meeting.teacherName}已接单，会联系你约具体时间` : '已申请，已通知服务老师，等老师接单'
+  if (meeting.status === 'arranged') return meeting.teacherName ? `${meeting.teacherName}已约好会议` : MEETING_TEXT.arranged
+  return MEETING_TEXT[meeting.status] || ''
+}
+
 function childLabel(child) {
   return [child.name, child.grade ? gradeName(child.grade) : ''].filter(Boolean).join(' · ')
 }
@@ -39,7 +46,7 @@ function viewOf(result) {
     result: test.result,
     script: result.script ? result.script.text : '',
     meeting: result.meeting || { status: 'none' },
-    meetingText: MEETING_TEXT[(result.meeting || {}).status] || '',
+    meetingText: meetingText(result.meeting || {}),
     lessons: result.lessons || { used: 0, limit: 3 }
   }
 }

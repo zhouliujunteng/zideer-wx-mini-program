@@ -585,6 +585,13 @@ function requestAgentCourses(path, token, options = {}) {
         SCRIPT_UNAVAILABLE: '话术没有写好，请再点一次。',
         MEETING_NOTE_REQUIRED: '请写一下方便的时间和想解决的问题。',
         TRIAL_MEETING_USED: '这个家庭已经申请过免费诊断会议了。',
+        // 诊断会议派单（课程服务 lib/agent-trial/meeting-dispatch.ts，2026-11-13）
+        MEETING_TAKEN: '这条申请刚被别的老师接走了。',
+        MEETING_ALREADY_MINE: '这条申请你已经接了。',
+        MEETING_REQUEST_NOT_FOUND: '这条申请已经安排或撤回了。',
+        FAMILY_NO_CHILD: '这个家庭还没有绑定孩子，暂时接不了。',
+        TEACHER_CAPACITY_FULL: '你负责的学生已达上限，暂时接不了，请联系平台调整。',
+        MEETING_REQUESTS_UNAVAILABLE: '待接单的诊断会议暂时读不到，请稍后重试。',
         // 闯关学习（课程服务 lib/course/homework/practice.ts、quest-path.ts，2026-11-11）
         PRACTICE_REQUIRED: '先把这节课的互动练习闯过去，再来找老师验收。',
         PRACTICE_STALE: '这道题已经答过了，正在刷新。',
@@ -902,6 +909,49 @@ async function loadTeacherStudyAlerts() {
       carryDay: String(item.carryDay || ''),
       titles: Array.isArray(item.titles) ? item.titles.map(String) : []
     }))
+  }
+}
+
+// 诊断会议派单（2026-11-13）：代理申请了免费诊断会议的家庭，服务老师自己接单；接单后这个家庭的孩子绑到自己名下。
+function meetingRequestRows(list) {
+  return (Array.isArray(list) ? list : []).filter((item) => item && item.guardianPublicId).map((item) => ({
+    guardianPublicId: String(item.guardianPublicId),
+    guardianName: String(item.guardianName || '未命名'),
+    children: (Array.isArray(item.children) ? item.children : []).map((child) => ({
+      studentProfileId: String(child.studentProfileId || ''),
+      name: String(child.name || '未命名'),
+      grade: child.grade || null
+    })),
+    agentName: String((item.agent && item.agent.name) || ''),
+    note: String(item.note || ''),
+    requestedAt: String(item.requestedAt || ''),
+    claimedAt: String(item.claimedAt || ''),
+    state: ['open', 'claimed', 'arranged'].includes(item.state) ? item.state : 'open'
+  }))
+}
+
+/** 待接单的诊断会议申请（open）与我接了的（mine）。 */
+async function loadTeacherMeetingRequests() {
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses('/api/teacher/meeting-requests', token, { timeout: 20000, fallbackMessage: '待接单的诊断会议暂时读不到，请稍后重试。' })
+  return { open: meetingRequestRows(data.open), mine: meetingRequestRows(data.mine) }
+}
+
+/** 接单：一条申请只能一位老师接。成功后回最新的两张列表和绑到我名下的学生。 */
+async function claimTeacherMeetingRequest(guardianPublicId) {
+  const id = String(guardianPublicId || '')
+  if (!/^[0-9]{4,12}$/.test(id)) throw new Error('申请信息不完整，请刷新后重试。')
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses('/api/teacher/meeting-requests', token, {
+    method: 'POST',
+    data: { operation: 'claim', guardianPublicId: id },
+    timeout: 30000,
+    fallbackMessage: '接单没有成功，请稍后重试。'
+  })
+  return {
+    students: (Array.isArray(data.students) ? data.students : []).map((s) => ({ studentProfileId: String(s.studentProfileId || ''), name: String(s.name || '未命名') })),
+    open: meetingRequestRows(data.open),
+    mine: meetingRequestRows(data.mine)
   }
 }
 
@@ -4813,6 +4863,8 @@ module.exports = {
   loadTeacherStudyPlan,
   updateTeacherStudyPlan,
   loadTeacherStudyAlerts,
+  loadTeacherMeetingRequests,
+  claimTeacherMeetingRequest,
   loadTeacherStudyReminder,
   createTeacherStudyReminder,
   loadTeacherParentReports,

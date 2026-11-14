@@ -1,4 +1,4 @@
-const { loadCurrentTeacherWorkspace, loadTeacherStudyAlerts } = require('../../services/identity')
+const { loadCurrentTeacherWorkspace, loadTeacherStudyAlerts, loadTeacherMeetingRequests } = require('../../services/identity')
 const { attachUiAssets } = require('../../services/ui-assets')
 const { gradeName } = require('../../utils/grade-name')
 const { dayDiff, monthDay } = require('../../utils/study-plan-view')
@@ -61,7 +61,10 @@ Page({
     alertsError: '',
     alertsFailedCount: 0,
     alertCount: 0,
-    visibleAlerts: []
+    visibleAlerts: [],
+    // 诊断会议接单（2026-11-13）：待接单几条、我接了还没约好的几条；读不到就不显示数字，入口照常在
+    meetingOpenCount: 0,
+    meetingTodoCount: 0
   },
   onLoad() {
     attachUiAssets(this)
@@ -74,12 +77,21 @@ Page({
   onShow() {
     this.loadPage()
     this.loadAlerts()
+    this.loadMeetingRequests()
   },
   async handleRefresh() {
     this.setData({ refreshing: true })
-    await Promise.all([this.loadPage(), this.loadAlerts()])
+    await Promise.all([this.loadPage(), this.loadAlerts(), this.loadMeetingRequests()])
     this.setData({ refreshing: false })
   },
+  // 代理申请的免费诊断会议：待接单的条数显示在入口上。读不到不影响名单，也不提示。
+  async loadMeetingRequests() {
+    try {
+      const result = await loadTeacherMeetingRequests()
+      this.setData({ meetingOpenCount: result.open.length, meetingTodoCount: result.mine.filter((item) => item.state === 'claimed').length })
+    } catch (error) {}
+  },
+  openMeetingRequests() { wx.navigateTo({ url: '/teacher/meeting-requests/index' }) },
   // 名单与「没完成任务」分开读：后者要读学习记录、慢一些，读不到也不影响名单。
   async loadAlerts() {
     const version = this._alertsVersion = (this._alertsVersion || 0) + 1
