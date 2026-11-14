@@ -1,1 +1,1 @@
-{"navigationBarTitleText":"我的荣誉","navigationStyle":"custom","navigationBarTextStyle":"black","backgroundColor":"#F7F4EF","disableScroll":true}
+{"navigationBarTitleText":"我的荣誉","navigationStyle":"custom","navigationBarTextStyle":"black","backgroundColor":"#FAFAF8","disableScroll":true,"usingComponents":{"honor-shine":"/components/honor-shine/index"}}

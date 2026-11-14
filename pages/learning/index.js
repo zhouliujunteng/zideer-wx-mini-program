@@ -247,14 +247,14 @@ Page({
     if (!honors) return
     const s = honors.summary
     this._honors = honors
-    const patch = { honorCount: s.trophies + s.badges + s.medals }
+    const patch = { honorCount: s.earned }
     const seen = readSeen()
     // 本机第一次看到荣誉：以前拿的都算看过，不一次弹一堆
     if (!seen) markSeen(honors)
     const fresh = freshHonors(honors, seen)
     if (fresh.length && !this.data.chestReveal && !this.data.openCard && !this.data.honorCele) {
       const first = fresh[0]
-      patch.honorCele = { kind: first.kind, title: first.title, subtitle: first.subtitle, art: first.art, number: first.number || 0, more: fresh.length - 1 }
+      patch.honorCele = { kind: first.kind, title: first.title, subtitle: first.subtitle, art: first.art, more: fresh.length - 1 }
       this._celeKeys = fresh.map((item) => item.key)
       try { wx.vibrateShort({ type: 'heavy' }) } catch (error) { /* 没有震动也照常 */ }
     }

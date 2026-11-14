@@ -1,0 +1,6 @@
+/* 尺寸由使用的页面给 honor-shine 标签定（宽高相等） */
+:host { display: block; }
+.hs { position: relative; width: 100%; height: 100%; }
+.hs-image { position: absolute; top: 10%; left: 10%; width: 80%; height: 80%; }
+.hs-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; }
+.hs-canvas.is-on { opacity: 1; }

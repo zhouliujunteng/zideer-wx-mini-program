@@ -776,10 +776,11 @@ async function retryAgentCoursePractice(stageId) {
 }
 
 /** 学习页闯关路径（课程服务 /api/learn/quest-path）：{ path: { goal, stages, current, stats } }。
+ * honors=2：随路径回来的荣誉要第二版（2026-11-13：统一的奖杯和勋章，不跟课程内容走）。
  * onboarding=2：这一版认识入门第二关「围绕目标测评」（2026-11-13）；不带的旧版小程序拿到的第二关还是「设置学习偏好」。 */
 async function loadQuestPath() {
   const token = await getRuntimeToken()
-  const data = await requestAgentCourses('/api/learn/quest-path?onboarding=2', token, { timeout: 20000, fallbackMessage: '学习路径暂时无法读取，请稍后重试。' })
+  const data = await requestAgentCourses('/api/learn/quest-path?onboarding=2&honors=2', token, { timeout: 20000, fallbackMessage: '学习路径暂时无法读取，请稍后重试。' })
   const path = data && data.path
   // 荣誉（2026-11-11 晚）随路径一起回来；旧版课程服务没有
   if (path && typeof path === 'object' && data.honors) path.honors = data.honors
@@ -787,12 +788,12 @@ async function loadQuestPath() {
 }
 
 /**
- * 我的荣誉（课程服务 /api/learn/honors，2026-11-11 晚）：{ summary, trophies, badges, medals }。
+ * 我的荣誉（课程服务 /api/learn/honors?honors=2，2026-11-13 第二版）：{ version: 2, summary, cups, medals }。
  * 学习页的闯关路径回包里也带一份（loadQuestPath 返回的 path.honors），用来显示顶栏数字和「新获得」。
  */
 async function loadHonors() {
   const token = await getRuntimeToken()
-  const data = await requestAgentCourses('/api/learn/honors', token, { timeout: 20000, fallbackMessage: '荣誉暂时读不到，请稍后重试。' })
+  const data = await requestAgentCourses('/api/learn/honors?honors=2', token, { timeout: 20000, fallbackMessage: '荣誉暂时读不到，请稍后重试。' })
   return data && data.honors
 }
 

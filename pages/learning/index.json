@@ -3,6 +3,7 @@
   "enablePullDownRefresh": true,
   "usingComponents": {
     "streak-entry": "/components/streak-entry/index",
-    "card-reveal": "/components/card-reveal/index"
+    "card-reveal": "/components/card-reveal/index",
+    "honor-shine": "/components/honor-shine/index"
   }
 }

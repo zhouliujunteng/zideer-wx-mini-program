@@ -366,13 +366,11 @@ page{background:#FAFAFA}
 .lp-stat-book{width:18px;height:19px;border-radius:2px 4px 4px 2px;background:#3E8BF0;box-shadow:inset 3px 0 0 #2A6CC4}
 .lp-stat-book::after{top:4px;right:3px;left:6px;height:2px;border-radius:1px;background:rgba(255, 255, 255, .85);box-shadow:0 4px 0 rgba(255, 255, 255, .85)}
 .lp-stat-avatar{width:24px;height:24px;border-radius:50%}
-.lp-stat-trophy{width:20px;height:25px}
+.lp-stat-trophy{width:26px;height:26px}
 .honor-cele{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);flex-direction:column;padding:0 38px;background:rgba(20, 16, 36, .82);box-shadow:0 0 0 100vmax rgba(20, 16, 36, .82)}
 .honor-cele-stage{width:312px;height:276px}
 .honor-cele-rays{top:50%;left:50%;width:372px;height:372px;margin:-186px 0 0 -186px;border-radius:50%;background:radial-gradient(circle, rgba(255, 214, 110, .6) 0, rgba(255, 214, 110, 0) 60%), repeating-conic-gradient(from 0deg, rgba(255, 196, 70, .3) 0deg 10deg, rgba(255, 196, 70, 0) 10deg 24deg);-webkit-mask:radial-gradient(circle, #000 30%, transparent 70%);mask:radial-gradient(circle, #000 30%, transparent 70%)}
-.honor-cele-art{width:180px;height:222px}
-.honor-cele-art.kind-badge{height:198px}
-.honor-cele-no{top:99px;left:0;right:0;font-size:43px;font-weight:800;line-height:48px;text-align:center}
+.honor-cele-art{width:264px;height:264px}
 .honor-cele-spark{width:10px;height:10px;border-radius:2px;background:#FFD45C;transform:rotate(45deg)}
 .honor-cele-spark.spark-0{top:36px;left:66px}
 .honor-cele-spark.spark-1{top:54px;right:54px;background:#FFFFFF}

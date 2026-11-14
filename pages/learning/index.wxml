@@ -18,7 +18,7 @@
         </view>
         <!-- 我的荣誉（2026-11-11 晚）：奖杯 + 徽章 + 勋章总数 -->
         <view class="lp-stat" bindtap="openHonors" role="button" aria-label="我的荣誉，共 {{honorCount}} 项">
-          <image class="lp-stat-trophy" src="{{UA.src(ui, '/assets/honors/trophy-gold.svg')}}" mode="aspectFit"></image>
+          <image class="lp-stat-trophy" src="{{UA.src(ui, '/assets/honors/v2/cup-quest-3.png')}}" mode="aspectFit"></image>
           <text class="lp-stat-num {{honorCount ? '' : 'is-zero'}}">{{honorCount}}</text>
         </view>
         <view class="lp-stat" bindtap="openLibrary" role="button" aria-label="课程库">
@@ -181,13 +181,12 @@
   <view class="honor-cele-stage">
     <view class="honor-cele-rays" aria-hidden="true"></view>
     <view wx:for="{{[0, 1, 2, 3, 4, 5]}}" wx:key="*this" class="honor-cele-spark spark-{{item}}" aria-hidden="true"></view>
-    <image class="honor-cele-art kind-{{honorCele.kind}}" src="{{UA.src(ui, honorCele.art)}}" mode="aspectFit"></image>
-    <text wx:if="{{honorCele.kind === 'badge'}}" class="honor-cele-no">{{honorCele.number}}</text>
+    <honor-shine class="honor-cele-art" src="{{UA.src(ui, honorCele.art)}}" />
   </view>
   <text class="honor-cele-kicker">{{honorCele.subtitle}}</text>
   <text class="honor-cele-title">{{honorCele.title}}</text>
   <text wx:if="{{honorCele.more}}" class="honor-cele-more">还有 {{honorCele.more}} 项新荣誉</text>
-  <view class="chest-button" bindtap="openHonorsFromCele" role="button">去荣誉殿堂</view>
+  <view class="chest-button" bindtap="openHonorsFromCele" role="button">去看我的荣誉</view>
   <view class="chest-secondary" bindtap="closeHonorCele" role="button">继续闯关</view>
 </view>
 <card-reveal wx:if="{{openCard}}" card="{{openCard}}" series="{{openSeries}}" mode="detail" origin="{{openOrigin}}" bind:close="handleRevealClose" bind:drawn="handleDrawn" bind:stale="loadCards" />

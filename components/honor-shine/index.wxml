@@ -1,0 +1,6 @@
+<!-- 能「拿在手里转」的奖杯 / 勋章：随手机转动倾斜、反光；也能用手指拖。画法在 utils/honor-shine.js。 -->
+<view class="hs" bindtouchstart="onTouchStart" catchtouchmove="onTouchMove" bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd">
+  <!-- 画布画出第一帧之前、或画布用不了时，先用图顶着 -->
+  <image wx:if="{{!painted}}" class="hs-image" src="{{src}}" mode="aspectFit"></image>
+  <canvas wx:if="{{src}}" type="2d" id="hs-canvas" class="hs-canvas {{painted ? 'is-on' : ''}}" disable-scroll="{{true}}"></canvas>
+</view>
