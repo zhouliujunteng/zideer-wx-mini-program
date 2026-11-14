@@ -206,3 +206,23 @@ test('代理身份：已是推广伙伴还能申请没开通的身份，必须�
   assert.equal(page.data.state, 'role-pending')
   assert.equal(page.data.rolePending.roleText, '爱心妈妈团团长')
 })
+
+test('代理身份：一个身份都没有的人不勾身份不能提交，灰按钮点了也不发申请；已有身份的可以只申请提现账户', async () => {
+  const fresh = loadPage({ roles: rolesOverview({ roles: [] }) })
+  await fresh.page.onShow()
+  fresh.page.handlePhoneInput({ detail: { value: '13800000000' } })
+  assert.equal(fresh.page.data.mustPickRole, true)
+  assert.equal(fresh.page.data.canSubmit, false)
+  await fresh.page.handleSubmit()
+  assert.equal(fresh.calls.roleApply.length, 0)
+  assert.equal(fresh.calls.apply.length, 0, '不勾身份时连提现账户申请也不发')
+
+  const held = loadPage({ roles: rolesOverview({ roles: [{ key: 'love_mom', label: '爱心妈妈' }] }) })
+  await held.page.onShow()
+  held.page.handlePhoneInput({ detail: { value: '13800000000' } })
+  assert.equal(held.page.data.mustPickRole, false)
+  assert.equal(held.page.data.canSubmit, true)
+  await held.page.handleSubmit()
+  assert.equal(held.calls.roleApply.length, 0)
+  assert.equal(held.calls.apply.length, 1)
+})

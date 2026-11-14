@@ -167,7 +167,8 @@ Page({
       return
     }
     const roles = this.data.roleOptions.filter((item) => item.picked).map((item) => item.key)
-    if (this.data.promoterActive && !roles.length) return wx.showToast({ title: '请至少选择一个身份', icon: 'none' })
+    // 灰掉的按钮照样能点（只改了颜色），所以这里再拦一次：必须勾身份的人不勾不提交
+    if (this.data.mustPickRole && this.data.roleOptions.length && !roles.length) return wx.showToast({ title: '请至少选择一个身份', icon: 'none' })
     this.setData({ submitting: true }, () => this.updateSubmitState())
     let rolesSent = false
     try {
