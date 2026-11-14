@@ -15,6 +15,7 @@ function setup(overrides = {}, storage = new Map()) {
   let id = 0
   // 付款前必传微信二维码（2026-11-11）：默认已上传
   const api = { loadFamilyWechatQr: async () => ({ uploaded: true, uploadedAt: '2026-11-11T02:00:00Z' }), loadCurrentMembership: async () => pending, createMembershipOrder: async () => pending,
+    guardianPays: async () => false, GUARDIAN_PAYS_MESSAGE: '请家长开通',
     payWechatOrder: async () => {}, isWechatPaymentCancelled: e => /cancel/.test(e.errMsg || ''), ...overrides }
   const paymentSwitch = paymentSwitchStub({ navigateTo: o => navigations.push(o.url) }, { enabled: overrides.paymentEnabled !== false })
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../commerce/membership/index.js'), 'utf8'), {
@@ -349,4 +350,18 @@ test('2026-11-11: paying needs the parent WeChat QR first; without it no order i
   assert.equal(creates, 0)
   assert.deepEqual(modals, ['先上传你的微信二维码'])
   assert.ok(navigations.includes('/account/wechat-qr/index?from=membership'), JSON.stringify(navigations))
+})
+
+test('a child bound to a guardian sees the guardian-pays notice and cannot create an order', async () => {
+  let created = 0
+  const { page } = setup({ guardianPays: async () => true, loadCurrentMembership: async () => ({ status: 'none', eligible: true, tiers, tier: null, order: null }),
+    createMembershipOrder: async () => { created++; return pending } })
+  await page.refresh()
+  await flush()
+  assert.equal(page.data.guardianPays, true)
+  assert.equal(page.data.guardianPaysText, '请家长开通')
+  await page.purchase()
+  assert.equal(created, 0)
+  const wxml = fs.readFileSync(path.join(__dirname, '../commerce/membership/index.wxml'), 'utf8')
+  assert.match(wxml, /showPlan && !guardianPays/)
 })

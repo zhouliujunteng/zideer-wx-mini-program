@@ -5,6 +5,7 @@
 //   网页付款改放在服务号菜单「我的服务 → 网页付款」（课程服务 lib/web-pay/menu-pay.ts），小程序里不提。
 // 选哪种由课程服务 /api/learn/mini-pay 现判（lib/mini-pay/service.ts），每次付款前都问一次，后台一改立即生效。
 // 虚拟支付到账靠微信发货推送 → 课程服务 → Zion「网页付款记账」登记发货；付完这里再问几次，顺带让课程服务查单补登记。
+const { guardianPays, guardianPaysError } = require('./guardian-pay')
 const { requestCourseApi, payWechatOrder } = require('./identity')
 const { assertPaymentOpen } = require('./payment-switch')
 
@@ -102,6 +103,8 @@ async function confirmPaid(orderId, tries = 4) {
 // 返回 'merchant' | 'xpay'（在小程序里付完）、'paid'（这单之前已付过）。
 async function payOrder(order, kind, { onStart } = {}) {
   await assertPaymentOpen()
+  // 已绑定家长的孩子不能自己付款（services/guardian-pay.js）：继续支付旧订单也拦
+  if (await guardianPays()) throw guardianPaysError()
   const plat = platform()
   let plan
   try {

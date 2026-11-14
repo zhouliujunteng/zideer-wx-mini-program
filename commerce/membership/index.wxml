@@ -57,6 +57,11 @@
         <view class="membership-state-action" bindtap="refresh" aria-role="button">重新查询</view>
       </view>
 
+      <view wx:elif="{{guardianPays && !member.active && !confirming}}" class="membership-state">
+        <text class="membership-error">{{guardianPaysText}}</text>
+        <view class="membership-state-action" bindtap="handleBack" aria-role="button">知道了</view>
+      </view>
+
       <block wx:else>
         <view wx:if="{{member.active}}" class="active-summary">
           <view class="active-summary-copy">
@@ -70,7 +75,7 @@
           </view>
         </view>
 
-        <block wx:if="{{showPlan}}">
+        <block wx:if="{{showPlan && !guardianPays}}">
           <text wx:if="{{member.active}}" class="plans-title">升级到更高等级</text>
           <scroll-view class="plans-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
             <view class="plans-row">
@@ -89,11 +94,12 @@
           <text wx:if="{{member.active}}" class="plans-note">按所选等级原价购买，开通后再赠送该等级的积分；只能往更高等级升级，不能降级。</text>
           <text wx:else class="plans-note">会员永久有效，赠送积分永久有效；开通后可以随时升级到更高等级（按原价购买），但不能降级。</text>
         </block>
+        <view wx:elif="{{guardianPays}}" class="membership-notice">{{guardianPaysText}}</view>
         <view wx:elif="{{!member.active && !confirming}}" class="membership-notice">会员等级暂未开放，请稍后再来看看。</view>
 
         <view wx:if="{{notice}}" class="membership-notice">{{notice}}</view>
 
-        <view wx:if="{{primaryLabel}}" class="membership-action">
+        <view wx:if="{{primaryLabel && !(guardianPays && primaryAction === 'purchase')}}" class="membership-action">
           <button class="primary-button {{primaryAction ? '' : 'is-disabled'}}" bindtap="handlePrimaryAction" loading="{{paying}}" disabled="{{paying || !primaryAction}}">{{primaryLabel}}</button>
           <view wx:if="{{primaryAction === 'purchase'}}" class="agreement-row">
             <view class="agreement-checkbox {{agreementChecked ? 'agreement-checkbox-checked' : ''}}" bindtap="toggleAgreement" aria-role="checkbox" aria-checked="{{agreementChecked}}"><text wx:if="{{agreementChecked}}">✓</text></view>

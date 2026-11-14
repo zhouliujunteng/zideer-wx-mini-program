@@ -1,6 +1,7 @@
 const { loadCurrentMembership, createMembershipOrder, isWechatPaymentCancelled, loadMeDashboard, loadFamilyWechatQr } = require('../../services/identity')
 const { membershipView, benefitCards, dateText, creditsText, priceText } = require('../../services/membership-view')
 const { attachUiAssets } = require('../../services/ui-assets')
+const { guardianPays, GUARDIAN_PAYS_MESSAGE } = require('../../services/guardian-pay')
 const { checkPaymentPage, showPaymentClosed, isPaymentDisabled, leavePaymentPage, openPaymentPage } = require('../../services/payment-switch')
 // 付款方式（2026-11-13）：默认虚拟支付、iOS 可在后台改商户号（services/mini-pay.js）；小程序里不放链接付款（改在服务号菜单）
 const { payOrder } = require('../../services/mini-pay')
@@ -132,8 +133,11 @@ Page({
         if (payment === 'closed') { closed = true; return }
         if (payment === 'failed') throw new Error('网络不太稳定，请稍后再试。')
       }
+      // 已绑定家长的孩子不能自己付款（2026-11-14 用户规则）：只显示「请家长开通」，不列等级、不能下单
       const membership = await loadCurrentMembership()
+      const byGuardian = poll === true ? this.data.guardianPays : await guardianPays()
       if (!this._visible || version !== this._version) return
+      this.setData({ guardianPays: !!byGuardian, guardianPaysText: GUARDIAN_PAYS_MESSAGE })
       this.applyMembership(membership)
       if (this.data.confirming) {
         this._attempts = (this._attempts || 0) + 1
@@ -184,6 +188,7 @@ Page({
   },
   async purchase() {
     if (this._paying || this.data.confirming || this.data.loading || this.data.error || !this.data.membership || !this.data.selectedTierId) return
+    if (this.data.guardianPays) return
     if (this._checkingQr) return
     this._checkingQr = true
     const qrReady = await this.requireWechatQr().finally(() => { this._checkingQr = false })

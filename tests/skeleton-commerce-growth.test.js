@@ -179,6 +179,7 @@ test('membership hero shows skeletons instead of the neutral name until the prof
   const dashboard = controllable()
   const page = loadPage('commerce/membership/index.js', {
     '/identity': { loadCurrentMembership: () => new Promise(() => {}), loadMeDashboard: dashboard.fn },
+    '/guardian-pay': { guardianPays: async () => false, GUARDIAN_PAYS_MESSAGE: '' },
     '/membership-view': require('../services/membership-view'),
     '/referral-context': { clearPendingReferral() {} },
     '/ui-assets': { attachUiAssets() {} }

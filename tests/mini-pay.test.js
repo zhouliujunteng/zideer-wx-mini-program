@@ -5,7 +5,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 // services/mini-pay.js：按平台与课程服务的答复选付款方式（2026-11-11）
-function load({ platform = 'android', plan, planError, statuses = ['paid'], virtual = 'ok', paymentOpen = true } = {}) {
+function load({ platform = 'android', plan, planError, statuses = ['paid'], virtual = 'ok', paymentOpen = true, guardians = [] } = {}) {
   const calls = { requests: [], merchant: 0, opened: [], virtual: [], logins: 0 }
   const module = { exports: {} }
   const wx = {
@@ -31,10 +31,14 @@ function load({ platform = 'android', plan, planError, statuses = ['paid'], virt
     },
     async payWechatOrder() { calls.merchant++ }
   }
+  // services/guardian-pay.js 读家庭关系：默认没有绑定家长
+  require.cache[require.resolve('../services/identity')] = { id: 'identity-stub', filename: 'identity-stub', loaded: true, exports: { loadCurrentFamilyRelations: async () => ({ guardians }) } }
+  delete require.cache[require.resolve('../services/guardian-pay')]
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../services/mini-pay.js'), 'utf8'), {
     module, wx, setTimeout: (fn) => fn(),
     require(name) {
       if (name.endsWith('/identity')) return identity
+      if (name.endsWith('/guardian-pay')) return require('../services/guardian-pay')
       if (name.endsWith('/payment-switch')) return {
         async assertPaymentOpen() { if (!paymentOpen) throw Object.assign(new Error('closed'), { code: 'PAYMENT_DISABLED', paymentNotStarted: true }) }
       }
@@ -124,4 +128,12 @@ test('a virtual payment that fails without paying is reported as not started, wi
 test('a failed callback whose order turns out paid still counts as paid', async () => {
   const { service } = load({ plan: { method: 'xpay', payment }, virtual: 'fail', statuses: ['paid'] })
   assert.equal(await service.payOrder(order, 'membership'), 'xpay')
+})
+
+test('a child bound to a guardian cannot pay: nothing is requested and the error says the guardian pays', async () => {
+  const { service, calls } = load({ plan: { method: 'xpay', payment }, guardians: [{ id: 1 }] })
+  await assert.rejects(() => service.payOrder(order, 'membership'), (error) => error.code === 'GUARDIAN_PAYS' && error.paymentNotStarted === true && /家长/.test(error.message))
+  assert.equal(calls.requests.length, 0)
+  assert.equal(calls.virtual.length, 0)
+  assert.equal(calls.merchant, 0)
 })
