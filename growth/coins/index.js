@@ -91,13 +91,21 @@ function buildExchangeCard(available, exchange) {
   const pending = exchange && exchange.pending
   return {
     yuan: String(Math.floor(Math.max(0, Number(available) || 0) / rate)),
-    rateLabel: `${rate} 金币 = 1 元，直接转到微信零钱`,
+    rateLabel: exchange && exchange.memberRequired ? `${rate} 金币 = 1 元 · 家长绑定并开通会员后可提现` : `${rate} 金币 = 1 元，直接转到微信零钱`,
     pending: pending ? {
       requestNo: pending.requestNo,
       waiting: pending.status === 'wait_user_confirm',
       amount: yuanLabel(pending.amountFen)
     } : null
   }
+}
+
+const MEMBER_REQUIRED_MODAL = {
+  title: '开通会员后可提现',
+  content: '金币可以一直攒着。请家长在自己的小程序里绑定你、并开通会员，之后你就能把金币兑换成现金，转到微信零钱。',
+  showCancel: false,
+  confirmText: '知道了',
+  confirmColor: '#FD7C02'
 }
 
 Page({
@@ -238,6 +246,11 @@ Page({
         confirmText: '知道了',
         confirmColor: '#FD7C02'
       })
+      return
+    }
+    // 免费版不能提现（2026-11-14 用户规则）：家长绑定并开通会员后才能把金币兑成现金；服务端同样会拦
+    if (exchange.memberRequired) {
+      wx.showModal(MEMBER_REQUIRED_MODAL)
       return
     }
     const rate = exchange.coinsPerYuan

@@ -288,7 +288,7 @@ test('the assessment center marks records with the change since last time', asyn
   }
   vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'assessment/center/index.js'), 'utf8'), {
     Page: (p) => { definition = p },
-    require: (name) => name.endsWith('/identity') ? { loadAssessmentCenter: async () => center } : name.endsWith('/ui-assets') ? { attachUiAssets() {} } : require('../utils/screen'),
+    require: (name) => name.endsWith('/identity') ? { loadAssessmentCenter: async () => center } : name.endsWith('/ui-assets') ? { attachUiAssets() {} } : name.endsWith('/deep-assessment-view') ? require('../utils/deep-assessment-view') : require('../utils/screen'),
     wx: { showToast() {} }
   })
   const page = { ...definition, data: JSON.parse(JSON.stringify(definition.data)), setData(v) { Object.assign(this.data, v) } }

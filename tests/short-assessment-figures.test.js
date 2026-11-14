@@ -120,5 +120,5 @@ test('the answering template renders stem and option figures through the wxs hel
 test('option letters follow each option value, so a scrambled option array still matches the review page', async () => {
   const { page } = fixture(async () => ({ attempt: { ...drafting('stem'), current: { id: 10096, prompt: 'p', options: [{ value: 'B', label: '乙' }, { value: 'A', label: '甲' }, { value: 'C', label: '丙' }, { value: 'D', label: '丁' }] } } }))
   await page.loadPage()
-  assert.deepEqual(plain(page.data.optionList.map((o) => o.key)), ['B、', 'A、', 'C、', 'D、'])
+  assert.deepEqual(plain(page.data.optionList.map((o) => o.key)), ['B', 'A', 'C', 'D'])
 })

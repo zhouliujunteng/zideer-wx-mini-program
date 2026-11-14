@@ -16,7 +16,7 @@ function reportUrl(attemptId) { return `/assessment/report/index?attemptId=${enc
 function buildOptionList(options, answer) {
   return (options || []).map((option, index) => ({
     ...option,
-    key: `${/^[A-Z]$/.test(option.value) ? option.value : String.fromCharCode(65 + index)}、`,
+    key: /^[A-Z]$/.test(option.value) ? option.value : String.fromCharCode(65 + index),
     isSelected: option.value === answer
   }))
 }
@@ -57,7 +57,7 @@ Page({
   data: {
     // loading 只在需要换画面时为真（进入页面、切换测评）；skeleton 决定骨架画成列表还是题目。
     loading: true, skeleton: 'list', busy: false, failed: false, error: '', scopes: [], records: [],
-    attempt: null, answer: '',
+    attempt: null, answer: '', rewardPreview: 0,
     countdown: '', countdownOver: false, roundLabel: '',
     // position：正在看本轮第几题（0 起）；revisiting：翻回了已答过的题，savedAnswer 是这道题保存过的答案（跳过为空）
     segments: [], currentNumber: 0, optionList: [], position: 0, revisiting: false, savedAnswer: '',
@@ -157,7 +157,10 @@ Page({
 
   showAttempt(attempt) {
     // 已提交（本轮报告已生成）：换到报告页，答题页不再显示这次测评
-    if (attempt.status === 'submitted') { this.stopTimer(); wx.redirectTo({ url: reportUrl(attempt.id) }); return }
+    // 交完最后一轮刚发了金币（深度测评奖励，2026-11-14）：带到报告页庆祝一下
+    if (attempt.status === 'submitted') { this.stopTimer(); wx.redirectTo({ url: reportUrl(attempt.id) + (attempt.reward && attempt.reward.granted ? `&coins=${Number(attempt.reward.coins) || 0}` : '') }); return }
+    // 做完这张卷能拿多少金币：开卷、读取时服务端给，答题过程中沿用
+    if (attempt.rewardPreview !== undefined) this.setData({ rewardPreview: Number(attempt.rewardPreview) || 0 })
     this.attemptId = attempt.id
     // 每轮一条记录：换轮（换记录）时按服务端记录的本轮开始时间计算剩余时间，退出再进来也连续。
     if (attempt.status === 'draft' && attempt.current && this.roundKey !== attempt.id) {

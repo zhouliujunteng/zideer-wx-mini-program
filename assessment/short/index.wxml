@@ -3,7 +3,7 @@
   <view class="short-topbar">
     <view class="short-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
       <view class="short-back" bindtap="handleBack" aria-label="返回上一页"><view class="short-back-icon"></view></view>
-      <text class="short-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学科摸底诊断</text>
+      <text class="short-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">学科深度测评</text>
     </view>
   </view>
 
@@ -45,13 +45,14 @@
         </view>
 
         <block wx:if="{{attempt}}">
+          <view wx:if="{{rewardPreview}}" class="short-reward"><view class="short-reward-coin" aria-hidden="true"></view><text>做完这一科的全部轮次，预计获得 {{rewardPreview}} 金币</text></view>
           <view class="short-question-progress">
             <view class="short-question-progress-topline">
               <view class="short-question-count"><text class="short-question-current">{{currentNumber}}</text><text class="short-question-slash"> / </text><text class="short-question-total">{{attempt.totalQuestions}}</text></view>
               <view wx:if="{{countdown}}" class="short-countdown"><view class="short-countdown-dot"></view><text>{{countdownOver ? '本轮建议时间已到，可继续作答' : '剩余 ' + countdown}}</text></view>
             </view>
             <view class="short-progress-segments">
-              <view wx:for="{{segments}}" wx:key="id" class="short-progress-segment {{item.segmentClass}}"></view>
+              <view wx:for="{{segments}}" wx:key="id" class="short-progress-segment {{item.segmentClass}}"><view class="short-progress-shine"></view></view>
             </view>
             <view class="short-progress-meta"><text>{{attempt.scope.name}}</text><text wx:if="{{roundLabel}}">{{roundLabel}}</text><text>本轮已答 {{attempt.answeredCount}} / {{attempt.totalQuestions}} 题</text></view>
           </view>

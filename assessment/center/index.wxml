@@ -31,6 +31,52 @@
         </view>
       </view>
 
+      <!-- 深度测评金币（2026-11-14）：一共可获得 / 已获得 / 未获得，下面是金币结算规则；免费版常驻一条次数与提现说明 -->
+      <view wx:if="{{loaded && model.deep.reward}}" class="coin-card">
+        <view class="deep-banner" bindtap="showRewardRule" aria-role="button" aria-label="深度测评奖励说明">
+          <image class="deep-banner-art" src="{{UA.src(ui, '/assets/universe/deep-assessment-poster.png')}}" mode="aspectFill"></image>
+          <view class="deep-banner-copy">
+            <text class="deep-banner-title">{{model.deep.reward.headline}}</text>
+            <text class="deep-banner-sub">{{model.deep.reward.totalText}}</text>
+            <view class="deep-banner-tags">
+              <text class="deep-banner-tag is-strong">{{model.deep.reward.leftText}}</text>
+              <text class="deep-banner-tag">{{model.deep.reward.rateText}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="coin-sums">
+          <view class="coin-sum">
+            <text class="coin-sum-label">一共可获得</text>
+            <view class="coin-sum-value"><view class="coin-dot" aria-hidden="true"></view><text>{{model.deep.reward.totalCoins}}</text></view>
+            <text class="coin-sum-yuan">≈ {{model.deep.reward.totalYuan}} 元</text>
+          </view>
+          <view class="coin-sum is-earned">
+            <text class="coin-sum-label">已获得</text>
+            <view class="coin-sum-value"><view class="coin-dot" aria-hidden="true"></view><text>{{model.deep.reward.earnedCoins}}</text></view>
+            <text class="coin-sum-yuan">≈ {{model.deep.reward.earnedYuan}} 元</text>
+          </view>
+          <view class="coin-sum is-remaining">
+            <text class="coin-sum-label">未获得</text>
+            <view class="coin-sum-value"><view class="coin-dot" aria-hidden="true"></view><text>{{model.deep.reward.remainingCoins}}</text></view>
+            <text class="coin-sum-yuan">≈ {{model.deep.reward.remainingYuan}} 元</text>
+          </view>
+        </view>
+        <view class="coin-bar" aria-hidden="true"><view class="coin-bar-fill" style="width: {{model.deep.reward.percent}}%;"><view class="coin-bar-shine"></view></view></view>
+        <text class="coin-bar-text">{{model.deep.reward.progressText}} · {{model.deep.progressText}}</text>
+        <text wx:if="{{model.deep.reward.preview}}" class="coin-preview">预览数据：活动上线后以后台配置为准</text>
+      </view>
+      <view wx:if="{{loaded && model.deep.reward}}" class="rule-card">
+        <text class="rule-title">金币结算规则</text>
+        <view wx:for="{{model.deep.reward.rules}}" wx:key="*this" class="rule-row">
+          <text class="rule-no">{{index + 1}}</text>
+          <text class="rule-text">{{item}}</text>
+        </view>
+      </view>
+      <view wx:if="{{loaded && model.deep.reward.free}}" class="deep-free" role="alert">
+        <text class="deep-free-title">{{model.deep.reward.freeTitle}}</text>
+        <text class="deep-free-text">{{model.deep.reward.freeNotice}}</text>
+      </view>
+
       <view class="assessment-section stats-section">
         <text class="assessment-section-title stats-section-title">{{model.statsTitle}}</text>
         <view class="assessment-stats-row">
@@ -59,6 +105,7 @@
         <view class="assessment-section-heading assessment-section-heading-stacked">
           <text class="assessment-section-title">{{model.basicSection.title}}</text>
           <text wx:if="{{model.basicSection.subtitle}}" class="assessment-section-subtitle">{{model.basicSection.subtitle}}</text>
+          <text wx:if="{{loaded && model.deep.reward}}" class="deep-left">{{model.deep.reward.leftText}} · {{model.deep.reward.perTestText}}</text>
         </view>
         <!-- 第一次读取失败：给出重试，不显示空列表 -->
         <view wx:if="{{!loaded && loadFailed}}" class="assessment-load-failed">
@@ -74,21 +121,19 @@
             </view>
           </view>
         </view>
-        <view wx:else class="subject-list">
-          <view wx:for="{{model.subjects}}" wx:key="key" class="subject-card {{item.disabled ? 'subject-card-disabled' : ''}}" data-type="subject" data-subject-key="{{item.key}}" bindtap="handleAction">
-            <view class="subject-copy">
-              <view class="subject-title-row">
-                <text class="subject-title">{{item.name}}</text>
-                <text class="subject-count" wx:if="{{item.readyCount}}">{{item.readyCount}} 个范围可测</text>
-              </view>
-              <text class="subject-subtitle">{{item.readyCount ? '点击开始摸底诊断' : '题库正在准备，敬请期待'}}</text>
-              <view class="subject-footer">
-                <view class="subject-footer-meta">
-                  <text class="subject-status {{item.statusTone}}">{{item.displayStatus}}</text>
-                </view>
-                <text class="subject-action">{{item.actionLabel}}</text>
+        <view wx:else class="module-list">
+          <!-- 每个学科一个模块：没测的是灰的，进行中橙色，完成的点亮；模块上写完成能得多少金币 / 已获得多少 -->
+          <view wx:for="{{model.subjects}}" wx:key="key" class="module is-{{item.state}} {{item.locked ? 'is-locked' : ''}}" data-type="subject" data-subject-key="{{item.key}}" bindtap="handleAction" aria-role="button" aria-label="{{item.name}}深度测评，{{item.stateLabel}}">
+            <view class="module-head">
+              <view class="module-mark"><text>{{item.mark}}</text><view wx:if="{{item.state === 'done'}}" class="module-check" aria-hidden="true"><view class="module-check-tick"></view></view></view>
+              <view class="module-title-box">
+                <text class="module-name">{{item.name}}</text>
+                <text class="module-state">{{item.stateLabel}}{{item.roundsLabel ? ' · ' + item.roundsLabel : ''}}</text>
               </view>
             </view>
+            <view wx:if="{{item.coinText}}" class="module-coin is-{{item.coinTone}}"><view class="coin-dot" aria-hidden="true"></view><text>{{item.coinText}}</text></view>
+            <text wx:else class="module-note">{{item.state === 'unready' ? '题库正在准备' : item.state === 'done' ? '可查看报告或再测一次' : '一科一张完整的卷'}}</text>
+            <view class="module-action">{{item.locked ? '次数已用完' : item.moduleAction}}</view>
           </view>
         </view>
       </view>

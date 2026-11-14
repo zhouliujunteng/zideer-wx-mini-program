@@ -2452,7 +2452,9 @@ async function loadAssessmentCenter() {
       id: String(item.id),
       name: item.name || '测评记录',
       statusLabel: assessmentStatusLabel(item.status)
-    })))
+    }))),
+    // 深度测评奖励（2026-11-14）：每次多少金币、共几次、拿了几次、免费版还能开几科；活动没开是 null
+    reward: data.reward || null
   }
 }
 
@@ -4807,7 +4809,8 @@ async function requestK12Assessment(payload) {
     revision_conflict: '答案状态已更新，请重新加载后继续。', answer_already_saved: '本题答案已经保存。',
     answers_required: '请先完成至少一道题。', attempt_not_found: '没有找到本人的测评记录。',
     attempt_legacy: '这是旧版测评记录，请回到测评列表重新开始。',
-    invalid_answer: '请检查答案格式。', invalid_question: '本题暂不可用，请重新加载。'
+    invalid_answer: '请检查答案格式。', invalid_question: '本题暂不可用，请重新加载。',
+    free_limit_reached: '免费版的深度测评次数已经用完。请家长绑定你并开通会员后，继续测其他学科。'
   }
   if (!result || !['ready', 'submitted'].includes(result.status)) {
     const error = new Error(errors[result && result.status] || '测评操作未完成，请重试。')

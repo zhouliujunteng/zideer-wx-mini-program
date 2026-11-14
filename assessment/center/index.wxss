@@ -118,4 +118,69 @@ page { background: #F7FAFC; }
   page { --lg-col: 760px; }
 }
 
+/* 深度测评奖励（2026-11-14） */
+.deep-banner { position: relative; overflow: hidden; min-height: 236rpx; border-radius: 32rpx; background: linear-gradient(120deg, #FF9A2E 0%, #FD7C02 60%, #F26A00 100%); }
+.deep-banner-art { position: absolute; top: 0; right: 0; width: 100%; height: 100%; }
+.deep-banner-copy { position: relative; display: flex; flex-direction: column; width: 56%; padding: 34rpx 0 30rpx 34rpx; box-sizing: border-box; }
+.deep-banner-title { color: #fff; font-size: 36rpx; font-weight: 800; line-height: 1.3; text-shadow: 0 2rpx 8rpx rgba(160, 70, 0, .35); }
+.deep-banner-sub { margin-top: 10rpx; color: #FFF3E2; font-size: 23rpx; line-height: 1.5; text-shadow: 0 2rpx 6rpx rgba(160, 70, 0, .3); }
+.deep-banner-tags { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 20rpx; }
+.deep-banner-tag { padding: 8rpx 16rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .92); color: #D96A00; font-size: 20rpx; font-weight: 600; line-height: 1.2; }
+.deep-free { margin-top: 20rpx; padding: 24rpx 28rpx; border-radius: 32rpx; background: #FFF4E8; border: 2rpx solid #FFD3A6; }
+.deep-free-title { display: block; color: #C25A00; font-size: 27rpx; font-weight: 700; }
+.deep-free-text { display: block; margin-top: 10rpx; color: #8A5A2B; font-size: 23rpx; line-height: 1.7; }
+.deep-banner-tag.is-strong { background: #FFF; color: #F26A00; font-weight: 800; }
+.deep-left { display: block; margin-top: 10rpx; color: #E07400; font-size: 22rpx; font-weight: 700; line-height: 1.4; }
+/* ---------- 金币汇总、结算规则、学科模块（2026-11-14，照学习页闯关的样子：粗描边、有厚度、按下去会陷） ---------- */
+.coin-card { margin-top: 30rpx; padding: 16rpx 16rpx 26rpx; border: 4rpx solid #ECE9E4; border-radius: 44rpx; background: #FFF; box-shadow: 0 10rpx 0 #ECE9E4; }
+.coin-sums { display: flex; gap: 14rpx; margin-top: 20rpx; padding: 0 8rpx; }
+.coin-sum { display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: center; padding: 20rpx 6rpx 18rpx; border: 4rpx solid #FFE2C2; border-radius: 28rpx; background: #FFF8EF; box-shadow: 0 6rpx 0 #FFE2C2; }
+.coin-sum.is-earned { border-color: #CDEBD8; background: #F0FAF4; box-shadow: 0 6rpx 0 #CDEBD8; }
+.coin-sum.is-remaining { border-color: #ECE9E4; background: #FAFAF8; box-shadow: 0 6rpx 0 #ECE9E4; }
+.coin-sum-label { color: #8A958D; font-size: 21rpx; font-weight: 700; line-height: 1.3; }
+.coin-sum-value { display: flex; align-items: center; gap: 8rpx; margin-top: 10rpx; color: #F26A00; font-size: 38rpx; font-weight: 900; line-height: 1.15; }
+.coin-sum.is-earned .coin-sum-value { color: #2E9B5B; }
+.coin-sum.is-remaining .coin-sum-value { color: #66736A; }
+.coin-sum-yuan { margin-top: 6rpx; color: #A0A9A2; font-size: 20rpx; font-weight: 600; line-height: 1.3; }
+.coin-dot { flex: 0 0 auto; width: 28rpx; height: 28rpx; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFE08A 0%, #FFB21E 60%, #F29100 100%); box-shadow: inset 0 -3rpx 0 rgba(180, 100, 0, .25); }
+.coin-bar { position: relative; height: 28rpx; margin: 26rpx 8rpx 0; overflow: hidden; border-radius: 999rpx; background: #ECE9E4; }
+.coin-bar-fill { position: relative; min-width: 28rpx; height: 100%; border-radius: 999rpx; background: #FD7C02; transition: width .4s ease; }
+.coin-bar-shine { position: absolute; top: 6rpx; right: 16rpx; left: 16rpx; height: 8rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .45); }
+.coin-bar-text { display: block; margin: 14rpx 8rpx 0; color: #8A958D; font-size: 22rpx; font-weight: 600; line-height: 1.4; }
+.coin-preview { display: block; margin: 10rpx 8rpx 0; color: #B8C0BA; font-size: 20rpx; line-height: 1.4; }
+.rule-card { margin-top: 28rpx; padding: 26rpx 28rpx 18rpx; border: 4rpx solid #ECE9E4; border-radius: 40rpx; background: #FFF; box-shadow: 0 10rpx 0 #ECE9E4; }
+.rule-title { display: block; color: #24332D; font-size: 28rpx; font-weight: 800; line-height: 1.3; }
+.rule-row { display: flex; gap: 16rpx; padding: 16rpx 0; }
+.rule-row + .rule-row { border-top: 2rpx dashed #F1EEE9; }
+.rule-no { flex: 0 0 auto; width: 40rpx; height: 40rpx; border-radius: 14rpx; background: #FFF0E2; color: #FD7C02; font-size: 22rpx; font-weight: 800; line-height: 40rpx; text-align: center; }
+.rule-text { flex: 1; min-width: 0; color: #5E6B64; font-size: 24rpx; line-height: 1.65; }
+.module-list { display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 22rpx; }
+.module { position: relative; display: flex; width: calc((100% - 20rpx) / 2); min-height: 268rpx; margin-bottom: 30rpx; padding: 24rpx 22rpx 22rpx; box-sizing: border-box; flex-direction: column; border: 4rpx solid #ECE9E4; border-radius: 40rpx; background: #FFF; box-shadow: 0 10rpx 0 #ECE9E4; transition: transform 80ms ease-out, box-shadow 80ms ease-out; }
+.module:active { transform: translateY(6rpx); box-shadow: 0 4rpx 0 #ECE9E4; }
+.module-head { display: flex; align-items: center; gap: 16rpx; min-width: 0; }
+.module-mark { position: relative; display: flex; flex: 0 0 76rpx; align-items: center; justify-content: center; width: 76rpx; height: 76rpx; border-radius: 24rpx; background: #FD7C02; box-shadow: 0 6rpx 0 #D96400; color: #FFF; font-size: 34rpx; font-weight: 900; line-height: 1; }
+.module-check { position: absolute; right: -10rpx; bottom: -12rpx; display: flex; align-items: center; justify-content: center; width: 36rpx; height: 36rpx; border: 4rpx solid #FFF; border-radius: 50%; background: #2E9B5B; }
+.module-check-tick { width: 8rpx; height: 15rpx; margin-top: -4rpx; border-right: 4rpx solid #FFF; border-bottom: 4rpx solid #FFF; transform: rotate(45deg); }
+.module-title-box { display: flex; flex: 1; min-width: 0; flex-direction: column; }
+.module-name { overflow: hidden; color: #24332D; font-size: 30rpx; font-weight: 800; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.module-state { margin-top: 4rpx; overflow: hidden; color: #E07400; font-size: 21rpx; font-weight: 700; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.module-coin { display: flex; align-items: center; gap: 8rpx; margin-top: 22rpx; color: #E07400; font-size: 23rpx; font-weight: 800; line-height: 1.3; }
+.module-coin.is-earned { color: #2E9B5B; }
+.module-coin .coin-dot { width: 26rpx; height: 26rpx; }
+.module-note { display: block; margin-top: 22rpx; color: #A0A9A2; font-size: 22rpx; line-height: 1.4; }
+.module-action { margin-top: auto; height: 64rpx; border-radius: 22rpx; background: #FD7C02; box-shadow: 0 6rpx 0 #D96400; color: #FFF; font-size: 26rpx; font-weight: 800; line-height: 64rpx; text-align: center; }
+/* 完成的：绿色点亮 */
+.module.is-done { border-color: #CDEBD8; background: #F6FCF8; box-shadow: 0 10rpx 0 #CDEBD8; }
+.module.is-done .module-mark { background: #2E9B5B; box-shadow: 0 6rpx 0 #237C48; }
+.module.is-done .module-state { color: #2E9B5B; }
+.module.is-done .module-action { border: 4rpx solid #CDEBD8; background: #FFF; box-shadow: 0 6rpx 0 #CDEBD8; color: #2E9B5B; line-height: 56rpx; box-sizing: border-box; }
+/* 进行中：橙色描边 */
+.module.is-doing { border-color: #FFC48A; box-shadow: 0 10rpx 0 #FFC48A; }
+/* 没测的、题库没准备好的：整块是灰的（金币那一行留着颜色，告诉孩子做完能拿多少） */
+.module.is-todo, .module.is-unready { background: #F7F7F5; }
+.module.is-todo .module-mark, .module.is-unready .module-mark { background: #DEDBD5; box-shadow: 0 6rpx 0 #C9C5BE; color: #FFF; }
+.module.is-todo .module-name, .module.is-unready .module-name { color: #8A948D; }
+.module.is-todo .module-state, .module.is-unready .module-state { color: #A8B0AA; }
+.module.is-unready .module-action, .module.is-locked .module-action { background: #ECE9E4; box-shadow: 0 6rpx 0 #DDD9D2; color: #B1B8B3; }
+.module.is-unready { opacity: .75; }
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

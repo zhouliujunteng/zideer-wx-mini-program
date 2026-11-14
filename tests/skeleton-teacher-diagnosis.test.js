@@ -42,6 +42,7 @@ function loadPage(file, modules, wxExtra = {}) {
       if (name.endsWith('/utils/study-plan-view')) return require('../utils/study-plan-view')
       if (name.endsWith('/daily-learning-view')) return require('../utils/daily-learning-view')
       if (name.endsWith('/utils/grade-name')) return require('../utils/grade-name')
+      if (name.endsWith('/utils/deep-assessment-view')) return require('../utils/deep-assessment-view')
       if (name.endsWith('/services/share-cover') && !key) return require('../services/share-cover')
       if (!key) throw new Error(`Unexpected import ${name}`)
       return modules[key]

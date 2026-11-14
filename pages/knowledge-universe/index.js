@@ -1,5 +1,6 @@
 const { tabletStage } = require('../../utils/tablet-stage')
-const { loadKnowledgeUniverse, loadLearningPreference, loadGoalDiagnosis, hasSession, accessOfError } = require('../../services/identity')
+const { loadKnowledgeUniverse, loadLearningPreference, loadGoalDiagnosis, loadAssessmentCenter, hasSession, accessOfError } = require('../../services/identity')
+const { deepAssessmentView, previewCenter } = require('../../utils/deep-assessment-view')
 const { entrySummary } = require('../../utils/goal-map')
 const { isGuardianAccount } = require('../../utils/account-role')
 const { summaryText } = require('../../utils/learning-preference')
@@ -143,6 +144,9 @@ Page({
     preferenceTags: [],
     preferenceMore: 0,
     // 目标导图一行（按目标测评，2026-10-10）：loading 骨架 / ready / failed
+    // 深度测评入口（2026-11-14 用户要求放在宇宙页、要显眼）：loading 骨架 / ready（deep = 学科状态与金币奖励）/ failed
+    deepState: 'loading',
+    deep: null,
     goalMapState: 'loading',
     goalMapSummary: '',
     goalMapEmpty: true,
@@ -351,6 +355,7 @@ Page({
     if (!hasSession()) { this.showAccessPrompt('guest'); return }
     this.loadPreferenceEntry()
     this.loadGoalMapEntry()
+    this.loadDeepEntry()
     // 上次显示的是提示：这次可能刚登录或刚建完档，回到骨架重新读
     if (this.data.access) this.setData({ access: '', loaded: false, loadFailed: false, loadError: '' })
     if (!this.data.loaded && this.data.loadFailed) this.setData({ loadFailed: false, loadError: '' })
@@ -435,6 +440,25 @@ Page({
       if (generation !== this._goalMapGeneration || this.data.goalMapState === 'ready') return
       this.setData({ goalMapState: 'failed' })
     }
+  },
+
+  // 深度测评入口卡片：哪些学科测过、做完一科拿多少金币（测评中心同一份数据）。和宇宙分开读，读不到不影响别的；读到过就静默刷新。
+  async loadDeepEntry() {
+    if (isGuardianAccount()) return
+    const generation = (this._deepGeneration || 0) + 1
+    this._deepGeneration = generation
+    try {
+      const deep = deepAssessmentView(previewCenter(await loadAssessmentCenter()))
+      if (generation !== this._deepGeneration) return
+      this.setData({ deepState: 'ready', deep })
+    } catch (error) {
+      if (generation !== this._deepGeneration || this.data.deepState === 'ready') return
+      this.setData({ deepState: 'failed' })
+    }
+  },
+
+  openDeepAssessment() {
+    wx.navigateTo({ url: '/assessment/center/index' })
   },
 
   // 目标导图在「目标」tab（2026-10-10）

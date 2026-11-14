@@ -59,4 +59,14 @@ page { background: #FAFAFA; }
   page { --lg-col: 760px; }
 }
 
+/* 会议约好后转给家庭的进会议链接 */
+.ft-link { margin-top: 24rpx; padding: 24rpx; border-radius: 24rpx; background: #FFF8EF; border: 2rpx solid #FFE2C2; }
+.ft-link-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16rpx; }
+.ft-link-title { color: #24332D; font-size: 27rpx; font-weight: 700; }
+.ft-link-time { flex: 0 0 auto; color: #D96A00; font-size: 23rpx; font-weight: 600; }
+.ft-link-url { display: block; margin-top: 16rpx; padding: 18rpx 20rpx; border-radius: 18rpx; background: #fff; color: #24332D; font-size: 24rpx; line-height: 1.6; word-break: break-all; }
+.ft-link-url.is-empty { color: #7E8A82; }
+.ft-link-note { display: block; margin-top: 16rpx; color: #A0A8A2; font-size: 21rpx; line-height: 1.6; }
+.ft-button.ft-share { margin: 0; border: 0; }
+.ft-button.ft-share::after { border: 0; }
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

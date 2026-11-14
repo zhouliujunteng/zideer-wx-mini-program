@@ -35,6 +35,7 @@
       </block>
 
       <block wx:else>
+        <view wx:if="{{rewardCoins}}" class="report-reward"><view class="report-reward-coin" aria-hidden="true"></view><text>这一科深度测评已完成，获得 {{rewardCoins}} 金币</text></view>
         <view class="report-student-row">
           <image class="report-student-avatar" src="{{UA.avatar(ui, model.student.avatarUrl)}}" mode="aspectFill" aria-label="学生头像"></image>
           <text class="report-student-name">{{model.student.name}}</text>

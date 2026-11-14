@@ -100,6 +100,20 @@
               <text wx:if="{{view.meetingChildText}}" class="ft-tip">孩子：{{view.meetingChildText}}</text>
               <text class="ft-tip">申请时写的：{{view.meeting.note}}</text>
               <text wx:if="{{view.meeting.adminNote}}" class="ft-tip">平台说明：{{view.meeting.adminNote}}</text>
+              <view wx:for="{{view.meetingLinks}}" wx:key="studentProfileId" class="ft-link">
+                <view class="ft-link-head">
+                  <text class="ft-link-title">{{item.title}}</text>
+                  <text wx:if="{{item.timeText}}" class="ft-link-time">{{item.name}} · {{item.timeText}}</text>
+                </view>
+                <text wx:if="{{item.url}}" class="ft-link-url" user-select>{{item.url}}</text>
+                <text wx:elif="{{item.web}}" class="ft-link-url is-empty">网页版链接暂时生成不了，请让孩子登录网页端，在「诊断会议」里进入。</text>
+                <text class="ft-tip">{{item.tip}}</text>
+                <view class="ft-actions">
+                  <button wx:if="{{!item.web}}" class="ft-button ft-ghost ft-share" open-type="share" data-meeting="1" data-index="{{index}}">转发给家长</button>
+                  <view wx:if="{{item.url}}" class="ft-button" bindtap="copyMeetingLink" data-index="{{index}}" aria-role="button">复制链接</view>
+                </view>
+                <text class="ft-link-note">链接只有这个孩子和绑定的家长能用，你自己点开是进不去的。</text>
+              </view>
             </block>
           </view>
         </view>

@@ -139,4 +139,32 @@
 .tablet-universe-sidebar .universe-profile-copy { margin:0; }
 .tablet-universe-sidebar .universe-recent-status { margin-left:8px; }
 
+/* 深度测评入口（2026-11-14）：海报底图 + 金币奖励 + 各学科测没测过 */
+.universe-deep-card { position: relative; margin-top: 20rpx; overflow: hidden; border-radius: 40rpx; background: #fff; }
+.universe-deep-card:active { opacity: .92; }
+.universe-deep-art { position: absolute; top: 0; left: 0; width: 100%; height: 340rpx; }
+.universe-deep-main { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; width: 56%; min-height: 340rpx; padding: 30rpx 0 64rpx 30rpx; box-sizing: border-box; }
+.universe-deep-badge { padding: 6rpx 18rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .95); color: #E06F00; font-size: 21rpx; font-weight: 800; line-height: 1.4; }
+.universe-deep-title { margin-top: 18rpx; color: #fff; font-size: 38rpx; font-weight: 800; line-height: 1.28; text-shadow: 0 2rpx 10rpx rgba(150, 64, 0, .4); }
+.universe-deep-sub { margin-top: 10rpx; color: #FFF3E2; font-size: 23rpx; line-height: 1.5; text-shadow: 0 2rpx 6rpx rgba(150, 64, 0, .35); }
+.universe-deep-action { margin-top: auto; padding: 14rpx 40rpx; border-radius: 999rpx; background: #fff; box-shadow: 0 8rpx 18rpx rgba(150, 64, 0, .25); color: #F26A00; font-size: 27rpx; font-weight: 800; line-height: 1.3; }
+.universe-deep-sk-title { width: 320rpx; height: 44rpx; margin-top: 20rpx; }
+.universe-deep-sk-sub { height: 28rpx; margin-top: 14rpx; }
+/* 下半截是一张压在海报上的圆角白卡（往上叠 36rpx），海报底边被它盖住，不再有一条硬边 */
+.universe-deep-foot { position: relative; z-index: 2; margin-top: -36rpx; padding: 28rpx 26rpx 26rpx; border-radius: 36rpx 36rpx 0 0; background: #fff; box-shadow: 0 -10rpx 24rpx rgba(150, 64, 0, .12); }
+.universe-deep-foot-head { display: flex; align-items: center; justify-content: space-between; }
+.universe-deep-progress { color: #24332d; font-size: 24rpx; font-weight: 700; line-height: 1.4; }
+.universe-deep-progress.is-coin { color: #E07400; }
+.universe-deep-chips { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 16rpx; }
+.universe-deep-chip { display: flex; align-items: center; padding: 10rpx 18rpx; border-radius: 999rpx; background: #F4F5F3; color: #5E6B64; font-size: 22rpx; line-height: 1.3; }
+.universe-deep-chip-state { margin-left: 8rpx; color: #A0A8A2; font-size: 19rpx; }
+.universe-deep-chip.is-done { background: #E6F6EC; color: #23874C; }
+.universe-deep-chip.is-done .universe-deep-chip-state { color: #4FAE78; }
+.universe-deep-chip.is-doing { background: #FFF0E3; color: #D96A00; }
+.universe-deep-chip.is-doing .universe-deep-chip-state { color: #E8863F; }
+.universe-deep-chip.is-unready { opacity: .6; }
+.universe-deep-check { width: 9rpx; height: 16rpx; margin: -4rpx 10rpx 0 4rpx; border-right: 4rpx solid #2E9B5B; border-bottom: 4rpx solid #2E9B5B; transform: rotate(45deg); }
+.universe-deep-chip-sk { width: 150rpx; height: 48rpx; border-radius: 999rpx; }
+.universe-deep-free { display: block; margin-top: 16rpx; color: #B86400; font-size: 21rpx; line-height: 1.6; }
+.tablet-universe .universe-deep-card { grid-column:1/-1; order:1; margin:0; border-radius:14px; }
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

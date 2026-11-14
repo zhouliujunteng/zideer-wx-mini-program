@@ -31,13 +31,13 @@
 .universe-profile-avatar{flex:0 0 50px;width:50px;height:50px;border:2px solid #f4f6f3;border-radius:50%;box-sizing:border-box}
 .universe-profile-avatar-placeholder{font-size:21px;font-weight:700}
 .universe-profile-copy{flex:1;flex-direction:column;min-width:0;margin-left:13px}
-.universe-profile-name{font-size:17px;font-weight:700;line-height:1.35}
+.universe-profile-name{font-size:17px;font-weight:700;line-height:1.35;text-overflow:ellipsis}
 .universe-profile-subtitle{margin-top:4px;font-size:12px;line-height:1.3}
 .universe-plan-card{margin-top:12px;padding:14px 15px 3px;box-sizing:border-box;border:1px solid #fff;border-radius:24px;box-shadow:0 6px 18px rgba(253, 124, 2, .08)}
 .universe-plan-card::after{top:-47px;right:-39px;width:132px;height:132px;box-sizing:border-box;border:15px solid rgba(253, 124, 2, .07);border-radius:50%}
 .universe-plan-badge{flex:0 0 auto;padding:3px 9px;border-radius:599px;font-size:12px;font-weight:700;line-height:1.4}
 .universe-plan-badge-dot{width:4px;height:4px;margin-right:4px;border-radius:50%}
-.universe-plan-tip{min-width:0;margin-left:8px;font-size:12px;line-height:1.4}
+.universe-plan-tip{min-width:0;margin-left:8px;font-size:12px;line-height:1.4;text-overflow:ellipsis}
 .universe-plan-row{min-height:69px;padding:10px 0;box-sizing:border-box}
 .universe-plan-icon{flex:0 0 43px;flex-direction:column;width:43px;height:43px;border-radius:13px;box-shadow:0 3px 8px rgba(253, 124, 2, .24)}
 .universe-goal-ring{width:20px;height:20px;box-sizing:border-box;border:2px solid #fff;border-radius:50%}
@@ -52,7 +52,7 @@
 .universe-plan-title{font-size:16px;font-weight:700;line-height:1.35}
 .universe-plan-title-row{min-width:0}
 .universe-plan-deadline{flex:0 0 auto;margin-left:7px;padding:1px 7px;border:0.5px solid rgba(253, 124, 2, .35);border-radius:599px;font-size:11px;font-weight:600;line-height:1.5}
-.universe-plan-summary{margin-top:3px;font-size:13px;line-height:1.4}
+.universe-plan-summary{margin-top:3px;font-size:13px;line-height:1.4;text-overflow:ellipsis}
 .universe-plan-tags{flex-wrap:nowrap;margin-top:4px}
 .universe-plan-tag{flex:0 0 auto;margin-right:4px;padding:1px 8px;border-radius:599px;font-size:12px;line-height:1.5}
 .universe-plan-sk{width:180px;margin-top:6px}
@@ -101,7 +101,7 @@
 .tablet-universe .universe-overview-section{margin:0}
 .tablet-universe .universe-overview-module{min-height:72px;border-radius:14px}
 .tablet-universe .universe-overview-title{margin-bottom:10px}
-.tablet-universe .universe-overview-label{font-size:10px}
+.tablet-universe .universe-overview-label{font-size:10px;text-align:center}
 .tablet-universe .universe-recent-section,.tablet-universe .universe-error-card{grid-column:1/-1;margin:0}
 .tablet-universe .universe-plan-card{grid-column:1/-1;margin:0;padding:14px 16px 4px;border-radius:14px}
 .tablet-universe .universe-plan-rows{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:24px}
@@ -112,4 +112,22 @@
 .tablet-universe-sidebar .universe-profile-card{flex-direction:column;gap:12px}
 .tablet-universe-sidebar .universe-profile-copy{margin:0}
 .tablet-universe-sidebar .universe-recent-status{margin-left:8px}
+.universe-deep-card{margin-top:12px;border-radius:24px}
+.universe-deep-art{top:0;left:0;width:100%;height:204px}
+.universe-deep-main{flex-direction:column;width:56%;min-height:204px;padding:18px 0 38px 18px;box-sizing:border-box}
+.universe-deep-badge{padding:3px 10px;border-radius:599px;font-size:12px;font-weight:800;line-height:1.4}
+.universe-deep-title{margin-top:10px;font-size:22px;font-weight:800;line-height:1.28;text-shadow:0 1px 6px rgba(150, 64, 0, .4)}
+.universe-deep-sub{margin-top:6px;font-size:13px;line-height:1.5;text-shadow:0 1px 3px rgba(150, 64, 0, .35)}
+.universe-deep-action{margin-top:auto;padding:8px 24px;border-radius:599px;box-shadow:0 4px 10px rgba(150, 64, 0, .25);font-size:16px;font-weight:800;line-height:1.3}
+.universe-deep-sk-title{width:192px;height:26px;margin-top:12px}
+.universe-deep-sk-sub{height:16px;margin-top:8px}
+.universe-deep-foot{margin-top:-22px;padding:16px 15px 15px;border-radius:21px 21px 0 0;box-shadow:0 -6px 14px rgba(150, 64, 0, .12)}
+.universe-deep-progress{font-size:14px;font-weight:700;line-height:1.4}
+.universe-deep-chips{flex-wrap:wrap;gap:7px;margin-top:9px}
+.universe-deep-chip{padding:6px 10px;border-radius:599px;font-size:13px;line-height:1.3}
+.universe-deep-chip-state{margin-left:4px;font-size:11px}
+.universe-deep-check{width:5px;height:9px;margin:-3px 6px 0 2px;border-right:2px solid #2E9B5B;border-bottom:2px solid #2E9B5B}
+.universe-deep-chip-sk{width:90px;height:28px;border-radius:599px}
+.universe-deep-free{margin-top:9px;font-size:12px;line-height:1.6}
+.tablet-universe .universe-deep-card{grid-column:1/-1;margin:0;border-radius:14px}
 }

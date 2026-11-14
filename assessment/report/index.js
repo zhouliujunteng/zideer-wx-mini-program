@@ -80,6 +80,7 @@ Page({
   onLoad(options) {
     this.attemptId = /^[1-9][0-9]*$/.test(String((options && options.attemptId) || '')) ? String(options.attemptId) : ''
     this.requestVersion = 0
+    this.justGrantedCoins = Number(options && options.coins) || 0
     attachUiAssets(this)
     const info = wx.getWindowInfo ? wx.getWindowInfo() : (wx.getSystemInfoSync ? wx.getSystemInfoSync() : {})
     const statusBarHeight = info.statusBarHeight || 20
@@ -132,7 +133,15 @@ Page({
       // 做完整张卷的报告带 retake（2026-10-03 起可以再测一次）：再测过的标上第几次。
       const retake = attempt.retake || null
       if (model && retake && retake.paperCount > 1) model.period = `第 ${retake.paperNumber} 次 · ${model.period}`
-      this.setData({ model, retake, retakeLabel: retakeLabel(retake), radarImage: '' }, () => this.drawRadar())
+      // 深度测评奖励（2026-11-14）：这张卷做完发的金币；刚交卷带着 coins 进来的弹一次到账提示
+      const rewardCoins = attempt.reward && Number(attempt.reward.coins) > 0 ? Number(attempt.reward.coins) : 0
+      this.setData({ model, retake, retakeLabel: retakeLabel(retake), radarImage: '', rewardCoins }, () => this.drawRadar())
+      const fresh = (attempt.reward && attempt.reward.granted) || this.justGrantedCoins > 0
+      if (rewardCoins && fresh && !this._rewardShown) {
+        this._rewardShown = true
+        wx.showModal({ title: `${rewardCoins} 金币到账`, content: '这一科深度测评做完了，金币已经放进「我的金币」。免费版的金币要家长绑定你并开通会员后才能提现。', confirmText: '看报告', cancelText: '我的金币', confirmColor: '#FD7C02',
+          success: (res) => { if (res.cancel) wx.navigateTo({ url: '/growth/coins/index' }) } })
+      }
       if (!this.data.compare) this.loadCompare(attempt.report, retake, version)
     } catch (error) {
       if (version !== this.requestVersion) return

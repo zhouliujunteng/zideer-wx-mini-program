@@ -59,6 +59,44 @@
       </block>
     </view>
 
+    <!-- 深度测评入口（2026-11-14）：按学科做完整测评，做完一科得金币；哪些学科测过一眼能看到。家长账号不显示。 -->
+    <view wx:if="{{!guardianAccount}}" class="universe-deep-card" bindtap="openDeepAssessment" role="button" aria-label="深度测评">
+      <image class="universe-deep-art" src="{{UA.src(ui, '/assets/universe/deep-assessment-poster.png')}}" mode="aspectFill" aria-hidden="true"></image>
+      <view class="universe-deep-main">
+        <view class="universe-deep-badge"><text>深度测评</text></view>
+        <block wx:if="{{deepState === 'ready'}}">
+          <text class="universe-deep-title">{{deep.reward ? deep.reward.headline : '每个学科做一次完整测评'}}</text>
+          <text class="universe-deep-sub">{{deep.reward ? deep.reward.totalText : '摸清每一科哪里稳、哪里要补'}}</text>
+        </block>
+        <block wx:elif="{{deepState === 'failed'}}">
+          <text class="universe-deep-title">每个学科做一次完整测评</text>
+          <text class="universe-deep-sub">点开查看各学科的测评情况</text>
+        </block>
+        <block wx:else>
+          <view class="sk sk-line universe-deep-sk-title"></view>
+          <view class="sk sk-line sk-mid universe-deep-sk-sub"></view>
+        </block>
+        <view class="universe-deep-action">{{deepState === 'ready' && deep.doneCount ? '继续测评' : '去测评'}}</view>
+      </view>
+      <view wx:if="{{deepState === 'ready'}}" class="universe-deep-foot">
+        <view class="universe-deep-foot-head">
+          <text class="universe-deep-progress">{{deep.progressText}}</text>
+          <text wx:if="{{deep.reward}}" class="universe-deep-progress is-coin">{{deep.reward.earnedText || deep.reward.progressText}}</text>
+        </view>
+        <view class="universe-deep-chips">
+          <view wx:for="{{deep.subjects}}" wx:key="key" class="universe-deep-chip is-{{item.state}}">
+            <view wx:if="{{item.state === 'done'}}" class="universe-deep-check" aria-hidden="true"></view>
+            <text>{{item.name}}</text>
+            <text class="universe-deep-chip-state">{{item.stateLabel}}</text>
+          </view>
+        </view>
+        <text wx:if="{{deep.reward.free}}" class="universe-deep-free">免费版共 {{deep.reward.limit}} 次，{{deep.reward.freeLeft > 0 ? '还能再开 ' + deep.reward.freeLeft + ' 科' : '次数已用完'}} · {{deep.reward.withdrawTip}}</text>
+      </view>
+      <view wx:elif="{{deepState === 'loading'}}" class="universe-deep-foot">
+        <view class="universe-deep-chips"><view wx:for="{{[1, 2, 3, 4]}}" wx:key="*this" class="sk universe-deep-chip-sk"></view></view>
+      </view>
+    </view>
+
     <!-- 老师备课先看（2026-10-07）：学习目标 + 学习偏好，学生自己填，老师定制课程前先看这两项。家长账号不显示。 -->
     <view wx:if="{{!guardianAccount}}" class="universe-plan-card">
       <view class="universe-plan-head">

@@ -11,6 +11,7 @@ const MESSAGES = {
   NO_WECHAT: '请用微信登录后再兑换，钱会转到你登录的这个微信。',
   NOT_INITIALIZED: '请先完成学习档案，再来兑换金币。',
   EXCHANGE_CLOSED: '金币兑换暂未开放，请稍后再来。',
+  MEMBER_REQUIRED: '请家长绑定你并开通会员后，再把金币兑换成现金。',
   EXCHANGE_UNAVAILABLE: '兑换服务暂时不可用，请稍后再试。',
   TRANSFER_REJECTED: '这次没能转账，金币已退回，请稍后再试。',
   EXCHANGE_PAUSED: '兑换现金暂时维护中，你的金币都在，请稍后再来。',

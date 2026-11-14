@@ -31,6 +31,33 @@ function meetingText(meeting) {
   return MEETING_TEXT[meeting.status] || ''
 }
 
+// 会议约好后转给家庭的进会议链接（2026-11-14 用户要求，课程服务 lib/agent-trial/meeting-link.ts）：
+// 孩子是小程序学生 → 小程序链接（#小程序://…，生成不了时用转发卡片）；孩子是网页端孩子 → 网页版诊断室链接。
+function two(n) { return n < 10 ? `0${n}` : `${n}` }
+function meetingTimeText(iso) {
+  const at = new Date(iso)
+  if (!iso || Number.isNaN(at.getTime())) return ''
+  return `${at.getMonth() + 1}月${at.getDate()}日 ${two(at.getHours())}:${two(at.getMinutes())}`
+}
+function linkView(link) {
+  const web = link.kind === 'web'
+  return {
+    studentProfileId: link.studentProfileId,
+    name: link.name || '孩子',
+    web,
+    url: link.url || '',
+    path: link.path || '',
+    timeText: meetingTimeText(link.scheduledAt),
+    title: web ? '网页版诊断室链接' : '小程序会议链接',
+    tip: web
+      ? '孩子用的是网页端账号。把链接发给家长，在电脑或平板的浏览器里打开，登录孩子的账号后直接进诊断室。'
+      : '把链接发给家长，家长转给孩子或自己打开都行：孩子点开进诊断室，家长点开可以旁听。',
+    copyText: web
+      ? `诊断会议${meetingTimeText(link.scheduledAt) ? `（${meetingTimeText(link.scheduledAt)}）` : ''}请用浏览器打开，登录孩子的账号后进入：${link.url || ''}`
+      : link.url || ''
+  }
+}
+
 function childLabel(child) {
   return [child.name, child.grade ? gradeName(child.grade) : ''].filter(Boolean).join(' · ')
 }
@@ -48,6 +75,7 @@ function viewOf(result) {
     meeting: result.meeting || { status: 'none' },
     meetingChildText: ((result.meeting || {}).children || []).map(childLabel).join('、'),
     meetingText: meetingText(result.meeting || {}),
+    meetingLinks: ((result.meeting || {}).links || []).map(linkView),
     lessons: result.lessons || { used: 0, limit: 3 }
   }
 }
@@ -160,6 +188,18 @@ Page({
   copyScript() {
     const text = this.data.view && this.data.view.script
     if (text) wx.setClipboardData({ data: text })
+  },
+  copyMeetingLink(event) {
+    const link = ((this.data.view && this.data.view.meetingLinks) || [])[Number(event.currentTarget.dataset.index) || 0]
+    if (!link || !link.copyText) return
+    wx.setClipboardData({ data: link.copyText, success: () => wx.showToast({ title: '已复制，发给家长吧', icon: 'none' }) })
+  },
+  // 小程序孩子：转发邀请页的卡片（点「转发给家长」的按钮才带邀请；右上角转发的是普通首页）
+  onShareAppMessage(res) {
+    const dataset = (res && res.from === 'button' && res.target && res.target.dataset) || {}
+    const link = ((this.data.view && this.data.view.meetingLinks) || [])[Number(dataset.index) || 0]
+    if (!dataset.meeting || !link || !link.path) return { title: '知鹿学习', path: '/pages/home/index' }
+    return { title: `${link.name}的诊断会议${link.timeText ? `（${link.timeText}）` : ''}，点开进入`, path: link.path }
   },
   pickMeetingChild(event) {
     if (!this.data.meetingSubmitting) this.setData({ meetingChild: Number(event.currentTarget.dataset.id) || 0 })
