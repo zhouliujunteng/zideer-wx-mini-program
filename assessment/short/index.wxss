@@ -170,6 +170,12 @@ page { background: #FAFAFA; }
 .short-actionbar { padding: 24rpx 36rpx calc(32rpx + env(safe-area-inset-bottom)); background: #FAFAFA; box-shadow: 0 -12rpx 40rpx rgba(32, 54, 46, .05); }
 .short-prev-action, .short-next-action { height: 96rpx; border-radius: 36rpx; font-size: 32rpx; font-weight: 800; line-height: 88rpx; transition: transform 80ms ease-out, box-shadow 80ms ease-out; }
 .short-next-action { background: #FD7C02; box-shadow: 0 10rpx 0 #D96400; color: #FFF; letter-spacing: 2rpx; line-height: 96rpx; }
+/* 三个按钮并排（上一题 / 暂时不会 / 提交本题，继续）时字要小一点，不然最右边的字会被截掉 */
+.short-action-row.has-back .short-next-action { font-size: 27rpx; letter-spacing: 0; }
+.short-action-row.has-back .short-prev-action { font-size: 27rpx; }
+.short-action-row.has-back { gap: 14rpx; }
+.short-action-row.has-back .short-back-slot { flex-basis: 132rpx; }
+.short-action-row.has-back .short-next-slot { flex-grow: 1.5; }
 .short-next-action:active { transform: translateY(6rpx); box-shadow: 0 4rpx 0 #D96400; }
 .short-prev-action { border: 4rpx solid #ECE9E4; box-shadow: 0 10rpx 0 #ECE9E4; background: #FFF; color: #66736A; font-size: 30rpx; }
 .short-prev-action:active { transform: translateY(6rpx); box-shadow: 0 4rpx 0 #ECE9E4; }

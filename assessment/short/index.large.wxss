@@ -118,6 +118,11 @@
 .short-actionbar{padding:14px 21px calc(19px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(32, 54, 46, .05)}
 .short-prev-action, .short-next-action{height:57px;border-radius:21px;font-size:19px;font-weight:800;line-height:52px}
 .short-next-action{box-shadow:0 6px 0 #D96400;letter-spacing:1px;line-height:57px}
+.short-action-row.has-back .short-next-action{font-size:16px;letter-spacing:0}
+.short-action-row.has-back .short-prev-action{font-size:16px}
+.short-action-row.has-back{gap:8px}
+.short-action-row.has-back .short-back-slot{flex-basis:79px}
+.short-action-row.has-back .short-next-slot{flex-grow:1.5}
 .short-next-action:active{transform:translateY(3px);box-shadow:0 2px 0 #D96400}
 .short-prev-action{border:2px solid #ECE9E4;box-shadow:0 6px 0 #ECE9E4;font-size:18px}
 .short-prev-action:active{transform:translateY(3px);box-shadow:0 2px 0 #ECE9E4}

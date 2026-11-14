@@ -142,6 +142,8 @@
 /* 深度测评入口（2026-11-14）：海报底图 + 金币奖励 + 各学科测没测过 */
 .universe-deep-card { position: relative; margin-top: 20rpx; overflow: hidden; border-radius: 40rpx; background: #fff; }
 .universe-deep-card:active { opacity: .92; }
+/* 海报还没加载出来（或加载失败）时，上半截先是同色的橙色渐变，白字不会压在白底上 */
+.universe-deep-card::before { position: absolute; top: 0; right: 0; left: 0; height: 340rpx; background: linear-gradient(120deg, #FF9A2E 0%, #FD7C02 58%, #F26A00 100%); content: ''; }
 .universe-deep-art { position: absolute; top: 0; left: 0; width: 100%; height: 340rpx; }
 .universe-deep-main { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; width: 56%; min-height: 340rpx; padding: 30rpx 0 64rpx 30rpx; box-sizing: border-box; }
 .universe-deep-badge { padding: 6rpx 18rpx; border-radius: 999rpx; background: rgba(255, 255, 255, .95); color: #E06F00; font-size: 21rpx; font-weight: 800; line-height: 1.4; }
