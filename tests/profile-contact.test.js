@@ -67,36 +67,83 @@ test('the QR row opens the upload page', async () => {
   assert.deepEqual(navigations, ['/account/wechat-qr/index'])
 })
 
-test('picking a WeChat address saves it right away; cancelling does nothing; failures are explained', async () => {
-  const ok = profilePage()
-  await ok.page.loadContact()
-  ok.page.chooseShippingAddress()
-  await settle()
-  assert.equal(ok.saved.length, 1)
-  assert.equal(ok.saved[0].userName, '王妈妈')
-  assert.equal(ok.page.data.address.contact, '王妈妈 138****8000')
-  assert.equal(ok.page.data.savingAddress, false)
-  assert.deepEqual(ok.toasts, ['收货地址已保存'])
-
-  const cancel = profilePage({ choose: 'cancel' })
-  await cancel.page.loadContact()
-  cancel.page.chooseShippingAddress()
-  assert.deepEqual([cancel.saved.length, cancel.toasts.length], [0, 0])
-
-  const privacy = profilePage({ choose: 'privacy' })
-  await privacy.page.loadContact()
-  privacy.page.chooseShippingAddress()
-  assert.match(privacy.toasts[0], /隐私保护指引/)
-
-  const refused = profilePage({ saveFails: true })
-  await refused.page.loadContact()
-  refused.page.chooseShippingAddress()
-  await settle()
-  assert.equal(refused.page.data.address, null)
-  assert.match(refused.toasts[0], /手机号不对/)
+test('the address row opens the hand-filled address page; nothing in the app declares or calls wx.chooseAddress', async () => {
+  const { page, navigations, saved } = profilePage()
+  await page.loadContact()
+  page.chooseShippingAddress()
+  assert.deepEqual(navigations, ['/account/shipping-address/index'])
+  assert.equal(saved.length, 0)
+  // 没有收货地址接口权限时，app.json 的声明会挡住提审（2026-11-14）
+  assert.equal(JSON.parse(read('app.json')).requiredPrivateInfos, undefined)
+  assert.ok(!/wx\.chooseAddress\(/.test(read('pages/profile/index.js')))
+  assert.ok((JSON.parse(read("app.json")).subpackages || JSON.parse(read("app.json")).subPackages).some((pkg) => pkg.root === 'account' && pkg.pages.includes('shipping-address/index')))
 })
 
-test('a failed first read offers a retry instead of showing 未上传 / 从微信选择', async () => {
+function addressPage({ address = null, loadFails = false, saveFails = false } = {}) {
+  let definition
+  const saved = []
+  const toasts = []
+  let backs = 0
+  vm.runInNewContext(read('account/shipping-address/index.js'), {
+    Page: (value) => { definition = value },
+    require: (name) => name.includes('identity') ? {
+      async loadShippingAddress() { if (loadFails) throw new Error('读不到'); return address },
+      async saveShippingAddress(value) { if (saveFails) throw new Error('手机号不对'); saved.push(value); return value }
+    } : { rpxToPx: (v) => v / 2 },
+    wx: { getWindowInfo: () => ({ statusBarHeight: 20, windowWidth: 375 }), getMenuButtonBoundingClientRect: () => ({ top: 26, height: 32 }),
+      showToast: (o) => toasts.push(o.title), navigateBack() { backs++ }, switchTab() { backs++ } },
+    getCurrentPages: () => [1, 2], setTimeout: (fn) => fn()
+  })
+  const page = { ...definition, data: JSON.parse(JSON.stringify(definition.data)),
+    setData(values, done) { Object.assign(this.data, values); if (done) done() } }
+  return { page, saved, toasts, backs: () => backs }
+}
+const input = (page, field, value) => page.handleInput({ currentTarget: { dataset: { field } }, detail: { value } })
+
+test('the address form saves name, phone, region and detail in the fields the course service expects', async () => {
+  const { page, saved, toasts, backs } = addressPage()
+  await page.load()
+  assert.equal(page.data.loaded, true)
+  assert.equal(page.data.canSave, false)
+  input(page, 'userName', ' 王妈妈 ')
+  input(page, 'telNumber', '13800138000')
+  page.handleRegion({ detail: { value: ['广东省', '深圳市', '南山区'] } })
+  assert.equal(page.data.canSave, false, '还差详细地址')
+  input(page, 'detail', '科技园 1 号')
+  assert.equal(page.data.canSave, true)
+  await page.handleSave()
+  assert.equal(JSON.stringify(saved), JSON.stringify([{ userName: '王妈妈', telNumber: '13800138000', provinceName: '广东省', cityName: '深圳市', countyName: '南山区', detailInfo: '科技园 1 号' }]))
+  assert.deepEqual(toasts, ['收货地址已保存'])
+  assert.equal(backs(), 1)
+})
+
+test('the address form prefills a saved address, says what is missing, and still works when the read fails', async () => {
+  const filled = addressPage({ address: stored })
+  await filled.page.load()
+  assert.equal(filled.page.data.userName, '王妈妈')
+  assert.equal(filled.page.data.regionText, '广东省 深圳市 南山区')
+  assert.equal(filled.page.data.hasAddress, true)
+  assert.equal(filled.page.data.canSave, true)
+
+  const empty = addressPage()
+  await empty.page.load()
+  input(empty.page, 'userName', '王妈妈')
+  input(empty.page, 'telNumber', '1380013')
+  await empty.page.handleSave()
+  assert.deepEqual([empty.saved.length, empty.toasts[0]], [0, '请填写 11 位手机号'])
+
+  const failed = addressPage({ loadFails: true })
+  await failed.page.load()
+  assert.deepEqual([failed.page.data.loaded, failed.page.data.loadFailed], [true, true])
+
+  const refused = addressPage({ saveFails: true, address: stored })
+  await refused.page.load()
+  await refused.page.handleSave()
+  assert.match(refused.toasts[0], /手机号不对/)
+  assert.equal(refused.page.data.saving, false)
+})
+
+test('a failed first read offers a retry instead of showing 未上传 / 去填写', async () => {
   const { page } = profilePage({ loadFails: true })
   await page.loadContact()
   assert.equal(page.data.contactLoaded, false)
@@ -104,10 +151,6 @@ test('a failed first read offers a retry instead of showing 未上传 / 从微�
   const wxml = read('pages/profile/index.wxml')
   assert.match(wxml, /wx:elif="\{\{contactLoaded\}\}" class="profile-row-value \{\{qrUploaded/)
   assert.match(wxml, /bindtap="retryLoadContact"/)
-})
-
-test('wx.chooseAddress is declared in app.json requiredPrivateInfos', () => {
-  assert.ok(JSON.parse(read('app.json')).requiredPrivateInfos.includes('chooseAddress'))
 })
 
 test('the QR page carries the four-step upload guide and warns against payment codes', () => {

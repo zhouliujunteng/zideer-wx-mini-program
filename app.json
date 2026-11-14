@@ -43,6 +43,7 @@
         "about/index",
         "agent-identity/index",
         "wechat-qr/index",
+        "shipping-address/index",
         "agreement/index"
       ]
     },
@@ -214,6 +215,5 @@
       }
     ]
   },
-  "requiredPrivateInfos": ["chooseAddress"],
   "sitemapLocation": "sitemap.json"
 }

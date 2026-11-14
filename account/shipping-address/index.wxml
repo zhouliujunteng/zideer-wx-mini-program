@@ -1,0 +1,50 @@
+<!-- 收货地址：自己手填。样式照「我的微信二维码」（account/wechat-qr）那一系。 -->
+<view class="sa-page">
+  <view class="sa-ambient" aria-hidden="true"></view>
+  <view class="sa-topbar">
+    <view class="sa-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="sa-back" bindtap="handleBack" aria-label="返回" aria-role="button"><view class="sa-back-icon"></view></view>
+      <text class="sa-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">收货地址</text>
+    </view>
+  </view>
+
+  <scroll-view class="sa-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="sa-shell">
+      <view class="sa-card sa-intro">
+        <text class="sa-intro-title">{{hasAddress ? '修改收货地址' : '填写收货地址'}}</text>
+        <text class="sa-intro-copy">寄送学习资料和奖品时用这个地址，只有你自己和知鹿客服能看到。</text>
+      </view>
+
+      <view wx:if="{{loadFailed}}" class="sa-notice" bindtap="retry" aria-role="button">
+        <text>之前保存的地址暂时读不到，可以直接重新填写。</text><text class="sa-notice-action">重新读取</text>
+      </view>
+
+      <view wx:if="{{!loaded}}" class="sa-card">
+        <view wx:for="{{[1, 2, 3, 4]}}" wx:key="*this" class="sa-field"><view class="sk sk-line sk-short"></view><view class="sk sa-input-sk"></view></view>
+      </view>
+      <view wx:else class="sa-card">
+        <view class="sa-field">
+          <text class="sa-label">收件人</text>
+          <input class="sa-input" value="{{userName}}" maxlength="20" placeholder="收件人姓名" placeholder-class="sa-placeholder" data-field="userName" bindinput="handleInput" disabled="{{saving}}" />
+        </view>
+        <view class="sa-field">
+          <text class="sa-label">手机号</text>
+          <input class="sa-input" type="number" value="{{telNumber}}" maxlength="11" placeholder="收件人的 11 位手机号" placeholder-class="sa-placeholder" data-field="telNumber" bindinput="handleInput" disabled="{{saving}}" />
+        </view>
+        <view class="sa-field">
+          <text class="sa-label">所在地区</text>
+          <picker mode="region" value="{{region}}" bindchange="handleRegion" disabled="{{saving}}">
+            <view class="sa-input sa-picker {{regionText ? '' : 'sa-placeholder'}}">{{regionText || '选择省 / 市 / 区'}}</view>
+          </picker>
+        </view>
+        <view class="sa-field is-last">
+          <text class="sa-label">详细地址</text>
+          <textarea class="sa-input sa-textarea" value="{{detail}}" maxlength="120" auto-height placeholder="街道、小区、楼栋、门牌号" placeholder-class="sa-placeholder" data-field="detail" bindinput="handleInput" disabled="{{saving}}"></textarea>
+        </view>
+      </view>
+
+      <view wx:if="{{loaded}}" class="sa-button {{canSave ? '' : 'is-disabled'}}" bindtap="handleSave" aria-role="button">{{saving ? '保存中…' : '保存'}}</view>
+    </view>
+  </scroll-view>
+  <dev-reset-fab />
+</view>

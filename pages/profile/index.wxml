@@ -84,7 +84,7 @@
 
       <view class="profile-note"><view class="profile-note-dot"></view><text>{{model.footerNote}}</text></view>
 
-      <!-- 联系与收货（2026-11-12）：微信二维码给客服和导师妈妈加好友；收货地址直接调用微信的，选好即保存 -->
+      <!-- 联系与收货（2026-11-12）：微信二维码给客服和导师妈妈加好友；收货地址在 account/shipping-address 自己手填（2026-11-14） -->
       <text class="profile-group-title">联系与收货</text>
       <view class="profile-card">
         <view class="profile-row" bindtap="openWechatQr" aria-role="button" aria-label="微信二维码">
@@ -99,12 +99,11 @@
           <text class="profile-row-label">收货地址</text>
           <view class="profile-row-value-wrap">
             <view wx:if="{{!contactLoaded && !contactFailed}}" class="sk sk-line profile-value-sk"></view>
-            <view wx:elif="{{savingAddress}}" class="profile-row-value">保存中…</view>
-            <view wx:elif="{{address}}" class="profile-address">
+                        <view wx:elif="{{address}}" class="profile-address">
               <text class="profile-address-contact">{{address.contact}}</text>
               <text class="profile-address-line">{{address.line}}</text>
             </view>
-            <text wx:elif="{{contactLoaded}}" class="profile-row-value is-empty">从微信选择</text>
+            <text wx:elif="{{contactLoaded}}" class="profile-row-value is-empty">去填写</text>
             <view class="profile-chevron" aria-hidden="true"></view>
           </view>
         </view>

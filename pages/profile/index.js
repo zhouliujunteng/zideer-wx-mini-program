@@ -1,9 +1,8 @@
 const { getProfileModel } = require('../../services/mock-service')
 const {
   loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired,
-  loadFamilyWechatQr, loadShippingAddress, saveShippingAddress
+  loadFamilyWechatQr, loadShippingAddress
 } = require('../../services/identity')
-const { isPrivacyError } = require('../../utils/permission-guide')
 const { attachUiAssets } = require('../../services/ui-assets')
 
 const STORAGE_KEY = 'zhilu-mock-profile-setup'
@@ -66,7 +65,6 @@ Page({
     contactFailed: false,
     qrUploaded: false,
     address: null,
-    savingAddress: false,
     // 推荐人：进页面后单独拉，读失败只降级显示，不影响资料本身（我的邀请码在推广伙伴 › 我的邀请码）
     statusBarHeight: 20,
     navigationBarHeight: 44,
@@ -144,31 +142,9 @@ Page({
     return this.loadContact()
   },
   openWechatQr() { wx.navigateTo({ url: '/account/wechat-qr/index' }) },
-  // 调微信自带的收货地址（wx.chooseAddress，app.json 已声明 requiredPrivateInfos），选好就存，不经下面的「保存」按钮
-  chooseShippingAddress() {
-    if (this.data.savingAddress || !this.data.contactLoaded) return
-    wx.chooseAddress({
-      success: async (picked) => {
-        this.setData({ savingAddress: true })
-        try {
-          const address = await saveShippingAddress(picked)
-          this.setData({ address: addressView(address) })
-          wx.showToast({ title: '收货地址已保存', icon: 'success' })
-        } catch (error) {
-          wx.showToast({ title: error.message || '收货地址没有保存成功，请稍后重试。', icon: 'none', duration: 2600 })
-        } finally {
-          this.setData({ savingAddress: false })
-        }
-      },
-      fail: (error) => {
-        if (/cancel/i.test(String(error && error.errMsg || ''))) return
-        wx.showToast({
-          title: isPrivacyError(error) ? '需要先同意隐私保护指引才能使用收货地址' : '暂时打不开微信收货地址，请稍后重试',
-          icon: 'none', duration: 2600
-        })
-      }
-    })
-  },
+  // 收货地址自己手填（2026-11-14 用户要求，account/shipping-address）：不再调微信的收货地址接口（wx.chooseAddress 要单独申请权限，
+  // 没权限时 app.json 的声明会挡住提审）。填完回到本页，onShow 会重读这一栏。
+  chooseShippingAddress() { wx.navigateTo({ url: '/account/shipping-address/index' }) },
 
   async loadBackendProfile() {
     try {

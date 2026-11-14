@@ -1,0 +1,35 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.sa-page{height:100vh}
+.sa-ambient{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col));height:100%}
+.sa-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);width:min(100%, var(--lg-col))}
+.sa-topbar-inner{padding:0 19px 9px}
+.sa-back{width:32px;height:32px;border-radius:50%}
+.sa-back-icon{width:13px;height:13px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.sa-topbar-title{left:50%;font-size:21px;font-weight:700;letter-spacing:-1px}
+.sa-scroll{height:100vh}
+.sa-shell{min-height:100%;padding:0 19px calc(28px + env(safe-area-inset-bottom))}
+.sa-card{margin-top:13px;padding:16px;border-radius:21px}
+.sa-shell > .sa-card:first-child{margin-top:12px}
+.sa-intro-title{font-size:18px;font-weight:700;line-height:1.4}
+.sa-intro-copy{margin-top:8px;font-size:14px;line-height:1.6}
+.sa-notice{gap:12px;margin-top:13px;padding:13px 16px;border-radius:16px;font-size:14px;line-height:1.5}
+.sa-notice-action{font-weight:600}
+.sa-field{padding-bottom:15px;margin-bottom:15px;border-bottom:0.5px solid #F0F2EF}
+.sa-field.is-last{padding-bottom:0;margin-bottom:0;border-bottom:0}
+.sa-label{margin-bottom:8px;font-size:14px}
+.sa-input{width:100%;min-height:33px;font-size:18px;line-height:33px}
+.sa-picker{height:33px}
+.sa-textarea{min-height:67px;line-height:1.5}
+.sa-input-sk{height:26px;margin-top:8px;border-radius:7px}
+.sa-button{margin-top:24px;height:55px;border-radius:599px;font-size:18px;font-weight:600;line-height:55px}
+}
