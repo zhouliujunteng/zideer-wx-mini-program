@@ -288,6 +288,11 @@ test('the page is the student\'s diagnosis room: custom top bar, same bubbles an
   // 打字框是多行 textarea（2026-11-09 用户反馈：单行 input 写长了字横着溢出；平板上键盘收起后卡住点不动）
   assert.match(template, /<textarea[^>]*class="agent-input acc-answer-input"/)
   assert.ok(!/<input\b/.test(template), '打字框不能再是单行 input')
+  // 回车要能换行（2026-11-15 用户反馈：手机、平板键盘没有 Shift），发送只靠发送按钮
+  const textarea = template.match(/<textarea[\s\S]*?\/>/)[0]
+  assert.ok(!/confirm-type="send"/.test(textarea), '打字框的回车不能设成发送')
+  assert.ok(!/bindconfirm=/.test(textarea), '打字框的回车不能触发发送')
+  assert.match(template, /class="agent-send-button[^"]*"[^>]*catchtap="handleSend"/)
   for (const attr of ['fixed="{{true}}"', 'adjust-position="{{false}}"', 'bindlinechange="handleLineChange"', 'bindkeyboardheightchange="handleKeyboardHeightChange"', 'bindblur="handleInputBlur"']) {
     assert.ok(template.includes(attr), `打字框缺少 ${attr}`)
   }

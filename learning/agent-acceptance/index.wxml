@@ -112,7 +112,8 @@
     </view>
 
     <block wx:if="{{state === 'chat'}}">
-      <!-- 打字框是多行 textarea：写长了自动换行、往上长，最多 5 行，再多在框里上下滑（原来是单行 input，字会横着溢出）。
+      <!-- 键盘右下角是换行键（不设 confirm-type="send"）：手机、平板的键盘没有 Shift，回车发送就没法换行（2026-11-15 用户反馈），发送点右边的发送按钮。
+           打字框是多行 textarea：写长了自动换行、往上长，最多 5 行，再多在框里上下滑（原来是单行 input，字会横着溢出）。
            键盘弹起时输入框自己抬到键盘上方（adjust-position=false）：交给系统顶起整页时，平板上收起键盘后页面会停在错位处、点不动 -->
       <view class="agent-composer" style="bottom: {{keyboardHeight > 0 ? keyboardHeight : composerBottomOffset}}px;">
         <view class="agent-composer-bar {{draft ? 'is-input-active' : ''}} {{voiceRecognizing ? 'is-voice-active' : ''}} {{!voiceMode && inputLines > 1 ? 'is-multiline' : ''}}">
@@ -148,9 +149,7 @@
             adjust-position="{{false}}"
             cursor-spacing="24"
             show-confirm-bar="{{false}}"
-            confirm-type="send"
             bindinput="handleInput"
-            bindconfirm="handleSend"
             bindlinechange="handleLineChange"
             bindkeyboardheightchange="handleKeyboardHeightChange"
             bindblur="handleInputBlur"
