@@ -32,7 +32,7 @@ test('a locked lesson tells the student which lesson to finish first', () => {
   assert.equal(detail.statusPill, '待解锁')
   assert.equal(detail.learnAction, '去学上一节')
   assert.equal(detail.lock.previousStageId, 'stage-lesson1')
-  assert.match(detail.lock.text, /认识分数.*看课、互动练习、AI 老师验收/)
+  assert.match(detail.lock.text, /认识分数.*看课、互动练习、当小老师/)
   assert.equal(detail.pages[0].openable, false)
 })
 

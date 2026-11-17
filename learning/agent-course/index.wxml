@@ -133,7 +133,7 @@
         <!-- 做好的课：两件事分开，先学课程（底部按钮），学完再去验收（2026-09-24 用户规则，「我的课程」卡片上不放验收按钮）。
              没学完时这张卡锁住，与验收页同一口径 -->
         <view class="course-review-section">
-          <view class="course-section-head"><text class="course-section-title">{{course.canLearn ? '第三关 · AI 老师验收' : '复述验收'}}</text></view>
+          <view class="course-section-head"><text class="course-section-title">{{course.canLearn ? '第三关 · 当小老师' : '复述验收'}}</text></view>
           <view class="course-review-card is-{{detail.review.icon}} {{detail.review.available ? 'is-available' : ''}}" bindtap="openAcceptance" role="button" aria-label="{{detail.review.available ? '去验收：' + detail.review.title : detail.review.title}}">
             <!-- 图标按验收进度换（utils/agent-course-view.js REVIEW_ICONS），用 CSS 画在橙色图标块里：
                  对勾只在老师确认通过后出现；锁住时是灰色锁 -->

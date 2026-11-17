@@ -1,5 +1,5 @@
-/* 复习小测与复述验收同一套版式（learning/agent-acceptance），这里只补复习独有的几处 */
-@import "../agent-acceptance/index.wxss";
+/* 复习小测沿用原复述验收页的版式（2026-11-17 复述验收改成「当小老师」课堂，原样式搬到 ./chat.wxss），这里只补复习独有的几处 */
+@import "./chat.wxss";
 
 /* 输入框下面那行提示平时不接点击，「跳过这题」要能点 */
 .agent-composer-note.rev-skip { pointer-events: auto; color: #6F7A72; text-decoration: underline; }

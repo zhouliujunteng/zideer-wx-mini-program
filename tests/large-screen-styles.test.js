@@ -122,7 +122,9 @@ test('course detail and acceptance pages widen beyond the default column on larg
   assert.equal((wxml.match(/class="course-detail-main"/g) || []).length, 2)
   const acceptance = fs.readFileSync(path.join(root, 'learning/agent-acceptance/index.wxss'), 'utf8')
   assert.match(acceptance, /@media \(min-width: 450px\) \{\s*page \{ --lg-col: 100vw; \}/)
-  assert.match(acceptance, /\.agent-page \.agent-composer-bar \{ width: 100%; max-width: 760px;/)
+  // 当小老师（2026-11-17）：平板横排，教室在左、黑板在右
+  assert.match(acceptance, /\.pc-page \.pc-body, \.pc-page \.pc-skeleton \{ flex-direction: row; \}/)
+  assert.match(acceptance, /\.pc-page \.pc-side, \.pc-page \.pc-skeleton-side \{ flex: 0 0 40%;/)
 })
 
 // 测评、知鹿服务里的页面（2026-11-07 用户：「测评和知鹿服务里的都需要」跟平板适配）：放宽到阅读栏，

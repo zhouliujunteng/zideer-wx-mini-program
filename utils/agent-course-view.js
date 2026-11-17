@@ -269,7 +269,7 @@ function agentCourseDetail(course, learning = null) {
     lock: course.lock && course.lock.paywall
       ? { paywall: true, title: '开通会员后解锁', text: '免费体验开放这个系列的前 3 节课，后面的课开通会员后就能学。', previousStageId: '' }
       : course.lock
-      ? { title: '闯过上一节后解锁', text: `闯关要一关一关过：先把「${course.lock.previousTitle}」的看课、互动练习、AI 老师验收都过了，这一节才能开始。`, previousStageId: course.lock.previousStageId }
+      ? { title: '闯过上一节后解锁', text: `闯关要一关一关过：先把「${course.lock.previousTitle}」的看课、互动练习、当小老师都过了，这一节才能开始。`, previousStageId: course.lock.previousStageId }
       : null,
     review: agentCourseReview(course, learning),
     pages: agentCoursePageRows(course, learning),

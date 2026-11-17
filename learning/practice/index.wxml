@@ -130,7 +130,7 @@
     <view class="pr-continue" bindtap="next" role="button">继续</view>
   </view>
   <view wx:elif="{{practice && practice.status === 'done'}}" class="pr-bottom">
-    <view class="pr-check is-ready" bindtap="openAcceptance" role="button">下一关：AI 老师验收</view>
+    <view class="pr-check is-ready" bindtap="openAcceptance" role="button">下一关：当小老师</view>
     <view class="pr-secondary" bindtap="openCourse" role="button">回到课程</view>
   </view>
 </view>

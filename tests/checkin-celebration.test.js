@@ -56,7 +56,10 @@ test('view goes to the streak page and both buttons close the popup', () => {
 
 test('the acceptance page celebrates when the answer lights today and refreshes the streak entries', () => {
   const script = readFileSync(require.resolve('../learning/agent-acceptance/index.js'), 'utf8')
-  assert.match(script, /if \(result\.checkin\) this\.celebrate\(result\.checkin\)/)
+  // 当小老师（2026-11-17）：同学们的话读完才弹（不然盖住正在说话的同学），不朗读时马上弹
+  assert.match(script, /checkin: result\.checkin \|\| null/)
+  assert.match(script, /if \(after && after\.checkin\) this\.celebrate\(after\.checkin\)/)
+  assert.match(script, /else if \(after\.checkin\) \{\s*this\.celebrate\(after\.checkin\)/)
   assert.match(script, /loadCheckin\(\{ maxAge: 0 \}\)/)
   const template = readFileSync(require.resolve('../learning/agent-acceptance/index.wxml'), 'utf8')
   assert.match(template, /<checkin-celebration notice="\{\{checkinNotice\}\}"/)

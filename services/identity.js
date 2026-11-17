@@ -675,17 +675,27 @@ async function loadAgentCourseAcceptance(stageId) {
   assertStageId(stageId)
   const token = await getRuntimeToken()
   // practiceFirst（闯关学习，2026-11-11）：附上互动练习通关没有；没通关时验收页先引导去做练习
-  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance?practiceFirst=1`, token, { fallbackMessage: '验收状态暂时无法读取，请稍后重试。' })
+  // peerClass（当小老师，2026-11-17）：附上课堂状态（黑板、同学们的星星、谁在提问），还没开课是 null
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance?practiceFirst=1&peerClass=1`, token, { fallbackMessage: '验收状态暂时无法读取，请稍后重试。' })
 }
 
-/** message 为空：开始或继续验收（验收智能体先提问）。回答要等模型，超时放宽到 60 秒。 */
-async function sendAgentCourseAcceptance(stageId, message = '') {
+/**
+ * message 为空：开始或继续验收（验收智能体先提问）。回答要等模型，超时放宽到 60 秒。
+ * options（当小老师，2026-11-17，课程服务 peerClassTurn）：peerClass: true 按「给同学讲课」走，message 是讲的一段；
+ * finish: true 点了「下课」；restart: true 重新开始（旧对话留给老师）。回包多 peerClass 与 lines（同学们新说的话）。
+ * 不带 options 的调用照旧是问答式验收。
+ */
+async function sendAgentCourseAcceptance(stageId, message = '', options = {}) {
   assertStageId(stageId)
   const token = await getRuntimeToken()
   return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, {
-    method: 'POST', data: { message: String(message || ''), practiceFirst: true }, timeout: 60000, fallbackMessage: '验收暂时无法继续，请稍后重试。'
+    method: 'POST', data, timeout: 60000, fallbackMessage: '验收暂时无法继续，请稍后重试。'
   })
 }
+  const data = { message: String(message || ''), practiceFirst: true }
+  if (options.peerClass) data.peerClass = true
+  if (options.finish) data.finish = true
+  if (options.restart) data.restart = true
 
 /** 间隔复习小测（课程服务 lib/course/review-service.ts）：到期时出题，今天做过返回结果。出题要等模型。 */
 async function loadAgentCourseReview(stageId) {
@@ -1469,7 +1479,7 @@ async function goalDiagnosis(operation, data = {}) {
  * 诊断会议「朗读」（2026-10-10）：老师说的一句话交给课程服务 /api/learn/speech，用后台的语音合成（优先豆包 / 火山引擎）
  * 读成 mp3，返回 ArrayBuffer。播放与本地缓存在 services/learn-speech.js。
  */
-async function loadSpeechAudio(text) {
+async function loadSpeechAudio(text, voice = '') {
   const token = await getRuntimeToken()
   const messages = {
     SPEECH_UNAVAILABLE: '朗读暂时用不了，请稍后再试。',
@@ -1484,7 +1494,8 @@ async function loadSpeechAudio(text) {
     timeout: 30000,
     responseType: 'arraybuffer',
     header: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-    data: { text: String(text || '') },
+    // voice（当小老师，2026-11-17）：同学的声音 xiaoman / doudou / ale，课程服务映射到各自的音色；不带就是默认声音
+    data: voice ? { text: String(text || ''), voice: String(voice) } : { text: String(text || '') },
     success(response) {
       const type = String((response.header && (response.header['content-type'] || response.header['Content-Type'])) || '')
       if (response.statusCode === 200 && type.indexOf('audio/') === 0 && response.data && response.data.byteLength) return resolve(response.data)

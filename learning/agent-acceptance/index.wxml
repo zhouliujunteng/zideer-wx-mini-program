@@ -1,146 +1,174 @@
 <wxs module="UA" src="../../utils/ui-asset.wxs" />
-<!-- 照学生的诊断室（pages/diagnosis-room）画：同一个顶栏、底色、气泡和输入框。
-     这里是让学生开口复述：对话默认「按住说话」，点左边的键盘也能打字。 -->
-<view class="agent-page">
-  <view class="agent-ambient" aria-hidden="true"></view>
-  <view class="agent-topbar">
-    <view class="agent-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
-      <view class="agent-back-button" bindtap="handleBack" aria-role="button" aria-label="返回">
-        <view class="agent-back-icon" aria-hidden="true"></view>
+<!-- 第三关「当小老师」（2026-11-17，docs/当小老师记录.md）：上面是教室（两三个同学坐成一排，头上气泡、身前课桌、名牌和星星），
+     中间是黑板（这节课要讲的几件事），底下「按住 讲给同学听」。平板横排：教室在左、黑板在右（index.wxss 末尾）。
+     人物、课桌、教室都是后端素材（ui_asset 的 peer-class/*），同学的表情由 utils/peer-class-view.js 按规则换。 -->
+<view class="pc-page" style="padding-top: {{contentTop}}px;">
+  <view class="pc-topbar">
+    <view class="pc-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="pc-back-button" bindtap="handleBack" aria-role="button" aria-label="返回">
+        <view class="pc-back-icon" aria-hidden="true"></view>
       </view>
-      <view class="acc-topbar-heading" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
-        <text class="acc-topbar-title">复述验收</text>
-        <text wx:if="{{course.title}}" class="acc-topbar-sub">{{course.title}}</text>
+      <view class="pc-topbar-heading" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
+        <text class="pc-topbar-title">当小老师</text>
+        <text wx:if="{{course.title}}" class="pc-topbar-sub">{{course.title}}</text>
       </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loaded && !loadFailed}}" class="pc-skeleton" aria-hidden="true">
+    <view class="sk pc-skeleton-stage"></view>
+    <view class="pc-skeleton-side">
+      <view class="sk pc-skeleton-board"></view>
+      <view class="sk sk-line sk-mid pc-skeleton-hint"></view>
     </view>
   </view>
 
-  <view wx:if="{{!loaded && !loadFailed}}" class="acc-skeleton" style="padding-top: {{contentTop}}px;" aria-hidden="true">
-    <view class="sk acc-skeleton-bubble"></view>
-    <view class="sk acc-skeleton-bubble is-user"></view>
-    <view class="sk acc-skeleton-bubble is-short"></view>
-  </view>
-
-  <view wx:elif="{{loadFailed}}" class="agent-entry-gate acc-gate" style="padding-top: {{contentTop}}px;">
-    <text class="agent-entry-gate-title">验收状态暂时没有读到</text>
-    <text class="agent-entry-gate-copy">{{errorMessage}}</text>
-    <view class="agent-entry-gate-button" bindtap="retry" aria-role="button" aria-label="重新读取">重新读取</view>
-  </view>
-
-  <view wx:elif="{{state === 'learning' || state === 'intro'}}" class="acc-welcome" style="padding-top: {{contentTop}}px;">
-    <view class="agent-welcome-avatar" aria-hidden="true">
-      <view class="agent-welcome-avatar-shape">
-        <view class="agent-welcome-eye agent-welcome-eye-left"></view>
-        <view class="agent-welcome-eye agent-welcome-eye-right"></view>
-      </view>
-    </view>
-    <block wx:if="{{state === 'learning'}}">
-      <text class="agent-welcome-title">学完这门课再来验收</text>
-      <text class="acc-welcome-copy">已学完 {{acceptance.learning.completed || 0}} / {{acceptance.learning.total || 0}} 部分。全部学完后，把学到的讲给它听。</text>
-      <view class="agent-entry-gate-button" bindtap="continueLearning" aria-role="button" aria-label="继续学习">继续学习</view>
-    </block>
-    <block wx:else>
-      <text class="agent-welcome-title">把学到的讲给它听</text>
-      <text class="acc-welcome-copy">它会像一个没学过这门课的同学一样问你问题，你按住说话，用自己的话讲清楚就好。</text>
-      <view class="acc-steps">
-        <view class="acc-step"><text class="acc-step-mark">1</text><text>它每次只问一个问题</text></view>
-        <view class="acc-step"><text class="acc-step-mark">2</text><text>合上课程凭记忆讲，按住说话，不方便说话也能打字</text></view>
-        <view class="acc-step"><text class="acc-step-mark">3</text><text>讲出本课三分之二的要点算通过，老师核验后知识点进入学习宇宙</text></view>
-      </view>
-      <view class="agent-entry-gate-button {{sending ? 'is-busy' : ''}}" bindtap="start" aria-role="button" aria-label="开始验收">{{sending ? '正在准备…' : '开始验收'}}</view>
-    </block>
+  <view wx:elif="{{loadFailed}}" class="pc-gate">
+    <text class="pc-gate-title">课堂暂时没有打开</text>
+    <text class="pc-gate-copy">{{errorMessage}}</text>
+    <view class="pc-primary" bindtap="retry" aria-role="button" aria-label="重新读取">重新读取</view>
   </view>
 
   <block wx:else>
-    <scroll-view
-      class="diagnosis-room-scroll"
-      scroll-y
-      enhanced
-      show-scrollbar="{{false}}"
-      scroll-top="{{scrollTop}}"
-      scroll-with-animation
-      style="padding-top: {{contentTop}}px; padding-bottom: {{listBottomPadding}}px;"
-    >
-      <view class="diagnosis-room-shell">
-        <view wx:for="{{turns}}" wx:key="id" class="agent-message agent-message-{{item.role}}">
-          <view class="agent-message-column">
-            <view class="agent-message-bubble">
-              <text class="agent-message-text" user-select="true">{{item.content}}</text>
+    <view class="pc-body">
+      <!-- 教室 -->
+      <view class="pc-stage">
+        <image class="pc-stage-bg" src="{{UA.src(ui, '/assets/peer-class/classroom.jpg')}}" mode="aspectFill" aria-hidden="true"></image>
+        <view class="pc-stage-tools">
+          <view wx:if="{{state === 'class' || playing}}" class="pc-tool {{autoRead ? 'is-on' : ''}}" bindtap="toggleAutoRead" aria-role="switch" aria-checked="{{autoRead}}" aria-label="自动朗读同学们的话">
+            <view class="pc-speaker-icon" aria-hidden="true"><view class="pc-speaker-wave"></view></view>
+            <text>{{autoRead ? '朗读开' : '朗读关'}}</text>
+          </view>
+          <view wx:if="{{records.length}}" class="pc-tool" bindtap="openRecords" aria-role="button" aria-label="看课堂记录">
+            <text>课堂记录</text>
+          </view>
+        </view>
+        <view class="pc-row is-{{peers.length}}">
+          <view wx:for="{{peers}}" wx:key="id" class="pc-peer is-{{item.mood}} {{item.speaking ? 'is-speaking' : ''}} {{item.asking ? 'is-asking' : ''}}">
+            <view class="pc-bubble-slot">
+              <view wx:if="{{item.bubble}}" class="pc-bubble {{item.bubbleOld ? 'is-old' : ''}}" bindtap="openRecords" aria-label="{{item.name}}：{{item.bubble}}">
+                <text class="pc-bubble-text">{{item.bubble}}</text>
+                <view wx:if="{{item.speaking}}" class="pc-speaker-icon pc-bubble-speaker" aria-hidden="true"><view class="pc-speaker-wave"></view></view>
+              </view>
+            </view>
+            <view class="pc-figure">
+              <view class="pc-halo" aria-hidden="true"></view>
+              <image class="pc-person" src="{{UA.src(ui, item.art)}}" mode="aspectFit" aria-label="{{item.name}}"></image>
+              <view class="pc-desk">
+                <image class="pc-desk-art" src="{{UA.src(ui, '/assets/peer-class/desk.png')}}" mode="scaleToFill" aria-hidden="true"></image>
+                <view class="pc-nameplate">
+                  <text class="pc-name">{{item.name}}</text>
+                  <view wx:if="{{item.starIcons.length}}" class="pc-stars">
+                    <image wx:for="{{item.starIcons}}" wx:for-item="lit" wx:key="index" class="pc-star" src="{{UA.src(ui, lit ? '/assets/quest/rating-star.svg' : '/assets/quest/rating-star-empty.svg')}}" mode="aspectFit"></image>
+                    <text wx:if="{{item.starText}}" class="pc-star-text">{{item.starText}}</text>
+                  </view>
+                </view>
+              </view>
             </view>
           </view>
         </view>
-
-        <view wx:if="{{sending && state === 'chat'}}" class="agent-message agent-message-assistant">
-          <view class="agent-message-column">
-            <view class="agent-message-bubble is-typing">
-              <view class="agent-typing"><view class="typing-dots"><view></view><view></view><view></view></view><text class="agent-typing-label">{{typingLabel}}</text></view>
-            </view>
-          </view>
-        </view>
-
-        <view wx:if="{{result}}" class="acc-result is-{{state}}" aria-live="polite">
-          <!-- 对话结束后的结论：接在最后一条后面，学生正看着这儿，不用往上翻 -->
-          <text class="acc-result-title">{{result.title}}</text>
-          <text wx:if="{{result.copy}}" class="acc-result-copy">{{result.copy}}</text>
-          <view wx:if="{{result.topics.length}}" class="acc-result-topics">
-            <text class="acc-result-topics-title">{{result.topicsTitle}}</text>
-            <view class="acc-topic-list"><text wx:for="{{result.topics}}" wx:key="name" class="acc-topic">{{item.name}}</text></view>
-          </view>
-          <view wx:if="{{result.weakPoints.length}}" class="acc-result-points">
-            <text class="acc-result-topics-title">还没讲清的要点</text>
-            <text wx:for="{{result.weakPoints}}" wx:key="*this" class="acc-result-point">{{item}}</text>
-          </view>
-          <view wx:if="{{result.misconceptions.length}}" class="acc-result-points">
-            <text class="acc-result-topics-title">说得不对的地方</text>
-            <text wx:for="{{result.misconceptions}}" wx:key="*this" class="acc-result-point is-wrong">{{item}}</text>
-          </view>
-          <view wx:if="{{state === 'passed'}}" class="acc-result-link" bindtap="openUniverse" aria-role="link" aria-label="去宇宙看看">去宇宙看看</view>
-          <block wx:if="{{state === 'retry'}}">
-            <view class="agent-entry-gate-button acc-result-button {{sending ? 'is-busy' : ''}}" bindtap="start" aria-role="button" aria-label="重新验收">{{sending ? '正在准备…' : '重新验收'}}</view>
-            <view class="acc-result-link" bindtap="continueLearning" aria-role="link" aria-label="回到课程复习">回到课程复习</view>
-          </block>
-        </view>
-        <view class="diagnosis-room-bottom"></view>
       </view>
-    </scroll-view>
 
-    <view wx:if="{{voiceRecognizing}}" class="voice-demo-status {{voiceCancel ? 'is-canceling' : ''}}" aria-live="polite">
-      <text class="voice-demo-label">{{voiceCancel ? '松手取消' : (voiceRemaining ? '还能说 ' + voiceRemaining + ' 秒，松手发送' : '松手发送，上移取消')}}</text>
-      <view class="voice-demo-wave {{voiceSoundActive ? 'is-speaking' : 'is-silent'}}">
-        <view wx:for="{{voiceBars}}" wx:key="id" class="voice-demo-bar" style="--bar-height: {{item.height}}; opacity: {{item.opacity}};"></view>
+      <!-- 黑板、结论、提示 -->
+      <view class="pc-side">
+        <scroll-view class="pc-side-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+          <view class="pc-side-inner">
+            <view wx:if="{{state === 'learning'}}" class="pc-card">
+              <text class="pc-card-title">学完这节课再来当小老师</text>
+              <text class="pc-card-copy">已学完 {{acceptance.learning.completed || 0}} / {{acceptance.learning.total || 0}} 部分。全部学完后，把学到的讲给同学们听。</text>
+              <view class="pc-primary" bindtap="continueLearning" aria-role="button" aria-label="继续学习">继续学习</view>
+            </view>
+
+            <view wx:elif="{{state === 'intro'}}" class="pc-card">
+              <text class="pc-card-title">今天你来当小老师</text>
+              <text class="pc-card-copy">同学们没学过这节课，等着听你讲。黑板上写着要讲的几件事，按住说话，用自己的话讲给他们听。</text>
+              <view class="pc-steps">
+                <view class="pc-step"><text class="pc-step-mark">1</text><text>合上课程，凭记忆从黑板第一件事讲起</text></view>
+                <view class="pc-step"><text class="pc-step-mark">2</text><text>讲完一段松手，同学们会说学到了什么，还会举手提问</text></view>
+                <view class="pc-step"><text class="pc-step-mark">3</text><text>讲清黑板上一半的事就过关，老师看过后知识点进入学习宇宙</text></view>
+              </view>
+              <view class="pc-primary {{sending ? 'is-busy' : ''}}" bindtap="start" aria-role="button" aria-label="开始上课">{{sending ? '同学们正在坐好…' : '开始上课'}}</view>
+            </view>
+
+            <view wx:if="{{result}}" class="pc-result is-{{result.kind}}" aria-live="polite">
+              <text class="pc-result-title">{{result.title}}</text>
+              <text wx:if="{{result.copy}}" class="pc-result-copy">{{result.copy}}</text>
+              <view wx:if="{{result.unclear.length}}" class="pc-result-list">
+                <text wx:for="{{result.unclear}}" wx:key="*this" class="pc-result-item">{{item}}</text>
+              </view>
+              <view wx:if="{{result.misconceptions.length}}" class="pc-result-list">
+                <text class="pc-result-sub">{{result.misconceptions.length > 1 ? '有几个地方同学们记混了' : '有个地方同学们记混了'}}</text>
+                <text wx:for="{{result.misconceptions}}" wx:key="*this" class="pc-result-item is-mixed">{{item}}</text>
+              </view>
+              <view wx:if="{{result.peerStars.length}}" class="pc-result-peers">
+                <view wx:for="{{result.peerStars}}" wx:key="id" class="pc-result-peer">
+                  <text>{{item.name}}</text>
+                  <image class="pc-star" src="{{UA.src(ui, '/assets/quest/rating-star.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+                  <text>{{item.stars}}</text>
+                </view>
+              </view>
+              <view wx:if="{{result.topics.length}}" class="pc-result-topics">
+                <text class="pc-result-sub">{{result.topicsTitle}}</text>
+                <view class="pc-topic-list"><text wx:for="{{result.topics}}" wx:key="name" class="pc-topic">{{item.name}}</text></view>
+              </view>
+              <view wx:if="{{state === 'passed'}}" class="pc-link" bindtap="openUniverse" aria-role="link" aria-label="去宇宙看看">去宇宙看看</view>
+              <view wx:elif="{{state === 'pending'}}" class="pc-link" bindtap="continueLearning" aria-role="link" aria-label="回课程看看">回课程看看</view>
+              <block wx:elif="{{state === 'retry'}}">
+                <view class="pc-primary {{sending ? 'is-busy' : ''}}" bindtap="restart" aria-role="button" aria-label="再给同学讲一次">{{sending ? '同学们正在坐好…' : '再给同学讲一次'}}</view>
+                <view class="pc-link" bindtap="continueLearning" aria-role="link" aria-label="回课程看看">回课程看看</view>
+              </block>
+            </view>
+
+            <view wx:if="{{board}}" class="pc-board">
+              <view class="pc-board-head">
+                <text class="pc-board-title">黑板 · 这节课要讲的</text>
+                <text class="pc-board-count">已讲 {{board.done}}/{{board.total}}</text>
+              </view>
+              <view wx:for="{{board.items}}" wx:key="id" class="pc-board-item is-{{item.state}}">
+                <view class="pc-mark" aria-hidden="true"><view class="pc-mark-inner"></view></view>
+                <text class="pc-board-topic">{{item.topic}}</text>
+                <text wx:if="{{item.state === 'half'}}" class="pc-board-tag">讲了一半</text>
+              </view>
+              <text wx:if="{{state === 'class'}}" class="pc-board-rounds">还能讲 {{board.roundsLeft}} 段</text>
+            </view>
+          </view>
+        </scroll-view>
+        <view wx:if="{{hint}}" class="pc-hint-row" aria-live="polite">
+          <view class="pc-hint"><view class="pc-hint-dot" aria-hidden="true"></view><text>{{hint}}</text></view>
+          <text wx:if="{{sending && lastSaid}}" class="pc-said">你刚讲：{{lastSaid}}</text>
+        </view>
       </view>
     </view>
 
-    <block wx:if="{{state === 'chat'}}">
-      <!-- 打字框是多行 textarea：写长了自动换行、往上长，最多 5 行，再多在框里上下滑（原来是单行 input，字会横着溢出）。
-           键盘弹起时输入框自己抬到键盘上方（adjust-position=false）：交给系统顶起整页时，平板上收起键盘后页面会停在错位处、点不动 -->
-      <view class="agent-composer" style="bottom: {{keyboardHeight > 0 ? keyboardHeight : composerBottomOffset}}px;">
-        <view class="agent-composer-bar {{draft ? 'is-input-active' : ''}} {{voiceRecognizing ? 'is-voice-active' : ''}} {{!voiceMode && inputLines > 1 ? 'is-multiline' : ''}}">
-          <view wx:if="{{voiceMode}}" class="agent-voice-button agent-keyboard-button" catchtap="handleKeyboardButtonTap" aria-role="button" aria-label="切换到键盘输入">
-            <image class="agent-voice-icon" src="{{UA.src(ui, '../../assets/keyboard-icon.svg')}}" mode="aspectFit" aria-hidden="true"></image>
-          </view>
-          <view wx:else class="agent-voice-button {{draft ? 'is-collapsing' : ''}}" catchtap="handleVoiceButtonTap" aria-role="button" aria-label="切换到语音输入">
-            <image class="agent-voice-icon" src="{{UA.src(ui, '../../assets/agent-voice.svg')}}" mode="aspectFit" aria-hidden="true"></image>
-          </view>
-          <view
-            wx:if="{{voiceMode}}"
-            class="agent-voice-speak-button {{sending ? 'is-waiting' : ''}}"
-            catchtouchstart="handleSpeakTouchStart"
-            catchtouchmove="handleSpeakTouchMove"
-            catchtouchend="handleSpeakTouchEnd"
-            catchtouchcancel="handleSpeakTouchEnd"
-            aria-role="button"
-            aria-label="按住说话"
-          >
-            <text>按住说话</text>
-          </view>
+    <!-- 底部：默认「按住 讲给同学听」，左边切键盘打字，右边「下课」（讲过一段才能点） -->
+    <view wx:if="{{state === 'class'}}" class="pc-footer" style="padding-bottom: {{keyboardHeight > 0 ? keyboardHeight + 8 : footerBottom}}px;">
+      <view class="pc-footer-inner">
+        <view wx:if="{{voiceMode}}" class="pc-round-button" catchtap="handleKeyboardButtonTap" aria-role="button" aria-label="切换到键盘输入">
+          <image class="pc-round-icon" src="{{UA.src(ui, '../../assets/keyboard-icon.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+        </view>
+        <view wx:else class="pc-round-button" catchtap="handleVoiceButtonTap" aria-role="button" aria-label="切换到按住说话">
+          <image class="pc-round-icon" src="{{UA.src(ui, '../../assets/agent-voice.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+        </view>
+        <view
+          wx:if="{{voiceMode}}"
+          class="pc-speak {{sending ? 'is-waiting' : ''}} {{voiceRecognizing ? 'is-active' : ''}}"
+          catchtouchstart="handleSpeakTouchStart"
+          catchtouchmove="handleSpeakTouchMove"
+          catchtouchend="handleSpeakTouchEnd"
+          catchtouchcancel="handleSpeakTouchEnd"
+          aria-role="button"
+          aria-label="按住 讲给同学听"
+        >
+          <image class="pc-speak-icon" src="{{UA.src(ui, '/assets/quest/mic.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+          <text>按住 讲给同学听</text>
+        </view>
+        <view wx:else class="pc-type-box {{inputLines > 1 ? 'is-multiline' : ''}}">
           <textarea
-            wx:else
-            class="agent-input acc-answer-input"
+            class="pc-type-input"
             style="--lines: {{inputLines}};"
             value="{{draft}}"
-            placeholder="用自己的话讲一讲…"
-            placeholder-class="agent-input-placeholder"
+            placeholder="用自己的话讲给同学们听…"
+            placeholder-class="pc-type-placeholder"
             maxlength="1000"
             fixed="{{true}}"
             auto-height="{{false}}"
@@ -156,15 +184,39 @@
             bindblur="handleInputBlur"
             disabled="{{sending}}"
           />
-          <view class="agent-send-button {{draft && !voiceMode && !sending ? 'is-enabled' : ''}}" catchtap="handleSend" aria-role="button" aria-label="发送">
-            <image class="agent-send-icon" src="{{UA.src(ui, '../../assets/agent-send.svg')}}" mode="aspectFit" aria-hidden="true"></image>
+          <view class="pc-send {{draft && !sending ? 'is-enabled' : ''}}" catchtap="handleSend" aria-role="button" aria-label="讲给同学听">
+            <image class="pc-send-icon" src="{{UA.src(ui, '../../assets/agent-send.svg')}}" mode="aspectFit" aria-hidden="true"></image>
           </view>
         </view>
+        <view class="pc-finish {{peerClass.rounds && !sending ? '' : 'is-disabled'}}" bindtap="handleFinishTap" aria-role="button" aria-label="下课">下课</view>
       </view>
-      <view class="agent-composer-note-background" aria-hidden="true"></view>
-      <text class="agent-composer-note">{{voiceRecognizing ? '松手后录音将上传用于转成文字，识别后不保留录音' : (voiceMode ? '按住说话，用自己的话讲给它听' : '用自己的话讲清楚就好，不用照抄课程原话')}}</text>
-    </block>
+    </view>
   </block>
 </view>
-<checkin-celebration notice="{{checkinNotice}}" close-label="看看验收结果" bind:close="closeCheckinNotice" />
+
+<!-- 按住说话时：底部一块橙色提示 + 电平条，上移取消 -->
+<view wx:if="{{voiceRecognizing}}" class="pc-voice {{voiceCancel ? 'is-canceling' : ''}}" aria-live="polite">
+  <text class="pc-voice-label">{{voiceCancel ? '松手取消' : (voiceRemaining ? '还能说 ' + voiceRemaining + ' 秒，松手讲给同学们' : '同学们在听，松手发送，上移取消')}}</text>
+  <view class="pc-voice-wave {{voiceSoundActive ? 'is-speaking' : 'is-silent'}}">
+    <view wx:for="{{voiceBars}}" wx:key="id" class="pc-voice-bar" style="--bar-height: {{item.height}}; opacity: {{item.opacity}};"></view>
+  </view>
+  <text class="pc-voice-note">松手后录音将上传用于转成文字，识别后不保留录音</text>
+</view>
+
+<!-- 课堂记录：孩子讲的和同学们说的，不全堆在教室里，点「课堂记录」或气泡打开 -->
+<view wx:if="{{recordOpen}}" class="pc-sheet-mask" bindtap="closeRecords">
+  <view class="pc-sheet" catchtap="noop">
+    <view class="pc-sheet-head">
+      <text class="pc-sheet-title">课堂记录</text>
+      <view class="pc-sheet-close" bindtap="closeRecords" aria-role="button" aria-label="关闭课堂记录">关闭</view>
+    </view>
+    <scroll-view class="pc-sheet-list" scroll-y enhanced show-scrollbar="{{false}}">
+      <view wx:for="{{records}}" wx:key="id" class="pc-record {{item.learner ? 'is-learner' : ''}}">
+        <text class="pc-record-name">{{item.name}}</text>
+        <text class="pc-record-text" user-select="true">{{item.text}}</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+<checkin-celebration notice="{{checkinNotice}}" close-label="看看同学们" bind:close="closeCheckinNotice" />
 <dev-reset-fab />

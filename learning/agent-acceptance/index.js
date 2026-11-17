@@ -1,7 +1,17 @@
 const { loadAgentCourseAcceptance, sendAgentCourseAcceptance } = require('../../services/identity')
 const { loadCheckin } = require('../../services/learning-streak')
 const { attachUiAssets } = require('../../services/ui-assets')
+const { playSequence, stopSpeech } = require('../../services/learn-speech')
 const { getNavigationMetrics } = require('../../utils/navigation')
+const {
+  viewState,
+  classroomPeers,
+  boardView,
+  peerHint,
+  speechQueue,
+  classRecords,
+  resultCard
+} = require('../../utils/peer-class-view')
 const {
   VOICE_LONG_PRESS_DELAY,
   AUDIO_VISUALIZER_INTERVAL,
@@ -17,73 +27,37 @@ const {
   transcribeVoiceChunks
 } = require('../../utils/voice-input')
 
-// 智能体课程复述验收（费曼验收，课程服务 lib/course/agent-acceptance.ts）：
-// 学完整门课 → 与验收智能体对话、把知识点讲给它听 → AI 通过后等老师核验 → 老师确认后知识点进入学习宇宙。
-// AI 通过同时算当天打卡（2026-09-25）：回包带 checkin 时弹「今日打卡完成」，并刷新顶栏火苗等连胜入口。
+// 第三关「当小老师」（复述验收改版，2026-11-17，docs/当小老师记录.md）：
+// 学完整门课、通关互动练习 → 孩子当小老师，按住说话把这节课讲给两三个 AI 同学听；黑板上写着要讲的几件事，
+// 每讲一段，同学们挨个说自己学到了什么、再有一个人提问；讲清一半就过关，等老师核验 → 知识点进入学习宇宙。
+// 过关同时算当天打卡（2026-09-25）：回包带 checkin 时弹「今日打卡完成」，并刷新顶栏火苗等连胜入口。
 //
-// 版式照诊断室（pages/diagnosis-room）：同一个顶栏、底色、气泡和输入框（2026-10-04 用户要求）。
-// 这里是让学生开口复述，不是做选择：对话默认「按住说话」，松手转成文字直接发出；点左边的键盘也能打字。
+// 课堂状态（黑板、星星、谁在提问）和同学们说的话都由课程服务定（lib/course/peer-class.ts），
+// 这里只负责画（utils/peer-class-view.js）、按顺序朗读同学们的话（services/learn-speech.js playSequence），
+// 以及收孩子讲的话：默认「按住说话」，松手转成文字直接发出；点左边的键盘也能打字（2026-10-04 复述验收默认按住说话）。
 // 按住说话与老师端「直播间记录」（teacher/live-room）同一套 utils/voice-input。
-const ANSWERABLE = ['not_started', 'in_progress', 'ai_retry', 'teacher_rejected']
 const MAX_ANSWER = 1000
-// 记录列表底部留白 = 输入框离底边的距离 + 输入框本身连同上下留白的高度（与直播间记录同一个数）
-const LIST_BOTTOM_GAP = 112
 // 一段话最多录约 60 秒（VOICE_MAX_BYTES，16kHz × 2 字节）：最后 10 秒提示还能说几秒，到点自动当松手发出
 const VOICE_BYTES_PER_SECOND = 32000
 const VOICE_COUNTDOWN_SECONDS = 10
-// 与直播间记录同一招：scroll-top 给一个远大于记录高度的值，由 scroll-view 夹到真实底部；每次 +1 才会再滚
-const BOTTOM_SCROLL_REQUEST = 1000000
-// 打字框最多长到 5 行，再多在框里上下滑；一行大约多高（px）在 linechange 里量，量到之前按 21 算
+// 打字框最多长到 5 行，再多在框里上下滑
 const MAX_INPUT_LINES = 5
-const DEFAULT_LINE_HEIGHT = 21
+// 自动朗读同学们的话：默认开（年纪小的孩子不认字；页面读不到年级，一律按开），可以在教室右上角关掉，本机记住
+const AUTO_READ_KEY = 'zhilu_peer_class_auto_read'
 
-function viewState(acceptance) {
-  const status = acceptance.status
-  if (!acceptance.learningComplete && ANSWERABLE.includes(status)) return 'learning'
-  if (status === 'in_progress') return 'chat'
-  if (status === 'pending_teacher') return 'pending'
-  if (status === 'teacher_passed') return 'passed'
-  if (status === 'ai_retry' || status === 'teacher_rejected') return 'retry'
-  return 'intro'
-}
-
-// 对话结束后接在最后一条后面的结论卡片（诊断室「诊断已结束」那个位置）
-function resultCard(state, acceptance) {
-  const topics = acceptance.topics || []
-  if (state === 'pending') {
-    return { title: 'AI 验收已通过，等待老师核验', copy: '老师确认后，这门课就算通过，下面的知识点会进入你的学习宇宙。', topicsTitle: '本课知识点', topics }
-  }
-  if (state === 'passed') {
-    const teacher = acceptance.teacherName || '老师'
-    return { title: '验收通过', copy: `${teacher} 已确认${acceptance.teacherSummary ? '：' + acceptance.teacherSummary : '。'}`, topicsTitle: '已进入学习宇宙', topics }
-  }
-  if (state === 'retry' && acceptance.status === 'teacher_rejected') {
-    const summary = acceptance.teacherSummary || '回到课程再复习一下，准备好了再来讲一遍。'
-    return { title: '老师建议再巩固一下', copy: acceptance.teacherName ? `${acceptance.teacherName}：${summary}` : summary, topicsTitle: '', topics: [] }
-  }
-  if (state === 'retry') {
-    // 独立考官的逐条结论（2026-10-08 起）：列出没讲清的要点和说错的地方；更早的验收没有，退回 AI 总结
-    const grade = acceptance.grade
-    if (grade && ((grade.weakPoints || []).length || (grade.misconceptions || []).length)) {
-      return {
-        title: '这次还差一点',
-        copy: '对照下面几条回去复习，准备好了再来讲一遍。',
-        topicsTitle: '',
-        topics: [],
-        weakPoints: grade.weakPoints || [],
-        misconceptions: grade.misconceptions || []
-      }
-    }
-    return { title: '这次还差一点', copy: acceptance.aiSummary || '回到课程再复习一下，准备好了再来讲一遍。', topicsTitle: '', topics: [] }
-  }
-  return null
-}
-
-function composerBottomOffset() {
+function footerBottomOffset() {
   const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
   const safeArea = info.safeArea || {}
   const safeAreaBottom = Math.max(0, (info.screenHeight || info.windowHeight || 0) - (safeArea.bottom || info.windowHeight || 0))
-  return Math.max(52, safeAreaBottom + 18)
+  return safeAreaBottom + 12
+}
+
+function readAutoRead() {
+  try {
+    return wx.getStorageSync(AUTO_READ_KEY) !== 'off'
+  } catch (error) {
+    return true
+  }
 }
 
 Page({
@@ -93,19 +67,30 @@ Page({
     errorMessage: '',
     course: null,
     acceptance: null,
+    peerClass: null,
     state: '',
     result: null,
     turns: [],
+    // 同学们这次新说的话（按顺序朗读），读到第几句（revealed），正在出声的同学
+    lines: [],
+    revealed: 0,
+    playing: false,
+    speakingPeer: '',
+    // 由上面几项算出来给模板画的
+    peers: [],
+    board: null,
+    hint: '',
+    records: [],
+    recordOpen: false,
+    autoRead: true,
     draft: '',
     sending: false,
-    typingLabel: '',
-    scrollTop: 0,
+    lastSaid: '',
     checkinNotice: null,
     statusBarHeight: 20,
     navigationBarHeight: 44,
     contentTop: 64,
-    composerBottomOffset: 52,
-    listBottomPadding: 52,
+    footerBottom: 12,
     keyboardHeight: 0,
     inputLines: 1,
     // 复述为主：默认就是「按住说话」，要打字点左边的键盘
@@ -122,15 +107,15 @@ Page({
     attachUiAssets(this)
     this.stageId = String(options.stageId || '')
     const navigation = getNavigationMetrics()
-    const bottomOffset = composerBottomOffset()
     this.setData({
       statusBarHeight: navigation.statusBarHeight,
       navigationBarHeight: navigation.navigationBarHeight,
       contentTop: navigation.contentTop,
-      composerBottomOffset: bottomOffset,
-      listBottomPadding: bottomOffset
+      footerBottom: footerBottomOffset(),
+      autoRead: readAutoRead()
     })
-    this._scrollRequest = 0
+    this._playback = null
+    this._afterPlayback = null
     this._voiceTimer = null
     this._voiceTouching = false
     this._voiceStartY = 0
@@ -148,19 +133,22 @@ Page({
     this._isPageVisible = true
     const bridge = getRecorderBridge()
     if (bridge) bridge.attach(this)
-    // 读到过就后台刷新；正在等验收智能体回复、或正在识别刚说的话时不打断。
+    // 读到过就后台刷新；正在等同学们的回应、或正在识别刚说的话时不打断。
     if (!this.data.sending && !this._asrBusy) this.refresh({ resume: true })
   },
 
   onHide() {
     this._isPageVisible = false
+    this.stopPlayback()
     this.abortVoiceInput()
-    if (this.data.keyboardHeight) this.setKeyboardHeight(0)
+    if (this.data.keyboardHeight) this.setData({ keyboardHeight: 0 })
   },
 
   onUnload() {
     this._isDestroyed = true
     this._isPageVisible = false
+    this.stopPlayback()
+    stopSpeech()
     this.abortVoiceInput(true)
   },
 
@@ -170,23 +158,24 @@ Page({
     else wx.redirectTo({ url: `/learning/agent-course/index?stageId=${encodeURIComponent(this.stageId)}` })
   },
 
-  // resume：进页面时，上次的回答存上了、回复没回来（最后一句是学生说的），自动接着要回复；
-  // 回答次数满了的那次就是直接出结论（2026-11-09 用户反馈：卡在「验收中」、一发就提示次数已用完）。
-  // 发送失败后的那次刷新不自动重试，免得连着失败；学生点发送就是重试，服务端不会把同一句再存一遍。
+  // resume：进页面时，上一段存上了、同学们的话没回来（最后一句是孩子讲的），自动把那段再发一次（服务端认出是重发，不再存一遍）；
+  // 课已经下了、结论没落下的，也接着要结论。发送失败后的那次刷新不自动重试，免得连着失败。
   async refresh({ resume = false } = {}) {
     try {
       const result = await loadAgentCourseAcceptance(this.stageId)
-      // 读的途中学生已经发出了回答：以那次回包为准，不拿这份旧的盖掉刚放上去的气泡
+      // 读的途中孩子已经讲了一段：以那次回包为准，不拿这份旧的盖掉
       if (this._isDestroyed || this.data.sending) return
       this.apply(result)
-      // 闯关学习（2026-11-11）：第三关要先通关第二关「互动练习」，还没开始过验收的先引导去做练习
+      // 闯关学习（2026-11-11）：第三关要先通关第二关「互动练习」，还没开始过的先引导去做练习
       const status = result && result.acceptance && result.acceptance.status
       if (result && result.practice && !result.practice.cleared && (!status || status === 'not_started')) this.guidePractice()
+      if (!resume) return
       const last = this.data.turns[this.data.turns.length - 1]
-      if (resume && this.data.state === 'chat' && last && last.role === 'user') this.resume()
+      if (this.data.state === 'class' && last && last.role === 'user') this.sendSegment(last.content, { resend: true })
+      else if (this.data.state === 'settling') this.post({}).catch(() => {})
     } catch (error) {
       if (this._isDestroyed || this.data.loaded) return
-      this.setData({ loadFailed: true, errorMessage: error && error.message || '验收状态暂时无法读取，请稍后重试。' })
+      this.setData({ loadFailed: true, errorMessage: error && error.message || '课堂暂时没有打开，请稍后重试。' })
     }
   },
 
@@ -195,7 +184,7 @@ Page({
     this._guidingPractice = true
     wx.showModal({
       title: '先闯过互动练习',
-      content: '这节课的小题都做对了，再来讲给老师听。',
+      content: '这节课的小题都做对了，再来讲给同学们听。',
       confirmText: '去闯关',
       cancelText: '再看看',
       success: (result) => {
@@ -211,133 +200,222 @@ Page({
     this.refresh()
   },
 
+  // 一次回包：课堂状态、对话、同学们新说的话。新说的话按顺序朗读，读完才亮结论、弹打卡（不然盖住正在说话的同学）。
   apply(result = {}) {
-    if (result.checkin) this.celebrate(result.checkin)
     const acceptance = result.acceptance || {}
-    const turns = (result.turns || []).map((turn, index) => ({ id: `t${index}`, role: turn.role, content: turn.content }))
-    const state = viewState(acceptance)
-    this.setData(Object.assign({
+    const peerClass = result.peerClass || null
+    const turns = (result.turns || []).map((turn, index) => ({ id: `t${index}`, role: turn.role, content: turn.content, speaker: turn.speaker || '' }))
+    const lines = Array.isArray(result.lines) ? result.lines.filter((line) => line && line.text) : []
+    const state = viewState(acceptance, peerClass)
+    const after = { result: resultCard(state, acceptance, peerClass), checkin: result.checkin || null }
+    this.stopPlayback()
+    const play = lines.length > 0 && this.data.autoRead
+    this.setData({
       loaded: true,
       loadFailed: false,
       course: result.course || this.data.course,
       acceptance,
+      peerClass,
       state,
-      result: resultCard(state, acceptance),
       turns,
-      listBottomPadding: this.listBottomPadding({ state })
-    }, this.bottomScrollPatch()), () => this.repeatBottomScroll())
-  },
-
-  // 记录列表底部留白：输入框离底边的距离（键盘弹起时就是键盘高度）+ 输入框高度；打字框多一行就多留一行
-  listBottomPadding({ state = this.data.state, keyboardHeight = this.data.keyboardHeight, inputLines = this.data.inputLines } = {}) {
-    const bottom = this.data.composerBottomOffset
-    if (state !== 'chat') return bottom
-    const extraLines = this.data.voiceMode ? 0 : Math.max(0, inputLines - 1)
-    return (keyboardHeight > 0 ? keyboardHeight : bottom) + LIST_BOTTOM_GAP + extraLines * (this._lineHeight || DEFAULT_LINE_HEIGHT)
-  },
-
-  setKeyboardHeight(keyboardHeight) {
-    const patch = { keyboardHeight, listBottomPadding: this.listBottomPadding({ keyboardHeight }) }
-    // 键盘弹起后滚到最新一问，学生边看问题边打字
-    if (keyboardHeight > 0) Object.assign(patch, this.bottomScrollPatch())
-    this.setData(patch, keyboardHeight > 0 ? () => this.repeatBottomScroll() : undefined)
-  },
-
-  handleKeyboardHeightChange(event) {
-    const height = Math.max(0, Math.round(Number(event && event.detail && event.detail.height) || 0))
-    if (height !== this.data.keyboardHeight) this.setKeyboardHeight(height)
-  },
-
-  // 平板上点键盘的「收起」或点别处时，有的版本不报高度 0，失焦时也放回原位
-  handleInputBlur() {
-    if (this.data.keyboardHeight) this.setKeyboardHeight(0)
-  },
-
-  handleLineChange(event) {
-    const detail = (event && event.detail) || {}
-    const lineCount = Math.max(1, Number(detail.lineCount) || 1)
-    if (detail.height > 0 && lineCount <= MAX_INPUT_LINES) this._lineHeight = detail.height / lineCount
-    const inputLines = Math.min(MAX_INPUT_LINES, lineCount)
-    if (inputLines === this.data.inputLines) return
-    this.setData({ inputLines, listBottomPadding: this.listBottomPadding({ inputLines }) })
-  },
-
-  bottomScrollPatch() {
-    this._scrollRequest = Math.max(BOTTOM_SCROLL_REQUEST, this._scrollRequest, Number(this.data.scrollTop) || 0) + 1
-    return { scrollTop: this._scrollRequest }
-  },
-
-  // 新内容与滚动请求同一次 setData 下发时，scroll-view 可能还没排好新内容就去夹最大值；下一帧再要一次
-  repeatBottomScroll() {
-    if (this._isDestroyed || typeof wx.nextTick !== 'function') return
-    wx.nextTick(() => {
-      if (!this._isDestroyed) this.setData(this.bottomScrollPatch())
+      records: classRecords(turns),
+      lines,
+      revealed: play ? 0 : lines.length,
+      playing: play,
+      speakingPeer: '',
+      result: play ? null : after.result
     })
+    if (play) {
+      this._afterPlayback = after
+      this.startPlayback(lines)
+    } else if (after.checkin) {
+      this.celebrate(after.checkin)
+    }
+    this.render()
   },
 
-  // 开始 / 重新验收：空消息让验收智能体先提问。
+  // 由课堂状态算出模板要画的：同学们（表情、气泡、星星）、黑板、提示条
+  render(extra = {}) {
+    const data = Object.assign({}, this.data, extra)
+    const outcome = data.state === 'pending' || data.state === 'passed' ? 'passed' : ''
+    this.setData(Object.assign(extra, {
+      peers: classroomPeers({
+        peerClass: data.peerClass,
+        turns: data.turns,
+        lines: data.lines,
+        revealed: data.revealed,
+        speakingPeer: data.speakingPeer,
+        learnerTalking: data.voiceRecognizing,
+        playing: data.playing,
+        outcome
+      }),
+      board: boardView(data.peerClass),
+      hint: data.state === 'class' || data.state === 'settling'
+        ? peerHint({ peerClass: data.peerClass, playing: data.playing, sending: data.sending || data.state === 'settling' })
+        : ''
+    }))
+  },
+
+  // ——— 同学们按顺序说话 ————————————————————————————————
+  startPlayback(lines) {
+    const handle = playSequence(speechQueue(lines), {
+      onStart: (index) => {
+        if (this._playback !== handle || this._isDestroyed) return
+        const line = lines[index] || {}
+        this.render({ revealed: index + 1, speakingPeer: line.peer || '' })
+      },
+      onEnd: () => {
+        if (this._playback !== handle || this._isDestroyed) return
+        this.render({ speakingPeer: '' })
+      },
+      onDone: () => {
+        if (this._playback !== handle) return
+        this._playback = null
+        this.finishPlayback()
+      }
+    })
+    this._playback = handle
+  },
+
+  // 读完、或被打断（按住说话、离开页面、关掉朗读）：剩下的话一起亮出来，再亮结论、弹打卡
+  finishPlayback() {
+    if (this._isDestroyed) return
+    const after = this._afterPlayback
+    this._afterPlayback = null
+    const patch = { playing: false, speakingPeer: '', revealed: this.data.lines.length }
+    if (after) patch.result = after.result
+    this.render(patch)
+    if (after && after.checkin) this.celebrate(after.checkin)
+  },
+
+  stopPlayback() {
+    const handle = this._playback
+    if (!handle) return
+    this._playback = null
+    handle.stop()
+    this.finishPlayback()
+  },
+
+  toggleAutoRead() {
+    const autoRead = !this.data.autoRead
+    try {
+      wx.setStorageSync(AUTO_READ_KEY, autoRead ? 'on' : 'off')
+    } catch (error) {
+      // 记不住也不要紧，这次照样生效
+    }
+    this.setData({ autoRead })
+    if (!autoRead) this.stopPlayback()
+  },
+
+  openRecords() {
+    this.setData({ recordOpen: true })
+  },
+
+  closeRecords() {
+    this.setData({ recordOpen: false })
+  },
+
+  noop() {},
+
+  // ——— 上课、讲一段、下课、再讲一次 ————————————————————————————
+  // 都带 peerClass: true；message 是孩子讲的一段（开课、补结论时为空）。没过互动练习的转去引导，其余错误抛给调用处提示
+  async post({ message = '', finish = false, restart = false } = {}) {
+    if (this.data.sending) return
+    this.stopPlayback()
+    this.render({ sending: true })
+    try {
+      const result = await sendAgentCourseAcceptance(this.stageId, message, { peerClass: true, finish, restart })
+      if (this._isDestroyed) return
+      this.setData({ sending: false })
+      this.apply(result)
+      return result
+    } catch (error) {
+      if (this._isDestroyed) return
+      this.render({ sending: false })
+      if (error && error.code === 'PRACTICE_REQUIRED') return this.guidePractice()
+      throw error || new Error('')
+    }
+  },
+
+  // 开始上课（也是没过关后「再给同学讲一次」之前的那次进课堂）：同学们打招呼
   async start() {
     if (this.data.sending) return
-    this.setData({ sending: true, typingLabel: '正在准备第一个问题' })
-    // 复述靠开口说：开始时就把麦克风权限问好，免得第一次按住说话被授权弹窗打断；不给就改成打字
+    // 当小老师靠开口讲：开始时就把麦克风权限问好，免得第一次按住说话被授权弹窗打断；不给就改成打字
     this.askMicrophone((granted) => {
       if (!granted && !this._isDestroyed) this.setData({ voiceMode: false })
     })
     try {
-      this.apply(await sendAgentCourseAcceptance(this.stageId, ''))
+      await this.post({})
     } catch (error) {
-      if (error && error.code === 'PRACTICE_REQUIRED') return this.guidePractice()
-      wx.showToast({ title: error && error.message || '验收暂时无法开始', icon: 'none', duration: 3000 })
-    } finally {
-      if (!this._isDestroyed) this.setData({ sending: false })
+      if (this._isDestroyed) return
+      wx.showToast({ title: error && error.message || '课堂暂时没有打开，请稍后重试。', icon: 'none', duration: 3000 })
+      this.refresh()
     }
   },
 
-  async resume() {
+  // 没过关 / 老师要求重学：另开一次课（旧对话留给老师看）
+  async restart() {
     if (this.data.sending) return
-    this.setData({ sending: true, typingLabel: '正在接着刚才的回答' })
+    this.askMicrophone((granted) => {
+      if (!granted && !this._isDestroyed) this.setData({ voiceMode: false })
+    })
     try {
-      this.apply(await sendAgentCourseAcceptance(this.stageId, ''))
+      await this.post({ restart: true })
     } catch (error) {
-      if (!this._isDestroyed) wx.showToast({ title: error && error.message || '验收暂时无法继续，请稍后重试。', icon: 'none', duration: 3000 })
-    } finally {
-      if (!this._isDestroyed) this.setData({ sending: false })
+      if (this._isDestroyed) return
+      wx.showToast({ title: error && error.message || '课堂暂时没有打开，请稍后重试。', icon: 'none', duration: 3000 })
+      this.refresh()
     }
   },
 
-  // ——— 回答：按住说话（默认）或打字 ————————————————————————————
+  // 「下课」：讲了至少一段才可以点，二次确认后按黑板现在的样子出结论
+  handleFinishTap() {
+    const peerClass = this.data.peerClass
+    if (this.data.state !== 'class' || this.data.sending || !peerClass || !peerClass.rounds) {
+      if (this.data.state === 'class' && peerClass && !peerClass.rounds) wx.showToast({ title: '先给同学们讲一段再下课', icon: 'none' })
+      return
+    }
+    const left = Math.max(0, (peerClass.total || 0) - (peerClass.done || 0))
+    wx.showModal({
+      title: '要下课了吗？',
+      content: left ? `黑板上还有 ${left} 件事没讲清。下课后，老师按同学们听懂的来看这节课。` : '黑板上的事都讲清啦，下课吧！',
+      confirmText: '下课',
+      cancelText: '接着讲',
+      success: (result) => {
+        if (!result.confirm || this._isDestroyed) return
+        this.post({ finish: true }).catch((error) => {
+          if (!this._isDestroyed) wx.showToast({ title: error && error.message || '没有下课成功，请再点一次', icon: 'none', duration: 3000 })
+        })
+      }
+    })
+  },
+
   handleInput(event) {
     this.setData({ draft: String(event.detail.value || '').slice(0, MAX_ANSWER) })
   },
 
   handleSend() {
-    return this.sendAnswer(this.data.draft, { fromDraft: true })
+    return this.sendSegment(this.data.draft, { fromDraft: true })
   },
 
-  // fromDraft：打字发的，发出去才清空输入框
-  async sendAnswer(value, { fromDraft = false } = {}) {
+  // 讲一段：先放进课堂记录，等同学们回应。fromDraft：打字发的，发出去才清空输入框；resend：进页面时补发没回应的那段
+  async sendSegment(value, { fromDraft = false, resend = false } = {}) {
     const answer = String(value || '').trim().slice(0, MAX_ANSWER)
-    if (!answer || this.data.sending || this.data.state !== 'chat') return
-    // 先把学生的回答放进对话，等验收智能体回复。
-    const turns = this.data.turns.concat({ id: `t${this.data.turns.length}`, role: 'user', content: answer })
-    const patch = { turns, sending: true, typingLabel: '正在想下一个问题' }
-    if (fromDraft) {
-      patch.draft = ''
-      patch.inputLines = 1
-      patch.listBottomPadding = this.listBottomPadding({ inputLines: 1 })
-    }
-    this.setData(Object.assign(patch, this.bottomScrollPatch()), () => this.repeatBottomScroll())
+    if (!answer || this.data.sending || this.data.state !== 'class') return
+    const turns = resend ? this.data.turns : this.data.turns.concat({ id: `t${this.data.turns.length}`, role: 'user', content: answer, speaker: 'learner' })
+    const patch = { turns, records: classRecords(turns), lastSaid: answer }
+    if (fromDraft) Object.assign(patch, { draft: '', inputLines: 1 })
+    this.setData(patch)
     try {
-      this.apply(await sendAgentCourseAcceptance(this.stageId, answer))
+      await this.post({ message: answer })
     } catch (error) {
       if (this._isDestroyed) return
-      // 回答没送达：放回输入框（说话转出来的字也放回去，切到键盘看得到、改得了，点发送再试），
-      // 对话以服务端为准重新读取。
+      // 没送到：放回输入框（说话转出来的字也放回去，切到键盘看得到、改得了，点发送再试），课堂以服务端为准重新读取
       this.setData({ draft: answer, voiceMode: false })
-      wx.showToast({ title: error && error.message || '回答没有发送成功，请重试', icon: 'none', duration: 3000 })
+      wx.showToast({ title: error && error.message || '这段没有发送成功，请重试', icon: 'none', duration: 3000 })
       this.refresh()
     } finally {
-      if (!this._isDestroyed) this.setData({ sending: false })
+      if (!this._isDestroyed) this.setData({ lastSaid: '' })
     }
   },
 
@@ -345,24 +423,39 @@ Page({
     if (this.data.voiceRecognizing) return
     if (wx.hideKeyboard) wx.hideKeyboard()
     // 打字框随 wx:if 卸掉，不一定再报键盘高度 0：这里直接放回原位
-    this.setData({ voiceMode: true, keyboardHeight: 0 }, () => {
-      if (!this._isDestroyed) this.setData({ listBottomPadding: this.listBottomPadding() })
-    })
+    this.setData({ voiceMode: true, keyboardHeight: 0 })
   },
 
   handleKeyboardButtonTap() {
     if (this.data.voiceRecognizing) return
-    this.setData({ voiceMode: false }, () => {
-      if (!this._isDestroyed) this.setData({ listBottomPadding: this.listBottomPadding() })
-    })
+    this.setData({ voiceMode: false })
   },
 
+  // 键盘弹起时底栏自己抬到键盘上方（adjust-position=false）：交给系统顶起整页时，平板上收起键盘后页面会停在错位处
+  handleKeyboardHeightChange(event) {
+    const height = Math.max(0, Math.round(Number(event && event.detail && event.detail.height) || 0))
+    if (height !== this.data.keyboardHeight) this.setData({ keyboardHeight: height })
+  },
+
+  handleInputBlur() {
+    if (this.data.keyboardHeight) this.setData({ keyboardHeight: 0 })
+  },
+
+  handleLineChange(event) {
+    const detail = (event && event.detail) || {}
+    const inputLines = Math.min(MAX_INPUT_LINES, Math.max(1, Number(detail.lineCount) || 1))
+    if (inputLines !== this.data.inputLines) this.setData({ inputLines })
+  },
+
+  // ——— 按住说话 ——————————————————————————————————————
   handleSpeakTouchStart(event) {
-    if (this._voiceTimer || this._asrBusy || this.data.voiceRecognizing || this.data.state !== 'chat') return
+    if (this._voiceTimer || this._asrBusy || this.data.voiceRecognizing || this.data.state !== 'class') return
     if (this.data.sending) {
-      wx.showToast({ title: '等它问完下一个问题再说', icon: 'none' })
+      wx.showToast({ title: '同学们在记笔记，等一下再讲', icon: 'none' })
       return
     }
+    // 同学们还在说：小老师一开口，大家就停下来听
+    this.stopPlayback()
     this._voiceTouching = true
     const touch = event && event.touches && event.touches[0]
     this._voiceStartY = touch ? touch.pageY : 0
@@ -396,20 +489,19 @@ Page({
     this._voiceCancel = false
     this.stopVoiceVisualizer()
     this.stopRecorderCapture()
-    this.setData({ voiceRecognizing: false, voiceCancel: false, voiceSoundActive: false, voiceBars: [], voiceRemaining: 0 }, () => {
-      const chunks = this._asrChunks || []
-      this._asrChunks = []
-      this._asrBytes = 0
-      if (canceled) return
-      if (voiceByteLength(chunks) >= VOICE_MIN_BYTES) this.transcribeAndSend(chunks)
-      else wx.showToast({ title: '说话时间太短，请重新按住', icon: 'none' })
-    })
+    this.render({ voiceRecognizing: false, voiceCancel: false, voiceSoundActive: false, voiceBars: [], voiceRemaining: 0 })
+    const chunks = this._asrChunks || []
+    this._asrChunks = []
+    this._asrBytes = 0
+    if (canceled) return
+    if (voiceByteLength(chunks) >= VOICE_MIN_BYTES) this.transcribeAndSend(chunks)
+    else wx.showToast({ title: '说话时间太短，请重新按住', icon: 'none' })
   },
 
   async transcribeAndSend(chunks) {
     this._asrBusy = true
     wx.showLoading({ title: '正在识别…', mask: true })
-    const { text, warning } = await transcribeVoiceChunks(chunks, { logTag: 'agent-acceptance' })
+    const { text, warning } = await transcribeVoiceChunks(chunks, { logTag: 'peer-class' })
     if (this._isDestroyed) return
     wx.hideLoading()
     this._asrBusy = false
@@ -417,7 +509,7 @@ Page({
       if (warning) wx.showToast({ title: warning, icon: 'none' })
       return
     }
-    this.sendAnswer(text)
+    this.sendSegment(text)
   },
 
   // 问一次麦克风权限，结果回调一次；系统已经记下拒绝时不再弹窗。
@@ -471,7 +563,7 @@ Page({
   showVoicePermissionRecovery() {
     wx.showModal({
       title: '需要麦克风权限',
-      content: '开启后可以按住说话，把学到的讲给它听。录音仅上传用于转成文字，识别完成后不保留。也可以点左边的键盘打字回答。',
+      content: '开启后可以按住说话，把学到的讲给同学们听。录音仅上传用于转成文字，识别完成后不保留。也可以点左边的键盘打字。',
       confirmText: '去设置',
       cancelText: '先打字',
       success: (result) => {
@@ -483,7 +575,8 @@ Page({
 
   startVoiceInput() {
     if (wx.hideKeyboard) wx.hideKeyboard()
-    this.setData({ voiceRecognizing: true, voiceCancel: false, voiceSoundActive: false, voiceBars: VOICE_BARS, voiceRemaining: 0 })
+    this.stopPlayback()
+    this.render({ voiceRecognizing: true, voiceCancel: false, voiceSoundActive: false, voiceBars: VOICE_BARS, voiceRemaining: 0 })
     this.startRecorderCapture()
     this.startVoiceVisualizer()
   },
@@ -501,7 +594,7 @@ Page({
     this._asrChunks = []
     this._asrBytes = 0
     if (!unloading && this.data.voiceRecognizing) {
-      this.setData({ voiceRecognizing: false, voiceCancel: false, voiceSoundActive: false, voiceBars: [], voiceRemaining: 0 })
+      this.render({ voiceRecognizing: false, voiceCancel: false, voiceSoundActive: false, voiceBars: [], voiceRemaining: 0 })
     }
   },
 
@@ -589,7 +682,7 @@ Page({
       if (this._asrBytes <= VOICE_MAX_BYTES) this._asrChunks.push(frameBuffer)
     }
     if (this._pcmLevelMeter.process(frameBuffer)) this._pcmLevelAvailable = true
-    // 录满了：后面的话收不进去，与其悄悄丢掉，不如就此发出，学生接着按住说下一段
+    // 录满了：后面的话收不进去，与其悄悄丢掉，不如就此发出，孩子接着按住讲下一段
     if (this._asrBytes >= VOICE_MAX_BYTES) this.handleSpeakTouchEnd()
   },
 

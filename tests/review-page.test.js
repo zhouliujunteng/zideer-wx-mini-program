@@ -106,3 +106,24 @@ test('the follow-up offers 重新回答 and 就这样算 buttons', () => {
   assert.match(wxml, /bindtap="retryPending"[^>]*>重新回答</)
   assert.match(wxml, /bindtap="acceptPending"[^>]*>就这样算</)
 })
+
+// 复习页沿用原复述验收页的版式（2026-11-17 复述验收改成「当小老师」课堂，原样式搬到 learning/review/chat.wxss）：
+// 和学生的诊断室同一套类名与数值，诊断室改了这些规则这里要跟着改。
+test('the review page keeps the diagnosis-room look through its own copy of the former acceptance styles', () => {
+  const entry = fs.readFileSync(path.join(__dirname, '../learning/review/index.wxss'), 'utf8')
+  const style = fs.readFileSync(path.join(__dirname, '../learning/review/chat.wxss'), 'utf8')
+  const chatStyle = fs.readFileSync(path.join(__dirname, '../pages/diagnosis-room/index.wxss'), 'utf8')
+  assert.match(entry, /@import "\.\/chat\.wxss";/)
+  assert.doesNotMatch(entry, /agent-acceptance/, '验收页已换成当小老师的样式，复习页不能再引它')
+  for (const rule of [
+    '.agent-ambient { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 0;',
+    '.agent-message-user .agent-message-bubble { padding: 16rpx 24rpx; border-radius: 28rpx 28rpx 8rpx 28rpx; background: #DCEEFF; color: #222A25; }',
+    '.agent-composer-bar { display: flex; align-items: center; min-height: 104rpx; padding: 6rpx 18rpx;',
+    '.agent-input { min-width: 0; flex: 1; height: 84rpx; margin: 0 14rpx; color: #2D3931; font-size: 29rpx;',
+    '.agent-voice-speak-button { display: flex; flex: 1; align-items: center; justify-content: center; height: 84rpx;',
+    '.agent-send-button.is-enabled, .agent-send-button.is-sending { background: #FD7C02; }'
+  ]) {
+    assert.ok(style.includes(rule), `样式与诊断室不一致：${rule.slice(0, 48)}`)
+    assert.ok(chatStyle.includes(rule), `诊断室本身已改过这条规则，需要同步：${rule.slice(0, 48)}`)
+  }
+})
