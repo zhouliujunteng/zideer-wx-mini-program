@@ -282,6 +282,10 @@ Page({
     this.setData({ goalSheet: !this.data.goalSheet, questPopover: null })
   },
 
+  openLadder() {
+    wx.navigateTo({ url: '/learning/ladder/index' })
+  },
+
   closeGoalSheet() {
     if (this.data.goalSwitching) return
     this.setData({ goalSheet: false })

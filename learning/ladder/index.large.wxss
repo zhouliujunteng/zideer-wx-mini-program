@@ -1,0 +1,103 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.sk{border-radius:7px}
+.sk-line{height:16px}
+.sk-line + .sk-line{margin-top:8px}
+.sk-short{width:40%}
+.sk-mid{width:64%}
+.sk-round{border-radius:50%}
+.sk-card{height:96px;border-radius:14px}
+.sk-card + .sk-card{margin-top:12px}
+.ld-page{height:100vh;font-size:16px;line-height:1.5}
+.ld-topbar{top:0;left:max(0px, 50% - var(--lg-col) / 2);right:max(0px, 50% - var(--lg-col) / 2);box-sizing:content-box;padding-left:12px}
+.ld-back{width:44px;height:44px}
+.ld-back-icon{width:10px;height:10px;border-bottom:2px solid #24332D;border-left:2px solid #24332D}
+.ld-topbar-title{font-size:20px;font-weight:700}
+.ld-scroll{height:100vh;box-sizing:border-box}
+.ld-shell{padding:7px 19px calc(132px + env(safe-area-inset-bottom))}
+.ld-sk-hero{height:180px;border-radius:24px}
+.ld-sk-podium{height:264px;margin-top:16px;border-radius:24px}
+.ld-sk-me{height:72px;margin-top:16px;border-radius:19px}
+.ld-sk-list{height:288px;margin-top:16px;border-radius:24px}
+.ld-error{gap:14px;margin-top:96px;padding:28px;border-radius:19px}
+.ld-error-retry{padding:9px 28px;border-radius:599px;font-weight:600}
+.ld-hero{padding:21px 19px;border-radius:24px}
+.ld-hero-top{gap:9px}
+.ld-hero-label{font-size:14px;font-weight:600}
+.ld-countdown{margin-top:2px;font-size:40px;font-weight:900;line-height:1.1;letter-spacing:1px;font-variant-numeric:tabular-nums}
+.ld-prize{gap:4px;padding:7px 12px;border-radius:599px;font-size:14px;font-weight:800}
+.ld-coin{width:15px;height:15px;border-radius:50%;box-shadow:inset 0 0 0 2px #F2A900}
+.ld-coin.is-small{width:13px;height:13px}
+.ld-hero-stats{gap:9px;margin-top:16px}
+.ld-hero-stat{min-width:0;padding:10px;border-radius:14px}
+.ld-hero-num{font-size:20px;font-weight:800}
+.ld-hero-cap{font-size:13px}
+.ld-award{gap:9px;margin-top:14px;padding:14px 16px;border-radius:16px;border:1px solid rgba(224, 164, 0, .35);font-size:15px}
+.ld-crown-sm{width:21px;height:16px}
+.ld-podium{gap:9px;margin-top:16px;padding:26px 12px 0;border-radius:24px}
+.ld-seat{min-width:0}
+.ld-crown{width:33px;height:24px;margin-bottom:-3px}
+.ld-crown-base{width:100%;height:100%}
+.ld-avatar{border-radius:50%;font-weight:800}
+.ld-avatar-img{top:0;left:0;width:100%;height:100%}
+.ld-seat-avatar{width:62px;height:62px;font-size:26px;border:3px solid #FFFFFF;box-shadow:0 0 0 3px var(--medal)}
+.ld-seat.seat-1 .ld-seat-avatar{width:74px;height:74px;font-size:31px}
+.ld-seat-name{max-width:100%;margin-top:8px;font-size:16px;font-weight:800}
+.ld-seat-grade{font-size:13px}
+.ld-seat-score{margin-top:3px;font-size:14px;font-weight:600}
+.ld-seat-num{font-size:21px;font-weight:900}
+.ld-seat-time{font-size:13px}
+.ld-seat-prize, .ld-seat-hint{margin-top:6px;padding:2px 9px;border-radius:599px;font-size:13px;font-weight:800}
+.ld-seat-hint{font-weight:600}
+.ld-seat-empty{margin-bottom:12px;font-size:14px;font-weight:600}
+.ld-block{width:100%;margin-top:9px;padding-top:8px;border-radius:14px 14px 0 0;font-size:26px;font-weight:900}
+.ld-seat.seat-1 .ld-block{height:102px}
+.ld-seat.seat-2 .ld-block{height:74px}
+.ld-seat.seat-3 .ld-block{height:55px}
+.ld-card{margin-top:16px;padding:19px 16px;border-radius:24px}
+.ld-card-head{gap:9px}
+.ld-card-title{font-size:19px;font-weight:800}
+.ld-card-hint{font-size:13px}
+.ld-empty{padding:24px 0 7px;font-size:15px}
+.ld-row{gap:10px;padding:10px 7px;border-radius:14px}
+.ld-row + .ld-row{border-top:1px solid rgba(36, 51, 45, .06)}
+.ld-row.is-me{border-top-color:transparent}
+.ld-rank{width:26px;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.ld-row-avatar{width:43px;height:43px;font-size:18px}
+.ld-who{min-width:0}
+.ld-who-name{gap:6px;min-width:0;font-size:16px;font-weight:700}
+.ld-who-grade{font-size:13px}
+.ld-me-tag{padding:0 6px;border-radius:6px;font-size:12px;line-height:19px}
+.ld-score{gap:2px;width:120px}
+.ld-score-top{gap:4px;font-size:14px}
+.ld-score-num{font-size:18px;font-weight:800}
+.ld-score-time{font-size:13px}
+.ld-bar{width:100%;height:6px;border-radius:599px}
+.ld-bar-fill{height:100%;border-radius:599px}
+.ld-tier{padding:0 8px;border-radius:599px;font-size:13px;font-weight:800;line-height:22px}
+.ld-ladder{gap:8px;margin-top:14px;padding-left:21px}
+.ld-ladder::before, .ld-ladder::after{top:4px;bottom:4px;width:4px;border-radius:4px}
+.ld-ladder::before{left:0}
+.ld-ladder::after{left:12px}
+.ld-rung{gap:10px;padding:9px 13px;border-radius:14px}
+.ld-rung.is-here{box-shadow:inset 0 0 0 2px #FD7C02}
+.ld-rung-need{font-size:14px}
+.ld-rung-here{margin-left:auto;font-size:14px;font-weight:800}
+.ld-yrow{gap:9px;margin-top:7px;padding:8px;border-radius:14px}
+.ld-medal{width:28px;height:28px;border-radius:50%;font-size:14px;font-weight:900;line-height:28px}
+.ld-yrow-avatar{width:38px;height:38px;font-size:16px}
+.ld-ycoins{gap:3px;font-size:15px;font-weight:800}
+.ld-rules{margin-top:16px;padding:16px;border-radius:19px;font-size:14px;line-height:1.7}
+.ld-rules-title{font-weight:800}
+.ld-rules-line{margin-top:3px}
+.ld-me{left:calc(max(0px, 50% - var(--lg-col) / 2) + 14px);right:calc(max(0px, 50% - var(--lg-col) / 2) + 14px);bottom:calc(14px + env(safe-area-inset-bottom));gap:12px;padding:13px 14px;border-radius:19px;border:2px solid #FD7C02;box-shadow:0 9px 26px rgba(36, 51, 45, .14)}
+.ld-me-cap{font-size:12px}
+.ld-me-num{font-size:19px;font-weight:900}
+.ld-me-main{min-width:0}
+.ld-me-line{gap:6px;font-size:14px;font-weight:700}
+.ld-me-tip{margin-top:2px;font-size:13px}
+.ld-go{padding:9px 15px;border-radius:599px;font-size:15px;font-weight:800}
+@keyframes ld-rise{from{opacity:0;transform:translateY(24px)}}
+@keyframes ld-bob{50%{transform:translateY(-4px) rotate(-4deg)}}
+}

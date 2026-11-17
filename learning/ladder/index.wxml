@@ -1,0 +1,138 @@
+<!-- 学习天梯榜（2026-11-17）：倒计时 + 今日总数 → 领奖台（2、1、3）→ 我的名次（吸底）→ 今日排行 → 天梯段位 → 昨日前三 → 规则。 -->
+<view class="ld-page">
+  <view class="ld-topbar" style="padding-top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px;">
+    <view class="ld-back" bindtap="handleBack" role="button" aria-label="返回上一页"><view class="ld-back-icon"></view></view>
+    <text class="ld-topbar-title">学习天梯榜</text>
+  </view>
+
+  <scroll-view class="ld-scroll" scroll-y show-scrollbar="{{false}}" style="padding-top: {{contentTop}}px;">
+    <view class="ld-shell">
+      <!-- 骨架 -->
+      <block wx:if="{{!loaded && !loadFailed}}">
+        <view class="sk ld-sk-hero"></view>
+        <view class="sk ld-sk-podium"></view>
+        <view class="sk ld-sk-me"></view>
+        <view class="sk ld-sk-list"></view>
+      </block>
+
+      <view wx:elif="{{!loaded}}" class="ld-error" role="alert">
+        <text class="ld-error-text">{{loadError}}</text>
+        <view class="ld-error-retry" bindtap="retry" role="button">重新读取</view>
+      </view>
+
+      <block wx:else>
+        <!-- 倒计时、奖励、今日总数 -->
+        <view class="ld-hero">
+          <view class="ld-hero-top">
+            <view>
+              <text class="ld-hero-label">距今日结算</text>
+              <text class="ld-countdown">{{countdown}}</text>
+            </view>
+            <view class="ld-prize"><view class="ld-coin" aria-hidden="true"></view>前三各得 {{view.coins}} 金币</view>
+          </view>
+          <view class="ld-hero-stats">
+            <view class="ld-hero-stat"><text class="ld-hero-num">{{view.stats.learners}}</text><text class="ld-hero-cap">位同学在学</text></view>
+            <view class="ld-hero-stat"><text class="ld-hero-num">{{view.stats.hours}}</text><text class="ld-hero-cap">大家一共学了</text></view>
+            <view class="ld-hero-stat"><text class="ld-hero-num">{{view.stats.passes}}</text><text class="ld-hero-cap">关被闯过</text></view>
+          </view>
+        </view>
+
+        <view wx:if="{{view.award}}" class="ld-award"><view class="ld-crown-sm" aria-hidden="true"></view><text>{{view.award}}</text></view>
+
+        <!-- 领奖台 -->
+        <view class="ld-podium" aria-label="今日前三">
+          <view wx:for="{{view.seats}}" wx:for-item="seat" wx:key="rank" class="ld-seat seat-{{seat.rank}} {{seat.row && seat.row.me ? 'is-me' : ''}}">
+            <block wx:if="{{seat.row}}">
+              <view wx:if="{{seat.rank === 1}}" class="ld-crown" aria-hidden="true"><view class="ld-crown-base"></view></view>
+              <view class="ld-avatar ld-seat-avatar">
+                <text class="ld-avatar-initial">{{seat.row.initial}}</text>
+                <image wx:if="{{seat.row.avatar}}" class="ld-avatar-img" src="{{seat.row.avatar}}" mode="aspectFill"></image>
+              </view>
+              <text class="ld-seat-name">{{seat.row.name}}{{seat.row.me ? '（我）' : ''}}</text>
+              <text class="ld-seat-grade">{{seat.row.grade || ' '}}</text>
+              <text class="ld-seat-score"><text class="ld-seat-num">{{seat.row.passes}}</text> 关</text>
+              <text class="ld-seat-time">{{seat.row.time}}</text>
+              <text wx:if="{{seat.row.podium}}" class="ld-seat-prize">+{{view.coins}} 金币</text>
+              <text wx:else class="ld-seat-hint">闯过 1 关才有奖</text>
+            </block>
+            <text wx:else class="ld-seat-empty">虚位以待</text>
+            <view class="ld-block"><text>{{seat.rank}}</text></view>
+          </view>
+        </view>
+
+        <!-- 今日排行 -->
+        <view class="ld-card">
+          <view class="ld-card-head"><text class="ld-card-title">今日排行</text><text class="ld-card-hint">先比闯关数，一样多再比学习时长</text></view>
+          <text wx:if="{{!view.hasRows}}" class="ld-empty">今天还没有同学上榜，第一个闯关的就是第一名！</text>
+          <text wx:elif="{{!view.rest.length}}" class="ld-empty">今天只有前三名上榜，快去抢第四名之后的位置吧。</text>
+          <view wx:else>
+            <view wx:for="{{view.rest}}" wx:key="rank" class="ld-row {{item.me ? 'is-me' : ''}}">
+              <text class="ld-rank">{{item.rank}}</text>
+              <view class="ld-avatar ld-row-avatar">
+                <text class="ld-avatar-initial">{{item.initial}}</text>
+                <image wx:if="{{item.avatar}}" class="ld-avatar-img" src="{{item.avatar}}" mode="aspectFill"></image>
+              </view>
+              <view class="ld-who">
+                <view class="ld-who-name"><text class="ld-ellipsis">{{item.name}}</text><text wx:if="{{item.me}}" class="ld-me-tag">我</text></view>
+                <text class="ld-who-grade">{{item.grade}}</text>
+              </view>
+              <view class="ld-score">
+                <view class="ld-score-top"><text class="ld-tier tier-{{item.tier.key}}">{{item.tier.label}}</text><text class="ld-score-num">{{item.passes}}</text><text> 关</text></view>
+                <text class="ld-score-time">{{item.time}}</text>
+                <view class="ld-bar"><view class="ld-bar-fill" style="width: {{item.percent}}%;"></view></view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 天梯段位 -->
+        <view class="ld-card">
+          <view class="ld-card-head"><text class="ld-card-title">天梯段位</text><text class="ld-card-hint">按今天闯过的关数，每天从见习重新爬</text></view>
+          <view class="ld-ladder">
+            <view wx:for="{{view.rungs}}" wx:key="key" class="ld-rung {{item.here ? 'is-here' : ''}}">
+              <text class="ld-tier tier-{{item.key}}">{{item.label}}</text>
+              <text class="ld-rung-need">{{item.need}}</text>
+              <text wx:if="{{item.here}}" class="ld-rung-here">我在这</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 昨日前三 -->
+        <view class="ld-card">
+          <view class="ld-card-head"><text class="ld-card-title">昨日前三</text><text class="ld-card-hint">{{view.yesterday.settling ? '正在结算…' : view.yesterday.learners + ' 位同学参加'}}</text></view>
+          <text wx:if="{{!view.yesterday.podium.length}}" class="ld-empty">{{view.yesterday.settling ? '24 点刚过，正在结算昨天的名次。' : '昨天没有同学闯关，前三空着。'}}</text>
+          <view wx:for="{{view.yesterday.podium}}" wx:key="rank" class="ld-yrow {{item.me ? 'is-me' : ''}}">
+            <text class="ld-medal medal-{{item.rank}}">{{item.rank}}</text>
+            <view class="ld-avatar ld-yrow-avatar">
+              <text class="ld-avatar-initial">{{item.initial}}</text>
+              <image wx:if="{{item.avatar}}" class="ld-avatar-img" src="{{item.avatar}}" mode="aspectFill"></image>
+            </view>
+            <view class="ld-who">
+              <text class="ld-ellipsis ld-who-name">{{item.name}}</text>
+              <text class="ld-who-grade">{{item.score}}</text>
+            </view>
+            <view class="ld-ycoins"><view class="ld-coin is-small" aria-hidden="true"></view>{{item.coins}}</view>
+          </view>
+        </view>
+
+        <view class="ld-rules">
+          <text class="ld-rules-title">怎么算</text>
+          <text class="ld-rules-line">一关 = 看完一节课、互动练习通关、做完考试挑战、当小老师通过、做完当天的复习，各算一关；宝箱不算。</text>
+          <text class="ld-rules-line">先比今天闯过的关数，一样多比学习时长，再一样比谁先闯到。前三名当天至少要闯过 1 关才有金币。</text>
+          <text class="ld-rules-line">榜上的名字只显示一部分，保护大家的隐私。</text>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 我的名次（吸底） -->
+  <view wx:if="{{loaded}}" class="ld-me {{view.me.top ? 'is-top' : ''}}">
+    <view class="ld-me-rank"><text class="ld-me-cap">我的名次</text><text class="ld-me-num">{{view.me.rankText}}</text></view>
+    <view class="ld-me-main">
+      <view class="ld-me-line"><text class="ld-tier tier-{{view.me.tier.key}}">{{view.me.tier.label}}</text><text>今天 {{view.me.passes}} 关 · {{view.me.time}}</text></view>
+      <text class="ld-me-tip">{{view.me.tip}}</text>
+    </view>
+    <view class="ld-go" bindtap="openLearning" role="button">去闯关</view>
+  </view>
+</view>
+<dev-reset-fab />

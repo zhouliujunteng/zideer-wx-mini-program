@@ -1161,6 +1161,12 @@ page {
 .lp-stat-book::after { position: absolute; top: 8rpx; right: 6rpx; left: 11rpx; height: 4rpx; border-radius: 2rpx; background: rgba(255, 255, 255, .85); box-shadow: 0 8rpx 0 rgba(255, 255, 255, .85); content: ''; }
 .lp-stat-avatar { width: 40rpx; height: 40rpx; border-radius: 50%; }
 .lp-stat-trophy { width: 44rpx; height: 44rpx; }
+/* 天梯榜入口：三根领奖台柱子（中间最高、金色） */
+.lp-stat-ladder { display: flex; align-items: flex-end; gap: 3rpx; height: 32rpx; }
+.lp-ladder-bar { width: 10rpx; border-radius: 3rpx 3rpx 0 0; }
+.lp-ladder-bar.is-1 { height: 32rpx; background: #F2B300; }
+.lp-ladder-bar.is-2 { height: 22rpx; background: #A3AFBD; }
+.lp-ladder-bar.is-3 { height: 16rpx; background: #D08A4F; }
 /* 新获得荣誉的庆祝弹层（2026-11-11 晚）：暗底 + 旋转光芒 + 荣誉图弹出；按钮沿用开宝箱的样式 */
 .honor-cele { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 64rpx; background: rgba(20, 16, 36, .82); animation: honor-fade .25s ease both; }
 .honor-cele-stage { position: relative; display: flex; align-items: center; justify-content: center; width: 520rpx; height: 460rpx; }

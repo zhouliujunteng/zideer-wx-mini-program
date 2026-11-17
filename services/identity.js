@@ -870,6 +870,16 @@ async function reviewAgentCourseAcceptance(stageId, result, summary = '') {
   const token = await getRuntimeToken()
   return requestAgentCourses(`/api/teacher/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, {
     method: 'POST', data: { result, summary: String(summary || '') }, timeout: 30000, fallbackMessage: '核验没有提交成功，请稍后重试。'
+/**
+ * 学习天梯榜（课程服务 /api/learn/ladder，2026-11-17）：今天全站的实时榜、我的名次、昨天结算的前三和我拿到的金币。
+ * 规则在课程服务 lib/course/ladder.ts，页面模型 utils/ladder-view.js。
+ */
+async function loadLadder() {
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses('/api/learn/ladder', token, { timeout: 20000, fallbackMessage: '天梯榜暂时读不到，请稍后重试。' })
+  return data && data.ladder
+}
+
   })
 }
 
@@ -4964,6 +4974,7 @@ module.exports = {
   confirmCurrentCourseGeneration,
   loadCurrentRemediationTasks,
   loadCurrentLiveSchedule,
+  loadLadder,
   loadCurrentTopicCandidates,
   addCurrentTopicCandidate,
   removeCurrentTopicCandidate,

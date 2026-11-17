@@ -367,6 +367,11 @@ page{background:#FAFAFA}
 .lp-stat-book::after{top:4px;right:3px;left:6px;height:2px;border-radius:1px;background:rgba(255, 255, 255, .85);box-shadow:0 4px 0 rgba(255, 255, 255, .85)}
 .lp-stat-avatar{width:24px;height:24px;border-radius:50%}
 .lp-stat-trophy{width:26px;height:26px}
+.lp-stat-ladder{gap:1px;height:19px}
+.lp-ladder-bar{width:6px;border-radius:1px 1px 0 0}
+.lp-ladder-bar.is-1{height:19px;background:#F2B300}
+.lp-ladder-bar.is-2{height:13px;background:#A3AFBD}
+.lp-ladder-bar.is-3{height:9px;background:#D08A4F}
 .honor-cele{top:0;right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);flex-direction:column;padding:0 38px;background:rgba(20, 16, 36, .82);box-shadow:0 0 0 100vmax rgba(20, 16, 36, .82)}
 .honor-cele-stage{width:312px;height:276px}
 .honor-cele-rays{top:50%;left:50%;width:372px;height:372px;margin:-186px 0 0 -186px;border-radius:50%;background:radial-gradient(circle, rgba(255, 214, 110, .6) 0, rgba(255, 214, 110, 0) 60%), repeating-conic-gradient(from 0deg, rgba(255, 196, 70, .3) 0deg 10deg, rgba(255, 196, 70, 0) 10deg 24deg);-webkit-mask:radial-gradient(circle, #000 30%, transparent 70%);mask:radial-gradient(circle, #000 30%, transparent 70%)}

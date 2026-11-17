@@ -21,6 +21,10 @@
           <image class="lp-stat-trophy" src="{{UA.src(ui, '/assets/honors/v2/cup-quest-3.png')}}" mode="aspectFit"></image>
           <text class="lp-stat-num {{honorCount ? '' : 'is-zero'}}">{{honorCount}}</text>
         </view>
+        <!-- 学习天梯榜（2026-11-17）：今天大家学了多久、闯过多少关，24 点前三各得 100 金币 -->
+        <view wx:if="{{access === 'ready'}}" class="lp-stat" bindtap="openLadder" role="button" aria-label="学习天梯榜">
+          <view class="lp-stat-ladder" aria-hidden="true"><view class="lp-ladder-bar is-2"></view><view class="lp-ladder-bar is-1"></view><view class="lp-ladder-bar is-3"></view></view>
+        </view>
         <view class="lp-stat" bindtap="openLibrary" role="button" aria-label="课程库">
           <view class="lp-stat-book" aria-hidden="true"></view>
         </view>
