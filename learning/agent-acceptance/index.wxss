@@ -135,6 +135,26 @@ page { height: 100%; overflow: hidden; background: #FBF5EC; }
 .pc-hint-row { flex: none; display: flex; flex-direction: column; align-items: center; padding: 4rpx 28rpx 18rpx; }
 .pc-hint { display: flex; align-items: center; max-width: 100%; padding: 12rpx 28rpx; box-sizing: border-box; border-radius: 999rpx; background: #FFEBD6; color: #C46A12; font-size: 25rpx; font-weight: 600; }
 .pc-hint-dot { flex: none; width: 14rpx; height: 14rpx; margin-right: 12rpx; border-radius: 50%; background: #FD7C02; }
+.pc-hint-line { display: flex; align-items: center; justify-content: center; max-width: 100%; }
+.pc-hint-help { flex: none; margin-left: 12rpx; padding: 12rpx 22rpx; border: 2rpx solid #F2C28E; border-radius: 999rpx; background: #FFFFFF; color: #C46A12; font-size: 24rpx; font-weight: 600; }
+.pc-hint-help:active { opacity: .7; }
+
+/* 悄悄提示：便利贴一样的卡片，贴在黑板下面 */
+.pc-help { flex: none; margin: 4rpx 28rpx 18rpx; padding: 20rpx 24rpx 22rpx; box-sizing: border-box; border: 2rpx solid #F5D3A8; border-radius: 24rpx; background: #FFF7EC; box-shadow: 0 6rpx 18rpx rgba(196, 106, 18, .12); animation: pc-help-in .28s cubic-bezier(.2, .72, .2, 1); }
+@keyframes pc-help-in { from { opacity: 0; transform: translateY(16rpx); } to { opacity: 1; transform: none; } }
+.pc-help-head { display: flex; align-items: center; }
+.pc-help-badge { flex: none; display: flex; align-items: center; justify-content: center; width: 36rpx; height: 36rpx; margin-right: 10rpx; border-radius: 50%; background: #FD7C02; color: #FFFFFF; font-size: 24rpx; font-weight: 700; }
+.pc-help-title { flex: 1; min-width: 0; color: #9A5310; font-size: 28rpx; font-weight: 700; }
+.pc-help-action { flex: none; display: flex; align-items: center; height: 48rpx; margin-left: 10rpx; padding: 0 16rpx; border-radius: 24rpx; background: #FFFFFF; color: #8A7764; font-size: 22rpx; }
+.pc-help-action:active { opacity: .7; }
+.pc-help-action .pc-speaker-icon { margin-right: 6rpx; }
+.pc-help-reassure { display: block; margin-top: 10rpx; color: #8A7764; font-size: 24rpx; line-height: 1.5; }
+.pc-help-label { display: block; margin-top: 14rpx; color: #B07A45; font-size: 22rpx; font-weight: 600; }
+.pc-help-starters { display: flex; flex-wrap: wrap; margin-top: 4rpx; }
+.pc-help-starter { margin: 8rpx 12rpx 0 0; padding: 10rpx 18rpx; border-radius: 16rpx; background: #FFFFFF; color: #5B4632; font-size: 26rpx; line-height: 1.4; }
+.pc-help-cue { margin-top: 4rpx; }
+.pc-help-cue-text { display: block; margin-top: 6rpx; color: #5B4632; font-size: 27rpx; font-weight: 600; line-height: 1.5; }
+.pc-help-more { margin-top: 14rpx; color: #C46A12; font-size: 24rpx; font-weight: 600; text-decoration: underline; }
 .pc-said { max-width: 100%; margin-top: 10rpx; overflow: hidden; color: #A08E7C; font-size: 22rpx; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ——— 底栏 ——— */
@@ -213,6 +233,7 @@ page { height: 100%; overflow: hidden; background: #FBF5EC; }
   .pc-page .pc-star-text { font-size: 14px; }
   .pc-page .pc-footer-inner { max-width: 860px; margin: 0 auto; }
   .pc-page .pc-hint-row { padding: 4px 20px 14px; }
+  .pc-page .pc-help { margin: 4px 20px 14px; }
 }
 
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

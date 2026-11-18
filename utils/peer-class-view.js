@@ -105,6 +105,41 @@ function peerHint({ peerClass = null, playing = false, sending = false } = {}) {
   return '接着讲黑板上还没讲清的事吧'
 }
 
+// 孩子半天没开口（2026-11-17 用户要求：弹出大概怎么讲的提示，降低压力）：同学们说完、轮到小老师讲，
+// 15 秒没动静先弹「可以这样开头」，再过 20 秒加上这件事的大概的提示。
+// 讲哪件事、开头怎么说、大概的提示都由课程服务给（peerClass.hint，lib/course/peer-class.ts peerClassHint），这里只排版。
+const HINT_FIRST_DELAY = 15000
+const HINT_MORE_DELAY = 20000
+const HINT_REASSURE = '不用一次讲完，想到哪讲到哪，讲错了也没关系。'
+
+/** 同一个「轮到小老师讲」的时刻：讲了新的一段（rounds 变了）或换了要讲的事，提示从头算。 */
+function hintKey(peerClass) {
+  if (!peerClass || peerClass.finished || !peerClass.hint) return ''
+  return `${Number(peerClass.rounds) || 0}|${peerClass.hint.topic || ''}`
+}
+
+/** 提示卡。level 1：怎么开头；level 2：再加大概的提示。没有大概的提示时 level 2 和 1 一样。 */
+function hintCard(peerClass, level = 1) {
+  const hint = peerClass && !peerClass.finished ? peerClass.hint : null
+  if (!hint || level < 1) return null
+  return {
+    topic: hint.topic || '',
+    reassure: hint.reassure || HINT_REASSURE,
+    starters: (hint.starters || []).filter(Boolean).slice(0, 3),
+    cue: level >= 2 ? hint.cue || '' : '',
+    canMore: level < 2 && Boolean(hint.cue)
+  }
+}
+
+/** 读给孩子听的那句：安慰 + 第一句开头（去掉「……」）+ 大概的提示。onlyCue：刚加上大概的提示时只读这一句。 */
+function hintSpeech(card, { onlyCue = false } = {}) {
+  if (!card) return ''
+  const cue = card.cue || ''
+  if (onlyCue) return cue
+  const start = String(card.starters[0] || '').replace(/[：:]?…+$/, '')
+  return `${card.reassure}${start ? `可以这样开头：${start}。` : ''}${cue}`
+}
+
 /**
  * 气泡：每个同学最近说的那句话。lines 是 turns 末尾刚回来的这一批，还没读到的（revealed 之后）先不亮。
  * old = 这句是孩子讲最新一段之前说的（画淡一点）。
@@ -261,7 +296,12 @@ module.exports = {
   DESK_ART,
   STAR_ART,
   STAR_EMPTY_ART,
+  HINT_FIRST_DELAY,
+  HINT_MORE_DELAY,
   viewState,
+  hintKey,
+  hintCard,
+  hintSpeech,
   lineMood,
   peerMood,
   peerHint,

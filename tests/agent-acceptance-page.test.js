@@ -461,3 +461,85 @@ test('the page is a classroom: peers at desks with name plates, a blackboard and
   for (const match of template.matchAll(/style="([^"]*)"/g)) assert.doesNotMatch(match[1], /rpx/)
   assert.doesNotMatch(style, /gradient/)
 })
+
+// 孩子半天没开口（2026-11-17）：15 秒弹「悄悄提示」（怎么开头），再过 20 秒加回想提示；一开口、讲完一段就收起
+const HINT = {
+  topic: '什么是约分',
+  peer: null,
+  starters: ['我来讲「什么是约分」：……', '举个例子：……', '所以……'],
+  cue: '想想课上把 6/8 变小的那一步',
+  reassure: '不用一次讲完，想到哪讲到哪，讲错了也没关系。'
+}
+const IN_CLASS_WITH_HINT = { ...IN_CLASS, peerClass: classState({ hint: HINT }) }
+
+test('a silent little teacher gets a gentle how-to-start hint, then a memory prompt, read aloud', async () => {
+  const { page, calls } = await openClass({ loads: [IN_CLASS_WITH_HINT] })
+  assert.equal(page.data.hintReady, true)
+  assert.equal(page.data.hintCard, null)
+  assert.equal(calls.timeouts.length, 1)
+  calls.timeouts.shift()()
+  assert.equal(page.data.hintLevel, 1)
+  assert.deepEqual(page.data.hintCard.starters, HINT.starters)
+  assert.equal(page.data.hintCard.cue, '')
+  assert.equal(page.data.hintCard.canMore, true)
+  assert.match(calls.sequences.at(-1).items[0].text, /^不用一次讲完.*可以这样开头：我来讲「什么是约分」。$/)
+  assert.equal(calls.sequences.at(-1).items[0].voice, '')
+  // 再等一会儿：加上回想提示，只读新加的这句
+  calls.timeouts.shift()()
+  assert.equal(page.data.hintLevel, 2)
+  assert.equal(page.data.hintCard.cue, HINT.cue)
+  assert.equal(calls.sequences.at(-1).items[0].text, HINT.cue)
+  // 给全了不再排
+  assert.equal(calls.timeouts.length, 0)
+  page.onUnload()
+})
+
+test('the hint stays while speaking, and folds away once the segment is sent', async () => {
+  const { page, calls } = await openClass({ loads: [IN_CLASS_WITH_HINT], sends: [AFTER_ROUND] })
+  page.openHint()
+  assert.equal(page.data.hintLevel, 1)
+  page.handleSpeakTouchStart({ touches: [{ pageY: 700 }] })
+  calls.timeouts.pop()()
+  // 按住说话时还看得到提示，但朗读停下
+  assert.ok(page.data.hintCard)
+  assert.equal(page.data.hintReady, false)
+  assert.equal(calls.sequences.at(-1).stopped, true)
+  const sessionId = page._recorderSessionId
+  page._handleRecorderStart(null, sessionId)
+  page._handleRecorderFrame({ frameBuffer: new Uint8Array(6400).buffer }, sessionId)
+  page.handleSpeakTouchEnd()
+  await flush()
+  assert.equal(page.data.hintCard, null)
+  assert.equal(page.data.hintLevel, 0)
+  page.onUnload()
+})
+
+test('typing holds the hint back, and a closed hint does not pop up again but can be reopened', async () => {
+  const { page, calls } = await openClass({ loads: [IN_CLASS_WITH_HINT] })
+  page.handleKeyboardButtonTap()
+  page.handleInput({ detail: { value: '约分' } })
+  assert.equal(page.data.hintReady, false)
+  page.handleInput({ detail: { value: '' } })
+  assert.equal(page.data.hintReady, true)
+  calls.timeouts.at(-1)()
+  assert.equal(page.data.hintLevel, 1)
+  page.closeHint()
+  assert.equal(page.data.hintCard, null)
+  const pending = calls.timeouts.length
+  page.render()
+  assert.equal(calls.timeouts.length, pending)
+  // 收起后再点「怎么讲？」：原样再弹出来，再点「再给点提示」才加回想提示
+  page.openHint()
+  assert.equal(page.data.hintLevel, 1)
+  assert.equal(page.data.hintCard.canMore, true)
+  page.moreHint()
+  assert.equal(page.data.hintCard.cue, HINT.cue)
+  page.onUnload()
+})
+
+test('a class without hints from an older course service shows no hint button', async () => {
+  const { page, calls } = await openClass()
+  assert.equal(page.data.hintReady, false)
+  assert.equal(calls.timeouts.length, 0)
+  page.onUnload()
+})

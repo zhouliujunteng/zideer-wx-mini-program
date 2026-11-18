@@ -133,8 +133,33 @@
             </view>
           </view>
         </scroll-view>
-        <view wx:if="{{hint}}" class="pc-hint-row" aria-live="polite">
-          <view class="pc-hint"><view class="pc-hint-dot" aria-hidden="true"></view><text>{{hint}}</text></view>
+        <!-- 悄悄提示（2026-11-17）：轮到小老师讲、半天没开口时弹出——先给怎么开头，再给大概的提示 -->
+        <view wx:if="{{hintCard && state === 'class'}}" class="pc-help" aria-live="polite">
+          <view class="pc-help-head">
+            <view class="pc-help-badge" aria-hidden="true">?</view>
+            <text class="pc-help-title">悄悄提示</text>
+            <view class="pc-help-action" bindtap="readHint" aria-role="button" aria-label="把提示读给我听">
+              <view class="pc-speaker-icon" aria-hidden="true"><view class="pc-speaker-wave"></view></view>
+              <text>读给我听</text>
+            </view>
+            <view class="pc-help-action" bindtap="closeHint" aria-role="button" aria-label="收起提示">收起</view>
+          </view>
+          <text class="pc-help-reassure">{{hintCard.reassure}}</text>
+          <text class="pc-help-label">讲「{{hintCard.topic}}」，可以这样开头</text>
+          <view class="pc-help-starters">
+            <text wx:for="{{hintCard.starters}}" wx:key="*this" class="pc-help-starter">{{item}}</text>
+          </view>
+          <view wx:if="{{hintCard.cue}}" class="pc-help-cue">
+            <text class="pc-help-label">大概可以这样说</text>
+            <text class="pc-help-cue-text">{{hintCard.cue}}</text>
+          </view>
+          <view wx:elif="{{hintCard.canMore}}" class="pc-help-more" bindtap="moreHint" aria-role="button" aria-label="再给点提示">还是想不起来？再给点提示</view>
+        </view>
+        <view wx:elif="{{hint}}" class="pc-hint-row" aria-live="polite">
+          <view class="pc-hint-line">
+            <view class="pc-hint"><view class="pc-hint-dot" aria-hidden="true"></view><text>{{hint}}</text></view>
+            <view wx:if="{{hintReady}}" class="pc-hint-help" bindtap="openHint" aria-role="button" aria-label="不知道怎么讲，看看提示">怎么讲？</view>
+          </view>
           <text wx:if="{{sending && lastSaid}}" class="pc-said">你刚讲：{{lastSaid}}</text>
         </view>
       </view>

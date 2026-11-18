@@ -103,6 +103,21 @@ page{height:100%}
 .pc-hint-row{flex:none;flex-direction:column;padding:2px 16px 10px}
 .pc-hint{max-width:100%;padding:7px 16px;box-sizing:border-box;border-radius:599px;font-size:15px;font-weight:600}
 .pc-hint-dot{flex:none;width:8px;height:8px;margin-right:7px;border-radius:50%}
+.pc-hint-line{max-width:100%}
+.pc-hint-help{flex:none;margin-left:7px;padding:7px 13px;border:1px solid #F2C28E;border-radius:599px;font-size:14px;font-weight:600}
+.pc-help{flex:none;margin:2px 16px 10px;padding:12px 14px 13px;box-sizing:border-box;border:1px solid #F5D3A8;border-radius:14px;box-shadow:0 3px 10px rgba(196, 106, 18, .12)}
+@keyframes pc-help-in{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.pc-help-badge{flex:none;width:21px;height:21px;margin-right:6px;border-radius:50%;font-size:14px;font-weight:700}
+.pc-help-title{flex:1;min-width:0;font-size:16px;font-weight:700}
+.pc-help-action{flex:none;height:28px;margin-left:6px;padding:0 9px;border-radius:14px;font-size:13px}
+.pc-help-action .pc-speaker-icon{margin-right:3px}
+.pc-help-reassure{margin-top:6px;font-size:14px;line-height:1.5}
+.pc-help-label{margin-top:8px;font-size:13px;font-weight:600}
+.pc-help-starters{flex-wrap:wrap;margin-top:2px}
+.pc-help-starter{margin:4px 7px 0 0;padding:6px 10px;border-radius:9px;font-size:15px;line-height:1.4}
+.pc-help-cue{margin-top:2px}
+.pc-help-cue-text{margin-top:3px;font-size:16px;font-weight:600;line-height:1.5}
+.pc-help-more{margin-top:8px;font-size:14px;font-weight:600}
 .pc-said{max-width:100%;margin-top:6px;font-size:13px}
 .pc-footer{flex:none;padding:12px 16px 0;box-sizing:border-box;border-radius:19px 19px 0 0;box-shadow:0 -4px 14px rgba(120, 80, 30, .07)}
 .pc-round-button{flex:none;width:55px;height:55px;box-sizing:border-box;border:1px solid #EADFD2;border-radius:50%}
@@ -151,4 +166,5 @@ page{height:100%}
 .pc-page .pc-star-text{font-size:14px}
 .pc-page .pc-footer-inner{max-width:860px;margin:0 auto}
 .pc-page .pc-hint-row{padding:4px 20px 14px}
+.pc-page .pc-help{margin:4px 20px 14px}
 }

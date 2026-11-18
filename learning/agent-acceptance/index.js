@@ -10,7 +10,12 @@ const {
   peerHint,
   speechQueue,
   classRecords,
-  resultCard
+  resultCard,
+  HINT_FIRST_DELAY,
+  HINT_MORE_DELAY,
+  hintKey,
+  hintCard,
+  hintSpeech
 } = require('../../utils/peer-class-view')
 const {
   VOICE_LONG_PRESS_DELAY,
@@ -36,6 +41,8 @@ const {
 // 这里只负责画（utils/peer-class-view.js）、按顺序朗读同学们的话（services/learn-speech.js playSequence），
 // 以及收孩子讲的话：默认「按住说话」，松手转成文字直接发出；点左边的键盘也能打字（2026-10-04 复述验收默认按住说话）。
 // 按住说话与老师端「直播间记录」（teacher/live-room）同一套 utils/voice-input。
+// 孩子半天没开口（2026-11-17）：轮到小老师讲、15 秒没动静弹「悄悄提示」（怎么开头），再过 20 秒加上大概的提示；
+// 提示条旁边的「怎么讲？」随时能点开。开着朗读时提示也读出来。孩子一开口、讲完一段，提示就收起来。
 const MAX_ANSWER = 1000
 // 一段话最多录约 60 秒（VOICE_MAX_BYTES，16kHz × 2 字节）：最后 10 秒提示还能说几秒，到点自动当松手发出
 const VOICE_BYTES_PER_SECOND = 32000
@@ -80,6 +87,10 @@ Page({
     peers: [],
     board: null,
     hint: '',
+    // 悄悄提示：hintLevel 0 没弹 / 1 怎么开头 / 2 再加大概的提示；hintReady 正等着小老师讲（显示「怎么讲？」）
+    hintCard: null,
+    hintLevel: 0,
+    hintReady: false,
     records: [],
     recordOpen: false,
     autoRead: true,
@@ -139,6 +150,8 @@ Page({
 
   onHide() {
     this._isPageVisible = false
+    this.clearHintTimer()
+    this.stopHintSpeech()
     this.stopPlayback()
     this.abortVoiceInput()
     if (this.data.keyboardHeight) this.setData({ keyboardHeight: 0 })
@@ -147,6 +160,7 @@ Page({
   onUnload() {
     this._isDestroyed = true
     this._isPageVisible = false
+    this.clearHintTimer()
     this.stopPlayback()
     stopSpeech()
     this.abortVoiceInput(true)
@@ -254,6 +268,96 @@ Page({
         ? peerHint({ peerClass: data.peerClass, playing: data.playing, sending: data.sending || data.state === 'settling' })
         : ''
     }))
+    this.syncHint()
+  },
+
+  // ——— 孩子半天没开口：悄悄提示 ————————————————————————————
+  // 正等着小老师讲：上着课、同学们没在说、没在等回应、没在按住说话或识别、输入框里也没字
+  isWaitingForLearner() {
+    const data = this.data
+    return Boolean(hintKey(data.peerClass)) && data.state === 'class' && this._isPageVisible !== false &&
+      !data.playing && !data.sending && !data.voiceRecognizing && !this._asrBusy && !data.draft
+  },
+
+  // 每次课堂状态变了都过一遍：换了一轮就从头算；在等小老师就按级数排下一次弹出；讲完一段（发出去）提示收起
+  syncHint() {
+    if (this._isDestroyed) return
+    const data = this.data
+    const key = data.state === 'class' ? hintKey(data.peerClass) : ''
+    if (key !== this._hintKey || data.sending) {
+      if (key !== this._hintKey) this._hintClosed = false
+      this._hintKey = key
+      this.clearHintTimer()
+      this.stopHintSpeech()
+      if (data.hintCard || data.hintLevel) this.setData({ hintCard: null, hintLevel: 0 })
+    }
+    const waiting = this.isWaitingForLearner()
+    if (waiting !== this.data.hintReady) this.setData({ hintReady: waiting })
+    if (!waiting) {
+      this.clearHintTimer()
+      return
+    }
+    const level = this.data.hintLevel
+    const hasCue = Boolean(data.peerClass.hint.cue)
+    // 自己收起过就不再自动弹（还能点「怎么讲？」）；已经给全了也不再弹
+    if (this._hintTimer || this._hintClosed || level >= 2 || (level === 1 && !hasCue)) return
+    this._hintTimer = setTimeout(() => {
+      this._hintTimer = null
+      if (this.isWaitingForLearner()) this.showHint(this.data.hintLevel + 1)
+    }, level === 0 ? HINT_FIRST_DELAY : HINT_MORE_DELAY)
+  },
+
+  clearHintTimer() {
+    if (this._hintTimer) clearTimeout(this._hintTimer)
+    this._hintTimer = null
+  },
+
+  showHint(level) {
+    const next = Math.min(2, Math.max(1, level))
+    const card = hintCard(this.data.peerClass, next)
+    if (!card) return
+    const added = next === 2 && this.data.hintLevel === 1 && Boolean(this.data.hintCard)
+    this.setData({ hintCard: card, hintLevel: next })
+    if (this.data.autoRead) this.speakHint(hintSpeech(card, { onlyCue: added }))
+    this.syncHint()
+  },
+
+  // 提示条旁的「怎么讲？」：没弹过就弹，弹过就再给多一点
+  openHint() {
+    this._hintClosed = false
+    this.showHint(this.data.hintCard ? this.data.hintLevel + 1 : Math.max(1, this.data.hintLevel))
+  },
+
+  moreHint() {
+    this.showHint(2)
+  },
+
+  closeHint() {
+    this._hintClosed = true
+    this.clearHintTimer()
+    this.stopHintSpeech()
+    this.setData({ hintCard: null })
+  },
+
+  readHint() {
+    this.speakHint(hintSpeech(this.data.hintCard))
+  },
+
+  speakHint(text) {
+    if (!text) return
+    this.stopHintSpeech()
+    const handle = playSequence([{ text, voice: '' }], {
+      onDone: () => {
+        if (this._hintPlayback === handle) this._hintPlayback = null
+      }
+    })
+    this._hintPlayback = handle
+  },
+
+  stopHintSpeech() {
+    const handle = this._hintPlayback
+    this._hintPlayback = null
+    if (handle) handle.stop()
   },
 
   // ——— 同学们按顺序说话 ————————————————————————————————
@@ -304,7 +408,10 @@ Page({
       // 记不住也不要紧，这次照样生效
     }
     this.setData({ autoRead })
-    if (!autoRead) this.stopPlayback()
+    if (!autoRead) {
+      this.stopPlayback()
+      this.stopHintSpeech()
+    }
   },
 
   openRecords() {
@@ -392,6 +499,7 @@ Page({
 
   handleInput(event) {
     this.setData({ draft: String(event.detail.value || '').slice(0, MAX_ANSWER) })
+    this.syncHint()
   },
 
   handleSend() {
@@ -507,6 +615,7 @@ Page({
     this._asrBusy = false
     if (!text) {
       if (warning) wx.showToast({ title: warning, icon: 'none' })
+      this.syncHint()
       return
     }
     this.sendSegment(text)
@@ -576,6 +685,7 @@ Page({
   startVoiceInput() {
     if (wx.hideKeyboard) wx.hideKeyboard()
     this.stopPlayback()
+    this.stopHintSpeech()
     this.render({ voiceRecognizing: true, voiceCancel: false, voiceSoundActive: false, voiceBars: VOICE_BARS, voiceRemaining: 0 })
     this.startRecorderCapture()
     this.startVoiceVisualizer()

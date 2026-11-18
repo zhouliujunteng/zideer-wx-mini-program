@@ -178,3 +178,26 @@ test('not passing never says failed: it names the board topics a classmate still
   assert.equal(rejected.title, '老师建议再巩固一下')
   assert.equal(rejected.copy, '王老师：再复习一下')
 })
+
+test('hint card: how to start first, the memory prompt only on the second level, and what gets read aloud', () => {
+  const { hintKey, hintCard, hintSpeech } = require('../utils/peer-class-view')
+  const peerClass = {
+    rounds: 2,
+    finished: false,
+    hint: { topic: '约分后大小变不变', starters: ['我再补充一点：……', '为什么呢？因为……'], cue: '想想课上那块披萨', reassure: '' }
+  }
+  assert.equal(hintKey(peerClass), '2|约分后大小变不变')
+  assert.equal(hintKey({ ...peerClass, finished: true }), '')
+  assert.equal(hintKey({ rounds: 0, hint: null }), '')
+  const first = hintCard(peerClass, 1)
+  assert.equal(first.cue, '')
+  assert.equal(first.canMore, true)
+  assert.match(first.reassure, /讲错了也没关系/)
+  assert.equal(hintSpeech(first), `${first.reassure}可以这样开头：我再补充一点。`)
+  const second = hintCard(peerClass, 2)
+  assert.equal(second.cue, '想想课上那块披萨')
+  assert.equal(second.canMore, false)
+  assert.equal(hintSpeech(second, { onlyCue: true }), '想想课上那块披萨')
+  assert.equal(hintCard({ ...peerClass, hint: { ...peerClass.hint, cue: '' } }, 1).canMore, false)
+  assert.equal(hintCard(null, 1), null)
+})
