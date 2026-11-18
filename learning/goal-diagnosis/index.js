@@ -3,6 +3,7 @@ const { getNavigationMetrics } = require('../../utils/navigation')
 const { progressView, summaryView, stateText } = require('../../utils/goal-map')
 const { attachUiAssets } = require('../../services/ui-assets')
 const { isGuardianAccount } = require('../../utils/account-role')
+const { checkpointRows } = require('../../utils/quest-round-view')
 
 // 按目标测评 + 目标导图（2026-10-10 用户规则）。
 // 学生先定学习目标 → 课程服务把目标拆成几个大条件、落到真实知识点 → 边测边往下挖：做错或点「不会」就是卡点，
@@ -51,6 +52,8 @@ Page({
     resultCheer: '',
     digHint: '',
     summary: null,
+    // 阶段复测（2026-11-18，学完一轮课以后再测）：和上次比的结果，测完去看下一轮方案
+    checkpoint: null,
     showMapWhileTesting: false,
     busy: false
   },
@@ -203,9 +206,15 @@ Page({
         : summary && summary.gaps
           ? '卡点都标出来了，照着顺序补就行。'
           : '这一轮没发现卡点，底子很稳！'
+    const cp = diagnosis.checkpoint
+    const labels = (items) => (Array.isArray(items) ? items.map((item) => String((item && item.label) || '')).filter(Boolean) : [])
+    const checkpoint = cp && cp.roundId
+      ? { roundId: Number(cp.roundId) || 0, rows: checkpointRows({ resolved: labels(cp.resolved), still: labels(cp.still), fresh: labels(cp.fresh) }).map((row) => ({ ...row, text: row.items.join('、') })) }
+      : null
     this.setData({
       view: 'result',
       diagnosis,
+      checkpoint,
       stateText: stateText(diagnosis),
       question: null,
       cheer: '',
@@ -392,6 +401,13 @@ Page({
     if (this.data.teacher) return wx.navigateTo({ url: `/teacher/course-acceptance/index?stageId=${encodeURIComponent(stageId)}` })
     if (state !== 'ready') return
     wx.navigateTo({ url: `/learning/agent-course/index?stageId=${encodeURIComponent(stageId)}` })
+  },
+
+  // 阶段复测测完：去看系统按结果排的下一轮课程（课程服务后台正在排，确认页会等它排好）
+  openNextRound() {
+    const roundId = this.data.checkpoint && this.data.checkpoint.roundId
+    if (!roundId) return this.backToQuest()
+    wx.redirectTo({ url: `/learning/quest-round/index?id=${roundId}` })
   },
 
   // 测完回学习页接着闯关（下一关：预约老师诊断会议）
