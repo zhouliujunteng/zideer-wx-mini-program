@@ -454,6 +454,11 @@ test('the page is a classroom: peers at desks with name plates, a blackboard and
   for (const icon of ["'../../assets/keyboard-icon.svg'", "'../../assets/agent-voice.svg'", "'../../assets/agent-send.svg'", "'/assets/quest/mic.svg'"]) {
     assert.ok(template.includes(`UA.src(ui, ${icon})`), icon)
   }
+  // 回车要能换行（2026-11-15 用户反馈：手机、平板键盘没有 Shift），发送只靠发送按钮
+  const textarea = template.match(/<textarea[\s\S]*?\/>/)[0]
+  assert.ok(!/confirm-type="send"/.test(textarea), '打字框的回车不能设成发送')
+  assert.ok(!/bindconfirm=/.test(textarea), '打字框的回车不能触发发送')
+  assert.match(template, /class="pc-send[^"]*"[^>]*catchtap="handleSend"/)
   for (const attr of ['adjust-position="{{false}}"', 'bindlinechange="handleLineChange"', 'bindkeyboardheightchange="handleKeyboardHeightChange"', 'bindblur="handleInputBlur"']) {
     assert.ok(template.includes(attr), `打字框缺少 ${attr}`)
   }
