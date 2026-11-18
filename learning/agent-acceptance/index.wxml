@@ -54,9 +54,11 @@
                 <view wx:if="{{item.speaking}}" class="pc-speaker-icon pc-bubble-speaker" aria-hidden="true"><view class="pc-speaker-wave"></view></view>
               </view>
             </view>
-            <view class="pc-figure">
+            <view class="pc-figure {{item.sprite ? 'is-anim' : ''}}">
               <view class="pc-halo" aria-hidden="true"></view>
               <image class="pc-person" src="{{UA.src(ui, item.art)}}" mode="aspectFit" aria-label="{{item.name}}"></image>
+              <!-- 帧动画：换动作时重新建这一块，动画从第一帧播起 -->
+              <view wx:if="{{item.sprite}}" wx:for="{{[item.action]}}" wx:for-item="act" wx:key="*this" class="pc-sprite {{item.once ? 'is-once' : ''}}" style="background-image: url({{UA.src(ui, item.sprite)}});" aria-hidden="true"></view>
               <view wx:if="{{item.sparkle}}" class="pc-sparks" aria-hidden="true">
                 <text class="pc-spark">✦</text><text class="pc-spark is-b">✦</text><text class="pc-spark is-c">✦</text>
               </view>
@@ -222,6 +224,11 @@
       </view>
     </view>
   </block>
+</view>
+
+<!-- 预先取同学们的帧动画图：取好了才播（1px、看不见） -->
+<view class="pc-preload" aria-hidden="true">
+  <image wx:for="{{spriteList}}" wx:key="*this" class="pc-preload-image" src="{{UA.src(ui, item)}}" webp="{{true}}" data-key="{{item}}" bindload="handleSpriteLoad"></image>
 </view>
 
 <!-- 按住说话时：底部一块橙色提示 + 电平条，上移取消 -->

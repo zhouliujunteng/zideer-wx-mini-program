@@ -221,3 +221,25 @@ test('waiting for the peers says they are taking notes, changes its words when i
   assert.equal(peers[0].bubble, '')
   assert.equal(peers[0].mood, 'listen')
 })
+
+test('each classmate plays the clip that fits: talk while speaking, happy once after learning, confused or ask while waiting, idle otherwise', () => {
+  const { peerAction, classroomPeers, PEER_SPRITES } = require('../utils/peer-class-view')
+  assert.equal(peerAction('xiaoman', { speakingPeer: 'xiaoman' }), 'talk')
+  assert.equal(peerAction('xiaoman', { celebrating: true }), 'happy')
+  assert.equal(peerAction('ale', { asking: { peer: 'ale', kind: 'confused' } }), 'confused')
+  assert.equal(peerAction('ale', { asking: { peer: 'ale', kind: 'repeat' } }), 'confused')
+  assert.equal(peerAction('doudou', { asking: { peer: 'doudou', kind: 'next' } }), 'ask')
+  assert.equal(peerAction('doudou', { asking: { peer: 'doudou', kind: 'next' }, learnerTalking: true }), 'idle')
+  assert.equal(peerAction('doudou', { thinking: true, speakingPeer: 'doudou' }), 'idle')
+  assert.equal(peerAction('xiaoman', { outcome: 'passed' }), 'happy')
+  // 动画图加载好了才播，没好就空着（显示静态图）
+  const peerClass = { peers: [{ id: 'xiaoman', name: '小满', stars: 0 }], total: 2, asking: null }
+  const ready = { [PEER_SPRITES.xiaoman.happy]: true }
+  const [happy] = classroomPeers({ peerClass, celebrating: { xiaoman: true }, spriteReady: ready })
+  assert.equal(happy.action, 'happy')
+  assert.equal(happy.sprite, '/assets/peer-class/anim/xiaoman-happy.webp')
+  assert.equal(happy.once, true)
+  const [notYet] = classroomPeers({ peerClass, spriteReady: ready })
+  assert.equal(notYet.action, 'idle')
+  assert.equal(notYet.sprite, '')
+})

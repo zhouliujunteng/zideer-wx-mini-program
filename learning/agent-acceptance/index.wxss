@@ -210,7 +210,18 @@ page { height: 100%; overflow: hidden; background: #FBF5EC; }
 .pc-record-text { display: block; margin-top: 4rpx; color: #3A2E25; font-size: 26rpx; line-height: 1.6; word-break: break-word; }
 
 @keyframes pc-bubble-in { from { opacity: 0; transform: translate3d(0, 12rpx, 0) scale(.96); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
-/* ——— 同学们会动（2026-11-18 用户：三个同学不会动、只是换图，要有意思一点）———
+/* ——— 同学们的动画（2026-11-18）：8 列 × 5 行帧动画图，每秒 10 帧；横着一行 0.8 秒、竖着 5 行 4 秒 ——— */
+.pc-sprite { position: absolute; top: 0; left: 8rpx; z-index: 1; width: 220rpx; height: 220rpx; background-repeat: no-repeat; background-size: 800% 500%; background-position: 0 0; animation: pc-sprite-x .8s steps(8, jump-none) infinite, pc-sprite-y 4s steps(5, jump-none) infinite; }
+/* 「学会了」播一遍就停在最后一帧（和平时第一帧同一个姿势），之后页面切回平时 */
+.pc-sprite.is-once { animation-iteration-count: 5, 1; animation-fill-mode: forwards; }
+@keyframes pc-sprite-x { from { background-position-x: 0%; } to { background-position-x: 100%; } }
+@keyframes pc-sprite-y { from { background-position-y: 0%; } to { background-position-y: 100%; } }
+/* 动画图出来了：静态图藏起来、不再整张晃 */
+.pc-figure.is-anim .pc-person { visibility: hidden; animation: none !important; }
+.pc-preload { position: fixed; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+.pc-preload-image { width: 1px; height: 1px; }
+
+/* ——— 静态图的晃动（动画图还没加载好时用）———
    只动人物图，课桌不动（看起来是坐在桌后）；三个人节奏错开。规则同网页端 peer-class.module.css。 */
 .pc-person { animation: pc-idle 6s ease-in-out infinite; }
 .pc-peer:nth-child(2) .pc-person { animation-delay: -2s; }
@@ -241,7 +252,7 @@ page { height: 100%; overflow: hidden; background: #FBF5EC; }
 @keyframes pc-spark-b { 0% { opacity: 0; transform: translate(-50%, 0) scale(.2); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(70rpx, -60rpx) scale(1) rotate(25deg); } }
 @keyframes pc-spark-c { 0% { opacity: 0; transform: translate(-50%, 0) scale(.2); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(-10rpx, -84rpx) scale(1.2); } }
 @media (prefers-reduced-motion: reduce) {
-  .pc-person, .pc-spark, .pc-dot { animation: none !important; }
+  .pc-person, .pc-sprite, .pc-spark, .pc-dot { animation: none !important; }
 }
 @keyframes pc-halo { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 @keyframes pc-wave { 50% { opacity: .25; } }
@@ -263,6 +274,7 @@ page { height: 100%; overflow: hidden; background: #FBF5EC; }
   .pc-page .pc-bubble-text { font-size: 15px; }
   .pc-page .pc-figure { width: 236px; height: 266px; }
   .pc-page .pc-person { left: 8px; width: 220px; height: 220px; }
+  .pc-page .pc-sprite { left: 8px; width: 220px; height: 220px; }
   .pc-page .pc-halo { top: 4px; left: 18px; width: 200px; height: 200px; border-width: 4px; }
   .pc-page .pc-desk, .pc-page .pc-desk-art { width: 236px; height: 90px; }
   .pc-page .pc-nameplate { top: 34px; height: 34px; padding: 0 12px; border-radius: 8px; }

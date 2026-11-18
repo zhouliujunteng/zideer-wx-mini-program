@@ -29,6 +29,35 @@ const PEER_ART = {
     ask: '/assets/peer-class/peer-ale-ask.png'
   }
 }
+// 同学们的动画（2026-11-18 用户：三个同学不会动、只是换图，要灵动的动图）：每人 5 段，Wan3.0 从同学的图生成 4 秒视频，
+// 抠掉绿幕拼成 8 列 × 5 行的帧动画图（每秒 10 帧，首尾同一个姿势，能循环、随时切换），素材键 peer-class/anim/<同学>-<动作>.webp。
+// 动画图加载好才播，没好之前显示上面的静态图。与网页端 components/portal/peer-class 同一套。
+const PEER_ACTIONS = ['idle', 'talk', 'happy', 'confused', 'ask']
+const PEER_SPRITES = {
+  xiaoman: {
+    idle: '/assets/peer-class/anim/xiaoman-idle.webp',
+    talk: '/assets/peer-class/anim/xiaoman-talk.webp',
+    happy: '/assets/peer-class/anim/xiaoman-happy.webp',
+    confused: '/assets/peer-class/anim/xiaoman-confused.webp',
+    ask: '/assets/peer-class/anim/xiaoman-ask.webp'
+  },
+  doudou: {
+    idle: '/assets/peer-class/anim/doudou-idle.webp',
+    talk: '/assets/peer-class/anim/doudou-talk.webp',
+    happy: '/assets/peer-class/anim/doudou-happy.webp',
+    confused: '/assets/peer-class/anim/doudou-confused.webp',
+    ask: '/assets/peer-class/anim/doudou-ask.webp'
+  },
+  ale: {
+    idle: '/assets/peer-class/anim/ale-idle.webp',
+    talk: '/assets/peer-class/anim/ale-talk.webp',
+    happy: '/assets/peer-class/anim/ale-happy.webp',
+    confused: '/assets/peer-class/anim/ale-confused.webp',
+    ask: '/assets/peer-class/anim/ale-ask.webp'
+  }
+}
+// 「学会了」播一遍的时长（一段动画 4 秒）
+const ONE_SHOT_MS = 4000
 const CLASSROOM_ART = '/assets/peer-class/classroom.jpg'
 const DESK_ART = '/assets/peer-class/desk.png'
 const STAR_ART = '/assets/quest/rating-star.svg'
@@ -192,7 +221,19 @@ function saidLearned(id, lines = [], revealed = 0) {
  * 教室里的一排同学。还没开课（peerClass 为 null）时按三个同学画、不画星星。
  * speakingPeer：正在出声的同学（高亮光圈 + 喇叭）。
  */
-function classroomPeers({ peerClass = null, turns = [], lines = [], revealed = 0, speakingPeer = '', learnerTalking = false, playing = false, outcome = '', thinking = false } = {}) {
+/**
+ * 这个同学现在播哪段：在记笔记 / 小老师在讲 → 平时；正在说话 → 说话；过关 → 学会了（循环）；刚说完「学会了」→ 学会了（播一遍）；
+ * 在等小老师回答 → 记混了 / 请再讲一遍是疑惑，其余是举手；其余平时。
+ */
+function peerAction(id, { speakingPeer = '', thinking = false, learnerTalking = false, outcome = '', celebrating = false, asking = null, settled = true } = {}) {
+  if (thinking || learnerTalking) return 'idle'
+  if (speakingPeer === id) return 'talk'
+  if (outcome === 'passed' || celebrating) return 'happy'
+  if (settled && asking && asking.peer === id) return asking.kind === 'confused' || asking.kind === 'repeat' ? 'confused' : 'ask'
+  return 'idle'
+}
+
+function classroomPeers({ peerClass = null, turns = [], lines = [], revealed = 0, speakingPeer = '', learnerTalking = false, playing = false, outcome = '', thinking = false, celebrating = {}, spriteReady = {} } = {}) {
   const peers = peerClass && Array.isArray(peerClass.peers) && peerClass.peers.length
     ? peerClass.peers
     : PEER_IDS.map((id) => ({ id, name: peerName(id), stars: null }))
@@ -204,7 +245,13 @@ function classroomPeers({ peerClass = null, turns = [], lines = [], revealed = 0
     const mood = peerMood(peer.id, { lines, revealed, asking, learnerTalking, settled, outcome })
     const bubble = bubbles[peer.id] || null
     const stars = peer.stars === null || peer.stars === undefined ? { icons: [], text: '' } : starsOf(peer.stars, total)
+    const action = peerAction(peer.id, { speakingPeer, thinking, learnerTalking, outcome, celebrating: Boolean(celebrating[peer.id]), asking, settled })
+    const sprite = (PEER_SPRITES[peer.id] || {})[action] || ''
     return {
+      action,
+      // 动画图加载好了才播（没好之前显示静态图）；「学会了」除了过关都只播一遍
+      sprite: sprite && spriteReady[sprite] ? sprite : '',
+      once: action === 'happy' && outcome !== 'passed',
       id: peer.id,
       name: peer.name || peerName(peer.id),
       mood: thinking ? 'listen' : mood,
@@ -319,6 +366,9 @@ module.exports = {
   PEER_IDS,
   PEER_NAMES,
   PEER_ART,
+  PEER_ACTIONS,
+  PEER_SPRITES,
+  ONE_SHOT_MS,
   CLASSROOM_ART,
   DESK_ART,
   STAR_ART,
@@ -331,6 +381,7 @@ module.exports = {
   hintSpeech,
   lineMood,
   peerMood,
+  peerAction,
   peerHint,
   waitingText,
   isLastRound,

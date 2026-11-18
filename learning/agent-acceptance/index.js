@@ -11,6 +11,8 @@ const {
   speechQueue,
   classRecords,
   resultCard,
+  PEER_SPRITES,
+  ONE_SHOT_MS,
   HINT_FIRST_DELAY,
   HINT_MORE_DELAY,
   hintKey,
@@ -87,6 +89,9 @@ Page({
     peers: [],
     board: null,
     hint: '',
+    // 同学们的动画：要预先取的帧动画图（取好一张记一张，记在 spriteReady 里）
+    spriteList: [],
+    spriteReady: {},
     // 悄悄提示：hintLevel 0 没弹 / 1 怎么开头 / 2 再加大概的提示；hintReady 正等着小老师讲（显示「怎么讲？」）
     hintCard: null,
     hintLevel: 0,
@@ -242,11 +247,14 @@ Page({
       speakingPeer: '',
       result: play ? null : after.result
     })
+    this.preloadSprites(peerClass)
     if (play) {
       this._afterPlayback = after
       this.startPlayback(lines)
-    } else if (after.checkin) {
-      this.celebrate(after.checkin)
+    } else {
+      // 不朗读时同学们的话一下子都亮出来：说「学会了」的同学直接播一遍开心的动画
+      lines.forEach((line) => this.celebrateLine(line))
+      if (after.checkin) this.celebrate(after.checkin)
     }
     this.render()
   },
@@ -265,7 +273,9 @@ Page({
         learnerTalking: data.voiceRecognizing,
         playing: data.playing,
         outcome,
-        thinking: Boolean(data.sending && data.lastSaid)
+        thinking: Boolean(data.sending && data.lastSaid),
+        celebrating: this.celebratingNow(),
+        spriteReady: data.spriteReady
       }),
       board: boardView(data.peerClass),
       hint: data.state === 'class' || data.state === 'settling'
@@ -364,6 +374,35 @@ Page({
     if (handle) handle.stop()
   },
 
+  // ——— 同学们的动画 ——————————————————————————————————
+  // 课堂里有哪几个同学就预先取他们的帧动画图（模板里放 1px 的 image 取图，取好了才播）
+  preloadSprites(peerClass) {
+    const ids = peerClass && Array.isArray(peerClass.peers) ? peerClass.peers.map((peer) => peer.id) : Object.keys(PEER_SPRITES)
+    const list = []
+    ids.forEach((id) => Object.keys(PEER_SPRITES[id] || {}).forEach((action) => list.push(PEER_SPRITES[id][action])))
+    if (list.join('|') !== this.data.spriteList.join('|')) this.setData({ spriteList: list })
+  },
+
+  handleSpriteLoad(event) {
+    const key = event && event.currentTarget && event.currentTarget.dataset && event.currentTarget.dataset.key
+    if (!key || this.data.spriteReady[key]) return
+    this.render({ spriteReady: Object.assign({}, this.data.spriteReady, { [key]: true }) })
+  },
+
+  // 说完「学会了」的同学：播一遍开心的动画，播完回到平时
+  celebrateLine(line) {
+    if (!line || line.kind !== 'react' || !(Number(line.gained) > 0)) return
+    this._celebrate = Object.assign({}, this._celebrate, { [line.peer]: Date.now() })
+    setTimeout(() => { if (!this._isDestroyed) this.render() }, ONE_SHOT_MS + 50)
+  },
+
+  celebratingNow() {
+    const now = Date.now()
+    const map = {}
+    Object.keys(this._celebrate || {}).forEach((id) => { if (now - this._celebrate[id] < ONE_SHOT_MS) map[id] = true })
+    return map
+  },
+
   // ——— 同学们按顺序说话 ————————————————————————————————
   startPlayback(lines) {
     const handle = playSequence(speechQueue(lines), {
@@ -372,8 +411,9 @@ Page({
         const line = lines[index] || {}
         this.render({ revealed: index + 1, speakingPeer: line.peer || '' })
       },
-      onEnd: () => {
+      onEnd: (index) => {
         if (this._playback !== handle || this._isDestroyed) return
+        this.celebrateLine(lines[typeof index === 'number' ? index : this.data.revealed - 1])
         this.render({ speakingPeer: '' })
       },
       onDone: () => {
