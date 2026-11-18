@@ -193,8 +193,8 @@
           <image class="pc-speak-icon" src="{{UA.src(ui, '/assets/quest/mic.svg')}}" mode="aspectFit" aria-hidden="true"></image>
           <text>按住 讲给同学听</text>
         </view>
-        <!-- 回车换行、不发送（2026-11-15 用户反馈：手机、平板键盘没有 Shift），发送点右边的发送按钮 -->
         <view wx:else class="pc-type-box {{inputLines > 1 ? 'is-multiline' : ''}}">
+          <!-- 回车换行、不发送（2026-11-15 用户反馈：手机、平板键盘没有 Shift），发送点右边的发送按钮 -->
           <textarea
             class="pc-type-input"
             style="--lines: {{inputLines}};"
