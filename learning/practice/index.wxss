@@ -41,6 +41,7 @@ page { background: #FFFFFF; }
 .pr-options.is-judge .pr-option-label { flex: 0 0 auto; font-size: 36rpx; font-weight: 700; }
 
 .pr-fill { margin-top: 44rpx; }
+.pr-mk-switch { margin-top: 20rpx; color: #FD7C02; font-size: 26rpx; font-weight: 700; text-align: right; }
 .pr-fill-input { height: 104rpx; padding: 0 28rpx; border: 3rpx solid #ECE9E4; border-bottom-width: 7rpx; border-radius: 26rpx; background: #FAFAF8; color: #24332D; font-size: 34rpx; }
 
 .pr-order { margin-top: 40rpx; }

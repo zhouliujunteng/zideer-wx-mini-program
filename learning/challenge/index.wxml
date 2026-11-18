@@ -100,15 +100,23 @@
       </view>
 
       <view wx:elif="{{screen.type === 'fill'}}" class="pr-fill">
-        <input class="pr-fill-input" value="{{screen.fill}}" placeholder="在这里填写" maxlength="40" disabled="{{screen.locked}}" bindinput="inputFill" confirm-type="done" bindconfirm="check" />
+        <math-field wx:if="{{screen.mathKeyboard && !systemKeyboard}}" value="{{screen.fill}}" cursor="{{mkCursor}}" active="{{!feedback}}" disabled="{{screen.locked}}" bind:focus="focusMathField" />
+        <input wx:else class="pr-fill-input" value="{{screen.fill}}" placeholder="在这里填写" maxlength="40" disabled="{{screen.locked}}" bindinput="inputFill" confirm-type="done" bindconfirm="check" />
       </view>
 
       <view wx:elif="{{screen.type === 'steps'}}" class="ch-steps">
         <view wx:for="{{screen.steps}}" wx:key="i" class="ch-step {{item.mark ? 'is-' + item.mark : ''}}">
           <text class="ch-step-ask">{{item.ask}}</text>
-          <input class="pr-fill-input ch-step-input" value="{{item.value}}" placeholder="填结果" maxlength="40" disabled="{{screen.locked}}" data-index="{{item.i}}" bindinput="inputStep" confirm-type="next" />
+          <view wx:if="{{screen.mathKeyboard && !systemKeyboard}}" class="ch-step-input"><math-field small="{{true}}" value="{{item.value}}" placeholder="填结果" cursor="{{mkTarget === item.i ? mkCursor : -1}}" active="{{!feedback && mkTarget === item.i}}" disabled="{{screen.locked}}" data-index="{{item.i}}" bind:focus="focusMathField" /></view>
+          <input wx:else class="pr-fill-input ch-step-input" value="{{item.value}}" placeholder="填结果" maxlength="40" disabled="{{screen.locked}}" data-index="{{item.i}}" bindinput="inputStep" confirm-type="next" />
         </view>
       </view>
+
+      <!-- 要写的题（填空、分步）用自带的数学键盘（孩子的输入法打不出 − × ÷ ² √ π），点「写汉字」换回系统键盘 -->
+      <block wx:if="{{screen.mathKeyboard && !feedback && !screen.locked}}">
+        <math-keyboard wx:if="{{!systemKeyboard}}" bind:key="pressMathKey" />
+        <view wx:else class="pr-mk-switch" bindtap="useMathKeyboard" role="button">用数学键盘</view>
+      </block>
     </view>
   </view>
 

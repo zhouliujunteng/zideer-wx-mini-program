@@ -49,6 +49,7 @@
 .pr-option-label{font-size:18px;line-height:1.45}
 .pr-options.is-judge .pr-option-label{font-size:21px;font-weight:700}
 .pr-fill{margin-top:26px}
+.pr-mk-switch{margin-top:12px;font-size:15px;font-weight:700}
 .pr-fill-input{height:62px;padding:0 16px;border:1px solid #ECE9E4;border-bottom-width:4px;border-radius:15px;font-size:20px}
 .pr-order{margin-top:24px}
 .pr-order-slots{min-height:72px;gap:9px;padding:12px;border-radius:15px;box-shadow:inset 0 0 0 1px #F0EEEA}

@@ -1,0 +1,11 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.mk{margin-top:16px;padding:8px 6px 6px;border-radius:15px}
+.mk-row{gap:6px;margin-bottom:6px}
+.mk-row:last-child{margin-bottom:0}
+.mk-key{height:50px;border-radius:9px;box-shadow:0 2px 0 #DAD7D1;font-size:21px;font-weight:600}
+.mk-key.is-small{font-size:14px}
+.mk-key.is-fn{box-shadow:0 2px 0 #CFCCC6;font-size:16px}
+.mk-key.is-down{transform:translateY(2px);box-shadow:none}
+}

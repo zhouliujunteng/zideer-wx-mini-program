@@ -14,6 +14,7 @@ const {
 } = require('../../utils/practice-view')
 const { rpxToPx } = require('../../utils/screen')
 const { challengeInvite } = require('../../utils/challenge-view')
+const { applyKey } = require('../../utils/math-keyboard')
 
 // 互动练习（2026-11-11 用户规则「闯关学习」第二关，取代课后作业）：看完课后按本课知识点出 5～8 道题，
 // 一屏一道（选择、判断、填空、排序、配对），答完马上告诉对错和解析；答错的放到后面再做一遍，全部做对才通关。
@@ -43,6 +44,9 @@ Page({
     statShown: { total: 0, first: 0 },
     // 刚通关时的考试挑战邀请（2026-11-17）：一次答对率高时推荐；开了挑战模式就直接进
     invite: null,
+    // 数学键盘（2026-11-17）：要写算式的填空默认用页面自带的键盘；systemKeyboard = 学生点了「写汉字」换回系统键盘
+    mkCursor: 0,
+    systemKeyboard: false,
     statusBarHeight: 20,
     navigationBarHeight: 44,
     contentTop: 80
@@ -128,6 +132,7 @@ Page({
       practice,
       answer,
       screen: questionScreen(practice, answer, false),
+      ...(keep ? {} : { mkCursor: String(answer || '').length, systemKeyboard: false }),
       percent: progressPercent(practice),
       summary: clearSummary(practice),
       feedback: null,
@@ -168,7 +173,27 @@ Page({
 
   inputFill(event) {
     if (!this.canEdit()) return
-    this.setAnswer(String(event.detail.value || ''))
+    const value = String(event.detail.value || '')
+    this.setData({ mkCursor: value.length })
+    this.setAnswer(value)
+  },
+
+  // 数学键盘：system 换回系统键盘，其余按键改答案
+  pressMathKey(event) {
+    if (!this.canEdit()) return
+    const key = event.detail.key
+    if (key === 'system') return this.setData({ systemKeyboard: true })
+    const next = applyKey(this.data.answer, this.data.mkCursor, key)
+    this.setData({ mkCursor: next.cursor })
+    if (next.value !== String(this.data.answer || '')) this.setAnswer(next.value)
+  },
+
+  useMathKeyboard() {
+    this.setData({ systemKeyboard: false, mkCursor: String(this.data.answer || '').length })
+  },
+
+  focusMathField() {
+    this.setData({ mkCursor: String(this.data.answer || '').length })
   },
 
   tapOrder(event) {

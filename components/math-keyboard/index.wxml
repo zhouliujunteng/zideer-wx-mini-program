@@ -1,0 +1,12 @@
+<view class="mk" catchtouchmove="noop">
+  <view wx:for="{{rows}}" wx:for-item="row" wx:for-index="r" wx:key="r" class="mk-row">
+    <view wx:for="{{row}}" wx:key="key" class="mk-key {{item.label.length > 2 ? 'is-small' : ''}}" hover-class="is-down" hover-stay-time="60" data-key="{{item.key}}" bindtap="tapKey" role="button" aria-label="{{item.label}}">{{item.label}}</view>
+  </view>
+  <view class="mk-row">
+    <view class="mk-key is-fn" hover-class="is-down" hover-stay-time="60" bindtap="togglePage" role="button">{{page === 'num' ? '符号' : '123'}}</view>
+    <view class="mk-key is-fn" hover-class="is-down" hover-stay-time="60" data-fn="left" bindtap="tapFn" role="button" aria-label="光标左移">←</view>
+    <view class="mk-key is-fn" hover-class="is-down" hover-stay-time="60" data-fn="right" bindtap="tapFn" role="button" aria-label="光标右移">→</view>
+    <view class="mk-key is-fn is-wide" hover-class="is-down" hover-stay-time="60" data-fn="system" bindtap="tapFn" role="button">写汉字</view>
+    <view class="mk-key is-fn" hover-class="is-down" hover-stay-time="60" data-fn="back" bindtap="tapFn" bindlongpress="clearAll" role="button" aria-label="删除，长按清空">⌫</view>
+  </view>
+</view>

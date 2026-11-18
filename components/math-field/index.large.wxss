@@ -1,0 +1,9 @@
+/* 自动生成，请勿手改：index.wxss 在平板、电脑大屏（窗口宽 ≥ 450px）下的样式。
+   rpx 按 1rpx = 0.6px 换算，固定定位元素收进居中栏；改完源文件后运行 node scripts/build-large-screen-styles.mjs */
+@media (min-width: 450px) {
+.mf{height:62px;padding:0 16px;border:1px solid #ECE9E4;border-bottom-width:4px;border-radius:15px;font-size:20px}
+.mf.is-small{height:52px;font-size:18px}
+.mf.is-active{border-color:#FD7C02}
+.mf-caret{width:2px;height:26px;margin:0 1px;border-radius:1px}
+.mf-placeholder.is-after{margin-left:4px}
+}

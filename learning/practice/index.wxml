@@ -94,7 +94,15 @@
       </view>
 
       <view wx:elif="{{screen.type === 'fill'}}" class="pr-fill">
-        <input class="pr-fill-input" value="{{screen.fill}}" placeholder="在这里填写" maxlength="40" disabled="{{screen.locked}}" bindinput="inputFill" confirm-type="done" bindconfirm="check" />
+        <!-- 要写算式的题用自带的数学键盘（孩子的输入法打不出 − × ÷ ² √ π），点「写汉字」换回系统键盘 -->
+        <block wx:if="{{screen.mathKeyboard && !systemKeyboard}}">
+          <math-field value="{{screen.fill}}" cursor="{{mkCursor}}" active="{{!feedback}}" disabled="{{screen.locked}}" bind:focus="focusMathField" />
+          <math-keyboard wx:if="{{!feedback && !screen.locked}}" bind:key="pressMathKey" />
+        </block>
+        <block wx:else>
+          <input class="pr-fill-input" value="{{screen.fill}}" placeholder="在这里填写" maxlength="40" disabled="{{screen.locked}}" bindinput="inputFill" confirm-type="done" bindconfirm="check" />
+          <view wx:if="{{screen.mathKeyboard && !feedback}}" class="pr-mk-switch" bindtap="useMathKeyboard" role="button">用数学键盘</view>
+        </block>
       </view>
 
       <view wx:elif="{{screen.type === 'order'}}" class="pr-order">

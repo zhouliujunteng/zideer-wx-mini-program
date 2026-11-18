@@ -1,0 +1,7 @@
+<view class="mf {{active ? 'is-active' : ''}} {{disabled ? 'is-disabled' : ''}} {{small ? 'is-small' : ''}}" bindtap="tap" role="textbox" aria-label="{{value || placeholder}}">
+  <text wx:if="{{before}}" class="mf-text" user-select="{{false}}">{{before}}</text>
+  <view wx:if="{{active && !disabled}}" class="mf-caret"></view>
+  <text wx:if="{{after}}" class="mf-text">{{after}}</text>
+  <text wx:if="{{!value && !(active && !disabled)}}" class="mf-placeholder">{{placeholder}}</text>
+  <text wx:elif="{{!value}}" class="mf-placeholder is-after">{{placeholder}}</text>
+</view>

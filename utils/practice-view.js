@@ -20,7 +20,9 @@ function normalizePractice(raw) {
     type: TYPE_LABELS[question && question.type] ? question.type : 'single',
     prompt: String(question && question.prompt || ''),
     options: (Array.isArray(question && question.options) ? question.options : []).map((option) => String(option || '')),
-    left: (Array.isArray(question && question.left) ? question.left : []).map((item) => String(item || ''))
+    left: (Array.isArray(question && question.left) ? question.left : []).map((item) => String(item || '')),
+    // 要写算式的填空：课程服务下发 mathKeyboard，页面给数学键盘（2026-11-17）
+    mathKeyboard: !!(question && question.mathKeyboard)
   }))
   const progress = value.progress && typeof value.progress === 'object' ? {
     current: Number.isInteger(value.progress.current) ? value.progress.current : null,
@@ -93,6 +95,7 @@ function questionScreen(practice, answer, locked) {
     left: [],
     right: [],
     fill: question.type === 'fill' ? String(answer || '') : '',
+    mathKeyboard: question.type === 'fill' && !!question.mathKeyboard,
     ready: answerReady(question, answer),
     locked: !!locked
   }

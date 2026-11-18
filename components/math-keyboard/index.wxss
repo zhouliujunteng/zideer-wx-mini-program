@@ -1,0 +1,11 @@
+/* 数学键盘：浅灰底、白色厚底键，和互动练习的选项卡同一种「可按」的样子；功能键浅灰。 */
+.mk { margin-top: 28rpx; padding: 14rpx 10rpx 10rpx; border-radius: 26rpx; background: #F2F1EE; }
+.mk-row { display: flex; gap: 10rpx; margin-bottom: 10rpx; }
+.mk-row:last-child { margin-bottom: 0; }
+.mk-key { display: flex; flex: 1; height: 84rpx; align-items: center; justify-content: center; border-radius: 16rpx; background: #FFFFFF; box-shadow: 0 4rpx 0 #DAD7D1; color: #24332D; font-size: 36rpx; font-weight: 600; }
+.mk-key.is-small { font-size: 24rpx; }
+.mk-key.is-fn { background: #E4E2DD; box-shadow: 0 4rpx 0 #CFCCC6; color: #4A5650; font-size: 28rpx; }
+.mk-key.is-wide { flex: 2; }
+.mk-key.is-down { transform: translateY(4rpx); box-shadow: none; background: #FFF6EE; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

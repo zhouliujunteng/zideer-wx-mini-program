@@ -17,7 +17,9 @@ function normalizeChallenge(raw) {
     prompt: text(question && question.prompt),
     point: text(question && question.point),
     options: (Array.isArray(question && question.options) ? question.options : []).map(text),
-    steps: (Array.isArray(question && question.steps) ? question.steps : []).map(text)
+    steps: (Array.isArray(question && question.steps) ? question.steps : []).map(text),
+    // 考试挑战只出数学：要写的题默认给数学键盘（课程服务没下发这一项的旧版本也按给）
+    mathKeyboard: !(question && question.mathKeyboard === false)
   }))
   const p = value.progress && typeof value.progress === 'object' ? value.progress : null
   return {
@@ -73,6 +75,7 @@ function challengeScreen(challenge, answer, locked, stepMarks) {
     options: question.options.map((label, i) => ({ letter: LETTERS[i], label, selected: answer === LETTERS[i] })),
     steps: question.steps.map((ask, i) => ({ i, ask, value: Array.isArray(answer) ? text(answer[i]) : '', mark: marks[i] === true ? 'right' : marks[i] === false ? 'wrong' : '' })),
     fill: typeof answer === 'string' ? answer : '',
+    mathKeyboard: question.type !== 'single' && question.mathKeyboard,
     ready: answerReady(question, answer),
     locked: !!locked,
     again: challenge.progress.tries > 0

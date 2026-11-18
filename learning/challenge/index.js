@@ -9,6 +9,7 @@ const {
   challengePercent,
   challengeSummary
 } = require('../../utils/challenge-view')
+const { applyKey } = require('../../utils/math-keyboard')
 const { rpxToPx } = require('../../utils/screen')
 
 // 考试挑战（2026-11-17 用户要求，课程服务 lib/course/homework/challenge-service.ts）：互动练习通关后可选的一关，
@@ -20,6 +21,10 @@ const MAX_POLLS = 60
 
 Page({
   data: {
+    // 数学键盘（2026-11-17）：mkTarget = 正在写的格（-1 是填空题那一格，0、1… 是分步解答的第几问）
+    mkCursor: 0,
+    mkTarget: -1,
+    systemKeyboard: false,
     loaded: false,
     loadFailed: false,
     errorMessage: '',
@@ -108,6 +113,7 @@ Page({
       answer,
       stepMarks,
       screen: challengeScreen(challenge, answer, false, stepMarks),
+      ...(keep ? {} : { mkTarget: Array.isArray(answer) ? 0 : -1, mkCursor: 0, systemKeyboard: false }),
       percent: challengePercent(challenge),
       summary: challengeSummary(challenge),
       feedback: null,
@@ -148,7 +154,9 @@ Page({
 
   inputFill(event) {
     if (!this.canEdit()) return
-    this.setAnswer(String(event.detail.value || ''))
+    const value = String(event.detail.value || '')
+    this.setData({ mkCursor: value.length })
+    this.setAnswer(value)
   },
 
   inputStep(event) {
@@ -157,6 +165,42 @@ Page({
     const answer = Array.isArray(this.data.answer) ? this.data.answer.slice() : []
     answer[index] = String(event.detail.value || '')
     this.setAnswer(answer)
+  },
+
+  mathValue(target) {
+    const answer = this.data.answer
+    if (target >= 0) return Array.isArray(answer) ? String(answer[target] || '') : ''
+    return typeof answer === 'string' ? answer : ''
+  },
+
+  // 数学键盘：system 换回系统键盘，其余按键改正在写的那一格
+  pressMathKey(event) {
+    if (!this.canEdit()) return
+    const key = event.detail.key
+    if (key === 'system') return this.setData({ systemKeyboard: true })
+    const target = this.data.mkTarget
+    const value = this.mathValue(target)
+    const next = applyKey(value, this.data.mkCursor, key)
+    this.setData({ mkCursor: next.cursor })
+    if (next.value === value) return
+    if (target >= 0) {
+      const answer = Array.isArray(this.data.answer) ? this.data.answer.slice() : []
+      answer[target] = next.value
+      this.setAnswer(answer)
+    } else {
+      this.setAnswer(next.value)
+    }
+  },
+
+  focusMathField(event) {
+    if (!this.canEdit()) return
+    const index = Number(event.currentTarget.dataset.index)
+    const target = Number.isInteger(index) ? index : -1
+    this.setData({ mkTarget: target, mkCursor: this.mathValue(target).length })
+  },
+
+  useMathKeyboard() {
+    this.setData({ systemKeyboard: false, mkCursor: this.mathValue(this.data.mkTarget).length })
   },
 
   async check() {

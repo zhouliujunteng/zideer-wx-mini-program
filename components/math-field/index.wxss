@@ -1,0 +1,12 @@
+/* 外观和互动练习的填空框 .pr-fill-input 一样；选中时边框换主题橙、画一根闪烁光标。 */
+.mf { display: flex; height: 104rpx; align-items: center; overflow: hidden; padding: 0 28rpx; border: 3rpx solid #ECE9E4; border-bottom-width: 7rpx; border-radius: 26rpx; background: #FAFAF8; box-sizing: border-box; color: #24332D; font-size: 34rpx; white-space: pre; }
+.mf.is-small { height: 88rpx; font-size: 30rpx; }
+.mf.is-active { border-color: #FD7C02; background: #FFFFFF; }
+.mf.is-disabled { color: #8A948D; }
+.mf-text { flex: 0 0 auto; }
+.mf-caret { flex: 0 0 auto; width: 4rpx; height: 44rpx; margin: 0 2rpx; border-radius: 2rpx; background: #FD7C02; animation: mf-blink 1s steps(1) infinite; }
+.mf-placeholder { color: #B1B8B3; }
+.mf-placeholder.is-after { margin-left: 8rpx; }
+@keyframes mf-blink { 50% { opacity: 0; } }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */
