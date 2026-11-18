@@ -1,0 +1,58 @@
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
+/* 继续往下学：顶栏、卡片、底部按钮与课后作业页同一套（主题橙 + 暖灰），按钮用纯色。 */
+page { background: #FAFAFA; }
+
+.qr-page { min-height: 100vh; background: #FAFAFA; color: #24332D; }
+.qr-topbar { position: fixed; top: 0; left: 0; z-index: 20; width: 100%; box-sizing: border-box; background: #FAFAFA; }
+.qr-topbar-inner { position: relative; display: flex; align-items: center; box-sizing: content-box; padding: 0 32rpx 16rpx; }
+.qr-topbar-title { position: absolute; left: 50%; display: block; color: #24332D; font-size: 34rpx; font-weight: 700; letter-spacing: -1rpx; transform: translateX(-50%); white-space: nowrap; }
+.qr-back { display: flex; flex: 0 0 auto; width: 54rpx; height: 54rpx; align-items: center; justify-content: center; border-radius: 50%; }
+.qr-back:active { background: #F0F2EF; }
+.qr-back-icon { width: 22rpx; height: 22rpx; border-bottom: 4rpx solid #24332D; border-left: 4rpx solid #24332D; transform: rotate(45deg) scale(.7); }
+
+.qr-shell { padding: 0 32rpx calc(200rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.qr-head { margin-top: 12rpx; padding: 0 4rpx; }
+.qr-head .sk-line + .sk-line { margin-top: 18rpx; }
+.qr-round { display: inline-block; padding: 4rpx 16rpx; border-radius: 999rpx; background: #FFF0E4; color: #F07A22; font-size: 22rpx; font-weight: 650; }
+.qr-title { display: block; margin-top: 14rpx; color: #24332D; font-size: 38rpx; font-weight: 780; line-height: 1.3; }
+.qr-sub { display: block; margin-top: 10rpx; color: #7E8A82; font-size: 25rpx; line-height: 1.55; }
+
+.qr-card { margin-top: 24rpx; padding: 28rpx 26rpx; border-radius: 28rpx; background: #FFFFFF; }
+.qr-card .sk-line + .sk-line { margin-top: 18rpx; }
+.qr-card-title { display: block; color: #24332D; font-size: 28rpx; font-weight: 720; }
+.qr-result { margin-top: 20rpx; }
+.qr-result-title { display: block; font-size: 24rpx; font-weight: 680; }
+.qr-result-title.is-good { color: #FD7C02; }
+.qr-result-title.is-warn { color: #B4543F; }
+.qr-chips { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 12rpx; }
+.qr-chip { padding: 8rpx 18rpx; border-radius: 999rpx; font-size: 23rpx; line-height: 1.4; }
+.qr-chip.is-good { background: #FFF1E6; color: #B95500; }
+.qr-chip.is-warn { background: #FBEDEA; color: #A9473A; }
+
+.qr-plan-head { margin-top: 40rpx; padding: 0 4rpx; }
+.qr-plan-title { display: block; color: #24332D; font-size: 32rpx; font-weight: 760; }
+.qr-plan-summary { display: block; margin-top: 8rpx; color: #536158; font-size: 25rpx; line-height: 1.55; }
+.qr-lesson { display: flex; align-items: flex-start; }
+.qr-lesson-no { flex: 0 0 auto; width: 52rpx; height: 52rpx; margin-right: 20rpx; border-radius: 50%; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; font-weight: 760; line-height: 52rpx; text-align: center; }
+.qr-lesson-body { flex: 1; min-width: 0; }
+.qr-lesson-title { display: block; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.4; }
+.qr-lesson-focus { display: block; margin-top: 8rpx; color: #66736B; font-size: 24rpx; line-height: 1.6; }
+.qr-lesson-tag { flex: 0 0 auto; margin-left: 12rpx; padding: 4rpx 12rpx; border-radius: 999rpx; background: #F3F4F2; color: #7E8A82; font-size: 20rpx; }
+.qr-credits { display: block; margin-top: 22rpx; padding: 0 4rpx; color: #7E8A82; font-size: 23rpx; line-height: 1.6; }
+
+.qr-error { margin-top: 24rpx; padding: 22rpx 24rpx; border-radius: 22rpx; background: #FBEDEA; color: #A9473A; font-size: 25rpx; line-height: 1.55; }
+.qr-error .qr-button { margin-top: 16rpx; }
+
+.qr-button { display: inline-block; margin-top: 24rpx; min-width: 220rpx; padding: 0 36rpx; border-radius: 999rpx; background: #FD7C02; color: #FFFFFF; font-size: 26rpx; font-weight: 650; line-height: 76rpx; text-align: center; }
+.qr-button.is-light { background: rgba(253, 124, 2, .12); color: #FD7C02; }
+.qr-button:active { opacity: .8; }
+.qr-spinner { width: 48rpx; height: 48rpx; margin-top: 24rpx; box-sizing: border-box; border: 6rpx solid #FFE4C4; border-top-color: #FD7C02; border-radius: 50%; animation: qr-spin .8s linear infinite; }
+@keyframes qr-spin { to { transform: rotate(360deg); } }
+
+.qr-bottom { position: fixed; right: 0; bottom: 0; left: 0; z-index: 18; padding: 18rpx 28rpx calc(22rpx + env(safe-area-inset-bottom)); background: rgba(250, 250, 250, .96); }
+.qr-submit { width: 80%; margin: 0 auto; border-radius: 999rpx; background: #FD7C02; box-shadow: 0 10rpx 22rpx rgba(253, 124, 2, .24); color: #FFFFFF; font-size: 29rpx; font-weight: 650; line-height: 96rpx; text-align: center; }
+.qr-submit.is-busy { opacity: .7; }
+.qr-submit:active { opacity: .82; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

@@ -103,6 +103,8 @@
 .gm-path-step-no{width:24px;height:24px;border-radius:50%}
 .gm-path-step-label{min-width:0}
 .gm-list-foot{margin-top:8px;border-top:1px solid #F0F1EF}
+.gm-cp-row{margin-top:12px}
+.gm-cp-items{margin-top:4px}
 .gm-card-dot{width:6px;height:6px;border-radius:50%}
 .gm-guide{margin:2px 2px 14px}
 .gm-guide.is-result{margin-bottom:12px}

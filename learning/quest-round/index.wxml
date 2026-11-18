@@ -1,0 +1,69 @@
+<!-- 继续往下学（2026-11-18）：阶段复测的结果 + 系统排好的下一轮课程，确认后开始制作。
+     第一次读到前画骨架；排课、制作中有提示并自动刷新。 -->
+<view class="qr-page">
+  <view class="qr-topbar">
+    <view class="qr-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="qr-back" bindtap="handleBack" role="button" aria-label="返回"><view class="qr-back-icon"></view></view>
+      <text class="qr-topbar-title" style="top: {{statusBarHeight}}px; height: {{navigationBarHeight}}px; line-height: {{navigationBarHeight}}px;">继续往下学</text>
+    </view>
+  </view>
+
+  <view class="qr-shell" style="padding-top: {{contentTop}}px;">
+    <block wx:if="{{!loaded && !loadFailed}}">
+      <view class="qr-head"><view class="sk sk-line sk-mid"></view><view class="sk sk-line"></view></view>
+      <view class="qr-card"><view class="sk sk-line sk-short"></view><view class="sk sk-line"></view><view class="sk sk-line sk-mid"></view></view>
+      <view wx:for="{{[0, 1, 2]}}" wx:key="*this" class="qr-card"><view class="sk sk-line sk-mid"></view><view class="sk sk-line"></view></view>
+    </block>
+
+    <view wx:elif="{{loadFailed}}" class="state-panel">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">暂时没有打开</text>
+      <text class="state-panel__copy">{{errorMessage}}</text>
+      <view class="qr-button" bindtap="reload" role="button">重新读取</view>
+    </view>
+
+    <block wx:elif="{{round}}">
+      <view class="qr-head">
+        <text class="qr-round">第 {{round.roundNo}} 轮</text>
+        <text class="qr-title">{{stage.title}}</text>
+        <text class="qr-sub">{{stage.copy}}</text>
+        <view wx:if="{{stage.waiting && !pollStopped}}" class="qr-spinner"></view>
+        <view wx:if="{{pollStopped}}" class="qr-button is-light" bindtap="reload" role="button">刷新看看</view>
+      </view>
+
+      <view wx:if="{{rows.length}}" class="qr-card">
+        <text class="qr-card-title">阶段复测结果</text>
+        <view wx:for="{{rows}}" wx:key="key" class="qr-result">
+          <text class="qr-result-title is-{{item.tone}}">{{item.title}} · {{item.items.length}} 个</text>
+          <view class="qr-chips"><text wx:for="{{item.items}}" wx:for-item="name" wx:key="*this" class="qr-chip is-{{item.tone}}">{{name}}</text></view>
+        </view>
+      </view>
+
+      <block wx:if="{{round.proposal}}">
+        <view class="qr-plan-head">
+          <text class="qr-plan-title">{{round.proposal.title}}</text>
+          <text wx:if="{{round.proposal.summary}}" class="qr-plan-summary">{{round.proposal.summary}}</text>
+        </view>
+        <view wx:for="{{round.proposal.lessons}}" wx:key="index" class="qr-card qr-lesson">
+          <view class="qr-lesson-no">{{item.index}}</view>
+          <view class="qr-lesson-body">
+            <text class="qr-lesson-title">{{item.title}}</text>
+            <text class="qr-lesson-focus">{{item.focus}}</text>
+          </view>
+          <text wx:if="{{item.built && (round.status === 'building' || round.status === 'blocked')}}" class="qr-lesson-tag">制作中</text>
+        </view>
+        <text wx:if="{{credits}}" class="qr-credits">{{credits}}</text>
+      </block>
+
+      <view wx:if="{{actionError}}" class="qr-error">
+        <text>{{actionError}}</text>
+        <view wx:if="{{showMembership}}" class="qr-button is-light" bindtap="openMembership" role="button">去会员中心</view>
+      </view>
+    </block>
+  </view>
+
+  <view wx:if="{{loaded && stage && stage.button}}" class="qr-bottom">
+    <view class="qr-submit {{busy ? 'is-busy' : ''}}" bindtap="act" role="button">{{busy ? '请稍候…' : stage.button}}</view>
+  </view>
+</view>
+<dev-reset-fab />

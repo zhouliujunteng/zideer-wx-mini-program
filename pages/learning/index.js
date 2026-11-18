@@ -1,6 +1,6 @@
 const { getLiveLearningModel, getLearningSkeletonModel } = require('../../services/live-tab-service')
 const { takeAgentCourseFocus } = require('../../utils/agent-course-focus')
-const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest, switchLearningGoal, saveChallengeMode } = require('../../services/identity')
+const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest, switchLearningGoal, saveChallengeMode, questRound } = require('../../services/identity')
 // 我的荣誉（2026-11-11 晚）：顶栏总数 + 新获得的庆祝弹层（本机记住看过哪些，utils/honors-view.js）
 const { normalizeHonors, honorKeys, freshHonors, markSeen, readSeen } = require('../../utils/honors-view')
 const { openSelfMeeting } = require('../../utils/self-meeting-entry')
@@ -454,7 +454,32 @@ Page({
       openSelfMeeting(this)
       return
     }
+    if (target.roundStart) {
+      this.startQuestRound()
+      return
+    }
     wx.navigateTo({ url: target.url })
+  },
+
+  // 续学（2026-11-18）：这个目标的课全闯完了，点「开始复测」→ 课程服务开一轮、建好复测 → 进按目标测评页做
+  async startQuestRound() {
+    if (this._roundBusy) return
+    this._roundBusy = true
+    wx.showLoading({ title: '准备复测', mask: true })
+    try {
+      const round = await questRound('start')
+      wx.hideLoading()
+      if (round.status === 'testing') {
+        wx.navigateTo({ url: `/learning/goal-diagnosis/index${round.diagnosisId ? `?id=${round.diagnosisId}` : '?autostart=1'}` })
+        return
+      }
+      wx.navigateTo({ url: `/learning/quest-round/index?id=${round.id}` })
+    } catch (error) {
+      wx.hideLoading()
+      wx.showToast({ title: (error && error.message) || '暂时没有开始成功，请稍后重试', icon: 'none' })
+    } finally {
+      this._roundBusy = false
+    }
   },
 
   // 自助诊断会议（2026-11-17）：开通了的孩子在目标面板里随时能再开一场（第三关做完以后也行）

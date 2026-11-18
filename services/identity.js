@@ -519,6 +519,11 @@ function requestAgentCourses(path, token, options = {}) {
         MEMBERSHIP_REQUIRED: '这节课要开通会员才能学：免费体验开放前 3 节课。',
         DEV_RESET_UNAVAILABLE: '暂时核对不了开启码，请稍后重试。',
         NOTHING_TO_LEARN: '这门课没有需要学的讲解页，不能验收。',
+        // 续学（课程服务 lib/course/quest-round，2026-11-18）
+        ROUND_NOT_READY: '先把这个目标现在的课都闯完，再来阶段复测。',
+        ROUND_NOT_FOUND: '没有找到这一轮课程，请回学习页刷新。',
+        ROUND_CONFLICT: '刚刚已经开始了，请回学习页刷新。',
+        CREDITS_SHORT: '家庭积分不够制作下一轮课程了，续费后再来确认，方案会帮你留着。',
         ACCEPTANCE_NOT_STARTED: '验收已结束，请重新开始验收。',
         ACCEPTANCE_TOO_MANY_TURNS: '这次验收的回答次数已用完，请刷新查看结果。',
         ACCEPTANCE_NOT_PENDING: '这门课已经核验过了，请刷新查看最新状态。',
@@ -1562,6 +1567,27 @@ async function goalDiagnosis(operation, data = {}) {
     timeout: operation === 'start' ? 40000 : 20000,
     data: { ...data, operation },
     fallbackMessage: operation === 'answer' ? '答案没有提交成功，请再点一次。' : '测评暂时无法打开，请稍后重试。'
+  })
+}
+
+/**
+ * 续学（课程服务 lib/course/quest-round，2026-11-18）：一个目标的课全学完以后，阶段复测 → 系统出下一轮方案 → 确认 → 后台制作。
+ * loadQuestRound(id)：这一轮详情（复测结果、方案、积分预估）；questRound(operation, data)：start / confirm { id } / retry { id }。
+ * 复测本身在按目标测评页做（goalDiagnosis）。
+ */
+async function loadQuestRound(id) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/quest-round?id=${encodeURIComponent(String(id || ''))}`, token, { timeout: 20000, fallbackMessage: '下一轮课程暂时读不到，请稍后重试。' })
+}
+
+async function questRound(operation, data = {}) {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/quest-round', token, {
+    method: 'POST',
+    // start 时要先把复测建好
+    timeout: operation === 'start' ? 40000 : 30000,
+    data: { ...data, operation },
+    fallbackMessage: operation === 'confirm' ? '没有确认成功，请再点一次。' : '暂时没有成功，请稍后重试。'
   })
 }
 
@@ -5063,6 +5089,8 @@ module.exports = {
   loadGoalDiagnosis,
   loadSpeechAudio,
   goalDiagnosis,
+  loadQuestRound,
+  questRound,
   loadTeacherGoalDiagnosis,
   loadWebChildren,
   createWebChild,

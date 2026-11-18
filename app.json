@@ -122,7 +122,8 @@
         "card-fragments/index",
         "homework/index",
         "practice/index",
-        "challenge/index"
+        "challenge/index",
+        "quest-round/index"
       ]
     },
     {

@@ -118,6 +118,11 @@
 .gm-path-step-no.is-root { background: #E8643F; color: #FFF; }
 .gm-path-step-label { flex: 1; min-width: 0; color: #34423A; font-size: 14px; }
 .gm-list-foot { display: block; margin-top: 8px; padding-top: 10px; border-top: 1px solid #F0F1EF; color: #A0A9A2; font-size: 11px; line-height: 1.6; }
+.gm-cp-row { margin-top: 12px; }
+.gm-cp-title { display: block; font-size: 13px; font-weight: 700; }
+.gm-cp-title.is-good { color: #FD7C02; }
+.gm-cp-title.is-warn { color: #B4543F; }
+.gm-cp-items { display: block; margin-top: 4px; color: #536158; font-size: 13px; line-height: 1.6; }
 
 .gm-card-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--tone-dot); }
 

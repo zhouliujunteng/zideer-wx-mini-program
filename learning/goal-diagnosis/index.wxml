@@ -186,6 +186,15 @@
             <view class="gm-summary-item tone-root"><text class="gm-summary-num">{{summary.roots.length}}</text><text class="gm-summary-label">根源卡点</text></view>
           </view>
 
+          <view wx:if="{{checkpoint && checkpoint.rows.length}}" class="pref-card gm-list-card">
+            <text class="gm-list-title">和上一次比</text>
+            <text class="gm-list-sub">上一轮课学完以后，这些地方的变化</text>
+            <view wx:for="{{checkpoint.rows}}" wx:key="key" class="gm-cp-row">
+              <text class="gm-cp-title is-{{item.tone}}">{{item.title}} · {{item.items.length}} 个</text>
+              <text class="gm-cp-items">{{item.text}}</text>
+            </view>
+          </view>
+
           <view wx:if="{{diagnosis.status === 'paused'}}" class="gm-paused-note">
             <text>{{diagnosis.pauseReason === 'round_cap' ? '这一轮先测到这里，剩下的条件下次接着测。' : '测到一半先停下了，导图里灰色的条件还没测。'}}</text>
           </view>
@@ -240,6 +249,9 @@
     </block>
     <block wx:elif="{{diagnosis.status === 'paused'}}">
       <button class="pref-save" bindtap="resumeTest" loading="{{busy}}" disabled="{{busy}}">继续测评</button>
+    </block>
+    <block wx:elif="{{checkpoint}}">
+      <button class="pref-save" bindtap="openNextRound">看看下一轮课程</button>
     </block>
     <block wx:else>
       <view class="gm-answer-row">

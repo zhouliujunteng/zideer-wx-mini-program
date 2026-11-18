@@ -86,6 +86,25 @@ function normalizeChallengeInfo(raw) {
   return { mode: raw.mode === true, lessons }
 }
 
+// 续学（课程服务 lib/course/quest-round/rules.ts，2026-11-18）：这个目标的课全学完以后路径末尾那一关。
+// 旧版课程服务没有这一项（null，不画）。
+const CONTINUATION_STATES = ['start', 'testing', 'planning', 'proposed', 'preparing', 'blocked', 'failed', 'achieved']
+function normalizeContinuation(raw) {
+  if (!raw || typeof raw !== 'object' || !CONTINUATION_STATES.includes(raw.state)) return null
+  const proposal = raw.proposal && typeof raw.proposal === 'object'
+    ? { title: text(raw.proposal.title), summary: text(raw.proposal.summary), lessons: (Array.isArray(raw.proposal.lessons) ? raw.proposal.lessons : []).map(text).filter(Boolean) }
+    : null
+  return {
+    state: raw.state,
+    roundNo: Number(raw.roundNo) || 2,
+    roundId: Number(raw.roundId) || 0,
+    diagnosisId: Number(raw.diagnosisId) || 0,
+    label: text(raw.label) || '阶段复测',
+    detail: text(raw.detail),
+    proposal
+  }
+}
+
 function normalizeQuestPath(raw) {
   const value = raw && typeof raw === 'object' ? raw : {}
   const stages = (Array.isArray(value.stages) ? value.stages : []).map((stage) => ({
@@ -121,6 +140,7 @@ function normalizeQuestPath(raw) {
     // 一个学生好几个学习目标（课程服务 2026-11-13）：学习页左上角切换。旧版课程服务没有这一项（null，不显示入口）
     trackId: Number(value.trackId) || 0,
     challenge: normalizeChallengeInfo(value.challenge),
+    continuation: normalizeContinuation(value.continuation),
     tracks: Array.isArray(value.tracks)
       ? value.tracks
           .map((item) => ({ trackId: Number(item && item.trackId) || 0, title: text(item && item.title) || '学习目标', active: !!(item && item.active), lessons: Number(item && item.lessons) || 0 }))
@@ -268,7 +288,17 @@ function questPathView(path) {
       parts.push({ ...rest, ...phase, partNumber: index + 1, banner: `${phase.phaseNo}，第 ${index + 1} 部分`, firstOfPhase: index === 0 })
     })
   })
-  const currentId = path.current ? stepId(path.current.stageId, path.current.step, path.current.part) : ''
+  let continuationId = ''
+  if (path.continuation) {
+    const part = continuationPart(path.continuation, partIndex)
+    parts.push(part)
+    continuationId = part.nodes[0].id
+    // 前面没有当前关（都学完了）：当前关就是这一关，「开始」气泡飘在它上面
+    if (!path.current && CONTINUATION_ACTIONS.includes(path.continuation.state)) currentPartId = part.id
+  }
+  const currentId = path.current
+    ? stepId(path.current.stageId, path.current.step, path.current.part)
+    : continuationId && CONTINUATION_ACTIONS.includes(path.continuation.state) ? continuationId : ''
   return {
     goal: path.goal,
     hasLessons: path.stats.lessons > 0,
@@ -279,6 +309,67 @@ function questPathView(path) {
     currentPartId: currentPartId || (parts[0] ? parts[0].id : ''),
     parts
   }
+}
+
+/** 续学那一关能点了往下走的状态（其余是等后台做完，或者已经达成目标）。 */
+const CONTINUATION_ACTIONS = ['start', 'testing', 'proposed', 'blocked', 'failed']
+
+/**
+ * 续学（2026-11-18）画成路径最后的一个部分：「第 N 轮 · 继续往下学」，只有一个关卡钮（kind 'continue'）。
+ * 阶段复测 / 接着测 用放大镜，规划和制作中用小旗，目标达成用奖杯。
+ */
+function continuationPart(continuation, partIndex) {
+  const state = continuation.state
+  const achieved = state === 'achieved'
+  const waiting = state === 'planning' || state === 'preparing'
+  const node = {
+    id: 'continuation-next',
+    kind: 'continue',
+    stageId: '',
+    step: state,
+    part: 0,
+    state: achieved ? 'done' : waiting ? 'locked' : 'open',
+    icon: achieved ? 'trophy' : 'diagnosis',
+    glyph: achieved ? GLYPHS.trophy : state === 'start' || state === 'testing' ? GLYPHS.diagnosis : GLYPHS.goal,
+    offset: ZIGZAG[(partIndex % 2 ? 4 : 0)],
+    label: continuation.label,
+    detail: continuation.detail,
+    course: continuation.proposal ? continuation.proposal.title : '',
+    position: '',
+    ring: 0,
+    segs: 1,
+    roundId: continuation.roundId,
+    diagnosisId: continuation.diagnosisId,
+    lessons: continuation.proposal ? continuation.proposal.lessons : [],
+    lockedBy: null
+  }
+  return {
+    id: 'part-continuation',
+    title: achieved ? '目标达成' : '继续往下学',
+    stageId: '',
+    progress: '',
+    nodes: [node],
+    mascot: null,
+    phaseNumber: 0,
+    phaseNo: achieved ? '目标达成' : `第 ${continuation.roundNo} 轮`,
+    banner: achieved ? '目标达成' : `第 ${continuation.roundNo} 轮，继续往下学`,
+    tone: achieved ? 'orange' : 'teal',
+    phaseTitle: achieved ? '目标达成' : '继续往下学',
+    phaseSubtitle: achieved ? '' : '先测一测学过的卡点，再按目标接着排课',
+    partNumber: 1,
+    firstOfPhase: true
+  }
+}
+
+function continuePopover(node, base) {
+  const step = node.step
+  if (step === 'start') return { ...base, detail: '测一测学过的卡点解决了没有，再接着测还没覆盖的部分；测完按你的目标排下一轮课', action: '开始复测' }
+  if (step === 'testing') return { ...base, action: '接着测' }
+  if (step === 'proposed') return { ...base, detail: node.lessons.length ? `${node.lessons.length} 节课：${node.lessons.join('、')}` : node.detail, action: '看看方案' }
+  if (step === 'blocked') return { ...base, action: '看看' }
+  if (step === 'failed') return { ...base, action: '重新排' }
+  if (step === 'achieved') return { ...base, action: '定一个新目标' }
+  return { ...base, note: node.detail, detail: '' }
 }
 
 /**
@@ -410,6 +501,7 @@ function nodePopover(node) {
       : { ...base, detail: '和学校考试一样难的几道题，做不做都不影响往下学', action: '开始挑战' }
   }
   if (node.kind === 'onboard') return onboardPopover(node, base)
+  if (node.kind === 'continue') return continuePopover(node, base)
   // 付费锁：支付开关开着时页面再补上「开通会员」按钮（按钮在时不显示 note，所以说明放 detail）
   if (node.state === 'locked' && node.paywall) return { ...base, title: '开通会员后解锁', position: '', detail: '免费体验开放前 3 节课', note: PAYWALL_NOTE, action: '', paywall: true }
   if (node.state === 'locked') {
@@ -466,6 +558,14 @@ function nodeTarget(node) {
     if (node.selfStart) return { selfMeeting: true }
     // 还没约好：联系老师预约（企业微信客服，与原来顶栏的「联系老师」同一个入口）
     return node.book ? { contact: true } : { toast: '诊断会议邀请暂时没读到，请稍后再试' }
+  }
+  if (node.kind === 'continue') {
+    // 开始复测：学习页去课程服务开一轮（pages/learning startQuestRound），再进按目标测评页
+    if (node.step === 'start') return { roundStart: true }
+    if (node.step === 'testing') return { url: `/learning/goal-diagnosis/index${node.diagnosisId ? `?id=${node.diagnosisId}` : '?autostart=1'}` }
+    if (node.step === 'achieved') return { url: '/learning/learning-goal/index?mode=new' }
+    if (node.roundId && ['proposed', 'blocked', 'failed'].includes(node.step)) return { url: `/learning/quest-round/index?id=${node.roundId}` }
+    return { toast: node.detail || '正在准备，稍后回来看看' }
   }
   if (node.kind === 'lesson-chest') {
     if (node.state === 'open') return { chest: node.stageId }
