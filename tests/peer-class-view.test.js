@@ -201,3 +201,23 @@ test('hint card: how to start first, the memory prompt only on the second level,
   assert.equal(hintCard({ ...peerClass, hint: { ...peerClass.hint, cue: '' } }, 1).canMore, false)
   assert.equal(hintCard(null, 1), null)
 })
+
+test('waiting for the peers says they are taking notes, changes its words when it takes long, and calls the last segment', () => {
+  const { waitingText, isLastRound, peerHint, classroomPeers } = require('../utils/peer-class-view')
+  assert.equal(waitingText(1, false), '同学们在记笔记…')
+  assert.equal(waitingText(8, false), '同学们还在认真记，马上就回应你')
+  assert.equal(waitingText(20, false), '同学们记得很认真，再等一下下')
+  assert.equal(waitingText(2, true), '最后一段讲完啦，同学们在整理笔记…')
+  assert.equal(waitingText(10, true), '同学们在把今天学到的整理好，马上下课')
+  assert.equal(isLastRound({ rounds: 7, maxRounds: 8 }), true)
+  assert.equal(isLastRound({ rounds: 3, maxRounds: 8 }), false)
+  assert.equal(peerHint({ peerClass: { rounds: 7, maxRounds: 8 }, sending: true, waitSeconds: 1 }), '最后一段讲完啦，同学们在整理笔记…')
+  const peers = classroomPeers({
+    peerClass: { peers: [{ id: 'xiaoman', name: '小满', stars: 1 }], total: 2, asking: { peer: 'xiaoman', kind: 'next' } },
+    turns: [{ role: 'assistant', content: '小老师好', speaker: 'xiaoman' }],
+    thinking: true
+  })
+  assert.equal(peers[0].thinking, true)
+  assert.equal(peers[0].bubble, '')
+  assert.equal(peers[0].mood, 'listen')
+})

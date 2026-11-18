@@ -46,7 +46,10 @@
         <view class="pc-row is-{{peers.length}}">
           <view wx:for="{{peers}}" wx:key="id" class="pc-peer is-{{item.mood}} {{item.speaking ? 'is-speaking' : ''}} {{item.asking ? 'is-asking' : ''}}">
             <view class="pc-bubble-slot">
-              <view wx:if="{{item.bubble}}" class="pc-bubble {{item.bubbleOld ? 'is-old' : ''}}" bindtap="openRecords" aria-label="{{item.name}}：{{item.bubble}}">
+              <view wx:if="{{item.thinking}}" class="pc-bubble is-thinking" aria-label="{{item.name}}在记笔记">
+                <view class="pc-dot"></view><view class="pc-dot"></view><view class="pc-dot"></view>
+              </view>
+              <view wx:elif="{{item.bubble}}" class="pc-bubble {{item.bubbleOld ? 'is-old' : ''}}" bindtap="openRecords" aria-label="{{item.name}}：{{item.bubble}}">
                 <text class="pc-bubble-text">{{item.bubble}}</text>
                 <view wx:if="{{item.speaking}}" class="pc-speaker-icon pc-bubble-speaker" aria-hidden="true"><view class="pc-speaker-wave"></view></view>
               </view>

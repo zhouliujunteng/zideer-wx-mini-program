@@ -40,6 +40,9 @@ page{height:100%}
 .pc-bubble{right:4px;bottom:8px;left:4px;padding:7px 9px;box-sizing:border-box;border:1px solid #F1D2B0;border-radius:13px}
 .pc-bubble::after{bottom:-8px;left:50%;width:10px;height:10px;margin-left:-6px;border-right:1px solid #F1D2B0;border-bottom:1px solid #F1D2B0;transform:rotate(45deg)}
 .pc-bubble-text{font-size:13px;line-height:1.45;-webkit-box-orient:vertical;-webkit-line-clamp:4}
+.pc-bubble.is-thinking{right:auto;left:50%;padding:9px 13px;transform:translateX(-50%)}
+.pc-dot{width:7px;height:7px;margin:0 3px;border-radius:50%}
+@keyframes pc-dot{0%, 60%, 100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
 .pc-peer.is-speaking .pc-bubble{border-color:#FD7C02;padding-right:26px}
 .pc-peer.is-speaking .pc-bubble::after{border-color:#FD7C02}
 .pc-bubble .pc-bubble-speaker{right:7px;bottom:7px}

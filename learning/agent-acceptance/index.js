@@ -97,6 +97,8 @@ Page({
     draft: '',
     sending: false,
     lastSaid: '',
+    // 讲完这一段等了几秒（同学们在记笔记，等久了换说法，2026-11-18）
+    waitSeconds: 0,
     checkinNotice: null,
     statusBarHeight: 20,
     navigationBarHeight: 44,
@@ -161,6 +163,7 @@ Page({
     this._isDestroyed = true
     this._isPageVisible = false
     this.clearHintTimer()
+    this.stopWaitClock()
     this.stopPlayback()
     stopSpeech()
     this.abortVoiceInput(true)
@@ -261,11 +264,12 @@ Page({
         speakingPeer: data.speakingPeer,
         learnerTalking: data.voiceRecognizing,
         playing: data.playing,
-        outcome
+        outcome,
+        thinking: Boolean(data.sending && data.lastSaid)
       }),
       board: boardView(data.peerClass),
       hint: data.state === 'class' || data.state === 'settling'
-        ? peerHint({ peerClass: data.peerClass, playing: data.playing, sending: data.sending || data.state === 'settling' })
+        ? peerHint({ peerClass: data.peerClass, playing: data.playing, sending: data.sending || data.state === 'settling', waitSeconds: data.waitSeconds })
         : ''
     }))
     this.syncHint()
@@ -511,9 +515,10 @@ Page({
     const answer = String(value || '').trim().slice(0, MAX_ANSWER)
     if (!answer || this.data.sending || this.data.state !== 'class') return
     const turns = resend ? this.data.turns : this.data.turns.concat({ id: `t${this.data.turns.length}`, role: 'user', content: answer, speaker: 'learner' })
-    const patch = { turns, records: classRecords(turns), lastSaid: answer }
+    const patch = { turns, records: classRecords(turns), lastSaid: answer, waitSeconds: 0 }
     if (fromDraft) Object.assign(patch, { draft: '', inputLines: 1 })
     this.setData(patch)
+    this.startWaitClock()
     try {
       await this.post({ message: answer })
     } catch (error) {
@@ -523,8 +528,25 @@ Page({
       wx.showToast({ title: error && error.message || '这段没有发送成功，请重试', icon: 'none', duration: 3000 })
       this.refresh()
     } finally {
-      if (!this._isDestroyed) this.setData({ lastSaid: '' })
+      this.stopWaitClock()
+      if (!this._isDestroyed) this.render({ lastSaid: '', waitSeconds: 0 })
     }
+  },
+
+  // 讲完一段等同学们回应：每秒数一下，等久了提示条换说法
+  startWaitClock() {
+    this.stopWaitClock()
+    const started = Date.now()
+    this._waitClock = setInterval(() => {
+      if (this._isDestroyed || !this.data.sending) return
+      const waitSeconds = Math.floor((Date.now() - started) / 1000)
+      if (waitSeconds !== this.data.waitSeconds) this.render({ waitSeconds })
+    }, 1000)
+  },
+
+  stopWaitClock() {
+    if (this._waitClock) clearInterval(this._waitClock)
+    this._waitClock = null
   },
 
   handleVoiceButtonTap() {

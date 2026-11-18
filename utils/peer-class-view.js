@@ -90,9 +90,25 @@ function peerMood(id, { lines = [], revealed = 0, asking = null, learnerTalking 
   return 'listen'
 }
 
-/** 提示条：等判分 → 记笔记；同学们在说 → 在说；有人提问 → 讲给他听；还没讲 → 从第一件事讲起。 */
-function peerHint({ peerClass = null, playing = false, sending = false } = {}) {
-  if (sending) return '同学们在记笔记…'
+/**
+ * 孩子讲完一段、等同学们回应时的说法（2026-11-18 用户反馈：讲完页面干等着，看不出在做什么）。
+ * 一般两三秒；等久了换一句；这是最后一段（讲满了）就说同学们在整理笔记、马上下课。与网页端 waitingText 一致。
+ */
+function waitingText(seconds = 0, lastRound = false) {
+  if (lastRound) return seconds < 8 ? '最后一段讲完啦，同学们在整理笔记…' : '同学们在把今天学到的整理好，马上下课'
+  if (seconds < 6) return '同学们在记笔记…'
+  if (seconds < 15) return '同学们还在认真记，马上就回应你'
+  return '同学们记得很认真，再等一下下'
+}
+
+/** 这一段讲完会不会下课：讲满最多段数了。 */
+function isLastRound(peerClass) {
+  return Boolean(peerClass) && (Number(peerClass.rounds) || 0) + 1 >= (Number(peerClass.maxRounds) || 0)
+}
+
+/** 提示条：等判分 → 记笔记（等久了换说法）；同学们在说 → 在说；有人提问 → 讲给他听；还没讲 → 从第一件事讲起。 */
+function peerHint({ peerClass = null, playing = false, sending = false, waitSeconds = 0 } = {}) {
+  if (sending) return waitingText(waitSeconds, isLastRound(peerClass))
   if (playing) return '同学们在说…'
   if (!peerClass || peerClass.finished) return ''
   const asking = peerClass.asking
@@ -169,7 +185,7 @@ function starsOf(stars, total) {
  * 教室里的一排同学。还没开课（peerClass 为 null）时按三个同学画、不画星星。
  * speakingPeer：正在出声的同学（高亮光圈 + 喇叭）。
  */
-function classroomPeers({ peerClass = null, turns = [], lines = [], revealed = 0, speakingPeer = '', learnerTalking = false, playing = false, outcome = '' } = {}) {
+function classroomPeers({ peerClass = null, turns = [], lines = [], revealed = 0, speakingPeer = '', learnerTalking = false, playing = false, outcome = '', thinking = false } = {}) {
   const peers = peerClass && Array.isArray(peerClass.peers) && peerClass.peers.length
     ? peerClass.peers
     : PEER_IDS.map((id) => ({ id, name: peerName(id), stars: null }))
@@ -184,9 +200,11 @@ function classroomPeers({ peerClass = null, turns = [], lines = [], revealed = 0
     return {
       id: peer.id,
       name: peer.name || peerName(peer.id),
-      mood,
-      art: PEER_ART[peer.id][mood],
-      bubble: bubble ? bubble.text : '',
+      mood: thinking ? 'listen' : mood,
+      art: PEER_ART[peer.id][thinking ? 'listen' : mood],
+      // 孩子讲完一段、同学们在记笔记：头上画「…」（2026-11-18）
+      thinking: Boolean(thinking),
+      bubble: thinking ? '' : (bubble ? bubble.text : ''),
       bubbleOld: Boolean(bubble && bubble.old && speakingPeer !== peer.id),
       speaking: speakingPeer === peer.id,
       asking: Boolean(settled && asking && asking.peer === peer.id),
@@ -305,6 +323,8 @@ module.exports = {
   lineMood,
   peerMood,
   peerHint,
+  waitingText,
+  isLastRound,
   peerBubbles,
   classroomPeers,
   boardView,
