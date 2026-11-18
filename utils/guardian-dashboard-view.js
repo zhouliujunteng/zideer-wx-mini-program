@@ -145,6 +145,20 @@ function buildChild(relation, now = Date.now()) {
     detail: `${dayLabel(dateKey(upcoming.scheduled_online_at), '')} ${clockText(upcoming.scheduled_online_at)}${upcoming.meeting_minutes ? ` · 预计 ${upcoming.meeting_minutes} 分钟` : ''}${upcoming.teacher_profile && upcoming.teacher_profile.display_name ? ` · ${upcoming.teacher_profile.display_name}老师` : ''}`
   } : null
 
+  // 最近一次有学习记录的日子（学习时长、陪跑课、测评、验收；60 天内）。孩子今天没学时，学习诊断默认看这一天，
+  // 不然家长一进来只看到「当日暂无记录」，像是什么都没读到（2026-11-14 用户反馈）。
+  const minDate = shiftDays(today, -59)
+  const activeDays = [
+    ...Object.keys(minutesByDay).filter((key) => minutesByDay[key] > 0),
+    ...invites.filter((invite) => invite.status === 'closed').map((invite) => dateKey(invite.scheduled_online_at)),
+    ...mistakes.map((attempt) => dateKey(attempt.submitted_at)),
+    ...reports.map((report) => dateKey(report.generated_at))
+  ].filter((key) => key && key >= minDate && key <= today).sort()
+  const latestDate = activeDays.length ? activeDays[activeDays.length - 1] : ''
+  const lastStudy = latestDate && latestDate !== today
+    ? `最近一次学习：${monthDay(latestDate)}${minutesByDay[latestDate] ? ` · ${minutesByDay[latestDate]} 分钟` : ''}`
+    : ''
+
   const name = profile.nickname || profile.real_name || '学生'
   return {
     id: profile.id,
@@ -152,8 +166,10 @@ function buildChild(relation, now = Date.now()) {
     grade: gradeLabel(profile),
     avatarSrc: profile.avatar && profile.avatar.url || profile.avatar_url || '',
     today,
-    minDate: shiftDays(today, -59),
+    minDate,
+    latestDate,
     learning: {
+      lastStudy,
       statCards: [
         durationStat('今日学习时长', 'blue', '↗', minutesByDay[today] || 0),
         durationStat('本周学习时长', 'amber', '★', weekMinutes)
@@ -167,10 +183,10 @@ function buildChild(relation, now = Date.now()) {
   }
 }
 
-// 学习诊断：所选日期的作业动态、错题、学习记录、验收记录。
+// 学习诊断：所选日期（没选时看最近一次有学习记录的日子，再没有看今天）的作业动态、错题、学习记录、验收记录。
 // homework 是这个孩子的课后作业读取状态 { loaded, failed, items }（课程服务另读）；不传时不显示「作业动态」。
 function diagnosisFor(child, selectedDate, homework) {
-  const date = selectedDate || child.today
+  const date = selectedDate || child.latestDate || child.today
   const { minutesByDay, invites, mistakes, reports } = child.activity
   const sameDay = (value) => dateKey(value) === date
 

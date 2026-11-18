@@ -1,3 +1,4 @@
+<wxs module="UA" src="../../utils/ui-asset.wxs" />
 <!-- 结构取自 UI 设计仓库 f40113a 的 M50 家长学生看板；数据来自「读取当前家长学生看板」（见 index.js） -->
 <view class="dashboard-page">
   <view class="dashboard-ambient" aria-hidden="true"></view>
@@ -17,7 +18,7 @@
       </view>
       <view wx:elif="{{student}}" class="student-summary" bindtap="openChildSwitcher" aria-role="button" aria-label="{{children.length > 1 ? '切换孩子' : '当前孩子'}}">
         <view class="student-avatar">
-          <image wx:if="{{student.avatarSrc}}" src="{{student.avatarSrc}}" mode="aspectFill" aria-label="学生头像"></image>
+          <image wx:if="{{UA.avatar(ui, student.avatarSrc)}}" src="{{UA.avatar(ui, student.avatarSrc)}}" mode="aspectFill" aria-label="学生头像"></image>
         </view>
         <view class="student-copy">
           <text class="student-name">{{student.name}}</text>
@@ -61,6 +62,33 @@
               <view wx:for="{{[0, 1]}}" wx:key="*this" class="learning-stat-card"><view class="sk sk-line sk-mid"></view><view class="sk stat-value-sk"></view></view>
             </block>
           </view>
+          <view wx:if="{{loaded && student.learning.lastStudy}}" class="learning-last-study">{{student.learning.lastStudy}}</view>
+          <!-- 定制课程（2026-11-14）：课程服务另读，读到前画骨架、读不到给重试 -->
+          <view class="section-heading learning-subsection-heading"><text>定制课程</text></view>
+          <view wx:if="{{!loaded || !courses || courses.skeleton}}" class="subject-list">
+            <view wx:for="{{[0, 1]}}" wx:key="*this" class="subject-card"><view class="subject-main"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view></view>
+          </view>
+          <view wx:elif="{{courses.failed}}" class="course-goal"><text class="plain-empty course-failed">定制课程暂时没有读到</text><view class="diagnosis-retry" bindtap="retryCourses" aria-role="button">重新读取</view></view>
+          <view wx:elif="{{courses.goals.length}}">
+            <view wx:for="{{courses.goals}}" wx:for-item="goal" wx:key="key" class="course-goal">
+              <text class="course-goal-title">{{goal.title}}</text>
+              <view class="course-progress-row"><text class="course-progress">{{goal.progress}}</text><text wx:if="{{goal.current}}" class="course-current">{{goal.current}}</text></view>
+              <view class="course-bar"><view class="course-bar-fill" style="width: {{goal.percent}}%;"></view></view>
+              <view wx:for="{{goal.items}}" wx:for-item="lesson" wx:key="id" class="course-lesson {{lesson.statusTone === 'current' ? 'is-current' : ''}}">
+                <view class="course-lesson-head">
+                  <view class="course-lesson-copy"><text class="course-lesson-title">{{lesson.title}}</text><text wx:if="{{lesson.stage}}" class="course-lesson-stage">{{lesson.stage}}</text></view>
+                  <text class="subject-status course-status-{{lesson.statusTone}}">{{lesson.statusText}}</text>
+                </view>
+                <view class="course-steps">
+                  <view wx:for="{{lesson.steps}}" wx:for-item="step" wx:key="key" class="course-step course-step-{{step.tone}}">
+                    <text class="course-step-label">{{step.label}}</text><text class="course-step-detail">{{step.detail}}</text>
+                  </view>
+                </view>
+              </view>
+              <view wx:if="{{goal.hidden}}" class="course-more" data-key="{{goal.key}}" bindtap="expandCourses" aria-role="button">查看全部（还有 {{goal.hidden}} 节）</view>
+            </view>
+          </view>
+          <view wx:else class="plain-empty">还没有定制课程，老师开完诊断会议后会出现在这里</view>
           <view class="section-heading learning-subsection-heading"><text>学科学习</text></view>
           <view wx:if="{{!loaded}}" class="subject-list">
             <view wx:for="{{[0, 1]}}" wx:key="*this" class="subject-card"><view class="subject-main"><view class="sk sk-line sk-short"></view><view class="sk sk-line sk-mid"></view></view></view>
@@ -157,7 +185,7 @@
       <input wx:if="{{showChildSearch}}" class="child-search" value="{{childSearch}}" placeholder="搜索孩子姓名或年级" placeholder-class="child-search__placeholder" bindinput="onChildSearch" />
       <scroll-view scroll-y class="children-list">
         <view wx:for="{{visibleChildren}}" wx:key="id" class="child-option" data-id="{{item.id}}" bindtap="selectChild">
-          <view class="option-avatar"><image wx:if="{{item.avatarSrc}}" src="{{item.avatarSrc}}" mode="aspectFill"></image></view>
+          <view class="option-avatar"><image wx:if="{{UA.avatar(ui, item.avatarSrc)}}" src="{{UA.avatar(ui, item.avatarSrc)}}" mode="aspectFill"></image></view>
           <view class="option-copy"><text class="option-name">{{item.name}}</text><text class="option-grade">{{item.grade}}</text></view>
           <text wx:if="{{item.id === student.id}}" class="current-pill">正在查看</text>
           <view wx:else class="option-radio"></view>

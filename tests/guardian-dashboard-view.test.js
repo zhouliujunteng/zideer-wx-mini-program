@@ -60,3 +60,16 @@ test('diagnosis for a day lists that day\'s mistakes, records and acceptances; n
   assert.equal(today.sections[2].rows.length, 0)
   assert.equal(today.audioDuration, '')
 })
+
+test('when the child has not studied today, diagnosis defaults to the latest day with records and stats say when that was', () => {
+  const later = Date.parse('2026-09-28T10:00:00+08:00') // 周一，之后没学
+  const child = buildChild(relation, later)
+  assert.equal(child.latestDate, '2026-09-25')
+  assert.equal(child.learning.lastStudy, '最近一次学习：9月25日 · 38 分钟')
+  const day = diagnosisFor(child)
+  assert.equal(day.selectedDate, '2026-09-25')
+  assert.equal(day.selectedDateLabel, '9月25日 周五')
+  assert.equal(buildChild(relation, now).learning.lastStudy, '')
+  const empty = buildChild({ student_profile: { id: 2 } }, later)
+  assert.equal(diagnosisFor(empty).selectedDate, '2026-09-28')
+})

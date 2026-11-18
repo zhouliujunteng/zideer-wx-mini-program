@@ -436,7 +436,7 @@ page{background:#FAFAFA}
 .lp-goal-flag::before{top:1px;bottom:0;left:2px;width:2px;border-radius:1px;background:var(--tone-deep)}
 .lp-goal-flag::after{top:1px;left:4px;width:14px;height:10px;border-radius:1px 3px 3px 1px;background:var(--tone)}
 .goal-sheet-mask{right:max(0px, 50% - var(--lg-col) / 2);bottom:0;left:max(0px, 50% - var(--lg-col) / 2);background:rgba(36, 51, 45, .36)}
-.goal-sheet{padding:16px 19px 21px;border-radius:0 0 21px 21px;background:#FFFFFF;box-shadow:0 7px 19px rgba(36, 51, 45, .12)}
+.goal-sheet{right:max(0px, 50% - var(--lg-col) / 2);left:max(0px, 50% - var(--lg-col) / 2);box-sizing:border-box;max-height:calc(100vh - var(--sheet-top, 0px) - 49px - env(safe-area-inset-bottom) - 28px);padding:16px 19px 21px;border-radius:0 0 21px 21px;background:#FFFFFF;box-shadow:0 7px 19px rgba(36, 51, 45, .12)}
 .goal-sheet-title{font-size:19px;font-weight:900}
 .goal-sheet-copy{margin:4px 0 12px;font-size:14px}
 .goal-sheet-row{gap:12px;margin-top:9px;padding:13px 14px;border:1px solid #ECE9E4;border-radius:16px;box-shadow:0 3px 0 #ECE9E4}
@@ -462,5 +462,18 @@ page{background:#FAFAFA}
 .goal-sheet-pref-icon{flex:none;width:36px;height:36px;padding:6px;box-sizing:border-box;border-radius:50%;background:#F2607A}
 .goal-sheet-pref-name{font-size:18px;font-weight:800}
 .goal-sheet-pref-arrow{flex:none;width:8px;height:8px;border-top:3px solid #E9A3AF;border-right:3px solid #E9A3AF;transform:rotate(45deg)}
+.goal-sheet-meeting{border-color:#FFD9B3;background:#FFF6EC;box-shadow:0 3px 0 #FFD9B3}
+.goal-sheet-meeting:active{box-shadow:0 1px 0 #FFD9B3}
+.goal-sheet-meeting .goal-sheet-pref-icon{background:#FF8A1F}
+.goal-sheet-meeting .goal-sheet-pref-arrow{border-color:#F2B27A}
 @keyframes goal-sheet-drop{from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:translateY(0)}}
+.quest-node.kind-challenge.is-open, .quest-node.kind-challenge.is-done{background:#3B5BDB;box-shadow:0 6px 0 #2C47B8}
+.quest-node.kind-challenge.is-open:active, .quest-node.kind-challenge.is-done:active{box-shadow:0 2px 0 #2C47B8}
+.quest-challenge-tag{top:-11px;left:50%;padding:2px 8px;border-radius:599px;background:#3B5BDB;font-size:12px;font-weight:800;transform:translateX(-50%)}
+.quest-challenge-stars{bottom:-21px;left:50%;gap:2px;transform:translateX(-50%)}
+.quest-challenge-star{width:14px;height:14px;background:#E2DED8}
+.quest-challenge-star.is-on{background:#FFC233}
+.goal-sheet-challenge{border-color:#C9D3FF;background:#F5F7FF;box-shadow:0 3px 0 #C9D3FF}
+.goal-sheet-challenge .goal-sheet-pref-icon{background:#3B5BDB}
+.goal-sheet-switch{flex:none;transform:scale(.85)}
 }

@@ -121,7 +121,8 @@
         "achievement-cards/index",
         "card-fragments/index",
         "homework/index",
-        "practice/index"
+        "practice/index",
+        "challenge/index"
       ]
     },
     {

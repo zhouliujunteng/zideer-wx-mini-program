@@ -253,3 +253,43 @@ test('loaded figure dimensions correct missing metadata and ignore events from p
   loaded('stem', 1, 1)
   assert.equal(page.data.figureDimensions.stem.width, 800)
 })
+
+// 2026-11-14：家长账号设了目标后点「按目标测评」，autostart 开始测评被课程服务回 PROFILE_REQUIRED，
+// 页面一直停在骨架上（错误只写进了骨架里看不到的 actionError）。开始失败时绝不能停在骨架。
+test('autostart failures never leave the page on the skeleton', async () => {
+  const vm = require('node:vm')
+  const load = (error, accountType) => {
+    let definition
+    vm.runInNewContext(read('learning/goal-diagnosis/index.js'), {
+      Page: (page) => { definition = page },
+      require: (path) => {
+        if (path.endsWith('services/identity')) return {
+          loadGoalDiagnosis: async () => ({ goal: { text: '期末数学考到 90 分' }, subjects: [], diagnosis: null }),
+          goalDiagnosis: async () => { throw error }
+        }
+        if (path.endsWith('utils/account-role')) return { isGuardianAccount: () => accountType === 'guardian' }
+        if (path.endsWith('utils/navigation')) return { getNavigationMetrics: () => ({}) }
+        if (path.endsWith('utils/goal-map')) return { progressView: () => ({}), summaryView: () => null, stateText: () => '' }
+        return { attachUiAssets: () => {} }
+      }
+    })
+    const page = { ...definition, data: JSON.parse(JSON.stringify(definition.data)), setData(patch) { Object.assign(this.data, patch) } }
+    return page
+  }
+  const run = async (error, accountType) => {
+    const page = load(error, accountType)
+    page.onLoad({ autostart: '1' })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    return page.data
+  }
+  const profileError = Object.assign(new Error('请先完善你的资料。'), { code: 'PROFILE_REQUIRED' })
+  const guardian = await run(profileError, 'guardian')
+  assert.equal(guardian.view, 'profile_required')
+  assert.equal(guardian.guardianAccount, true)
+  assert.equal((await run(profileError, 'student')).view, 'profile_required')
+  const other = await run(Object.assign(new Error('网络不太好'), { code: 'GOAL_DIAGNOSIS_UNAVAILABLE' }), 'student')
+  assert.equal(other.view, 'intro')
+  assert.equal(other.actionError, '网络不太好')
+  assert.match(read('learning/goal-diagnosis/index.wxml'), /view === 'profile_required'/)
+})

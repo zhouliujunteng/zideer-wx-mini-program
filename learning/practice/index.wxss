@@ -155,4 +155,11 @@ page { background: #FFFFFF; }
 .pr-clear-stat.stat-first { animation-delay: .5s; }
 @keyframes pr-stat-in { from { opacity: 0; transform: translateY(30rpx) scale(.85); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
+/* 考试挑战邀请（2026-11-17）：深蓝强调，和挑战页一致 */
+.pr-invite { width: 100%; margin-top: 36rpx; padding: 28rpx 30rpx; border: 3rpx solid #C9D3FF; border-radius: 26rpx; background: #F5F7FF; box-sizing: border-box; text-align: left; }
+.pr-invite-title { display: block; color: #2C3E9E; font-size: 30rpx; font-weight: 800; }
+.pr-invite-copy { display: block; margin-top: 10rpx; color: #5C6680; font-size: 26rpx; line-height: 1.5; }
+.pr-invite-go { height: 84rpx; margin-top: 22rpx; border-radius: 22rpx; background: #3B5BDB; box-shadow: 0 6rpx 0 #2C47B8; color: #FFFFFF; font-size: 30rpx; font-weight: 800; line-height: 84rpx; text-align: center; }
+.pr-invite-auto { display: block; margin-top: 16rpx; color: #3B5BDB; font-size: 26rpx; font-weight: 700; }
+
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

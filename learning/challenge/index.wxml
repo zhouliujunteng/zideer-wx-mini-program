@@ -1,0 +1,135 @@
+<!-- 考试挑战（2026-11-17）：互动练习通关后可选的一关，对标学校考试的中档题，不挡闯关。
+     一屏一道；每道题最多答两次：第一次错给错因和提示、留在这道题；第二次错给答案和解析、往下走。做完按第一次答对给星。
+     样式沿用互动练习（pr-*），挑战自己的部分是 ch-*。 -->
+<view class="pr-page ch-page">
+  <view class="pr-topbar">
+    <view class="pr-topbar-inner" style="height: {{navigationBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+      <view class="pr-close" bindtap="handleBack" role="button" aria-label="退出挑战"><view class="pr-close-icon"></view></view>
+      <view wx:if="{{challenge && challenge.status === 'ready'}}" class="pr-bar" aria-label="已做 {{percent}}%">
+        <view class="pr-bar-fill ch-bar-fill" style="width: {{percent}}%;"><view class="pr-bar-shine"></view></view>
+      </view>
+      <text wx:else class="pr-topbar-title">考试挑战</text>
+    </view>
+  </view>
+
+  <view class="pr-shell" style="padding-top: {{contentTop}}px;">
+    <block wx:if="{{!loaded && !loadFailed}}">
+      <view class="sk sk-line sk-short pr-sk-tag"></view>
+      <view class="sk sk-line"></view>
+      <view class="sk sk-line sk-mid"></view>
+      <view wx:for="{{[0, 1, 2, 3]}}" wx:key="*this" class="sk pr-sk-option"></view>
+    </block>
+
+    <view wx:elif="{{loadFailed}}" class="state-panel">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">考试挑战暂时没有打开</text>
+      <text class="state-panel__copy">{{errorMessage}}</text>
+      <view class="pr-button is-primary" bindtap="reload" role="button">重新读取</view>
+    </view>
+
+    <view wx:elif="{{challenge.status === 'locked'}}" class="state-panel">
+      <text class="state-panel__title">先通关互动练习</text>
+      <text class="state-panel__copy">互动练习全做对以后，就能挑战学校考试难度的题。</text>
+      <view class="pr-button is-primary" bindtap="openPractice" role="button">去互动练习</view>
+    </view>
+
+    <view wx:elif="{{challenge.status === 'unavailable'}}" class="state-panel">
+      <text class="state-panel__title">这节课还没有考试挑战</text>
+      <text class="state-panel__copy">考试挑战目前只有数学课，其他学科在准备中。</text>
+      <view class="pr-button is-primary" bindtap="handleBack" role="button">回去</view>
+    </view>
+
+    <view wx:elif="{{challenge.status === 'preparing' || challenge.status === 'open'}}" class="state-panel">
+      <view class="pr-spinner" aria-hidden="true"></view>
+      <text class="state-panel__title">正在出题</text>
+      <text class="state-panel__copy">照着学校考试的难度出 3～5 道题，每道都要另外做两遍核对答案，比互动练习慢一些，一般三五分钟。可以先回去，出好了再来。</text>
+      <view wx:if="{{pollStopped}}" class="pr-button is-primary" bindtap="reload" role="button">刷新看看</view>
+    </view>
+
+    <view wx:elif="{{challenge.status === 'failed'}}" class="state-panel">
+      <view class="state-panel__mark">!</view>
+      <text class="state-panel__title">这次没出好题</text>
+      <text class="state-panel__copy">难题要核对好几遍，这次没核对通过。再出一次试试。</text>
+      <view class="pr-button is-primary" bindtap="retryGenerate" role="button">重新出题</view>
+    </view>
+
+    <view wx:elif="{{challenge.status === 'done'}}" class="pr-clear">
+      <view wx:if="{{celebrate}}" class="pr-confetti" aria-hidden="true">
+        <view wx:for="{{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]}}" wx:key="*this" class="pr-confetti-piece piece-{{item}}"></view>
+      </view>
+      <view class="ch-stars" aria-label="{{summary.stars.length}} 颗星里得了几颗">
+        <view wx:for="{{summary.stars}}" wx:key="index" class="ch-star {{item ? 'is-on' : ''}} {{celebrate ? 'is-pop' : ''}} star-{{index}}"></view>
+      </view>
+      <text class="pr-clear-title">挑战完成！</text>
+      <text class="pr-clear-course">{{challenge.title}}</text>
+      <view class="pr-clear-stats">
+        <view class="pr-clear-stat stat-total"><text class="pr-clear-value">{{summary.total}}</text><text class="pr-clear-label">道考试题</text></view>
+        <view class="pr-clear-stat stat-first"><text class="pr-clear-value">{{summary.first}}</text><text class="pr-clear-label">一次做对</text></view>
+      </view>
+      <text class="pr-clear-comment">{{summary.comment}}</text>
+      <view wx:if="{{summary.review.length}}" class="pr-review-toggle" bindtap="toggleReview" role="button">{{showReview ? '收起题目' : '看看每道题'}}</view>
+      <view wx:if="{{showReview}}" class="pr-review">
+        <view wx:for="{{summary.review}}" wx:key="number" class="pr-review-item">
+          <view class="pr-review-head">
+            <text class="pr-review-number">第 {{item.number}} 题</text>
+            <text wx:if="{{item.point}}" class="ch-point">{{item.point}}</text>
+            <text wx:if="{{item.solved === false}}" class="pr-review-tag">没拿下</text>
+            <text wx:elif="{{item.firstTry === false}}" class="pr-review-tag">第二次做对</text>
+          </view>
+          <text class="pr-review-prompt">{{item.prompt}}</text>
+          <text class="pr-review-answer">答案：{{item.answer}}</text>
+          <text wx:if="{{item.explanation}}" class="pr-review-text">{{item.explanation}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:elif="{{screen}}" class="pr-question {{shake ? 'is-shake' : ''}}">
+      <view wx:if="{{screen.again}}" class="pr-again"><view class="pr-again-icon" aria-hidden="true"></view><text>还有一次机会</text></view>
+      <view class="pr-tag">
+        <text class="pr-tag-type ch-tag-type">{{screen.typeLabel}}</text>
+        <text wx:if="{{screen.point}}" class="ch-point">{{screen.point}}</text>
+        <text class="pr-tag-hint">第 {{screen.number}} / {{screen.total}} 题</text>
+      </view>
+      <text class="pr-prompt">{{screen.prompt}}</text>
+
+      <view wx:if="{{screen.type === 'single'}}" class="pr-options">
+        <view wx:for="{{screen.options}}" wx:key="letter" class="pr-option {{item.selected ? 'is-selected' : ''}}" data-letter="{{item.letter}}" bindtap="chooseOption" role="button" aria-label="{{item.label}}">
+          <text class="pr-option-letter">{{item.letter}}</text>
+          <text class="pr-option-label">{{item.label}}</text>
+        </view>
+      </view>
+
+      <view wx:elif="{{screen.type === 'fill'}}" class="pr-fill">
+        <input class="pr-fill-input" value="{{screen.fill}}" placeholder="在这里填写" maxlength="40" disabled="{{screen.locked}}" bindinput="inputFill" confirm-type="done" bindconfirm="check" />
+      </view>
+
+      <view wx:elif="{{screen.type === 'steps'}}" class="ch-steps">
+        <view wx:for="{{screen.steps}}" wx:key="i" class="ch-step {{item.mark ? 'is-' + item.mark : ''}}">
+          <text class="ch-step-ask">{{item.ask}}</text>
+          <input class="pr-fill-input ch-step-input" value="{{item.value}}" placeholder="填结果" maxlength="40" disabled="{{screen.locked}}" data-index="{{item.i}}" bindinput="inputStep" confirm-type="next" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{challenge && challenge.status === 'ready' && screen && !feedback}}" class="pr-bottom">
+    <view class="pr-check {{screen.ready ? 'is-ready' : ''}} {{checking ? 'is-busy' : ''}}" bindtap="check" role="button">{{checking ? '正在检查' : '检查'}}</view>
+  </view>
+  <view wx:elif="{{feedback}}" class="pr-feedback {{feedback.correct ? 'is-right' : 'is-wrong'}}">
+    <view class="pr-feedback-head">
+      <view class="pr-feedback-mark" aria-hidden="true"><view class="{{feedback.correct ? 'pr-mark-check' : 'pr-mark-cross'}}"></view></view>
+      <text class="pr-feedback-title">{{feedback.title}}</text>
+    </view>
+    <text wx:if="{{feedback.stepNote}}" class="pr-feedback-why">{{feedback.stepNote}}</text>
+    <text wx:if="{{feedback.why}}" class="pr-feedback-why">{{feedback.why}}</text>
+    <text wx:if="{{feedback.hint}}" class="pr-feedback-text">提示：{{feedback.hint}}</text>
+    <text wx:if="{{feedback.answer}}" class="pr-feedback-answer">正确答案：{{feedback.answer}}</text>
+    <text wx:if="{{feedback.explanation}}" class="pr-feedback-text">{{feedback.explanation}}</text>
+    <view class="pr-continue" bindtap="next" role="button">{{feedback.action}}</view>
+  </view>
+  <view wx:elif="{{challenge && challenge.status === 'done'}}" class="pr-bottom">
+    <view class="pr-check is-ready" bindtap="openAcceptance" role="button">下一关：当小老师</view>
+    <view class="pr-secondary" bindtap="handleBack" role="button">回到学习页</view>
+  </view>
+</view>
+<dev-reset-fab />

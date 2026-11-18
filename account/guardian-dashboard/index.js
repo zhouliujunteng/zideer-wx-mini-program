@@ -1,6 +1,7 @@
-const { loadGuardianDashboard, loadGuardianHomework } = require('../../services/identity')
+const { loadGuardianDashboard, loadGuardianHomework, loadGuardianCourses } = require('../../services/identity')
 const { attachUiAssets } = require('../../services/ui-assets')
 const { buildChild, diagnosisFor } = require('../../utils/guardian-dashboard-view')
+const { guardianCourseSection } = require('../../utils/guardian-course-view')
 
 // 界面取自 UI 设计仓库 JiahaoTang-Alvin/zhilu-miniprogram 提交 f40113a 的 M50 家长学生看板（2026-09-25 同步）。
 // 入口：「我的 → 常用入口 → 学生看板」（已绑定学生的家长）。数据来自动作流「读取当前家长学生看板」，
@@ -9,6 +10,7 @@ const { buildChild, diagnosisFor } = require('../../utils/guardian-dashboard-vie
 // 当前账号自己的测评，对家长没有意义，换成孩子的课程积分。
 // 「学习诊断 → 作业动态」（2026-10-13）：课后作业来自课程服务 /api/learn/guardian-homework，与看板分开读，
 // 读到前画骨架、读不到给重试，不挡看板其余内容。
+// 「学习情况 → 定制课程」（2026-11-14）：课程服务 /api/learn/guardian-courses，读法同作业动态。
 const TABS = [
   { id: 'learning', label: '学习情况' },
   { id: 'diagnosis', label: '学习诊断' },
@@ -34,6 +36,7 @@ Page({
     children: [],
     student: null,
     diagnosis: null,
+    courses: null,
     quickActions: [],
     statusBarHeight: 20,
     navigationBarHeight: 44,
@@ -47,7 +50,9 @@ Page({
     tabsSticky: false
   },
 
-  onLoad() {
+  // 从「家庭关系」点某个孩子进来时带 studentId：第一次就读这个孩子（2026-11-14 修：原来总是显示第一个孩子）
+  onLoad(options) {
+    this._initialStudentId = options && options.studentId ? String(options.studentId) : null
     attachUiAssets(this)
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const menuButton = wx.getMenuButtonBoundingClientRect
@@ -69,7 +74,7 @@ Page({
   // 读过完整数据的孩子记在 _details 里，切回去先显示旧数据再静默刷新；没读过的切换时等读到再换。
   async loadPage(studentId) {
     const requestId = this._requestId = (this._requestId || 0) + 1
-    const wantedId = studentId != null ? studentId : (this.data.student && this.data.student.id)
+    const wantedId = studentId != null ? studentId : (this.data.student ? this.data.student.id : this._initialStudentId)
     try {
       const data = await loadGuardianDashboard(wantedId)
       if (requestId !== this._requestId) return false
@@ -87,7 +92,10 @@ Page({
       const student = chosen ? this._details[String(chosen.profile.id)] : null
       const selectedDate = this.data.diagnosis && this.data.diagnosis.selectedDate
       this.setData({ loaded: true, failed: false, ...this.viewFor(student, selectedDate) }, () => this.measureTabs())
-      if (student) this.loadHomework(student.id)
+      if (student) {
+        this.loadHomework(student.id)
+        this.loadCourses(student.id)
+      }
       return true
     } catch (error) {
       if (requestId !== this._requestId) return false
@@ -111,6 +119,7 @@ Page({
       children: options,
       showChildSearch: options.length > SEARCH_FROM,
       visibleChildren: filterChildren(options, this.data.childSearch),
+      courses: student ? guardianCourseSection(this.courseState(student.id), this._courseExpanded) : null,
       diagnosis: student ? diagnosisFor(student, selectedDate && selectedDate >= student.minDate && selectedDate <= student.today ? selectedDate : '', this.homeworkState(student.id)) : null,
       quickActions: student ? [
         { id: 'learningFeed', label: '孩子学习动态', hint: '查看近期学习时长与学习状态' },
@@ -154,6 +163,49 @@ Page({
     const student = this.data.student
     if (!student || !this.data.diagnosis) return
     this.setData({ diagnosis: diagnosisFor(student, this.data.diagnosis.selectedDate, this.homeworkState(student.id)) })
+  },
+
+  // 定制课程：每个孩子一份读取状态，规则同课后作业
+  courseState(studentId) {
+    const states = this._courses || {}
+    return states[String(studentId)] || { loaded: false, failed: false, goals: [] }
+  },
+
+  async loadCourses(studentId) {
+    const key = String(studentId)
+    this._courses = this._courses || {}
+    const requestId = this._courseRequest = (this._courseRequest || 0) + 1
+    try {
+      const goals = await loadGuardianCourses(studentId)
+      this._courses[key] = { loaded: true, failed: false, goals }
+    } catch (error) {
+      const previous = this._courses[key]
+      this._courses[key] = previous && previous.loaded ? previous : { loaded: false, failed: true, goals: [] }
+    }
+    if (requestId !== this._courseRequest) return
+    this.refreshCourses()
+  },
+
+  retryCourses() {
+    const student = this.data.student
+    if (!student) return
+    this._courses = this._courses || {}
+    this._courses[String(student.id)] = { loaded: false, failed: false, goals: [] }
+    this.refreshCourses()
+    return this.loadCourses(student.id)
+  },
+
+  refreshCourses() {
+    const student = this.data.student
+    if (!student) return
+    this.setData({ courses: guardianCourseSection(this.courseState(student.id), this._courseExpanded) })
+  },
+
+  expandCourses(event) {
+    const key = event.currentTarget.dataset.key
+    if (!key) return
+    this._courseExpanded = { ...(this._courseExpanded || {}), [key]: true }
+    this.refreshCourses()
   },
 
   measureTabs() {

@@ -24,7 +24,7 @@
       </view>
       <view class="wc-created__row"><text>登录账号</text><text class="wc-mono">{{item.publicId}}</text></view>
       <view class="wc-created__row"><text>今年登录过</text><text>{{item.deviceText}}</text></view>
-      <text wx:if="{{item.locked}}" class="wc-locked-hint">一年内登录的设备超过 3 台，账号已锁定。请联系客服核实后解除。</text>
+      <text wx:if="{{item.locked}}" class="wc-locked-hint">一年内登录的设备超过 5 台，账号已锁定。请联系客服核实后解除。</text>
       <view class="wc-card__actions">
         <text class="wc-link" bindtap="copyLogin" data-id="{{item.publicId}}" aria-role="button">复制登录信息</text>
         <text wx:if="{{item.ready}}" class="wc-link" bindtap="openPassword" data-id="{{item.studentProfileId}}" aria-role="button">改密码</text>
@@ -55,7 +55,7 @@
     <text class="wc-form__title wc-form__title--gap">网页端登录密码</text>
     <view class="wc-field"><text class="wc-label">密码</text><input class="wc-input" password maxlength="64" value="{{form.password}}" placeholder="8～64 位，字母加数字" placeholder-class="wc-placeholder" data-key="password" bindinput="onField" /></view>
     <view class="wc-field"><text class="wc-label">再输一次</text><input class="wc-input" password maxlength="64" value="{{form.confirm}}" placeholder="确认密码" placeholder-class="wc-placeholder" data-key="confirm" bindinput="onField" /></view>
-    <text class="wc-note">登录账号是系统给孩子分配的 6 位编号，创建后显示在这里。同一个孩子一年内最多在 3 台设备（电脑、平板、浏览器）上登录，超出会锁定账号，请只给孩子本人使用。</text>
+    <text class="wc-note">登录账号是系统给孩子分配的 6 位编号，创建后显示在这里。同一个孩子一年内最多在 5 台设备（电脑、平板、浏览器）上登录，超出会锁定账号，请只给孩子本人使用。</text>
     <button class="wc-submit pressable" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">创建账号</button>
     <text class="wc-link wc-link--muted wc-cancel" bindtap="closeForm">取消</text>
   </view>

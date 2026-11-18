@@ -15,6 +15,7 @@ const GLYPHS = {
   practice: '/assets/quest/dumbbell.svg',
   accept: '/assets/quest/mic.svg',
   review: '/assets/quest/repeat.svg',
+  challenge: '/assets/quest/bolt.svg',
   lock: '/assets/quest/lock.svg',
   trophy: '/assets/quest/trophy.svg',
   trophyLocked: '/assets/quest/trophy-locked.svg',
@@ -63,9 +64,26 @@ function normalizeOnboarding(list) {
       label: text(step.label) || ONBOARDING_LABELS[step.key],
       detail: text(step.detail),
       inviteToken: /^[A-Za-z0-9._~-]{1,200}$/.test(text(step.inviteToken)) ? text(step.inviteToken) : '',
-      book: !!step.book
+      book: !!step.book,
+      // 开通了自助诊断会议（2026-11-17）：第三关点了自己开始，不用约时间
+      selfStart: !!step.selfStart
     }))
   return steps.length ? steps : null
+}
+
+// 考试挑战（2026-11-17，课程服务 challenge-service.ts readQuestChallenges）：这个目标的挑战模式 + 每节课的挑战状态。
+// 只有互动练习通关了的数学课才有；旧版课程服务没有（null，不画挑战关、不显示挑战模式开关）。
+const CHALLENGE_STATUSES = ['open', 'preparing', 'ready', 'failed', 'done']
+function normalizeChallengeInfo(raw) {
+  if (!raw || typeof raw !== 'object') return null
+  const lessons = {}
+  const source = raw.lessons && typeof raw.lessons === 'object' ? raw.lessons : {}
+  Object.keys(source).forEach((stageId) => {
+    const item = source[stageId]
+    if (!item || !CHALLENGE_STATUSES.includes(item.status)) return
+    lessons[stageId] = { status: item.status, stars: Math.max(0, Math.min(3, Number(item.stars) || 0)), recommended: item.recommended === true }
+  })
+  return { mode: raw.mode === true, lessons }
 }
 
 function normalizeQuestPath(raw) {
@@ -102,6 +120,7 @@ function normalizeQuestPath(raw) {
     stats: { lessons: Number(value.stats && value.stats.lessons) || 0, done: Number(value.stats && value.stats.done) || 0 },
     // 一个学生好几个学习目标（课程服务 2026-11-13）：学习页左上角切换。旧版课程服务没有这一项（null，不显示入口）
     trackId: Number(value.trackId) || 0,
+    challenge: normalizeChallengeInfo(value.challenge),
     tracks: Array.isArray(value.tracks)
       ? value.tracks
           .map((item) => ({ trackId: Number(item && item.trackId) || 0, title: text(item && item.title) || '学习目标', active: !!(item && item.active), lessons: Number(item && item.lessons) || 0 }))
@@ -205,6 +224,8 @@ function questPathView(path) {
           paywall: lesson.paywall && step.state === 'locked'
         })
         if (stepIndex === lastWatch) nodes.push(lessonChestNode(lesson, nextOffset()))
+        const challenge = step.key === 'practice' && path.challenge ? path.challenge.lessons[lesson.stageId] : null
+        if (challenge) nodes.push(lessonChallengeNode(lesson, challenge, nextOffset()))
       })
       if (reviewDue.has(lesson.stageId)) {
         nodes.push({ id: `${lesson.stageId}-review`, kind: 'review', state: 'open', icon: 'review', glyph: GLYPHS.review, offset: nextOffset(), label: '复习关', detail: '这节课今天该复习了', stageId: lesson.stageId, course: lesson.title })
@@ -284,6 +305,7 @@ function onboardingPart(steps) {
     segs: steps.length,
     inviteToken: step.inviteToken,
     book: !!step.book,
+    selfStart: !!step.selfStart,
     lockedBy: null
   }))
   const passed = steps.filter((step) => step.state === 'done').length
@@ -336,6 +358,29 @@ function lessonChestNode(lesson, offset) {
   }
 }
 
+/**
+ * 每节课的考试挑战节点（互动练习之后、验收之前，2026-11-17）：可选的一关，不挡验收、不当当前关。
+ * 做完是 done，带几颗星；推荐挑战（互动练习一次答对率高）时标「推荐」。
+ */
+function lessonChallengeNode(lesson, challenge, offset) {
+  const done = challenge.status === 'done'
+  return {
+    id: `${lesson.stageId}-challenge`,
+    kind: 'challenge',
+    stageId: lesson.stageId,
+    state: done ? 'done' : 'open',
+    icon: 'challenge',
+    glyph: GLYPHS.challenge,
+    offset,
+    label: '考试挑战',
+    detail: done ? `${'★'.repeat(challenge.stars)}${'☆'.repeat(3 - challenge.stars)}` : challenge.status === 'preparing' ? '正在出题' : challenge.recommended ? '推荐：试试学校考试难度' : '可选：学校考试难度',
+    stars: [0, 1, 2].map((i) => i < challenge.stars),
+    recommended: !done && challenge.recommended,
+    course: lesson.title,
+    lockedBy: null
+  }
+}
+
 /** 节点 id → 节点（点击、弹卡、动效都按 id 找）。 */
 function findNode(view, id) {
   if (!view || !id) return null
@@ -359,6 +404,11 @@ function nodePopover(node) {
     return { ...base, note: '看完这节课，宝箱就能打开' }
   }
   if (node.kind === 'review') return { ...base, action: '开始复习' }
+  if (node.kind === 'challenge') {
+    return node.state === 'done'
+      ? { ...base, detail: `得了 ${node.stars.filter(Boolean).length} 颗星`, action: '看看题目' }
+      : { ...base, detail: '和学校考试一样难的几道题，做不做都不影响往下学', action: '开始挑战' }
+  }
   if (node.kind === 'onboard') return onboardPopover(node, base)
   // 付费锁：支付开关开着时页面再补上「开通会员」按钮（按钮在时不显示 note，所以说明放 detail）
   if (node.state === 'locked' && node.paywall) return { ...base, title: '开通会员后解锁', position: '', detail: '免费体验开放前 3 节课', note: PAYWALL_NOTE, action: '', paywall: true }
@@ -375,6 +425,7 @@ function onboardPopover(node, base) {
   if (node.step === 'meeting') {
     if (node.state === 'done') return { ...base, note: '诊断会议已经开过了，课程在下面' }
     if (node.state === 'locked') return { ...base, note: node.detail || '等推广老师帮你约好诊断会议', detail: '' }
+    if (!node.inviteToken && node.selfStart) return { ...base, action: '开始诊断会议' }
     if (!node.inviteToken && node.book) return { ...base, action: '联系老师预约' }
     return { ...base, action: '进入诊断会议' }
   }
@@ -394,7 +445,7 @@ function questTransition(previousId, view) {
   return { doneId: previous && previous.state === 'done' ? previousId : '', unlockId: view.currentId }
 }
 
-/** 点了一个节点该去哪：{ url } / { toast } / { chest: stageId }（打开这节课的宝箱）/ { contact: true }（联系老师预约诊断会议）。 */
+/** 点了一个节点该去哪：{ url } / { toast } / { chest: stageId }（打开这节课的宝箱）/ { contact: true }（联系老师预约诊断会议）/ { selfMeeting: true }（自己开始诊断会议）。 */
 function nodeTarget(node) {
   if (!node) return null
   const stage = encodeURIComponent(node.stageId || '')
@@ -402,6 +453,7 @@ function nodeTarget(node) {
   if (node.kind === 'chest') return node.state === 'done' ? { url: '/learning/achievement-cards/index' } : { toast: '这一阶段的课都过了验收，徽章就点亮了' }
   if (node.kind === 'trophy') return { toast: node.state === 'done' ? '这节课每一关都过了' : '这节课每一关都过了，奖杯就点亮' }
   if (node.kind === 'review') return { url: `/learning/review/index?stageId=${stage}` }
+  if (node.kind === 'challenge') return { url: `/learning/challenge/index?stageId=${stage}` }
   if (node.kind === 'onboard') {
     if (node.state === 'locked') return { toast: node.step === 'meeting' ? (node.detail || '等推广老师帮你约好诊断会议') : '先完成上一关' }
     if (node.step === 'goal') return { url: '/learning/learning-goal/index?from=quest' }
@@ -410,6 +462,8 @@ function nodeTarget(node) {
     if (node.step === 'diagnosis') return { url: `/learning/goal-diagnosis/index${node.state === 'done' ? '' : '?autostart=1'}` }
     if (node.state === 'done') return { toast: '诊断会议已经开过了' }
     if (node.inviteToken) return { url: `/learning/agent-invite/index?token=${encodeURIComponent(node.inviteToken)}` }
+    // 开通了自助诊断会议：学习页去课程服务开一场、直接进诊断室（pages/learning openSelfMeeting）
+    if (node.selfStart) return { selfMeeting: true }
     // 还没约好：联系老师预约（企业微信客服，与原来顶栏的「联系老师」同一个入口）
     return node.book ? { contact: true } : { toast: '诊断会议邀请暂时没读到，请稍后再试' }
   }

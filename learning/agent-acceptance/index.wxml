@@ -43,8 +43,8 @@
             <text>课堂记录</text>
           </view>
         </view>
-        <view class="pc-row is-{{peers.length}}">
-          <view wx:for="{{peers}}" wx:key="id" class="pc-peer is-{{item.mood}} {{item.speaking ? 'is-speaking' : ''}} {{item.asking ? 'is-asking' : ''}}">
+        <view class="pc-row is-{{peers.length}} {{voiceRecognizing ? 'is-listening' : ''}} {{result.kind === 'pending' || result.kind === 'passed' ? 'is-cheer' : ''}}">
+          <view wx:for="{{peers}}" wx:key="id" class="pc-peer is-{{item.mood}} {{item.speaking ? 'is-speaking' : ''}} {{item.asking ? 'is-asking' : ''}} {{item.thinking ? 'is-thinking' : ''}}">
             <view class="pc-bubble-slot">
               <view wx:if="{{item.thinking}}" class="pc-bubble is-thinking" aria-label="{{item.name}}在记笔记">
                 <view class="pc-dot"></view><view class="pc-dot"></view><view class="pc-dot"></view>
@@ -57,6 +57,9 @@
             <view class="pc-figure">
               <view class="pc-halo" aria-hidden="true"></view>
               <image class="pc-person" src="{{UA.src(ui, item.art)}}" mode="aspectFit" aria-label="{{item.name}}"></image>
+              <view wx:if="{{item.sparkle}}" class="pc-sparks" aria-hidden="true">
+                <text class="pc-spark">✦</text><text class="pc-spark is-b">✦</text><text class="pc-spark is-c">✦</text>
+              </view>
               <view class="pc-desk">
                 <image class="pc-desk-art" src="{{UA.src(ui, '/assets/peer-class/desk.png')}}" mode="scaleToFill" aria-hidden="true"></image>
                 <view class="pc-nameplate">

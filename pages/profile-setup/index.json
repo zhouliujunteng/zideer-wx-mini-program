@@ -1,5 +1,8 @@
 {
   "navigationStyle": "custom",
   "navigationBarTitleText": "完善学习档案",
-  "disableScroll": true
+  "disableScroll": true,
+  "usingComponents": {
+    "avatar-picker": "/components/avatar-picker/index"
+  }
 }

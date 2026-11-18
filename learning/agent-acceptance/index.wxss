@@ -70,10 +70,9 @@ page { height: 100%; overflow: hidden; background: #FBF5EC; }
 
 /* 人物 + 身前的课桌（课桌挡住下半截），课桌前面是名牌和星星 */
 .pc-figure { position: relative; width: 236rpx; height: 266rpx; }
-.pc-person { position: absolute; top: 0; left: 8rpx; z-index: 1; display: block; width: 220rpx; height: 220rpx; transition: transform .2s ease; }
+.pc-person { position: absolute; top: 0; left: 8rpx; z-index: 1; display: block; width: 220rpx; height: 220rpx; transform-origin: 50% 100%; }
 .pc-halo { position: absolute; top: 4rpx; left: 18rpx; z-index: 0; width: 200rpx; height: 200rpx; box-sizing: border-box; border: 6rpx solid #FDB56A; border-radius: 50%; background: #FFE9CF; opacity: 0; transform: scale(.85); transition: opacity .2s ease, transform .2s ease; }
 .pc-peer.is-speaking .pc-halo { opacity: 1; transform: scale(1); animation: pc-halo 1.4s ease-in-out infinite; }
-.pc-peer.is-speaking .pc-person { transform: translateY(-4rpx); }
 .pc-desk { position: absolute; bottom: 0; left: 0; z-index: 2; width: 236rpx; height: 90rpx; }
 .pc-desk-art { display: block; width: 236rpx; height: 90rpx; }
 .pc-nameplate { position: absolute; top: 34rpx; left: 50%; display: flex; align-items: center; height: 44rpx; padding: 0 14rpx; box-sizing: border-box; border-radius: 12rpx; background: #FFFDF8; white-space: nowrap; transform: translateX(-50%); box-shadow: 0 2rpx 6rpx rgba(120, 80, 30, .18); }
@@ -211,6 +210,39 @@ page { height: 100%; overflow: hidden; background: #FBF5EC; }
 .pc-record-text { display: block; margin-top: 4rpx; color: #3A2E25; font-size: 26rpx; line-height: 1.6; word-break: break-word; }
 
 @keyframes pc-bubble-in { from { opacity: 0; transform: translate3d(0, 12rpx, 0) scale(.96); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
+/* ——— 同学们会动（2026-11-18 用户：三个同学不会动、只是换图，要有意思一点）———
+   只动人物图，课桌不动（看起来是坐在桌后）；三个人节奏错开。规则同网页端 peer-class.module.css。 */
+.pc-person { animation: pc-idle 6s ease-in-out infinite; }
+.pc-peer:nth-child(2) .pc-person { animation-delay: -2s; }
+.pc-peer:nth-child(3) .pc-person { animation-delay: -4s; }
+.pc-peer.is-happy .pc-person { animation: pc-hop .7s cubic-bezier(.3, .7, .4, 1) 1, pc-idle 6s ease-in-out .7s infinite; }
+.pc-peer.is-confused .pc-person { animation: pc-shake .8s ease-in-out 1, pc-idle 6s ease-in-out .8s infinite; }
+.pc-peer.is-asking .pc-person { animation: pc-raise 1.8s ease-in-out infinite; }
+.pc-peer.is-thinking .pc-person { animation: pc-scribble .5s ease-in-out infinite alternate; }
+.pc-row.is-listening .pc-person { animation: pc-lean 1.6s ease-in-out infinite; }
+.pc-peer.is-speaking .pc-person { animation: pc-talk .42s ease-in-out infinite alternate; }
+.pc-peer.is-speaking.is-happy .pc-person { animation: pc-hop .7s cubic-bezier(.3, .7, .4, 1) 1, pc-talk .42s ease-in-out .7s infinite alternate; }
+.pc-row.is-cheer .pc-person { animation: pc-hop .7s cubic-bezier(.3, .7, .4, 1) 3; }
+.pc-row.is-cheer .pc-peer:nth-child(2) .pc-person { animation-delay: .15s; }
+.pc-row.is-cheer .pc-peer:nth-child(3) .pc-person { animation-delay: .3s; }
+/* 学会了：头上冒几颗星 */
+.pc-sparks { position: absolute; top: 10rpx; left: 50%; z-index: 3; width: 0; height: 0; }
+.pc-spark { position: absolute; top: 0; left: 0; color: #FFB020; font-size: 30rpx; line-height: 1; opacity: 0; animation: pc-spark .9s ease-out 1 both; }
+.pc-spark.is-b { color: #FD7C02; font-size: 22rpx; animation-name: pc-spark-b; animation-delay: .08s; }
+.pc-spark.is-c { font-size: 24rpx; animation-name: pc-spark-c; animation-delay: .16s; }
+@keyframes pc-idle { 0%, 50%, 100% { transform: translateY(0) rotate(0) scale(1, 1); } 25% { transform: translateY(-5rpx) rotate(0) scale(1, 1.012); } 62% { transform: translateY(0) rotate(-2.5deg); } 70% { transform: translateY(0) rotate(1.5deg); } 78% { transform: translateY(0) rotate(0); } }
+@keyframes pc-talk { from { transform: translateY(0) rotate(-1.5deg); } to { transform: translateY(-9rpx) rotate(1.5deg) scale(1.02); } }
+@keyframes pc-hop { 0%, 100% { transform: translateY(0) scale(1, 1); } 20% { transform: translateY(6rpx) scale(1.06, .92); } 50% { transform: translateY(-34rpx) scale(.96, 1.06); } 75% { transform: translateY(0) scale(1.05, .95); } }
+@keyframes pc-shake { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(-6deg); } 35% { transform: rotate(5deg); } 55% { transform: rotate(-4deg); } 75% { transform: rotate(3deg); } }
+@keyframes pc-raise { 0%, 45%, 100% { transform: translateY(0) rotate(0); } 15% { transform: translateY(-16rpx) rotate(-3deg); } 30% { transform: translateY(-6rpx) rotate(2deg); } }
+@keyframes pc-scribble { from { transform: translateY(0) rotate(-1deg); } to { transform: translateY(4rpx) rotate(1deg); } }
+@keyframes pc-lean { 0%, 100% { transform: translateY(-6rpx) scale(1.04) rotate(0); } 50% { transform: translateY(-2rpx) scale(1.04) rotate(2deg); } }
+@keyframes pc-spark { 0% { opacity: 0; transform: translate(-50%, 0) scale(.2); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(-90rpx, -50rpx) scale(1.1) rotate(-30deg); } }
+@keyframes pc-spark-b { 0% { opacity: 0; transform: translate(-50%, 0) scale(.2); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(70rpx, -60rpx) scale(1) rotate(25deg); } }
+@keyframes pc-spark-c { 0% { opacity: 0; transform: translate(-50%, 0) scale(.2); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(-10rpx, -84rpx) scale(1.2); } }
+@media (prefers-reduced-motion: reduce) {
+  .pc-person, .pc-spark, .pc-dot { animation: none !important; }
+}
 @keyframes pc-halo { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 @keyframes pc-wave { 50% { opacity: .25; } }
 @keyframes pc-sheet-up { from { transform: translate3d(0, 40rpx, 0); opacity: .4; } to { transform: translate3d(0, 0, 0); opacity: 1; } }

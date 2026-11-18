@@ -1,0 +1,37 @@
+@import "../../styles/account-form.wxss";
+@import "../../styles/skeleton.wxss";
+@import "../practice/index.wxss";
+/* 考试挑战（2026-11-17）：版式沿用互动练习（pr-*），挑战用深蓝做强调色，和互动练习的橙色区分开（挑战是更难的一层）。
+   星星用宝箱同一种金黄。 */
+
+.ch-bar-fill { background: #3B5BDB; }
+.ch-tag-type { background: #E8EDFF; color: #3B5BDB; }
+.ch-point { padding: 4rpx 14rpx; border-radius: 999rpx; background: #F4F3F1; color: #6F7872; font-size: 22rpx; }
+
+.ch-steps { margin-top: 36rpx; }
+.ch-step { margin-top: 24rpx; padding: 22rpx 24rpx 24rpx; border: 3rpx solid #ECE9E4; border-radius: 24rpx; background: #FFFFFF; }
+.ch-step.is-right { border-color: #9DB2FF; background: #F5F7FF; }
+.ch-step.is-wrong { border-color: #E9A398; background: #FFF6F4; }
+.ch-step-ask { display: block; color: #24332D; font-size: 28rpx; font-weight: 700; line-height: 1.5; }
+.ch-step-input { margin-top: 16rpx; }
+
+.ch-stars { display: flex; align-items: flex-end; justify-content: center; gap: 18rpx; height: 150rpx; }
+.ch-star { width: 96rpx; height: 96rpx; background: #E2DED8; clip-path: polygon(50% 4%, 61% 37%, 96% 37%, 68% 58%, 78% 92%, 50% 72%, 22% 92%, 32% 58%, 4% 37%, 39% 37%); }
+.ch-star.star-1 { width: 124rpx; height: 124rpx; }
+.ch-star.is-on { background: #FFC233; }
+.ch-star.is-pop.is-on { animation: ch-star-pop .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+.ch-star.is-pop.star-1 { animation-delay: .25s; }
+.ch-star.is-pop.star-2 { animation-delay: .5s; }
+@keyframes ch-star-pop { from { opacity: 0; transform: scale(.3) rotate(-20deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+
+/* 选中、检查按钮也换成挑战的深蓝（练习页是橙色） */
+.ch-page .pr-option.is-selected { border-color: #3B5BDB; background: #F5F7FF; }
+.ch-page .pr-option.is-selected .pr-option-letter { border-color: #3B5BDB; background: #3B5BDB; color: #FFFFFF; }
+.ch-page .pr-check.is-ready { background: #3B5BDB; box-shadow: 0 7rpx 0 #2C47B8; }
+.ch-page .pr-check.is-ready:active { box-shadow: 0 3rpx 0 #2C47B8; }
+.ch-page .pr-feedback.is-right .pr-continue { background: #3B5BDB; box-shadow: 0 7rpx 0 #2C47B8; }
+.ch-page .pr-feedback.is-right { background: #EEF2FF; }
+.ch-page .pr-feedback.is-right .pr-feedback-title { color: #2C47B8; }
+.ch-page .pr-feedback.is-right .pr-mark-check { border-color: #3B5BDB; }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

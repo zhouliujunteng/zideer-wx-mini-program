@@ -66,10 +66,10 @@
       <view wx:if="{{activeSteps[stepIndex].id === 'basic'}}" class="profile-setup-fields">
         <view class="profile-setup-field">
           <view class="profile-setup-field-label-row"><text class="profile-setup-field-label">头像</text><text class="profile-setup-optional">选填</text></view>
-          <button class="profile-personal-avatar-row" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{saving}}" aria-label="{{editing ? '更换头像' : '授权微信头像'}}">
-            <text>{{editing ? '更换头像' : '授权微信头像'}}</text><view class="profile-personal-avatar"><image src="{{UA.avatar(ui, form.avatarPath || form.avatarUrl)}}" mode="aspectFill"/></view>
-          </button>
-          <text class="profile-setup-input-hint">可跳过；未授权时将展示默认头像</text>
+          <view class="profile-personal-avatar-row" bindtap="openAvatarPicker" aria-role="button" aria-label="{{editing ? '更换头像' : '选择头像'}}">
+            <text>{{editing ? '更换头像' : '选择头像'}}</text><view class="profile-personal-avatar"><image src="{{UA.avatar(ui, form.avatarPath || form.avatarUrl)}}" mode="aspectFill"/></view>
+          </view>
+          <text class="profile-setup-input-hint">可跳过；可以选知鹿默认头像，也可以用微信头像</text>
         </view>
 
         <view class="profile-setup-field">
@@ -196,3 +196,4 @@
 
 </view>
 <dev-reset-fab />
+<avatar-picker visible="{{avatarPickerVisible}}" busy="{{avatarBusy}}" bind:preset="choosePresetAvatar" bind:wechat="chooseAvatar" bind:close="closeAvatarPicker" />

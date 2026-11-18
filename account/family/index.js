@@ -77,9 +77,11 @@ Page({
     }
     wx.switchTab({ url: '/pages/me/index' })
   },
-  openGuardianDashboard() {
+  // 点某个孩子就打开这个孩子的看板；点「查看看板」不带，看板显示默认的孩子
+  openGuardianDashboard(event) {
     if (!this.data.students.length) return
-    wx.navigateTo({ url: '/account/guardian-dashboard/index' })
+    const studentId = event && event.currentTarget && event.currentTarget.dataset.studentId
+    wx.navigateTo({ url: studentId ? `/account/guardian-dashboard/index?studentId=${encodeURIComponent(studentId)}` : '/account/guardian-dashboard/index' })
   },
   openBindingCode() {
     wx.navigateTo({ url: '/account/binding-code/index' })

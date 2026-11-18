@@ -65,6 +65,19 @@
           </block>
         </view>
 
+        <view wx:elif="{{view === 'profile_required'}}" class="pref-card gm-state">
+          <block wx:if="{{guardianAccount}}">
+            <text class="gm-state-title">家长账号不能做测评</text>
+            <text class="gm-state-copy">测评按学生的年级和教材出题。请在「我的 › 身份与登录」切换到学生身份，或者让孩子用自己的账号来测。</text>
+            <view class="gm-primary-inline" bindtap="openProfileStep" aria-role="button">去切换身份</view>
+          </block>
+          <block wx:else>
+            <text class="gm-state-title">先填好年级和教材</text>
+            <text class="gm-state-copy">测评按你的年级和教材出题，学习资料里还没填年级。</text>
+            <view class="gm-primary-inline" bindtap="openProfileStep" aria-role="button">去完善学习资料</view>
+          </block>
+        </view>
+
         <view wx:elif="{{view === 'intro'}}" class="gm-quest">
           <view class="gm-guide">
             <image class="gm-deer" src="{{UA.src(ui, '/assets/quest/deer.svg')}}"></image>

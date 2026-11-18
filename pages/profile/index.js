@@ -1,7 +1,7 @@
 const { getProfileModel } = require('../../services/mock-service')
 const {
   loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired,
-  loadFamilyWechatQr, loadShippingAddress
+  loadFamilyWechatQr, loadShippingAddress, downloadAvatarPreset
 } = require('../../services/identity')
 const { attachUiAssets } = require('../../services/ui-assets')
 
@@ -57,6 +57,9 @@ function addressView(address) {
 Page({
   data: {
     model: {},
+    // 换头像弹层（components/avatar-picker）：知鹿默认头像 + 微信头像
+    avatarPickerVisible: false,
+    avatarBusy: false,
     // 资料第一次读到前姓名、各行取值、头像显示骨架；之后回到页面保留旧资料，后台静默刷新
     profileLoaded: false,
     profileFailed: false,
@@ -207,6 +210,37 @@ Page({
 
   editName() {
     this.openTextSheet('name')
+  },
+
+  openAvatarPicker() {
+    if (this.saving) return
+    this.setData({ avatarPickerVisible: true })
+  },
+
+  closeAvatarPicker() {
+    this.setData({ avatarPickerVisible: false })
+  },
+
+  // 选了知鹿默认头像：先下到本地，再和微信头像一样上传保存
+  async handlePresetAvatar(event) {
+    const id = event.detail && event.detail.id
+    if (!id || this.saving) return
+    this.setData({ avatarBusy: true })
+    let path
+    try {
+      path = await downloadAvatarPreset(id)
+    } catch (error) {
+      this.setData({ avatarBusy: false })
+      wx.showToast({ title: error.message || '头像暂时下载不了，请稍后重试', icon: 'none' })
+      return
+    }
+    this.setData({ avatarBusy: false, avatarPickerVisible: false })
+    return this.handleChooseAvatar({ detail: { avatarUrl: path } })
+  },
+
+  handleWechatAvatar(event) {
+    this.setData({ avatarPickerVisible: false })
+    return this.handleChooseAvatar(event)
   },
 
   handleChooseAvatar(e) {

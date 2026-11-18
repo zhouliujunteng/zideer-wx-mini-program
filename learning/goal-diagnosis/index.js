@@ -2,6 +2,7 @@ const { loadGoalDiagnosis, goalDiagnosis, loadTeacherGoalDiagnosis } = require('
 const { getNavigationMetrics } = require('../../utils/navigation')
 const { progressView, summaryView, stateText } = require('../../utils/goal-map')
 const { attachUiAssets } = require('../../services/ui-assets')
+const { isGuardianAccount } = require('../../utils/account-role')
 
 // 按目标测评 + 目标导图（2026-10-10 用户规则）。
 // 学生先定学习目标 → 课程服务把目标拆成几个大条件、落到真实知识点 → 边测边往下挖：做错或点「不会」就是卡点，
@@ -29,6 +30,7 @@ Page({
     contentTop: 64,
     view: 'loading',
     teacher: false,
+    guardianAccount: false,
     loadError: '',
     actionError: '',
     goal: null,
@@ -66,7 +68,7 @@ Page({
 
   onShow() {
     // 回到页面（比如去改了学习目标）：静默刷新，不回骨架
-    if (this._loadedOnce && !this._teacherStudent && !this._viewId && ['intro', 'no_goal', 'result'].indexOf(this.data.view) >= 0) this.load()
+    if (this._loadedOnce && !this._teacherStudent && !this._viewId && ['intro', 'no_goal', 'profile_required', 'result'].indexOf(this.data.view) >= 0) this.load()
     if (this._resumePoll) {
       this._resumePoll = false
       this.poll()
@@ -261,9 +263,13 @@ Page({
       this._lastQuestion = null
       this.applyDiagnosis(await goalDiagnosis('start', data))
     } catch (error) {
-      if (error && error.code === 'SUBJECT_REQUIRED') this.setData({ view: 'subject' })
-      else if (error && error.code === 'GOAL_REQUIRED') this.setData({ view: 'no_goal' })
-      else this.setData({ actionError: errorText(error, '测评没有开始，请稍后重试。') })
+      const code = error && error.code
+      if (code === 'SUBJECT_REQUIRED') this.setData({ view: 'subject' })
+      else if (code === 'GOAL_REQUIRED') this.setData({ view: 'no_goal' })
+      // 测评按学生的年级出题：家长账号、没填年级的学生课程服务回 PROFILE_REQUIRED（2026-11-14 家长账号点进来一直停在骨架）
+      else if (code === 'PROFILE_REQUIRED') this.setData({ view: 'profile_required', guardianAccount: isGuardianAccount() })
+      // 自动开始（autostart）时页面还在骨架：退回开始页并显示错误，不能停在骨架上（错误提示在骨架里看不到）
+      else this.setData({ view: ['loading', 'failed'].indexOf(this.data.view) >= 0 ? 'intro' : this.data.view, actionError: errorText(error, '测评没有开始，请稍后重试。') })
     } finally {
       this.setData({ busy: false })
     }
@@ -291,6 +297,11 @@ Page({
   confirmSubject() {
     if (!this.data.pickedSubject) return
     this.start()
+  },
+
+  openProfileStep() {
+    if (this.data.guardianAccount) return wx.navigateTo({ url: '/account/login-identities/index' })
+    wx.navigateTo({ url: '/pages/profile-setup/index?edit=1' })
   },
 
   openGoal() {

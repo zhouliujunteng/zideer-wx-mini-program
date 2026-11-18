@@ -654,7 +654,11 @@ function requestAgentCourses(path, token, options = {}) {
         GOAL_DIAGNOSIS_UNAVAILABLE: '测评暂时无法打开，请稍后重试。',
         // 个人收货地址（课程服务 lib/shipping-address）
         ADDRESS_INCOMPLETE: '收货地址不完整，请在微信里补全收件人、电话和详细地址后再选。',
-        PHONE_INVALID: '收货地址里的手机号不对，请在微信里改一下再选。'
+        PHONE_INVALID: '收货地址里的手机号不对，请在微信里改一下再选。',
+        // 自助诊断会议（课程服务 lib/self-meeting，2026-11-17）
+        SELF_MEETING_DISABLED: '还没开通自己开始诊断会议，请联系老师预约。',
+        GOAL_REQUIRED: '先设置学习目标，老师才知道这次要解决什么。',
+        SUBJECT_REQUIRED: '选一下这次要聊哪门学科。'
       }
       const code = response.data && response.data.code
       const error = new Error(messages[code] || options.fallbackMessage || '课程进度暂时无法读取，请稍后重试。')
@@ -688,14 +692,14 @@ async function loadAgentCourseAcceptance(stageId) {
 async function sendAgentCourseAcceptance(stageId, message = '', options = {}) {
   assertStageId(stageId)
   const token = await getRuntimeToken()
-  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, {
-    method: 'POST', data, timeout: 60000, fallbackMessage: '验收暂时无法继续，请稍后重试。'
-  })
-}
   const data = { message: String(message || ''), practiceFirst: true }
   if (options.peerClass) data.peerClass = true
   if (options.finish) data.finish = true
   if (options.restart) data.restart = true
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, {
+    method: 'POST', data, timeout: 60000, fallbackMessage: '验收暂时无法继续，请稍后重试。'
+  })
+}
 
 /** 间隔复习小测（课程服务 lib/course/review-service.ts）：到期时出题，今天做过返回结果。出题要等模型。 */
 async function loadAgentCourseReview(stageId) {
@@ -785,22 +789,97 @@ async function retryAgentCoursePractice(stageId) {
   })
 }
 
+/**
+ * 考试挑战（课程服务 lib/course/homework/challenge-service.ts，2026-11-17）：互动练习通关后可选的一关，对标学校考试，不挡闯关。
+ * 返回 { challenge: { status: locked / open / preparing / ready / failed / done / unavailable, questions, progress, review, stars } }。
+ * 打开就排队出题；start = false 只看不排。答题返回 { correct, steps, held, answer, explanation, feedback, hint, challenge }。
+ */
+async function loadAgentCourseChallenge(stageId, options = {}) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  const query = options.start === false ? '?start=0' : ''
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/challenge${query}`, token, {
+    timeout: 20000, fallbackMessage: '考试挑战暂时无法读取，请稍后重试。'
+  })
+}
+
+async function answerAgentCourseChallenge(stageId, index, response) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/challenge`, token, {
+    method: 'POST', data: { action: 'answer', index: Number(index), response }, timeout: 20000, fallbackMessage: '没有提交上去，请再点一次。'
+  })
+}
+
+async function retryAgentCourseChallenge(stageId) {
+  assertStageId(stageId)
+  const token = await getRuntimeToken()
+  return requestAgentCourses(`/api/learn/agent-courses/${encodeURIComponent(stageId)}/challenge`, token, {
+    method: 'POST', data: { action: 'retry' }, timeout: 20000, fallbackMessage: '没有重新出题，请稍后再试。'
+  })
+}
+
+/** 挑战模式（按学习目标存）：打开后互动练习通关就直接进考试挑战。返回 { trackId, enabled }。 */
+async function saveChallengeMode(trackId, enabled) {
+  const token = await getRuntimeToken()
+  const data = { enabled: !!enabled }
+  if (Number(trackId) > 0) data.trackId = Number(trackId)
+  return requestAgentCourses('/api/learn/challenge-mode', token, {
+    method: 'POST', data, timeout: 20000, fallbackMessage: '挑战模式没有改成功，请稍后再试。'
+  })
+}
+
 /** 学习页闯关路径（课程服务 /api/learn/quest-path）：{ path: { goal, stages, current, stats } }。
  * honors=2：随路径回来的荣誉要第二版（2026-11-13：统一的奖杯和勋章，不跟课程内容走）。
  * onboarding=2：这一版认识入门第二关「围绕目标测评」（2026-11-13）；不带的旧版小程序拿到的第二关还是「设置学习偏好」。 */
 async function loadQuestPath() {
   const token = await getRuntimeToken()
-  const data = await requestAgentCourses('/api/learn/quest-path?onboarding=2&honors=2', token, { timeout: 20000, fallbackMessage: '学习路径暂时无法读取，请稍后重试。' })
+  // challenge=1：这一版认识考试挑战（2026-11-17），回包多带每节课的挑战状态和这个目标的挑战模式
+  const data = await requestAgentCourses('/api/learn/quest-path?onboarding=2&honors=2&challenge=1', token, { timeout: 20000, fallbackMessage: '学习路径暂时无法读取，请稍后重试。' })
   const path = data && data.path
+  if (path && typeof path === 'object') path.challenge = data.challenge && typeof data.challenge === 'object' ? data.challenge : null
   // 荣誉（2026-11-11 晚）随路径一起回来；旧版课程服务没有
   if (path && typeof path === 'object' && data.honors) path.honors = data.honors
+  // 管理端开通了自助诊断会议（2026-11-17）：学习页目标面板里多一个「开始诊断会议」
+  if (path && typeof path === 'object') path.selfMeeting = data.selfMeeting === true
   return path
+}
+
+/**
+ * 自助诊断会议（课程服务 /api/learn/self-meeting，2026-11-17）：管理端给孩子开通后，孩子不用约时间，
+ * 按当前学习目标匹配学科、直接进诊断室。loadSelfMeeting：{ enabled, open, subject, subjects }；
+ * startSelfMeeting(subject?)：{ inviteToken, subject, teacherName, resumed }，认不出学科报 SUBJECT_REQUIRED。
+ */
+async function loadSelfMeeting() {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/self-meeting', token, { timeout: 30000, fallbackMessage: '诊断会议暂时打不开，请稍后重试。' })
+}
+
+async function startSelfMeeting(subject = '') {
+  const token = await getRuntimeToken()
+  return requestAgentCourses('/api/learn/self-meeting', token, {
+    method: 'POST',
+    // 认学科可能要问模型，留够时间
+    timeout: 40000,
+    data: subject ? { operation: 'start', subject: String(subject) } : { operation: 'start' },
+    fallbackMessage: '诊断会议暂时打不开，请稍后重试。'
+  })
 }
 
 /**
  * 我的荣誉（课程服务 /api/learn/honors?honors=2，2026-11-13 第二版）：{ version: 2, summary, cups, medals }。
  * 学习页的闯关路径回包里也带一份（loadQuestPath 返回的 path.honors），用来显示顶栏数字和「新获得」。
  */
+/**
+ * 学习天梯榜（课程服务 /api/learn/ladder，2026-11-17）：今天全站的实时榜、我的名次、昨天结算的前三和我拿到的金币。
+ * 规则在课程服务 lib/course/ladder.ts，页面模型 utils/ladder-view.js。
+ */
+async function loadLadder() {
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses('/api/learn/ladder', token, { timeout: 20000, fallbackMessage: '天梯榜暂时读不到，请稍后重试。' })
+  return data && data.ladder
+}
+
 async function loadHonors() {
   const token = await getRuntimeToken()
   const data = await requestAgentCourses('/api/learn/honors?honors=2', token, { timeout: 20000, fallbackMessage: '荣誉暂时读不到，请稍后重试。' })
@@ -829,6 +908,17 @@ async function loadGuardianHomework(studentProfileId) {
     timeout: 20000, fallbackMessage: '课后作业暂时无法读取，请稍后重试。'
   })
   return Array.isArray(data && data.homework) ? data.homework : []
+}
+
+/** 家长学生看板「定制课程」：一个绑定孩子的定制课程进度（按目标分开，课程服务按家长绑定校验）。 */
+async function loadGuardianCourses(studentProfileId) {
+  const id = String(studentProfileId || '')
+  if (!/^[1-9][0-9]*$/.test(id)) throw new Error('孩子信息不完整，请刷新后重试。')
+  const token = await getRuntimeToken()
+  const data = await requestAgentCourses(`/api/learn/guardian-courses?studentProfileId=${id}`, token, {
+    timeout: 20000, fallbackMessage: '定制课程暂时无法读取，请稍后重试。'
+  })
+  return Array.isArray(data && data.goals) ? data.goals : []
 }
 
 /**
@@ -870,16 +960,6 @@ async function reviewAgentCourseAcceptance(stageId, result, summary = '') {
   const token = await getRuntimeToken()
   return requestAgentCourses(`/api/teacher/agent-courses/${encodeURIComponent(stageId)}/acceptance`, token, {
     method: 'POST', data: { result, summary: String(summary || '') }, timeout: 30000, fallbackMessage: '核验没有提交成功，请稍后重试。'
-/**
- * 学习天梯榜（课程服务 /api/learn/ladder，2026-11-17）：今天全站的实时榜、我的名次、昨天结算的前三和我拿到的金币。
- * 规则在课程服务 lib/course/ladder.ts，页面模型 utils/ladder-view.js。
- */
-async function loadLadder() {
-  const token = await getRuntimeToken()
-  const data = await requestAgentCourses('/api/learn/ladder', token, { timeout: 20000, fallbackMessage: '天梯榜暂时读不到，请稍后重试。' })
-  return data && data.ladder
-}
-
   })
 }
 
@@ -2130,6 +2210,47 @@ async function saveCurrentLearningProfile(form) {
     throw new Error('保存结果未确认，请重新进入个人资料查看后再试。')
   }
   return buildCurrentUser(null, saved)
+}
+
+// 知鹿默认头像（2026-11-14 用户要求，移植学生网页端）：图在课程服务 public/portal-avatars/<id>.png（256×256 PNG），
+// 网页端、平板、小程序同一套。顺序、名字与课程服务 lib/portal/avatar.ts 的 AVATAR_PRESETS 保持一致，那边增删要同步这里。
+const AVATAR_PRESETS = [
+  { id: 'deer', label: '小鹿' }, { id: 'fox', label: '狐狸' }, { id: 'panda', label: '熊猫' }, { id: 'cat', label: '小猫' },
+  { id: 'rabbit', label: '兔子' }, { id: 'bear', label: '小熊' }, { id: 'owl', label: '猫头鹰' }, { id: 'penguin', label: '企鹅' },
+  { id: 'tiger', label: '老虎' }, { id: 'dolphin', label: '海豚' }, { id: 'dino', label: '恐龙' }, { id: 'astronaut', label: '宇航员' }
+]
+
+function avatarPresets() {
+  const origin = coursePortalOrigin()
+  return AVATAR_PRESETS.map((item) => ({ ...item, url: `${origin}/portal-avatars/${item.id}.png` }))
+}
+
+/**
+ * 把一个默认头像下到本地，返回本地路径；之后和微信头像一样走 saveCurrentLearningProfile({ avatarPath }) 上传、写 avatar_id。
+ * course.zideer.cn 只在 request 合法域名里、不在 downloadFile 里：用 request 取二进制再写文件（同家长报告 PDF）。
+ */
+async function downloadAvatarPreset(presetId) {
+  const preset = AVATAR_PRESETS.find((item) => item.id === presetId)
+  if (!preset) throw new Error('请重新选择头像。')
+  const data = await new Promise((resolve, reject) => wx.request({
+    url: `${coursePortalOrigin()}/portal-avatars/${preset.id}.png`,
+    method: 'GET',
+    timeout: 20000,
+    responseType: 'arraybuffer',
+    success(response) {
+      if (response.statusCode === 200 && response.data && response.data.byteLength > 64) return resolve(response.data)
+      reject(new Error('头像暂时下载不了，请稍后重试。'))
+    },
+    fail(error) { reject(courseConnectionError(error)) }
+  }))
+  const filePath = `${wx.env.USER_DATA_PATH}/avatar-preset-${preset.id}.png`
+  await new Promise((resolve, reject) => wx.getFileSystemManager().writeFile({
+    filePath,
+    data,
+    success: resolve,
+    fail: () => reject(new Error('头像没有保存到手机，请检查存储空间后重试。'))
+  }))
+  return filePath
 }
 
 async function uploadProfileAvatar(filePath, expectedToken) {
@@ -4842,11 +4963,18 @@ async function requestK12Assessment(payload) {
 }
 
 module.exports = {
+  loadSelfMeeting,
+  startSelfMeeting,
   loadAgentCoursePractice,
   answerAgentCoursePractice,
   retryAgentCoursePractice,
+  loadAgentCourseChallenge,
+  answerAgentCourseChallenge,
+  retryAgentCourseChallenge,
+  saveChallengeMode,
   loadQuestPath,
   loadHonors,
+  loadLadder,
   openQuestChest,
   getStoredToken,
   hasSession,
@@ -4880,6 +5008,9 @@ module.exports = {
   submitAgentCourseHomework,
   retryAgentCourseHomework,
   loadGuardianHomework,
+  loadGuardianCourses,
+  avatarPresets,
+  downloadAvatarPreset,
   checkAgentCourseReviewAnswer,
   submitAgentCourseReview,
   finishAgentCourseForTest,
@@ -4974,7 +5105,6 @@ module.exports = {
   confirmCurrentCourseGeneration,
   loadCurrentRemediationTasks,
   loadCurrentLiveSchedule,
-  loadLadder,
   loadCurrentTopicCandidates,
   addCurrentTopicCandidate,
   removeCurrentTopicCandidate,

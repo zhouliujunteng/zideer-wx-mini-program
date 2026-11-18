@@ -94,6 +94,11 @@
               <view id="{{item.id === quest.currentId ? 'quest-current-node' : ''}}" class="quest-node is-{{item.state}} kind-{{item.kind}} {{item.id === quest.currentId ? 'is-here' : ''}} {{item.id === questFx.doneId ? 'fx-done' : ''}} {{item.id === questFx.unlockId ? 'fx-unlock' : ''}}" data-id="{{item.id}}" catchtap="openQuestNode" role="button" aria-label="{{item.label}}，{{item.detail}}">
                 <image class="quest-glyph" src="{{UA.src(ui, item.glyph)}}" mode="aspectFit"></image>
                 <text wx:if="{{item.badge}}" class="quest-badge-no">{{item.badge}}</text>
+                <!-- 考试挑战（2026-11-17）：推荐时挂「推荐」，做完在下面画星 -->
+                <text wx:if="{{item.kind === 'challenge' && item.recommended}}" class="quest-challenge-tag">推荐</text>
+                <view wx:if="{{item.kind === 'challenge' && item.state === 'done'}}" class="quest-challenge-stars" aria-hidden="true">
+                  <view wx:for="{{item.stars}}" wx:for-item="on" wx:key="index" class="quest-challenge-star {{on ? 'is-on' : ''}}"></view>
+                </view>
               </view>
               <!-- 点关卡弹出的说明卡（多邻国式），箭头对着关卡，卡片本身回到中线 -->
               <view wx:if="{{questPopover && questPopover.id === item.id}}" class="quest-pop {{questPopover.action ? '' : 'is-muted'}}" catchtap="noop">
@@ -152,8 +157,9 @@
   <text wx:else class="chest-copy chest-opening">正在打开…</text>
 </view>
 <!-- 学习目标下拉面板（多邻国切换课程）：点目标切过去，最下面新增目标 -->
-<view wx:if="{{goalSheet && goalTracks}}" class="goal-sheet-mask" style="top: {{contentTop}}px;" bindtap="closeGoalSheet" catchtouchmove="noop">
-  <view class="goal-sheet" catchtap="noop">
+<!-- 遮罩和面板分开放（2026-11-18）：面板放在 catchtouchmove 的遮罩里滑不动，目标多了下面几项看不到；面板自己滚动，最高到底栏上面留一截遮罩 -->
+<view wx:if="{{goalSheet && goalTracks}}" class="goal-sheet-mask" style="top: {{contentTop}}px;" bindtap="closeGoalSheet" catchtouchmove="noop"></view>
+<scroll-view wx:if="{{goalSheet && goalTracks}}" class="goal-sheet" style="top: {{contentTop}}px; --sheet-top: {{contentTop}}px;" scroll-y enhanced bounces="{{false}}" show-scrollbar="{{false}}">
     <text class="goal-sheet-title">我的学习目标</text>
     <text class="goal-sheet-copy">每个目标有自己的一条闯关路径，切过去接着学。</text>
     <view wx:for="{{goalTracks.items}}" wx:key="trackId" class="goal-sheet-row tone-{{item.tone}} {{item.active ? 'is-active' : ''}}" data-id="{{item.trackId}}" bindtap="pickGoal" role="button" aria-label="{{item.title}}，{{item.meta}}{{item.active ? '，正在学' : ''}}">
@@ -169,6 +175,24 @@
       <view class="goal-sheet-plus" aria-hidden="true"></view>
       <text class="goal-sheet-add-text">{{goalTracks.canAdd ? goalTracks.addLabel : '最多 8 个学习目标'}}</text>
     </view>
+    <!-- 自助诊断会议（2026-11-17）：管理端开通了的孩子，不用约时间，按当前目标直接开始 -->
+    <view wx:if="{{selfMeeting}}" class="goal-sheet-pref goal-sheet-meeting" bindtap="startSelfMeetingFromSheet" role="button" aria-label="开始诊断会议，不用约时间">
+      <image class="goal-sheet-pref-icon" src="{{UA.src(ui, '/assets/quest/mic.svg')}}" mode="aspectFit"></image>
+      <view class="goal-sheet-text">
+        <text class="goal-sheet-pref-name">开始诊断会议</text>
+        <text class="goal-sheet-meta">不用约时间，按当前目标直接和老师聊</text>
+      </view>
+      <view class="goal-sheet-pref-arrow" aria-hidden="true"></view>
+    </view>
+    <!-- 挑战模式（2026-11-17）：按当前目标存，打开后互动练习通关就直接进考试挑战 -->
+    <view wx:if="{{challengeMode}}" class="goal-sheet-pref goal-sheet-challenge" catchtap="toggleChallengeMode" role="switch" aria-checked="{{challengeMode.enabled}}" aria-label="挑战模式，{{challengeMode.enabled ? '已打开' : '已关闭'}}">
+      <image class="goal-sheet-pref-icon" src="{{UA.src(ui, '/assets/quest/bolt.svg')}}" mode="aspectFit"></image>
+      <view class="goal-sheet-text">
+        <text class="goal-sheet-pref-name">挑战模式</text>
+        <text class="goal-sheet-meta">这个目标的练习做完，直接挑战学校考试难度</text>
+      </view>
+      <switch class="goal-sheet-switch" checked="{{challengeMode.enabled}}" color="#3B5BDB" catchtap="noop" bindchange="toggleChallengeMode" />
+    </view>
     <!-- 学习偏好（2026-11-13）：不再是每个目标的一关，所有目标通用、设一次就行，入口单独放在这里 -->
     <view class="goal-sheet-pref" bindtap="openLearningPreference" role="button" aria-label="我的学习偏好，所有目标通用">
       <image class="goal-sheet-pref-icon" src="{{UA.src(ui, '/assets/quest/heart.svg')}}" mode="aspectFit"></image>
@@ -178,8 +202,7 @@
       </view>
       <view class="goal-sheet-pref-arrow" aria-hidden="true"></view>
     </view>
-  </view>
-</view>
+</scroll-view>
 <!-- 新获得荣誉的庆祝（本机还没看过的，最显眼的一样 + 还有几样） -->
 <view wx:if="{{honorCele}}" class="honor-cele" catchtouchmove="noop">
   <view class="honor-cele-stage">

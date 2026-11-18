@@ -1,8 +1,9 @@
 const { getLiveLearningModel, getLearningSkeletonModel } = require('../../services/live-tab-service')
 const { takeAgentCourseFocus } = require('../../utils/agent-course-focus')
-const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest, switchLearningGoal } = require('../../services/identity')
+const { loadCurrentServiceContacts, hasSession, loadQuestPath, openQuestChest, switchLearningGoal, saveChallengeMode } = require('../../services/identity')
 // 我的荣誉（2026-11-11 晚）：顶栏总数 + 新获得的庆祝弹层（本机记住看过哪些，utils/honors-view.js）
 const { normalizeHonors, honorKeys, freshHonors, markSeen, readSeen } = require('../../utils/honors-view')
+const { openSelfMeeting } = require('../../utils/self-meeting-entry')
 const { normalizeQuestPath, questPathView, nodeTarget, nodePopover, findNode, questTransition, goalTracksView } = require('../../utils/quest-path-view')
 // 上次看到的当前关（回到学习页时做过关动效用，多邻国式）
 const QUEST_CURRENT_KEY = 'zhilu_quest_current'
@@ -88,12 +89,15 @@ Page({
     myCourseTab: 'custom',
     // 闯关路径（utils/quest-path-view.js）：第一次读到前画骨架，读不到给重试；之后静默刷新保留旧路径
     quest: null,
+    selfMeeting: false,
     questLoaded: false,
     questFailed: false,
     // 点关卡弹出的说明卡、过关动效（刚过的关 / 新解锁的关）、开宝箱浮层、当前关滚出屏幕时的「回到当前关」
     questPopover: null,
     // 学习目标（2026-11-13）：左上角入口与下拉面板；null = 旧版课程服务，不显示入口
     goalTracks: null,
+    // 挑战模式开关（目标面板里）：{ enabled, trackId }；课程服务不认识考试挑战时为 null
+    challengeMode: null,
     goalSheet: false,
     goalSwitching: 0,
     questFx: { doneId: '', unlockId: '' },
@@ -231,7 +235,9 @@ Page({
       try { wx.setStorageSync(currentKey, quest.currentId || '') } catch (error) { /* 只影响动效 */ }
       const keep = !switched && this.data.activePart && quest.parts.find((part) => part.id === this.data.activePart.id)
       const activePart = partBanner(keep || quest.parts.find((part) => part.id === quest.currentPartId) || quest.parts[0])
-      this.setData({ quest, questLoaded: true, questFailed: false, questPopover: null, activePart, goalTracks: goalTracksView(path.tracks) }, () => {
+      // 挑战模式（2026-11-17，按目标存）：课程服务认识考试挑战时才有（path.challenge 不为 null），否则不显示开关
+      const challengeMode = path.challenge ? { enabled: path.challenge.mode, trackId: path.trackId } : null
+      this.setData({ quest, questLoaded: true, questFailed: false, questPopover: null, activePart, goalTracks: goalTracksView(path.tracks), selfMeeting: !!(raw && raw.selfMeeting), challengeMode }, () => {
         this.watchQuestCurrent()
         if (switched) this.jumpToQuestCurrent()
       })
@@ -276,14 +282,14 @@ Page({
     wx.navigateTo({ url: '/learning/honors/index' })
   },
 
+  openLadder() {
+    wx.navigateTo({ url: '/learning/ladder/index' })
+  },
+
   // 学习目标下拉面板（2026-11-13，照多邻国切换课程）
   toggleGoalSheet() {
     if (!this.data.goalTracks) return
     this.setData({ goalSheet: !this.data.goalSheet, questPopover: null })
-  },
-
-  openLadder() {
-    wx.navigateTo({ url: '/learning/ladder/index' })
   },
 
   closeGoalSheet() {
@@ -317,6 +323,24 @@ Page({
     }
     this.setData({ goalSheet: false })
     wx.navigateTo({ url: '/learning/learning-goal/index?mode=new' })
+  },
+
+  // 挑战模式（2026-11-17）：打开后这个目标的互动练习通关就直接进考试挑战（学校考试难度），不再问
+  async toggleChallengeMode() {
+    const mode = this.data.challengeMode
+    if (!mode || this._savingChallengeMode) return
+    this._savingChallengeMode = true
+    const enabled = !mode.enabled
+    this.setData({ 'challengeMode.enabled': enabled })
+    try {
+      await saveChallengeMode(mode.trackId, enabled)
+      wx.showToast({ title: enabled ? '挑战模式已打开' : '挑战模式已关闭', icon: 'none' })
+    } catch (error) {
+      this.setData({ 'challengeMode.enabled': !enabled })
+      wx.showToast({ title: error && error.message || '挑战模式没有改成功，请稍后再试。', icon: 'none' })
+    } finally {
+      this._savingChallengeMode = false
+    }
   },
 
   // 学习偏好：所有目标通用的单独入口（目标面板最下面）
@@ -426,7 +450,17 @@ Page({
       this.openEnterpriseService()
       return
     }
+    if (target.selfMeeting) {
+      openSelfMeeting(this)
+      return
+    }
     wx.navigateTo({ url: target.url })
+  },
+
+  // 自助诊断会议（2026-11-17）：开通了的孩子在目标面板里随时能再开一场（第三关做完以后也行）
+  startSelfMeetingFromSheet() {
+    this.setData({ goalSheet: false })
+    openSelfMeeting(this)
   },
 
   // 开宝箱：先播箱子落下、抖动（phase shake），接口回来后盖子飞开、光芒旋转、奖励弹出（phase open）。

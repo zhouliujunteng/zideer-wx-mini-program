@@ -63,6 +63,13 @@
         <view class="pr-clear-stat stat-first"><text class="pr-clear-value">{{celebrate ? statShown.first : summary.first}}</text><text class="pr-clear-label">一次答对</text></view>
       </view>
       <text class="pr-clear-comment">{{summary.comment}}</text>
+      <!-- 考试挑战邀请（2026-11-17）：不做也不影响往下学 -->
+      <view wx:if="{{invite}}" class="pr-invite">
+        <text class="pr-invite-title">{{invite.title}}</text>
+        <text class="pr-invite-copy">{{invite.copy}}</text>
+        <view wx:if="{{!invite.auto}}" class="pr-invite-go" bindtap="openChallenge" role="button">挑战一下</view>
+        <text wx:else class="pr-invite-auto">马上进入……</text>
+      </view>
       <view wx:if="{{summary.review.length}}" class="pr-review-toggle" bindtap="toggleReview" role="button">{{showReview ? '收起题目' : '看看每道题'}}</view>
       <view wx:if="{{showReview}}" class="pr-review">
         <view wx:for="{{summary.review}}" wx:key="number" class="pr-review-item">

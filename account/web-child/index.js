@@ -2,7 +2,7 @@ const { loadWebChildren, createWebChild, setWebChildPassword } = require('../../
 
 // 家长「我的孩子没有微信」（2026-10-09 用户需求）：孩子没有手机 / 微信时，家长给孩子建网页端账号，孩子在电脑或平板上学。
 // 登录名是孩子的 6 位编号，密码家长设；一个家长最多 5 个孩子。服务商（2026-10-11）不受 5 个限制，按后台设的上限，
-// 绑定码绑的孩子和这里建的合计（provider.used），所以服务商看名额用 provider，不用 children.length。同一个孩子一年内最多在 3 台设备上登录，
+// 绑定码绑的孩子和这里建的合计（provider.used），所以服务商看名额用 provider，不用 children.length。同一个孩子一年内最多在 5 台设备上登录，
 // 超出会被锁住，只有客服（管理端）能解除。后端：课程服务 lib/portal/child-accounts.ts + Zion「家长管理无微信孩子」。
 const WEB_URL = 'study.zideer.cn'
 const gradeOptions = Array.from({ length: 12 }, (_, i) => i + 1)
@@ -30,7 +30,7 @@ function childView(child) {
     ...child,
     gradeText: grade >= 1 && grade <= 12 ? `${gradeLabels[grade - 1]}${child.semester || ''}` : '',
     statusText: child.locked ? '已锁定' : child.ready ? '可以登录' : '未创建完成',
-    deviceText: `${child.deviceCount || 0}/${child.deviceLimit || 3} 台设备`
+    deviceText: `${child.deviceCount || 0}/${child.deviceLimit || 5} 台设备`
   }
 }
 

@@ -1,4 +1,4 @@
-const { loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired } = require('../../services/identity')
+const { loadCurrentUser, saveCurrentLearningProfile, isAuthenticationRequired, downloadAvatarPreset } = require('../../services/identity')
 const { postProfileUrl } = require('../../utils/referral-context')
 const { todayDate, validBirthday, normalizeSemester, ageDisplay, gradeForBirthday } = require('../../utils/profile-form')
 const { accountTypeLabels, basicInfoComplete } = require('../../utils/account-switch')
@@ -95,6 +95,8 @@ function currentSemesterIndex() {
 
 Page({
   data: {
+    avatarPickerVisible: false,
+    avatarBusy: false,
     steps,
     activeSteps: activeStepsFor(7),
     textbookCards,
@@ -383,10 +385,34 @@ Page({
     this.setData({ [`form.${key}`]: event.detail.value, [`errors.${errorKey}`]: '' })
   },
 
+  // 换头像弹层（components/avatar-picker，2026-11-14）：知鹿默认头像或微信头像，选好后随档案一起保存
+  openAvatarPicker() {
+    if (this.data.saving || this.data.loading || this.data.loadFailed) return
+    this.setData({ avatarPickerVisible: true })
+  },
+
+  closeAvatarPicker() {
+    this.setData({ avatarPickerVisible: false })
+  },
+
+  async choosePresetAvatar(event) {
+    const id = event.detail && event.detail.id
+    if (!id || this.data.saving) return
+    this.setData({ avatarBusy: true })
+    try {
+      const path = await downloadAvatarPreset(id)
+      this.setData({ 'form.avatarPath': path, avatarBusy: false, avatarPickerVisible: false })
+    } catch (error) {
+      this.setData({ avatarBusy: false })
+      wx.showToast({ title: error.message || '头像暂时下载不了，请稍后重试', icon: 'none' })
+    }
+  },
+
   chooseAvatar(event) {
     if (this.data.saving || this.data.loading || this.data.loadFailed) return
     const path = event.detail && event.detail.avatarUrl
     if (path) this.setData({ 'form.avatarPath': path })
+    this.setData({ avatarPickerVisible: false })
   },
 
   chooseBirthday(event) {

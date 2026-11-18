@@ -1261,7 +1261,7 @@ page {
 .lp-goal-flag::before { position: absolute; top: 2rpx; bottom: 0; left: 4rpx; width: 4rpx; border-radius: 2rpx; background: var(--tone-deep); content: ''; }
 .lp-goal-flag::after { position: absolute; top: 2rpx; left: 8rpx; width: 24rpx; height: 18rpx; border-radius: 2rpx 6rpx 6rpx 2rpx; background: var(--tone); clip-path: polygon(0 0, 100% 0, 78% 50%, 100% 100%, 0 100%); content: ''; }
 .goal-sheet-mask { position: fixed; right: 0; bottom: 0; left: 0; z-index: 40; background: rgba(36, 51, 45, .36); animation: goal-sheet-fade .18s ease both; }
-.goal-sheet { padding: 28rpx 32rpx 36rpx; border-radius: 0 0 36rpx 36rpx; background: #FFFFFF; box-shadow: 0 12rpx 32rpx rgba(36, 51, 45, .12); animation: goal-sheet-drop .22s cubic-bezier(.2, .9, .3, 1) both; }
+.goal-sheet { position: fixed; right: 0; left: 0; z-index: 41; box-sizing: border-box; max-height: calc(100vh - var(--sheet-top, 0px) - 49px - env(safe-area-inset-bottom) - 48rpx); padding: 28rpx 32rpx 36rpx; border-radius: 0 0 36rpx 36rpx; background: #FFFFFF; box-shadow: 0 12rpx 32rpx rgba(36, 51, 45, .12); animation: goal-sheet-drop .22s cubic-bezier(.2, .9, .3, 1) both; }
 .goal-sheet-title { display: block; color: #24332D; font-size: 32rpx; font-weight: 900; }
 .goal-sheet-copy { display: block; margin: 8rpx 0 20rpx; color: #8A948D; font-size: 24rpx; }
 .goal-sheet-row { display: flex; align-items: center; gap: 20rpx; margin-top: 16rpx; padding: 22rpx 24rpx; border: 3rpx solid #ECE9E4; border-radius: 28rpx; box-shadow: 0 6rpx 0 #ECE9E4; transition: transform 80ms ease-out; }
@@ -1287,8 +1287,24 @@ page {
 .goal-sheet-pref-icon { flex: none; width: 60rpx; height: 60rpx; padding: 10rpx; box-sizing: border-box; border-radius: 50%; background: #F2607A; }
 .goal-sheet-pref-name { color: #24332D; font-size: 30rpx; font-weight: 800; }
 .goal-sheet-pref-arrow { flex: none; width: 14rpx; height: 14rpx; border-top: 5rpx solid #E9A3AF; border-right: 5rpx solid #E9A3AF; transform: rotate(45deg); }
+/* 自助诊断会议入口（2026-11-17）：同一个样子，换成橙色 */
+.goal-sheet-meeting { border-color: #FFD9B3; background: #FFF6EC; box-shadow: 0 6rpx 0 #FFD9B3; }
+.goal-sheet-meeting:active { box-shadow: 0 2rpx 0 #FFD9B3; }
+.goal-sheet-meeting .goal-sheet-pref-icon { background: #FF8A1F; }
+.goal-sheet-meeting .goal-sheet-pref-arrow { border-color: #F2B27A; }
 @keyframes goal-sheet-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes goal-sheet-drop { from { opacity: 0; transform: translateY(-24rpx); } to { opacity: 1; transform: translateY(0); } }
 @keyframes goal-sheet-spin { to { transform: rotate(360deg); } }
+
+/* 考试挑战（2026-11-17）：互动练习之后可选的一关，深蓝（和挑战页一致），不当当前关；推荐时右上角挂个小标签 */
+.quest-node.kind-challenge.is-open, .quest-node.kind-challenge.is-done { background: #3B5BDB; box-shadow: 0 10rpx 0 #2C47B8; }
+.quest-node.kind-challenge.is-open:active, .quest-node.kind-challenge.is-done:active { box-shadow: 0 4rpx 0 #2C47B8; }
+.quest-challenge-tag { position: absolute; top: -18rpx; left: 50%; z-index: 3; padding: 4rpx 14rpx; border-radius: 999rpx; background: #3B5BDB; color: #FFFFFF; font-size: 20rpx; font-weight: 800; white-space: nowrap; transform: translateX(-50%); }
+.quest-challenge-stars { position: absolute; bottom: -34rpx; left: 50%; z-index: 3; display: flex; gap: 4rpx; transform: translateX(-50%); }
+.quest-challenge-star { width: 24rpx; height: 24rpx; background: #E2DED8; clip-path: polygon(50% 4%, 61% 37%, 96% 37%, 68% 58%, 78% 92%, 50% 72%, 22% 92%, 32% 58%, 4% 37%, 39% 37%); }
+.quest-challenge-star.is-on { background: #FFC233; }
+.goal-sheet-challenge { border-color: #C9D3FF; background: #F5F7FF; box-shadow: 0 6rpx 0 #C9D3FF; }
+.goal-sheet-challenge .goal-sheet-pref-icon { background: #3B5BDB; }
+.goal-sheet-switch { flex: none; transform: scale(.85); }
 
 @import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

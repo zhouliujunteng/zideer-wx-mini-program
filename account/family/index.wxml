@@ -44,7 +44,7 @@
               </view>
             </view>
             <view wx:elif="{{students.length}}">
-              <view class="family-member" wx:for="{{students}}" wx:key="id" bindtap="openGuardianDashboard" aria-role="button">
+              <view class="family-member" wx:for="{{students}}" wx:key="id" data-student-id="{{item.student.id}}" bindtap="openGuardianDashboard" aria-role="button">
                 <view class="family-avatar"><image class="family-avatar-photo" src="{{UA.avatar(ui, item.avatarUrl)}}" mode="aspectFill"></image></view>
                 <view class="family-member-copy">
                   <text class="family-member-name">{{item.name}}</text>

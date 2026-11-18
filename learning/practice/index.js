@@ -13,6 +13,7 @@ const {
   comboText
 } = require('../../utils/practice-view')
 const { rpxToPx } = require('../../utils/screen')
+const { challengeInvite } = require('../../utils/challenge-view')
 
 // 互动练习（2026-11-11 用户规则「闯关学习」第二关，取代课后作业）：看完课后按本课知识点出 5～8 道题，
 // 一屏一道（选择、判断、填空、排序、配对），答完马上告诉对错和解析；答错的放到后面再做一遍，全部做对才通关。
@@ -40,6 +41,8 @@ Page({
     shake: false,
     celebrate: false,
     statShown: { total: 0, first: 0 },
+    // 刚通关时的考试挑战邀请（2026-11-17）：一次答对率高时推荐；开了挑战模式就直接进
+    invite: null,
     statusBarHeight: 20,
     navigationBarHeight: 44,
     contentTop: 80
@@ -73,7 +76,7 @@ Page({
   },
 
   stopEffects() {
-    for (const key of ['_comboTimer', '_shakeTimer', '_statTimer']) {
+    for (const key of ['_comboTimer', '_shakeTimer', '_statTimer', '_inviteTimer']) {
       if (this[key]) clearTimeout(this[key])
       this[key] = null
     }
@@ -195,6 +198,7 @@ Page({
       const question = practice.questions[screen.index]
       const result = await answerAgentCoursePractice(this.stageId, screen.index, responseOf(question, answer))
       this._next = normalizePractice(result && result.practice)
+      this._invite = challengeInvite(result && result.challenge)
       if (wx.vibrateShort) wx.vibrateShort({ type: result && result.correct ? 'light' : 'heavy' })
       const streak = this._next.progress ? this._next.progress.streak : 0
       const combo = result && result.correct ? comboText(streak) : ''
@@ -227,9 +231,17 @@ Page({
     this._next = null
     if (!practice) return this.refresh()
     const justCleared = practice.status === 'done' && this.data.practice && this.data.practice.status === 'ready'
-    this.setData({ feedback: null, screen: null })
+    const invite = justCleared ? this._invite : null
+    this._invite = null
+    this.setData({ feedback: null, screen: null, invite })
     this.apply(practice)
     if (justCleared) this.celebrate()
+    // 开了挑战模式：彩带放完直接进考试挑战，不再问
+    if (invite && invite.auto) this._inviteTimer = setTimeout(() => { this._inviteTimer = null; this.openChallenge() }, 2200)
+  },
+
+  openChallenge() {
+    wx.redirectTo({ url: `/learning/challenge/index?stageId=${encodeURIComponent(this.stageId)}` })
   },
 
   // 刚通关：彩带飘落，「几道小题」「一次答对」两个数字依次从 0 滚上去

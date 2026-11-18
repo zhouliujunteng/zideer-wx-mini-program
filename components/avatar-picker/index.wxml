@@ -1,0 +1,18 @@
+<view wx:if="{{visible}}" class="ap-layer" bindtap="close" catchtouchmove="stopTap">
+  <view class="ap-sheet" catchtap="stopTap">
+    <view class="ap-head">
+      <text class="ap-title">换个头像</text>
+      <view class="ap-close" bindtap="close" aria-role="button" aria-label="关闭"></view>
+    </view>
+    <text class="ap-subtitle">选一个知鹿默认头像</text>
+    <view wx:if="{{presets.length}}" class="ap-grid">
+      <view wx:for="{{presets}}" wx:key="id" class="ap-item {{picked === item.id ? 'is-picked' : ''}} {{busy ? 'is-busy' : ''}}" data-id="{{item.id}}" bindtap="pickPreset" aria-role="button" aria-label="{{item.label}}">
+        <view class="ap-photo"><image class="ap-image" src="{{item.url}}" mode="aspectFill" lazy-load></image></view>
+        <text class="ap-label">{{item.label}}</text>
+      </view>
+    </view>
+    <text wx:else class="ap-empty">默认头像暂时没有读到，可以先用微信头像</text>
+    <button class="ap-wechat" open-type="chooseAvatar" bindchooseavatar="chooseWechat" disabled="{{busy}}">用微信头像 / 从相册选择</button>
+    <view class="ap-safe"></view>
+  </view>
+</view>

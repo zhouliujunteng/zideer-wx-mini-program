@@ -30,6 +30,7 @@ function setup(contactResult, { session = true } = {}) {
       if (name.endsWith('/utils/my-course-groups')) return require('../utils/my-course-groups')
       if (name.endsWith('/services/achievement-cards')) return { loadAchievementCards: async () => ({ series: [] }), stripCards: () => [] }
       if (name.endsWith('/utils/honors-view')) return require('../utils/honors-view')
+      if (name.endsWith('/utils/self-meeting-entry')) return { openSelfMeeting: async () => 'opened' }
       if (name.endsWith('/payment-switch')) return { attachPaymentSwitch() {}, openPaymentPage() {} }
       throw Error(`Unexpected import ${name}`)
     }

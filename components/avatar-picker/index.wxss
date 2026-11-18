@@ -1,0 +1,24 @@
+/* 换头像弹层（2026-11-14）：底部白色大圆角面板，4 列默认头像，主题橙表示选中 */
+.ap-layer { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 900; background: rgba(20, 28, 24, .42); }
+.ap-sheet { position: absolute; right: 0; bottom: 0; left: 0; padding: 30rpx 36rpx 0; border-radius: 40rpx 40rpx 0 0; background: #fff; animation: ap-in .24s cubic-bezier(.2, .75, .25, 1) both; }
+.ap-head { display: flex; align-items: center; justify-content: space-between; }
+.ap-title { color: #24332D; font-size: 34rpx; font-weight: 700; line-height: 1.3; }
+.ap-close { position: relative; width: 56rpx; height: 56rpx; border-radius: 50%; background: #F1F3F1; }
+.ap-close::before, .ap-close::after { position: absolute; top: 50%; left: 50%; width: 24rpx; height: 3rpx; border-radius: 3rpx; background: #7E8A82; content: ''; transform: translate(-50%, -50%) rotate(45deg); }
+.ap-close::after { transform: translate(-50%, -50%) rotate(-45deg); }
+.ap-subtitle { display: block; margin-top: 8rpx; color: #8F9A93; font-size: 23rpx; line-height: 1.4; }
+.ap-grid { display: flex; flex-wrap: wrap; margin: 24rpx -10rpx 0; }
+.ap-item { display: flex; width: 25%; flex-direction: column; align-items: center; padding: 10rpx; box-sizing: border-box; }
+.ap-item.is-busy { opacity: .55; }
+.ap-photo { width: 128rpx; height: 128rpx; overflow: hidden; box-sizing: border-box; border: 4rpx solid transparent; border-radius: 50%; background: #F4F5F3; }
+.ap-item.is-picked .ap-photo { border-color: #FD7C02; }
+.ap-image { width: 100%; height: 100%; border-radius: 50%; }
+.ap-label { margin-top: 8rpx; color: #5E6A63; font-size: 21rpx; line-height: 1.3; }
+.ap-item.is-picked .ap-label { color: #FD7C02; font-weight: 600; }
+.ap-empty { display: block; padding: 48rpx 0; color: #9AA39C; font-size: 24rpx; text-align: center; }
+.ap-wechat { margin: 24rpx 0 0; padding: 0; border-radius: 999rpx; background: #F4F5F3; color: #303A34; font-size: 27rpx; font-weight: 600; line-height: 88rpx; }
+.ap-wechat::after { border: 0; }
+.ap-safe { height: calc(28rpx + env(safe-area-inset-bottom)); }
+@keyframes ap-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+@import "./index.large.wxss"; /* 平板、电脑大屏样式：由 scripts/build-large-screen-styles.mjs 生成，改完本文件后重跑；这一行须留在文件末尾 */

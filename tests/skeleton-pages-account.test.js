@@ -113,6 +113,7 @@ for (const [file, service, payload] of [
       '/identity': { [service]: async () => { if (fail) throw new Error('offline'); return JSON.parse(JSON.stringify(payload)) } },
       '/customer-service': { isEnterpriseWechatContact: () => true, openCustomerServiceChat: async () => {}, customerServiceErrorMessage: () => '' },
       '/guardian-dashboard-view': require('../utils/guardian-dashboard-view'),
+      '/guardian-course-view': require('../utils/guardian-course-view'),
       '/ui-assets': { attachUiAssets() {} }
     }, { createSelectorQuery: () => ({ select: () => ({ boundingClientRect: () => ({ exec() {} }) }) }) })
     assert.equal(page.data.loaded, false)

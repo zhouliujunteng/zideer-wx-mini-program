@@ -30,6 +30,7 @@ function loadPage(file, modules) {
       if (name.endsWith('/utils/my-course-groups')) return require('../utils/my-course-groups')
       if (name.endsWith('/utils/quest-path-view')) return require('../utils/quest-path-view')
       if (name.endsWith('/utils/honors-view')) return require('../utils/honors-view')
+      if (name.endsWith('/utils/self-meeting-entry')) return { openSelfMeeting: async () => 'opened' }
       if (name.endsWith('/payment-switch') && !key) return paymentSwitchStub({ navigateTo() {}, redirectTo() {} })
       if (!key) throw new Error(`Unexpected import ${name}`)
       return modules[key]

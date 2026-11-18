@@ -181,6 +181,13 @@ function starsOf(stars, total) {
   return { icons: Array.from({ length: all }, (_, index) => index < count), text: '' }
 }
 
+/** 这一批已经读到的话里，这个同学最后一句是「学会了」。 */
+function saidLearned(id, lines = [], revealed = 0) {
+  const said = lines.slice(0, revealed).filter((line) => line && line.peer === id)
+  const last = said[said.length - 1]
+  return Boolean(last && last.kind === 'react' && Number(last.gained) > 0)
+}
+
 /**
  * 教室里的一排同学。还没开课（peerClass 为 null）时按三个同学画、不画星星。
  * speakingPeer：正在出声的同学（高亮光圈 + 喇叭）。
@@ -204,6 +211,8 @@ function classroomPeers({ peerClass = null, turns = [], lines = [], revealed = 0
       art: PEER_ART[peer.id][thinking ? 'listen' : mood],
       // 孩子讲完一段、同学们在记笔记：头上画「…」（2026-11-18）
       thinking: Boolean(thinking),
+      // 这一批里刚说「学会了」的同学：头上冒星星（2026-11-18）
+      sparkle: !thinking && !learnerTalking && saidLearned(peer.id, lines, revealed),
       bubble: thinking ? '' : (bubble ? bubble.text : ''),
       bubbleOld: Boolean(bubble && bubble.old && speakingPeer !== peer.id),
       speaking: speakingPeer === peer.id,

@@ -12,12 +12,12 @@
     <view class="profile-shell">
       <view class="profile-hero">
         <view class="profile-avatar-wrap">
-          <button class="profile-avatar profile-avatar-trigger" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" aria-label="更换头像">
+          <view class="profile-avatar profile-avatar-trigger" bindtap="openAvatarPicker" aria-role="button" aria-label="更换头像">
             <image wx:if="{{model.avatarSrc || profileLoaded}}" class="profile-avatar-image" src="{{UA.avatar(ui, model.avatarSrc)}}" mode="aspectFill"></image>
             <view wx:elif="{{!profileLoaded && !profileFailed}}" class="sk profile-avatar-sk"></view>
-          </button>
+          </view>
           <view class="profile-avatar-edit">
-            <button class="profile-avatar-edit-button" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar" aria-label="更换头像"><image class="profile-avatar-change-icon" src="{{UA.src(ui, '../../assets/me/profile-avatar-change.svg')}}" mode="aspectFit"></image></button>
+            <view class="profile-avatar-edit-button" bindtap="openAvatarPicker" aria-role="button" aria-label="更换头像"><image class="profile-avatar-change-icon" src="{{UA.src(ui, '../../assets/me/profile-avatar-change.svg')}}" mode="aspectFit"></image></view>
           </view>
         </view>
       </view>
@@ -163,3 +163,4 @@
   </view>
 </view>
 <dev-reset-fab />
+<avatar-picker visible="{{avatarPickerVisible}}" busy="{{avatarBusy}}" bind:preset="handlePresetAvatar" bind:wechat="handleWechatAvatar" bind:close="closeAvatarPicker" />
